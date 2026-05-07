@@ -5,7 +5,7 @@
 SvelteBuilder aims to be an opinionated starter template and toolkit for SvelteKit projects that need to be production-ready from day one. It will ship with first-class localization, a clean set of common UI components, and strong established patterns for routing, data access, auth, and error handling — so you can skip the boilerplate and start building the parts that actually matter.
 
 > [!WARNING]
-> **Status: Pre-POC.** This project is in active planning. Code, APIs, and architecture are subject to significant change. The roadmap below describes the intended direction, not a current feature list.
+> **Status: [POC](https://github.com/cailenfisher/poc-svelte-builder).** This project is in active planning. Code, APIs, and architecture are subject to significant change. The roadmap below describes the intended direction, not a current feature list.
 
 ## Goals
 
