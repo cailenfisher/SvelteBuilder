@@ -1,0 +1,9 @@
+{
+  "package": "@sveltebuilder/hermes",
+  "schemas": [
+    "supabase/schemas/locale.sql",
+    "supabase/schemas/local_text_link.sql",
+    "supabase/schemas/local_text.sql"
+  ],
+  "after": []
+}

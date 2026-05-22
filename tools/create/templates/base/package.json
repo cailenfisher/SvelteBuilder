@@ -1,0 +1,28 @@
+{
+  "name": "my-sveltebuilder-app",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@sveltebuilder/hermes": "latest",
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "latest",
+    "@sveltejs/kit": "latest",
+    "@sveltejs/vite-plugin-svelte": "latest",
+    "svelte": "latest",
+    "svelte-check": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "@types/node": "latest"
+  }
+}
