@@ -18,10 +18,13 @@
   },
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "peerDependencies": {
     "svelte": "^5.0.0",
-    "@sveltebuilder/hermes": "workspace:*"
+    "@sveltebuilder/hermes": "workspace:*",
+    "bits-ui": "^2.18.1"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",
