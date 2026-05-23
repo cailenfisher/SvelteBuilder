@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/blog",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "private": false,
   "type": "module",
   "scripts": {
@@ -22,7 +22,9 @@
   },
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "peerDependencies": {
     "@sveltebuilder/hermes": "workspace:*",
     "@sveltebuilder/coreui": "workspace:*",
