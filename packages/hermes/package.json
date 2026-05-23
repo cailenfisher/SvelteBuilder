@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/hermes",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "type": "module",
   "scripts": {
@@ -13,11 +13,11 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "svelte": "./src/lib/index.ts",
+      "svelte": "./dist/index.js",
       "default": "./dist/index.js"
     }
   },
-  "svelte": "./src/lib/index.ts",
+  "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": ["dist"],
   "peerDependencies": {
