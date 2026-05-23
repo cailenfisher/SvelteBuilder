@@ -7,8 +7,8 @@ export type SchemaManifest = {
   after: string[];
 };
 
-export async function discover(): Promise<SchemaManifest[]> {
-  const cwd = process.env.INIT_CWD ?? process.cwd();
+export async function discover(root?: string): Promise<SchemaManifest[]> {
+  const cwd = root ?? process.env.INIT_CWD ?? process.cwd();
   const files = await glob('supabase/schemas/_registry/*.json', { cwd, absolute: true });
 
   const manifests: SchemaManifest[] = [];

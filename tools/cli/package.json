@@ -6,6 +6,9 @@
   "bin": {
     "sveltebuilder": "./dist/index.js"
   },
+  "exports": {
+    "./api": "./dist/api.js"
+  },
   "files": ["dist"],
   "scripts": {
     "build": "tsup",
