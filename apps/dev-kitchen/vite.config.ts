@@ -5,11 +5,12 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [sveltekit()],
   resolve: {
-    alias: {
-      '@sveltebuilder/coreui': resolve('../../packages/coreui/src/lib/index.ts'),
-      '@sveltebuilder/hermes': resolve('../../packages/hermes/src/lib/index.ts'),
-      '@sveltebuilder/blog': resolve('../../packages/blog/src/lib/index.ts')
-    }
+    alias: [
+      { find: '@sveltebuilder/coreui/styles', replacement: resolve('../../packages/coreui/src/styles') },
+      { find: '@sveltebuilder/coreui', replacement: resolve('../../packages/coreui/src/lib/index.ts') },
+      { find: '@sveltebuilder/hermes', replacement: resolve('../../packages/hermes/src/lib/index.ts') },
+      { find: '@sveltebuilder/blog', replacement: resolve('../../packages/blog/src/lib/index.ts') }
+    ]
   },
   ssr: {
     noExternal: ['@sveltebuilder/blog', '@sveltebuilder/coreui', '@sveltebuilder/hermes', 'bits-ui']

@@ -30,7 +30,7 @@
   const hasError = $derived(!!resolvedError);
 
   // aria-describedby: prefer explicit prop; otherwise build from Field ids
-  const resolvedDescribedBy = $derived(() => {
+  const resolvedDescribedBy = $derived.by(() => {
     if (restProps['aria-describedby']) return restProps['aria-describedby'];
     const parts: string[] = [];
     if (field?.hint && !hasError) parts.push(field.hintId);
@@ -52,7 +52,7 @@
     required={resolvedRequired || undefined}
     disabled={resolvedDisabled || undefined}
     aria-invalid={hasError || undefined}
-    aria-describedby={resolvedDescribedBy()}
+    aria-describedby={resolvedDescribedBy}
     bind:value
     {...restProps}
   />

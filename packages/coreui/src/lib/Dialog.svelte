@@ -26,6 +26,8 @@
     class: extraClass,
   }: Props = $props();
 
+  const descId = `dialog-desc-${Math.random().toString(36).slice(2, 9)}`;
+
   const contentClasses = $derived(
     ['dialog', `dialog--${size}`, extraClass ?? ''].filter(Boolean).join(' ')
   );
@@ -41,7 +43,7 @@
   <Dialog.Portal>
     <Dialog.Overlay class="dialog-overlay" />
 
-    <Dialog.Content class={contentClasses} aria-describedby={description ? 'dialog-desc' : undefined}>
+    <Dialog.Content class={contentClasses} aria-describedby={description ? descId : undefined}>
       <div class="dialog__header">
         <Dialog.Title class="dialog__title" level={2}>
           {title}
@@ -60,7 +62,7 @@
       </div>
 
       {#if description}
-        <Dialog.Description id="dialog-desc" class="dialog__description">
+        <Dialog.Description id={descId} class="dialog__description">
           {description}
         </Dialog.Description>
       {:else}

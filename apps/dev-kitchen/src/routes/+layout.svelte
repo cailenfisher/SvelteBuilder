@@ -1,4 +1,5 @@
 <script lang="ts">
+  import '@sveltebuilder/coreui/styles/tokens.css';
   import { load } from '@sveltebuilder/hermes'
   import { localText, LocalText } from '@sveltebuilder/hermes'
   import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
