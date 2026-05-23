@@ -12,6 +12,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@sveltebuilder/blog": "workspace:*",
     "@sveltebuilder/coreui": "workspace:*",
     "@sveltebuilder/hermes": "workspace:*",
     "@supabase/ssr": "latest",

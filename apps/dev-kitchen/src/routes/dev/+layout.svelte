@@ -36,6 +36,19 @@
     <a href="/dev/coreui/tabs">Tabs</a>
     <a href="/dev/coreui/tag">Tag</a>
     <a href="/dev/coreui/tooltip">Tooltip</a>
+
+    <strong>Blog</strong>
+    <a href="/dev/blog">All components</a>
+    <a href="/dev/blog/post-card">PostCard</a>
+    <a href="/dev/blog/post-list">PostList</a>
+    <a href="/dev/blog/post-body">PostBody</a>
+    <a href="/dev/blog/post-meta">PostMeta</a>
+    <a href="/dev/blog/category-pill">CategoryPill</a>
+    <a href="/dev/blog/tag-pill">TagPill</a>
+    <a href="/dev/blog/comment-form">CommentForm</a>
+    <a href="/dev/blog/comment-list">CommentList</a>
+    <a href="/dev/blog/post-status-badge">PostStatusBadge</a>
+    <a href="/dev/blog/reading-time">ReadingTime</a>
   </nav>
   <div class="dev-layout__content">
     {@render children()}

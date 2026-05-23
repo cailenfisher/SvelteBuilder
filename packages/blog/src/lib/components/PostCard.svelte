@@ -61,7 +61,7 @@
       {/if}
 
       <h2 class="post-card__title">
-        <a class="post-card__title-link" {href}={cardHref}>{title}</a>
+        <a class="post-card__title-link" href={cardHref}>{title}</a>
       </h2>
 
       {#if publishedDate}
