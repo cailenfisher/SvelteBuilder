@@ -1,6 +1,7 @@
 {
-  "package": "@sveltebuilder/hermes",
+  "package": "@sveltebuilder/base",
   "schemas": [
+    "supabase/schemas/user_account.sql",
     "supabase/schemas/locale.sql",
     "supabase/schemas/local_text_link.sql",
     "supabase/schemas/local_text.sql",

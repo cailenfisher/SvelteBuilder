@@ -12,6 +12,7 @@ major_version = 15
 
 [db.migrations]
 schema_paths = [
+  "./schemas/user_account.sql",
   "./schemas/locale.sql",
   "./schemas/local_text_link.sql",
   "./schemas/local_text.sql",
