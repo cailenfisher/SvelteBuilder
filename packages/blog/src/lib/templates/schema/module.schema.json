@@ -1,0 +1,7 @@
+{
+  "module": "@sveltebuilder/blog",
+  "schemaVersion": "1.0.0",
+  "dependsOn": ["@sveltebuilder/hermes"],
+  "priority": 200,
+  "tables": ["post", "post_category", "post_tag", "post_category_post", "post_post_tag", "comment"]
+}
