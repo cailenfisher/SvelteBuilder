@@ -1,51 +1,25 @@
 <script lang="ts">
-  import { Alert, Button, Field, Input } from '@sveltebuilder/coreui'
+  import { Button } from '@sveltebuilder/coreui'
   import { localText } from '@sveltebuilder/hermes'
   import type { ActionData } from './$types'
 
   let { form }: { form: ActionData } = $props()
 
-  const title    = $derived(localText('user.sign_in'))
-  const subtitle = $derived(localText('user.sign_in.subtitle'))
-  const emailLabel    = $derived(localText('user.email'))
-  const passwordLabel = $derived(localText('user.password'))
+  const title = $derived(localText('user.sign_in'))
 </script>
 
 <div class="sign-in-page">
   <div class="sign-in-card">
     <header class="sign-in-card__header">
       <h1 class="sign-in-card__title">{title}</h1>
-      <p class="sign-in-card__subtitle">{subtitle}</p>
     </header>
 
     {#if form?.error}
-      <Alert variant="danger">{form.error}</Alert>
+      <p class="sign-in-card__error" role="alert">{form.error}</p>
     {/if}
 
-    <form method="post" class="sign-in-card__form">
-      <Field label={emailLabel} id="email" required>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          autocomplete="email"
-          placeholder="you@example.com"
-          required
-        />
-      </Field>
-
-      <Field label={passwordLabel} id="password" required>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          placeholder="••••••••"
-          required
-        />
-      </Field>
-
-      <Button type="submit" full>{title}</Button>
+    <form method="post">
+      <Button type="submit" full>Sign in with Google</Button>
     </form>
   </div>
 </div>
@@ -85,15 +59,9 @@
     line-height: 1.25;
   }
 
-  .sign-in-card__subtitle {
+  .sign-in-card__error {
     margin: 0;
     font-size: 0.875rem;
-    color: var(--color-text-secondary, inherit);
-  }
-
-  .sign-in-card__form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    color: var(--color-text-danger, red);
   }
 </style>

@@ -1,7 +1,7 @@
 import { redirect, fail } from '@sveltejs/kit'
+import { PUBLIC_SITE_URL } from '$env/static/public'
 import type { Actions, PageServerLoad } from './$types'
 
-// Redirect already-authenticated users away from the sign-in page.
 export const load: PageServerLoad = async ({ locals }) => {
   const { session } = await locals.safeGetSession()
   if (session) throw redirect(303, '/admin/dashboard')
@@ -9,22 +9,18 @@ export const load: PageServerLoad = async ({ locals }) => {
 }
 
 export const actions: Actions = {
-  default: async ({ request, locals }) => {
-    const formData = await request.formData()
-    const email = String(formData.get('email') ?? '')
-    const password = String(formData.get('password') ?? '')
+  default: async ({ locals }) => {
+    const { data, error } = await locals.supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${PUBLIC_SITE_URL}/auth/callback`,
+      },
+    })
 
-    if (!email || !password) {
-      return fail(400, { error: 'Email and password are required.' })
+    if (error || !data.url) {
+      return fail(500, { error: 'Could not initiate Google sign-in.' })
     }
 
-    const { error } = await locals.supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      // Return a generic message — do not expose whether the email exists.
-      return fail(400, { error: 'Invalid email or password.' })
-    }
-
-    throw redirect(303, '/admin/dashboard')
+    throw redirect(303, data.url)
   },
 }

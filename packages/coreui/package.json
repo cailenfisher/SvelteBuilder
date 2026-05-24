@@ -1,11 +1,11 @@
 {
   "name": "@sveltebuilder/coreui",
-  "version": "0.0.2",
+  "version": "0.0.6",
   "private": false,
   "type": "module",
   "scripts": {
-    "build": "svelte-package -i src",
-    "dev": "svelte-package -i src --watch",
+    "build": "svelte-package",
+    "dev": "svelte-package --watch",
     "lint": "eslint src",
     "test": "vitest run"
   },
