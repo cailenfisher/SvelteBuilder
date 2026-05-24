@@ -12,6 +12,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@sveltebuilder/coreui": "latest",
     "@sveltebuilder/hermes": "latest"
   },
   "devDependencies": {

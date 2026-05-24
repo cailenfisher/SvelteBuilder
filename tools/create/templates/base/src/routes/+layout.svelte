@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from '$app/state'
   import { load } from '@sveltebuilder/hermes'
   import { localText, LocalText } from '@sveltebuilder/hermes'
   import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
@@ -9,33 +10,51 @@
   $effect(() => {
     load(data.dictionary, data.locale.code, data.defaultLocale.code)
   })
+
+  // Admin and auth routes manage their own chrome.
+  const isFullPage = $derived(
+    page.url.pathname.startsWith('/admin') ||
+    page.url.pathname.startsWith('/sign-')
+  )
 </script>
 
 <svelte:head>
   <title>{localText('app.name')}</title>
 </svelte:head>
 
-<!-- TODO: replace shell structure with @sveltebuilder/coreui layout components -->
-<div class="app" dir={data.locale.dir}>
-  <header class="app__header">
-    <a href="/" class="app__brand">
-      <LocalText slug="app.name" />
-    </a>
-    <nav class="app__nav">
-      <LocaleSwitcher current={data.locale} locales={data.locales} />
-    </nav>
-  </header>
-
-  <main class="app__main">
+{#if isFullPage}
+  <div dir={data.locale.dir} class="full-page">
     {@render children()}
-  </main>
+  </div>
+{:else}
+  <!-- TODO: replace shell structure with @sveltebuilder/coreui layout components -->
+  <div class="app" dir={data.locale.dir}>
+    <header class="app__header">
+      <a href="/" class="app__brand">
+        <LocalText slug="app.name" />
+      </a>
+      <nav class="app__nav">
+        <LocaleSwitcher current={data.locale} locales={data.locales} />
+      </nav>
+    </header>
 
-  <footer class="app__footer">
-    <!-- TODO: replace with @sveltebuilder/coreui Footer component -->
-  </footer>
-</div>
+    <main class="app__main">
+      {@render children()}
+    </main>
+
+    <footer class="app__footer">
+      <!-- TODO: replace with @sveltebuilder/coreui Footer component -->
+    </footer>
+  </div>
+{/if}
 
 <style>
+  .full-page {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
   .app {
     display: grid;
     grid-template-rows: auto 1fr auto;
