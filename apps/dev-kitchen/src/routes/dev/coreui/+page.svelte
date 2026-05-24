@@ -72,6 +72,15 @@
       <a href="/dev/coreui/table" class="component-card">Table</a>
     </div>
   </section>
+
+  <section class="dev-section">
+    <h2>i18n</h2>
+    <div class="grid">
+      <a href="/dev/coreui/locale-edit" class="component-card">LocaleEdit</a>
+      <a href="/dev/coreui/local-text-link-edit" class="component-card">LocalTextLinkEdit</a>
+      <a href="/dev/coreui/local-text-edit" class="component-card">LocalTextEdit</a>
+    </div>
+  </section>
 </div>
 
 <style>
