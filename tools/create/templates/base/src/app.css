@@ -1,0 +1,51 @@
+/* =============================================================================
+   app.css — Application stylesheet
+
+   Import and override CoreUI's configurable design tokens here.
+   All 24 tokens are listed below. Uncomment and adjust any token you need.
+   Tokens you leave commented keep their library defaults.
+
+   Full token reference: @sveltebuilder/coreui/styles/tokens.css
+   ============================================================================= */
+
+@import '@sveltebuilder/coreui/styles/tokens.css';
+
+:root {
+  /* --- Brand --- */
+  --color-brand:        #45b1e8;   /* Picton Blue */
+  --color-brand-subtle: #edf8fd;
+
+  /* --- Neutral --- */
+  --color-neutral-50:  #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-700: #334155;
+  --color-neutral-900: #0f172a;
+
+  /* --- Status --- */
+  --color-danger:         #ef4444;
+  --color-danger-subtle:  #fef2f2;
+  --color-warning:        #f59e0b;
+  --color-warning-subtle: #fffbeb;
+  --color-success:        #22c55e;
+  --color-success-subtle: #f0fdf4;
+  --color-info:           #8b5cf6;
+  --color-info-subtle:    #f5f3ff;
+
+  /* --- Typography --- */
+  /* --font-family-base: system-ui, sans-serif; */
+  /* --font-family-mono: ui-monospace, monospace; */
+  /* --font-size-base:   16px; */
+  /* --font-scale:       1.25; */
+
+  /* --- Shape --- */
+  /* --radius-base: 6px; */
+
+  /* --- Density --- */
+  /* --space-unit: 4px; */
+
+  /* --- Accessibility --- */
+  --color-focus-ring: #45b1e8;
+  /* --shadow-card: 0 1px 3px rgb(0 0 0 / 0.1); */
+}

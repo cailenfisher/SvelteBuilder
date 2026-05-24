@@ -1,4 +1,5 @@
 <script lang="ts">
+  import '../app.css'
   import { page } from '$app/state'
   import { load, localText, LocalText } from '@sveltebuilder/hermes'
   import { LocaleSwitcher } from '@sveltebuilder/coreui'
