@@ -52,7 +52,7 @@
     box-shadow: var(--popover-shadow);
     padding: var(--popover-padding);
     z-index: var(--z-popover);
-    max-width: 20rem;
+    max-width: var(--popover-max-width);
     animation: popover-in var(--duration-fast) var(--ease-out);
   }
 

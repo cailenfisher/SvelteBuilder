@@ -100,7 +100,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--primitive-space-2);
+    gap: var(--space-2);
     width: 100%;
     border: var(--input-border-width) solid var(--input-border);
     border-radius: var(--select-radius);
@@ -135,7 +135,7 @@
   :global(.select__trigger--error:focus-visible) {
     border-color: var(--input-border-error);
     box-shadow: 0 0 0 var(--focus-ring-width)
-      color-mix(in srgb, var(--color-danger-base) 30%, transparent);
+      color-mix(in srgb, var(--color-danger) 30%, transparent);
   }
 
   :global(.select__trigger[data-disabled]) {
@@ -180,7 +180,7 @@
     box-shadow: var(--menu-shadow);
     z-index: var(--z-dropdown);
     min-width: var(--bits-select-anchor-width, 8rem);
-    max-height: 20rem;
+    max-height: var(--select-max-height);
     display: flex;
     flex-direction: column;
     overflow: hidden;

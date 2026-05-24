@@ -27,7 +27,7 @@
     justify-content: center;
     padding: var(--tabs-trigger-padding-y) var(--tabs-trigger-padding-x);
     border: none;
-    border-radius: var(--primitive-radius-md);
+    border-radius: var(--radius-md);
     background: transparent;
     font-family: var(--font-sans);
     font-size: var(--tabs-font-size);
@@ -64,7 +64,7 @@
   /* Vertical active indicator — left border */
   :global(.tabs--vertical .tabs-trigger[data-state="active"]) {
     border-left: var(--tabs-indicator-height) solid var(--tabs-active-color);
-    border-radius: 0 var(--primitive-radius-md) var(--primitive-radius-md) 0;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
     padding-left: calc(var(--tabs-trigger-padding-x) - var(--tabs-indicator-height));
   }
 </style>

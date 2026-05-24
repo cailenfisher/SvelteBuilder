@@ -18,7 +18,7 @@
 
 <style>
   :global(.menu-label) {
-    padding: var(--primitive-space-1-5) var(--menu-item-padding-x);
+    padding: var(--space-1-5) var(--menu-item-padding-x);
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
     color: var(--color-text-tertiary);

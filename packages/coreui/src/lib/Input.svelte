@@ -65,7 +65,7 @@
   .input-wrapper {
     display: flex;
     flex-direction: column;
-    gap: var(--primitive-space-1);
+    gap: var(--space-1);
     width: 100%;
   }
 
@@ -128,7 +128,7 @@
   .input--error:focus-visible {
     border-color: var(--input-border-error);
     box-shadow: 0 0 0 var(--focus-ring-width)
-      color-mix(in srgb, var(--color-danger-base) 30%, transparent);
+      color-mix(in srgb, var(--color-danger) 30%, transparent);
   }
 
   /* ------------------------------------------------------------------ */

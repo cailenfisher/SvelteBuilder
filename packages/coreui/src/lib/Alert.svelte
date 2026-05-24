@@ -50,7 +50,7 @@
   .alert {
     display: flex;
     align-items: flex-start;
-    gap: var(--primitive-space-3);
+    gap: var(--space-3);
     padding: var(--alert-padding-y) var(--alert-padding-x);
     border-radius: var(--alert-radius);
     border: var(--alert-border-width) solid transparent;
@@ -92,7 +92,7 @@
     flex-shrink: 0;
     width: 1.25rem;
     height: 1.25rem;
-    margin-top: var(--primitive-space-0-5);
+    margin-top: var(--space-0-5);
   }
 
   /* ------------------------------------------------------------------ */
@@ -103,7 +103,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--primitive-space-1);
+    gap: var(--space-1);
   }
 
   .alert__title {

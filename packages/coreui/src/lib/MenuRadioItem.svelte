@@ -33,8 +33,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1rem;
-    height: 1rem;
+    width: var(--menu-item-icon-size);
+    height: var(--menu-item-icon-size);
   }
 
   .menu-item__radio-dot::after {

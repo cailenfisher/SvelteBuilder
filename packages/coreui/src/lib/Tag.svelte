@@ -58,7 +58,7 @@
   .tag {
     display: inline-flex;
     align-items: center;
-    gap: var(--primitive-space-1);
+    gap: var(--space-1);
     height: var(--badge-height-md);
     padding: 0 var(--badge-padding-x-md);
     font-size: var(--badge-font-size-md);

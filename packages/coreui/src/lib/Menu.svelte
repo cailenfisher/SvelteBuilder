@@ -48,7 +48,7 @@
     box-shadow: var(--menu-shadow);
     padding: var(--menu-padding);
     z-index: var(--z-dropdown);
-    min-width: 10rem;
+    min-width: var(--menu-min-width);
     display: flex;
     flex-direction: column;
     animation: menu-in var(--duration-fast) var(--ease-out);

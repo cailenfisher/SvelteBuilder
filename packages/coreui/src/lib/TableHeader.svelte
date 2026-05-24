@@ -84,7 +84,7 @@
   .table-header__content {
     display: inline-flex;
     align-items: center;
-    gap: var(--primitive-space-1-5);
+    gap: var(--space-1-5);
   }
 
   .table-header__sort-icon {

@@ -43,6 +43,6 @@
 
   :global(.tabs--vertical) {
     flex-direction: row;
-    gap: var(--primitive-space-4);
+    gap: var(--space-4);
   }
 </style>

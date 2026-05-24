@@ -24,7 +24,7 @@
     align-items: center;
     background-color: var(--tabs-list-bg);
     border-radius: var(--tabs-list-radius);
-    padding: var(--primitive-space-1);
+    padding: var(--space-1);
     gap: var(--tabs-gap);
     flex-shrink: 0;
   }

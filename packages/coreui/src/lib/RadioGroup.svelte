@@ -50,7 +50,7 @@
 <style>
   :global(.radio-group) {
     display: flex;
-    gap: var(--primitive-space-2);
+    gap: var(--space-2);
   }
 
   :global(.radio-group--vertical) {

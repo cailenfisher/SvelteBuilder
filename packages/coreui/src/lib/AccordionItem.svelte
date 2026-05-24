@@ -84,7 +84,7 @@
     font-weight: var(--accordion-trigger-font-weight);
     color: var(--color-text-primary);
     text-align: left;
-    gap: var(--primitive-space-3);
+    gap: var(--space-3);
     transition: background-color var(--duration-fast) var(--ease-out);
   }
 

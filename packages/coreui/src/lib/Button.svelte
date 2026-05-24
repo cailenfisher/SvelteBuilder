@@ -116,7 +116,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--primitive-space-2);
+    gap: var(--space-2);
     border: 1px solid transparent;
     border-radius: var(--button-radius);
     font-family: var(--font-sans);
@@ -206,8 +206,8 @@
   }
 
   .btn--danger {
-    background-color: var(--color-danger-base);
-    border-color: var(--color-danger-base);
+    background-color: var(--color-danger);
+    border-color: var(--color-danger);
     color: var(--color-danger-foreground);
   }
 

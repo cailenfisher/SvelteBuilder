@@ -36,7 +36,7 @@
   .locale-switcher {
     display: flex;
     align-items: center;
-    gap: var(--primitive-space-2);
+    gap: var(--space-2);
   }
 
   .locale-switcher__label {

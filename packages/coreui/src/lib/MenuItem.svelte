@@ -40,7 +40,7 @@
   :global(.menu-item) {
     display: flex;
     align-items: center;
-    gap: var(--primitive-space-2);
+    gap: var(--space-2);
     height: var(--menu-item-height);
     padding: 0 var(--menu-item-padding-x);
     border-radius: var(--menu-item-radius);
@@ -66,8 +66,8 @@
   .menu-item__leading {
     display: inline-flex;
     align-items: center;
-    width: 1rem;
-    height: 1rem;
+    width: var(--menu-item-icon-size);
+    height: var(--menu-item-icon-size);
     flex-shrink: 0;
     color: var(--color-text-secondary);
   }

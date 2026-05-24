@@ -35,7 +35,7 @@
   .radio-item {
     display: inline-flex;
     align-items: center;
-    gap: var(--primitive-space-2);
+    gap: var(--space-2);
     cursor: pointer;
   }
 

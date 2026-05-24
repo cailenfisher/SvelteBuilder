@@ -1,0 +1,60 @@
+/* =============================================================================
+   SvelteBuilder CoreUI — Design Tokens (public API)
+   tokens.css
+
+   Import once at the root layout of your consuming application:
+
+     @import '@sveltebuilder/coreui/styles/tokens.css';
+
+   Then override only the tokens you need:
+
+     :root {
+       --color-brand: #0f5a9c;
+       --font-family-base: 'Inter', sans-serif;
+     }
+
+   The 24 custom properties below are the complete public theming surface.
+   All other tokens are internal — overriding them directly is unsupported.
+   ============================================================================= */
+
+@import './_internal.css';
+
+:root {
+  /* --- Brand --- */
+  --color-brand:        #2563eb;
+  --color-brand-subtle: #eff6ff;
+
+  /* --- Neutral --- */
+  --color-neutral-50:  #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-700: #374151;
+  --color-neutral-900: #111827;
+
+  /* --- Status --- */
+  --color-danger:         #dc2626;
+  --color-danger-subtle:  #fef2f2;
+  --color-warning:        #d97706;
+  --color-warning-subtle: #fffbeb;
+  --color-success:        #16a34a;
+  --color-success-subtle: #f0fdf4;
+  --color-info:           #0284c7;
+  --color-info-subtle:    #f0f9ff;
+
+  /* --- Typography --- */
+  --font-family-base: system-ui, sans-serif;
+  --font-family-mono: ui-monospace, monospace;
+  --font-size-base:   16px;
+  --font-scale:       1.25;
+
+  /* --- Shape --- */
+  --radius-base: 6px;
+
+  /* --- Density --- */
+  --space-unit: 4px;
+
+  /* --- Accessibility --- */
+  --color-focus-ring: #2563eb;
+  --shadow-card:      0 1px 3px rgb(0 0 0 / 0.1);
+}

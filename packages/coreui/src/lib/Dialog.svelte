@@ -174,7 +174,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--primitive-space-3);
+    gap: var(--space-3);
     padding: var(--dialog-padding) var(--dialog-padding) 0;
     flex-shrink: 0;
   }
@@ -219,7 +219,7 @@
     font-size: var(--text-sm);
     color: var(--color-text-secondary);
     line-height: var(--leading-normal);
-    padding: var(--primitive-space-2) var(--dialog-padding) 0;
+    padding: var(--space-2) var(--dialog-padding) 0;
     margin: 0;
     flex-shrink: 0;
   }
@@ -252,7 +252,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: var(--primitive-space-3);
+    gap: var(--space-3);
     padding: 0 var(--dialog-padding) var(--dialog-padding);
     flex-shrink: 0;
     border-top: 1px solid var(--color-border-subtle);

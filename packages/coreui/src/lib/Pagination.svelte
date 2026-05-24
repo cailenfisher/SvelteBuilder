@@ -99,7 +99,7 @@
     justify-content: center;
     min-width: var(--pagination-item-size);
     height: var(--pagination-item-size);
-    padding: 0 var(--primitive-space-1);
+    padding: 0 var(--space-1);
     border: 1px solid var(--color-border-default);
     border-radius: var(--pagination-radius);
     background: transparent;

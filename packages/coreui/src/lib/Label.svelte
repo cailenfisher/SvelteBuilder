@@ -36,7 +36,7 @@
   :global(.label) {
     display: inline-flex;
     align-items: center;
-    gap: var(--primitive-space-0-5);
+    gap: var(--space-0-5);
     font-size: var(--label-font-size);
     font-weight: var(--label-font-weight);
     color: var(--label-color);

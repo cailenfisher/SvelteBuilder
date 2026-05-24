@@ -47,7 +47,7 @@
   .switch-wrapper {
     display: inline-flex;
     align-items: center;
-    gap: var(--primitive-space-3);
+    gap: var(--space-3);
     cursor: pointer;
   }
 
@@ -68,7 +68,7 @@
     transition: background-color var(--switch-transition);
     cursor: pointer;
     flex-shrink: 0;
-    padding: 0 var(--primitive-space-0-5);
+    padding: 0 var(--space-0-5);
   }
 
   :global(.switch--sm) {
@@ -120,11 +120,11 @@
 
   /* Thumb translate when checked */
   :global(.switch--sm[data-state="checked"] .switch__thumb) {
-    transform: translateX(calc(var(--switch-track-width-sm) - var(--switch-thumb-size-sm) - var(--primitive-space-1)));
+    transform: translateX(calc(var(--switch-track-width-sm) - var(--switch-thumb-size-sm) - var(--space-1)));
   }
 
   :global(.switch--md[data-state="checked"] .switch__thumb) {
-    transform: translateX(calc(var(--switch-track-width-md) - var(--switch-thumb-size-md) - var(--primitive-space-1)));
+    transform: translateX(calc(var(--switch-track-width-md) - var(--switch-thumb-size-md) - var(--space-1)));
   }
 
   /* ------------------------------------------------------------------ */
