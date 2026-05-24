@@ -20,6 +20,18 @@ export { default as Skeleton } from './Skeleton.svelte';
 export { default as Spinner } from './Spinner.svelte';
 
 // ============================================================
+// Messaging system
+// ============================================================
+export { messageBus, AUTO_DISMISS_MS } from './message-bus.svelte.js';
+export type { SBMessage, SBMessageSeverity, SBMessageAction } from './message-bus.svelte.js';
+export { default as Toast } from './Toast.svelte';
+export { default as ToastRegion } from './ToastRegion.svelte';
+export { default as InlineNotification } from './InlineNotification.svelte';
+export { default as Banner } from './Banner.svelte';
+export { default as ConfirmDialog } from './ConfirmDialog.svelte';
+export { default as MessageAriaLive } from './MessageAriaLive.svelte';
+
+// ============================================================
 // Form primitives
 // ============================================================
 export { default as Field } from './Field.svelte';

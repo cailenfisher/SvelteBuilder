@@ -353,6 +353,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | Issue                   | Notes                                                                                                                                                                     |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | SSR title flicker       | `localText('app.title')` in `<svelte:head>` renders the missing sentinel on first server render — `$effect` hasn't run yet. Needs SSR-safe dictionary hydration strategy. |
+| `messageBus` SSR        | `messageBus` uses module-level `$state`, which is shared across requests on the server. Safe for the CSR dev-kitchen. Scaffold template wiring requires a per-request solution (Svelte context or `$page.data`) before this is used in an SSR app. |
 | `create-sveltebuilder`  | Prompt/copy/install flow is stubbed, not fully implemented.                                                                                                               |
 | `@sveltebuilder/coreui` | Foundation not yet built: design tokens, CSS reset, `Button`, `Icon`, layout primitives.                                                                                  |
 | `apps/dev-kitchen`      | Not yet wired as a working SvelteKit app.                                                                                                                                 |

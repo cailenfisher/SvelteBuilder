@@ -67,6 +67,16 @@
   </section>
 
   <section class="dev-section">
+    <h2>Messaging</h2>
+    <div class="grid">
+      <a href="/dev/coreui/toast" class="component-card">Toast</a>
+      <a href="/dev/coreui/inline-notification" class="component-card">InlineNotification</a>
+      <a href="/dev/coreui/banner" class="component-card">Banner</a>
+      <a href="/dev/coreui/confirm-dialog" class="component-card">ConfirmDialog</a>
+    </div>
+  </section>
+
+  <section class="dev-section">
     <h2>Data</h2>
     <div class="grid">
       <a href="/dev/coreui/table" class="component-card">Table</a>

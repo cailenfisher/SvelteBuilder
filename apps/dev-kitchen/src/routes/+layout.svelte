@@ -2,6 +2,7 @@
   import '@sveltebuilder/coreui/styles/tokens.css';
   import { load } from '@sveltebuilder/hermes'
   import { localText, LocalText } from '@sveltebuilder/hermes'
+  import { Banner, ToastRegion, MessageAriaLive } from '@sveltebuilder/coreui'
   import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
   import type { LayoutData } from './$types'
 
@@ -16,6 +17,12 @@
   <title>{localText('app.name')}</title>
 </svelte:head>
 
+<!--
+  Two static ARIA live regions — mounted once at app boot, never moved.
+  Must appear before any dynamic content in the DOM.
+-->
+<MessageAriaLive />
+
 <!-- TODO: replace shell structure with @sveltebuilder/coreui layout components -->
 <div class="app" dir={data.locale.dir}>
   <header class="app__header">
@@ -27,6 +34,9 @@
     </nav>
   </header>
 
+  <!-- Bus-driven system banner; renders nothing when messageBus.banner is null -->
+  <Banner />
+
   <main class="app__main">
     {@render children()}
   </main>
@@ -35,6 +45,9 @@
     <!-- TODO: replace with @sveltebuilder/coreui Footer component -->
   </footer>
 </div>
+
+<!-- Fixed-position toast stack; floats above all content -->
+<ToastRegion />
 
 <style>
   .app {
