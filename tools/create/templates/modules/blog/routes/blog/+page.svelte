@@ -50,14 +50,14 @@
 
   <!-- Category filter -->
   {#if data.categories.length > 0}
-    <nav class="blog-list-page__filters" aria-label="Filter by category">
+    <nav class="blog-list-page__filters" aria-label={localText('blog.admin.post.list.all', 'blog')}>
       <ul class="blog-list-page__filter-list">
         <li>
           <a
             href="/blog"
             class="blog-list-page__filter-all"
             aria-current={!data.categorySlug && !data.tagSlug ? 'page' : undefined}
-          >All</a>
+          >{localText('blog.admin.post.list.all', 'blog')}</a>
         </li>
         {#each data.categories as category (category.id)}
           <li>
@@ -80,7 +80,7 @@
   />
 
   {#if data.total > data.perPage}
-    <nav class="blog-list-page__pagination" aria-label="Pagination">
+    <nav class="blog-list-page__pagination" aria-label={localText('nav.pagination')}>
       <Pagination
         count={data.total}
         perPage={data.perPage}

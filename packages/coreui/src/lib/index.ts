@@ -89,6 +89,13 @@ export { default as TableHeader } from './TableHeader.svelte';
 export { default as TableCell } from './TableCell.svelte';
 
 // ============================================================
+// LocalText admin components
+// ============================================================
+export { default as LocaleEdit } from './LocaleEdit.svelte';
+export { default as LocalTextLinkEdit } from './LocalTextLinkEdit.svelte';
+export { default as LocalTextEdit } from './LocalTextEdit.svelte';
+
+// ============================================================
 // Utilities — for consumers building custom form controls
 // ============================================================
 export { useField } from './use-field.js';

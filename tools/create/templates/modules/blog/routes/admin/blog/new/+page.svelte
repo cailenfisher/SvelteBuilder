@@ -1,13 +1,16 @@
 <script lang="ts">
   import { localText } from '@sveltebuilder/hermes';
-  import { Button, Field, Label, Select, SelectItem, Switch } from '@sveltebuilder/coreui';
+  import { Button, Field, Select, SelectItem, Switch } from '@sveltebuilder/coreui';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
-  const title     = $derived(localText('blog.admin.post.new', 'blog'));
-  const saveLabel = $derived(localText('blog.admin.post.save_draft', 'blog'));
-  const cancelLabel = $derived(localText('action.cancel'));
+  const title             = $derived(localText('blog.admin.post.new', 'blog'));
+  const saveLabel         = $derived(localText('blog.admin.post.save_draft', 'blog'));
+  const cancelLabel       = $derived(localText('action.cancel'));
+  const fieldStatus       = $derived(localText('blog.field.status', 'blog'));
+  const fieldFeatured     = $derived(localText('blog.field.featured', 'blog'));
+  const fieldAllowComment = $derived(localText('blog.field.allow_comment', 'blog'));
 </script>
 
 <div class="admin-post-form">
@@ -23,8 +26,7 @@
   {/if}
 
   <form class="admin-post-form__form" method="post">
-    <Field>
-      <Label for="status">{localText('blog.status.draft', 'blog')}</Label>
+    <Field label={fieldStatus} id="status">
       <Select id="status" name="status" value="draft">
         <SelectItem value="draft">{localText('blog.status.draft', 'blog')}</SelectItem>
         <SelectItem value="review">{localText('blog.status.review', 'blog')}</SelectItem>
@@ -34,13 +36,8 @@
     </Field>
 
     <div class="admin-post-form__switches">
-      <Field>
-        <Switch id="featured" name="featured" label="Featured" />
-      </Field>
-
-      <Field>
-        <Switch id="allow_comment" name="allow_comment" label="Allow comments" checked />
-      </Field>
+      <Switch id="featured" name="featured" label={fieldFeatured} />
+      <Switch id="allow_comment" name="allow_comment" label={fieldAllowComment} checked />
     </div>
 
     <div class="admin-post-form__actions">

@@ -38,7 +38,7 @@
       if (!res.ok) throw new Error('Failed to submit comment.');
       commentSubmitted = true;
     } catch (e) {
-      commentError = e instanceof Error ? e.message : 'Something went wrong.';
+      commentError = e instanceof Error ? e.message : localText('feedback.error');
     } finally {
       commentSubmitting = false;
     }
@@ -104,7 +104,7 @@
       {#if data.post.categories.length > 0 || data.post.tags.length > 0}
         <div class="blog-post__taxonomy">
           {#if data.post.categories.length > 0}
-            <ul class="blog-post__categories" aria-label="Categories">
+            <ul class="blog-post__categories" aria-label={localText('post.categories')}>
               {#each data.post.categories as category (category.id)}
                 <li>
                   <CategoryPill
@@ -118,7 +118,7 @@
           {/if}
 
           {#if data.post.tags.length > 0}
-            <ul class="blog-post__tags" aria-label="Tags">
+            <ul class="blog-post__tags" aria-label={localText('post.tags')}>
               {#each data.post.tags as tag (tag.id)}
                 <li>
                   <TagPill
@@ -138,7 +138,7 @@
   </article>
 
   {#if data.post.allowComment}
-    <section class="blog-post__comments" aria-label="Comments">
+    <section class="blog-post__comments" aria-label={localText('post.comments')}>
       <h2 class="blog-post__comments-title">{commentCount}</h2>
 
       <CommentList
@@ -164,8 +164,9 @@
         {/if}
       {:else}
         <p class="blog-post__sign-in-prompt">
-          <a href="/sign-in">{localText('user.sign_in')}</a>
-          {' '}to leave a comment.
+          <a href="/sign-in" class="blog-post__sign-in-link">
+            {localText('blog.post.detail.sign_in_to_comment', 'blog')}
+          </a>
         </p>
       {/if}
     </section>
@@ -252,7 +253,7 @@
     margin: 0;
   }
 
-  .blog-post__sign-in-prompt a {
+  .blog-post__sign-in-link {
     color: var(--color-text-link);
     text-decoration: underline;
   }

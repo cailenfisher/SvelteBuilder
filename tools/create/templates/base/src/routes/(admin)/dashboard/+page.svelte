@@ -1,24 +1,44 @@
 <script lang="ts">
+  import { localText } from '@sveltebuilder/hermes'
   import {
     Card,
     Badge,
+    Button,
     Table,
     TableHead,
     TableBody,
     TableRow,
     TableHeader,
     TableCell,
-    Button,
   } from '@sveltebuilder/coreui'
+  import type { PageData } from './$types'
+
+  let { data }: { data: PageData } = $props()
 
   type BadgeVariant = 'default' | 'brand' | 'success' | 'warning' | 'danger' | 'info'
 
-  const stats: { label: string; value: string; note: string; variant: BadgeVariant }[] = [
-    { label: 'Total Users', value: '—', note: 'replace with real query', variant: 'default' },
-    { label: 'Active Sessions', value: '—', note: 'replace with real query', variant: 'info' },
-    { label: 'Published', value: '—', note: 'replace with real query', variant: 'success' },
-    { label: 'Pending Review', value: '—', note: 'replace with real query', variant: 'warning' },
-  ]
+  const stats = $derived([
+    {
+      label: localText('admin.dashboard.stat.total_users'),
+      value: data.stats.totalUsers ?? '—',
+      variant: 'default' as BadgeVariant,
+    },
+    {
+      label: localText('admin.dashboard.stat.active_sessions'),
+      value: data.stats.activeSessions ?? '—',
+      variant: 'info' as BadgeVariant,
+    },
+    {
+      label: localText('admin.dashboard.stat.published'),
+      value: data.stats.published ?? '—',
+      variant: 'success' as BadgeVariant,
+    },
+    {
+      label: localText('admin.dashboard.stat.pending_review'),
+      value: data.stats.pendingReview ?? '—',
+      variant: 'warning' as BadgeVariant,
+    },
+  ])
 
   type ItemStatus = 'active' | 'pending' | 'inactive'
   const statusVariant: Record<ItemStatus, BadgeVariant> = {
@@ -27,26 +47,22 @@
     inactive: 'default',
   }
 
-  // Replace with a real +page.server.ts load function querying your data.
-  const recentItems: { id: number; name: string; status: ItemStatus; date: string }[] = [
-    { id: 1, name: 'Example Record', status: 'active', date: '2026-05-23' },
-    { id: 2, name: 'Another Record', status: 'pending', date: '2026-05-22' },
-    { id: 3, name: 'Third Record', status: 'inactive', date: '2026-05-21' },
-  ]
+  // Replace with a real load function query — see +page.server.ts
+  const recentItems: { id: number; name: string; status: ItemStatus; date: string }[] = []
 </script>
 
 <div class="dashboard">
   <header class="dashboard__header">
-    <h1 class="dashboard__title">Dashboard</h1>
+    <h1 class="dashboard__title">{localText('admin.dashboard.title')}</h1>
   </header>
 
-  <section class="dashboard__stats" aria-label="Key metrics">
+  <section class="dashboard__stats" aria-label={localText('admin.stats.key_metrics')}>
     {#each stats as stat}
       <Card>
         <div class="stat">
           <p class="stat__label">{stat.label}</p>
           <p class="stat__value">{stat.value}</p>
-          <Badge variant={stat.variant} size="sm">{stat.note}</Badge>
+          <Badge variant={stat.variant} size="sm">{stat.variant}</Badge>
         </div>
       </Card>
     {/each}
@@ -54,17 +70,17 @@
 
   <section class="dashboard__section">
     <div class="dashboard__section-header">
-      <h2 class="dashboard__section-title">Recent Records</h2>
-      <Button variant="secondary" size="sm">View all</Button>
+      <h2 class="dashboard__section-title">{localText('admin.dashboard.recent.title')}</h2>
+      <Button variant="secondary" size="sm">{localText('action.view_all')}</Button>
     </div>
 
     <Table>
       <TableHead>
         <TableRow>
-          <TableHeader>ID</TableHeader>
-          <TableHeader>Name</TableHeader>
-          <TableHeader>Status</TableHeader>
-          <TableHeader>Date</TableHeader>
+          <TableHeader>{localText('table.id')}</TableHeader>
+          <TableHeader>{localText('table.name')}</TableHeader>
+          <TableHeader>{localText('table.status')}</TableHeader>
+          <TableHeader>{localText('table.date')}</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -73,9 +89,17 @@
             <TableCell>{item.id}</TableCell>
             <TableCell>{item.name}</TableCell>
             <TableCell>
-              <Badge variant={statusVariant[item.status]} size="sm">{item.status}</Badge>
+              <Badge variant={statusVariant[item.status]} size="sm">
+                {localText(`status.${item.status}`)}
+              </Badge>
             </TableCell>
             <TableCell>{item.date}</TableCell>
+          </TableRow>
+        {:else}
+          <TableRow>
+            <TableCell colspan={4}>
+              <p class="dashboard__empty">{localText('feedback.empty')}</p>
+            </TableCell>
           </TableRow>
         {/each}
       </TableBody>
@@ -147,5 +171,13 @@
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
+  }
+
+  .dashboard__empty {
+    margin: 0;
+    font-size: var(--text-sm, 0.875rem);
+    color: var(--color-text-secondary, inherit);
+    text-align: center;
+    padding: 1rem 0;
   }
 </style>

@@ -1,17 +1,21 @@
 <script lang="ts">
   import { localText } from '@sveltebuilder/hermes';
-  import { Button, Field, Label, Select, SelectItem, Switch, Input, Alert } from '@sveltebuilder/coreui';
+  import { Button, Field, Select, SelectItem, Switch, Input, Alert } from '@sveltebuilder/coreui';
   import { PostStatusBadge } from '@sveltebuilder/blog';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
-  const editLabel      = $derived(localText('blog.admin.post.edit', 'blog'));
-  const saveLabel      = $derived(localText('blog.admin.post.save_draft', 'blog'));
-  const publishLabel   = $derived(localText('blog.admin.post.publish', 'blog'));
-  const unpublishLabel = $derived(localText('blog.admin.post.unpublish', 'blog'));
-  const cancelLabel    = $derived(localText('action.cancel'));
-  const statusLabel    = $derived(localText(`blog.status.${data.post.status}`, 'blog'));
+  const editLabel         = $derived(localText('blog.admin.post.edit', 'blog'));
+  const saveLabel         = $derived(localText('blog.admin.post.save_draft', 'blog'));
+  const publishLabel      = $derived(localText('blog.admin.post.publish', 'blog'));
+  const unpublishLabel    = $derived(localText('blog.admin.post.unpublish', 'blog'));
+  const cancelLabel       = $derived(localText('action.cancel'));
+  const statusLabel       = $derived(localText(`blog.status.${data.post.status}`, 'blog'));
+  const fieldStatus       = $derived(localText('blog.field.status', 'blog'));
+  const fieldReadingTime  = $derived(localText('blog.field.reading_time_minute', 'blog'));
+  const fieldFeatured     = $derived(localText('blog.field.featured', 'blog'));
+  const fieldAllowComment = $derived(localText('blog.field.allow_comment', 'blog'));
 </script>
 
 <div class="admin-post-form">
@@ -21,7 +25,6 @@
       <PostStatusBadge status={data.post.status} label={statusLabel} />
     </div>
 
-    <!-- Publish / unpublish actions -->
     <div class="admin-post-form__publish-actions">
       {#if data.post.status !== 'published'}
         <form method="post" action="?/publish">
@@ -48,8 +51,7 @@
   {/if}
 
   <form class="admin-post-form__form" method="post" action="?/save">
-    <Field>
-      <Label for="status">Status</Label>
+    <Field label={fieldStatus} id="status">
       <Select id="status" name="status" value={data.post.status}>
         <SelectItem value="draft">{localText('blog.status.draft', 'blog')}</SelectItem>
         <SelectItem value="review">{localText('blog.status.review', 'blog')}</SelectItem>
@@ -58,8 +60,7 @@
       </Select>
     </Field>
 
-    <Field>
-      <Label for="reading_time_minute">Reading time (minutes)</Label>
+    <Field label={fieldReadingTime} id="reading_time_minute">
       <Input
         id="reading_time_minute"
         name="reading_time_minute"
@@ -70,23 +71,19 @@
     </Field>
 
     <div class="admin-post-form__switches">
-      <Field>
-        <Switch
-          id="featured"
-          name="featured"
-          label="Featured"
-          checked={data.post.featured}
-        />
-      </Field>
+      <Switch
+        id="featured"
+        name="featured"
+        label={fieldFeatured}
+        checked={data.post.featured}
+      />
 
-      <Field>
-        <Switch
-          id="allow_comment"
-          name="allow_comment"
-          label="Allow comments"
-          checked={data.post.allowComment}
-        />
-      </Field>
+      <Switch
+        id="allow_comment"
+        name="allow_comment"
+        label={fieldAllowComment}
+        checked={data.post.allowComment}
+      />
     </div>
 
     <div class="admin-post-form__actions">

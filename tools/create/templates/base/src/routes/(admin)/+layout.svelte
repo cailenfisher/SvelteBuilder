@@ -1,15 +1,22 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
+  import { localText } from '@sveltebuilder/hermes'
+  import type { LayoutData } from './$types'
 
-  let { children }: { children: Snippet } = $props()
+  let { data, children }: { data: LayoutData; children: Snippet } = $props()
 
-  const navLinks = [{ href: '/admin/dashboard', label: 'Dashboard' }]
+  const navLinks = $derived(
+    data.navItems.map((item) => ({
+      href: item.href,
+      label: item.local_text_link ? localText(item.local_text_link.slug) : item.href,
+    }))
+  )
 </script>
 
 <div class="admin-layout">
-  <nav class="admin-layout__sidebar" aria-label="Admin navigation">
+  <nav class="admin-layout__sidebar" aria-label={localText('admin.nav.label')}>
     <div class="admin-layout__logo">
-      <a href="/admin/dashboard">Admin</a>
+      <a href="/admin/dashboard">{localText('admin.title')}</a>
     </div>
     <ul class="admin-layout__nav">
       {#each navLinks as link}
@@ -21,7 +28,6 @@
   </nav>
 
   <div class="admin-layout__body">
-    <!-- SuperPrototype layer adds the user header here -->
     <main class="admin-layout__main">
       {@render children()}
     </main>

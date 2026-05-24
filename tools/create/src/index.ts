@@ -214,6 +214,17 @@ async function main() {
       );
       await fs.copy(manifestSrc, manifestDest, { overwrite: true });
     }
+
+    // Append module seed SQL to the project seed file.
+    const modSeedPath = path.join(modDir, 'seed', 'seed.sql');
+    if (await fs.pathExists(modSeedPath)) {
+      const mainSeedPath = path.join(targetDir, 'supabase', 'seed.sql');
+      const modSeedContent = await fs.readFile(modSeedPath, 'utf8');
+      await fs.appendFile(
+        mainSeedPath,
+        `\n-- ============================================================\n-- @sveltebuilder/${mod} seed (appended by create-sveltebuilder)\n-- ============================================================\n${modSeedContent}`,
+      );
+    }
   }
 
   // ── Step 4: Write updated package.json with module deps ───────────────────

@@ -81,6 +81,7 @@ export { default as MenuSub } from './lib/MenuSub.svelte';
 // Navigation
 // ============================================================
 export { default as Pagination } from './lib/Pagination.svelte';
+export { default as LocaleSwitcher } from './lib/LocaleSwitcher.svelte';
 
 // ============================================================
 // Data display

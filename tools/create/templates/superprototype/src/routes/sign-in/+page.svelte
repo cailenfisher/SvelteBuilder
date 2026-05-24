@@ -1,15 +1,21 @@
 <script lang="ts">
   import { Alert, Button, Field, Input } from '@sveltebuilder/coreui'
+  import { localText } from '@sveltebuilder/hermes'
   import type { ActionData } from './$types'
 
   let { form }: { form: ActionData } = $props()
+
+  const title    = $derived(localText('user.sign_in'))
+  const subtitle = $derived(localText('user.sign_in.subtitle'))
+  const emailLabel    = $derived(localText('user.email'))
+  const passwordLabel = $derived(localText('user.password'))
 </script>
 
 <div class="sign-in-page">
   <div class="sign-in-card">
     <header class="sign-in-card__header">
-      <h1 class="sign-in-card__title">Sign in</h1>
-      <p class="sign-in-card__subtitle">Enter your credentials to access the admin area.</p>
+      <h1 class="sign-in-card__title">{title}</h1>
+      <p class="sign-in-card__subtitle">{subtitle}</p>
     </header>
 
     {#if form?.error}
@@ -17,7 +23,7 @@
     {/if}
 
     <form method="post" class="sign-in-card__form">
-      <Field label="Email" id="email" required>
+      <Field label={emailLabel} id="email" required>
         <Input
           id="email"
           name="email"
@@ -28,7 +34,7 @@
         />
       </Field>
 
-      <Field label="Password" id="password" required>
+      <Field label={passwordLabel} id="password" required>
         <Input
           id="password"
           name="password"
@@ -39,7 +45,7 @@
         />
       </Field>
 
-      <Button type="submit" full>Sign in</Button>
+      <Button type="submit" full>{title}</Button>
     </form>
   </div>
 </div>

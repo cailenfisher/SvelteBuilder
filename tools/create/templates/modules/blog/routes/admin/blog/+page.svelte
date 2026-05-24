@@ -11,20 +11,27 @@
 
   let { data }: { data: PageData } = $props();
 
-  const title       = $derived(localText('blog.admin.post.list.title', 'blog'));
-  const newLabel    = $derived(localText('blog.admin.post.new', 'blog'));
-  const editLabel   = $derived(localText('blog.admin.post.edit', 'blog'));
-  const deleteLabel = $derived(localText('blog.admin.post.delete', 'blog'));
+  const title          = $derived(localText('blog.admin.post.list.title', 'blog'));
+  const newLabel       = $derived(localText('blog.admin.post.new', 'blog'));
+  const editLabel      = $derived(localText('blog.admin.post.edit', 'blog'));
+  const deleteLabel    = $derived(localText('blog.admin.post.delete', 'blog'));
   const publishLabel   = $derived(localText('blog.admin.post.publish', 'blog'));
   const unpublishLabel = $derived(localText('blog.admin.post.unpublish', 'blog'));
+  const allLabel       = $derived(localText('blog.admin.post.list.all', 'blog'));
+  const deleteWarning  = $derived(localText('blog.admin.post.delete.warning', 'blog'));
 
-  const statusTabs: Array<{ value: PostStatus | ''; label: string }> = [
-    { value: '', label: 'All' },
+  const colTitle       = $derived(localText('blog.admin.table.title', 'blog'));
+  const colStatus      = $derived(localText('blog.admin.table.status', 'blog'));
+  const colPublished   = $derived(localText('blog.admin.table.published_at', 'blog'));
+  const colActions     = $derived(localText('table.actions'));
+
+  const statusTabs = $derived<Array<{ value: PostStatus | ''; label: string }>>([
+    { value: '',          label: allLabel },
     { value: 'draft',     label: localText('blog.status.draft', 'blog') },
     { value: 'review',    label: localText('blog.status.review', 'blog') },
     { value: 'published', label: localText('blog.status.published', 'blog') },
     { value: 'archived',  label: localText('blog.status.archived', 'blog') },
-  ];
+  ]);
 
   let deleteTarget = $state<Post | null>(null);
   let deleteOpen   = $state(false);
@@ -63,9 +70,8 @@
     <Button href="/admin/blog/new" variant="primary">{newLabel}</Button>
   </header>
 
-  <!-- Status filter tabs -->
   <Tabs value={data.status ?? ''}>
-    <TabsList aria-label="Filter posts by status">
+    <TabsList aria-label={title}>
       {#each statusTabs as tab}
         <TabsTrigger
           value={tab.value}
@@ -80,11 +86,11 @@
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeader>Title</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Published</TableHeader>
+            <TableHeader>{colTitle}</TableHeader>
+            <TableHeader>{colStatus}</TableHeader>
+            <TableHeader>{colPublished}</TableHeader>
             <TableHeader>
-              <span class="sr-only">Actions</span>
+              <span class="sr-only">{colActions}</span>
             </TableHeader>
           </TableRow>
         </TableHead>
@@ -92,10 +98,7 @@
           {#each data.posts as post (post.id)}
             <TableRow>
               <TableCell>
-                <a
-                  href="/admin/blog/{post.id}"
-                  class="admin-post-list__post-link"
-                >
+                <a href="/admin/blog/{post.id}" class="admin-post-list__post-link">
                   {localText(`title.${post.id}`, 'post')}
                 </a>
               </TableCell>
@@ -141,7 +144,7 @@
       </Table>
 
       {#if data.total > data.perPage}
-        <nav class="admin-post-list__pagination" aria-label="Pagination">
+        <nav class="admin-post-list__pagination" aria-label={localText('nav.pagination')}>
           <Pagination
             count={data.total}
             perPage={data.perPage}
@@ -153,11 +156,10 @@
   </Tabs>
 </div>
 
-<!-- Delete confirmation dialog -->
 <Dialog
   bind:open={deleteOpen}
   title={deleteLabel}
-  description="This action cannot be undone."
+  description={deleteWarning}
 >
   {#snippet children()}
     <p>{localText('feedback.confirm_delete')}</p>

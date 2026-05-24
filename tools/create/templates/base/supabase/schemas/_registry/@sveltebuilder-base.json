@@ -5,7 +5,8 @@
     "supabase/schemas/locale.sql",
     "supabase/schemas/local_text_link.sql",
     "supabase/schemas/local_text.sql",
-    "supabase/schemas/get_dictionary.sql"
+    "supabase/schemas/get_dictionary.sql",
+    "supabase/schemas/navigation_item.sql"
   ],
   "after": []
 }
