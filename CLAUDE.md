@@ -350,23 +350,29 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 
 ## Known Open Issues
 
-| Issue                   | Notes                                                                                                                                                                     |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SSR title flicker       | `localText('app.title')` in `<svelte:head>` renders the missing sentinel on first server render — `$effect` hasn't run yet. Needs SSR-safe dictionary hydration strategy. |
-| `messageBus` SSR        | `messageBus` uses module-level `$state`, which is shared across requests on the server. Safe for the CSR dev-kitchen. Scaffold template wiring requires a per-request solution (Svelte context or `$page.data`) before this is used in an SSR app. |
-| `create-sveltebuilder`  | Prompt/copy/install flow is stubbed, not fully implemented.                                                                                                               |
-| `@sveltebuilder/coreui` | Foundation not yet built: design tokens, CSS reset, `Button`, `Icon`, layout primitives.                                                                                  |
-| `apps/dev-kitchen`      | Not yet wired as a working SvelteKit app.                                                                                                                                 |
-| Auth UI                 | Sign in / sign up / sign out routes do not exist.                                                                                                                         |
+| Issue                              | Notes                                                                                                                                                                                                          |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SSR title flicker                  | `localText('app.title')` in `<svelte:head>` renders the missing sentinel on first server render — `$effect` hasn't run yet. Needs SSR-safe dictionary hydration strategy.                                      |
+| `messageBus` SSR                   | `messageBus` uses module-level `$state`, which is shared across requests on the server. Safe for the CSR dev-kitchen. Scaffold template wiring requires a per-request solution (Svelte context or `$page.data`) before this is used in an SSR app. |
+| Auth UI                            | Sign in / sign up / sign out routes do not exist in the scaffold template.                                                                                                                                     |
+| Publishing pipeline                | No `.changeset/` config. Packages cannot be published to npm until Changesets is initialized.                                                                                                                  |
+| `@sveltebuilder/commerce`          | Not started — single placeholder `index.ts`. The product's primary domain differentiator.                                                                                                                      |
+| `@sveltebuilder/logistic`          | Not started — single placeholder `index.ts`. The product's primary domain differentiator.                                                                                                                      |
+| WCAG 2.2 AA audit                  | Bits UI provides accessible primitives but no accessibility audit has been run. Required before any module is marked production-ready.                                                                          |
+| `apps/docs`                        | Placeholder only — no content, no structure.                                                                                                                                                                   |
 
 ---
 
 ## Completed Foundation
 
-| Item                    | Status                                                                                                                                                                                              |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@sveltebuilder/hermes` | Complete and tested — types, store, `load`, `merge`, `localText`, `<LocalText />`, full test suite                                                                                                  |
-| `@sveltebuilder/cli`    | Complete — `sveltebuilder sync` working (manifest discovery, topological sort, `config.toml` rewrite)                                                                                               |
-| Hermes DB schema        | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function                                                                                                       |
-| Base scaffold template  | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) |
-| Monorepo structure      | Clean, all workspace references correct                                                                                                                                                             |
+| Item                        | Status                                                                                                                                                                                              |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@sveltebuilder/hermes`     | Complete and tested — types, store, `load`, `merge`, `localText`, `<LocalText />`, full test suite                                                                                                  |
+| `@sveltebuilder/coreui`     | Complete — 24+ components (Accordion, Alert, Avatar, Badge, Button, Card, Checkbox, Dialog, Divider, Field, Input, Label, LocaleSwitcher, Menu, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Tooltip); BEM/token CSS, Bits UI primitives, builds cleanly |
+| `@sveltebuilder/blog`       | Complete — components, server query helpers, SQL schema with RLS, seed data, scaffold template routes; Camp 1/2 hermes boundary respected |
+| `@sveltebuilder/cli`        | Complete — `sveltebuilder sync` working (manifest discovery, topological sort, `config.toml` rewrite)                                                                                               |
+| `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync`, installs dependencies                |
+| Hermes DB schema            | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function                                                                                                       |
+| Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) |
+| `apps/dev-kitchen`          | Working SvelteKit app — 40+ component showcase routes for coreui and blog, hermes i18n integration, live Supabase connection                                                                        |
+| Monorepo structure          | Clean — pnpm workspaces, Turborepo task graph, all workspace references correct                                                                                                                     |
