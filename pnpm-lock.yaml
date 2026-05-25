@@ -177,6 +177,16 @@ importers:
         version: 2.1.9(@types/node@25.9.1)(lightningcss@1.32.0)
 
   packages/logistic:
+    dependencies:
+      '@supabase/supabase-js':
+        specifier: '>=2.0.0'
+        version: 2.106.1
+      '@sveltebuilder/coreui':
+        specifier: workspace:*
+        version: link:../coreui
+      '@sveltebuilder/hermes':
+        specifier: workspace:*
+        version: link:../hermes
     devDependencies:
       '@sveltejs/package':
         specifier: ^2.3.0

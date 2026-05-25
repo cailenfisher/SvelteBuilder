@@ -16,6 +16,7 @@ type ScaffoldTemplate = 'superprototype' | 'native';
 
 const MODULE_DEPS: Record<string, string[]> = {
   blog: ['@sveltebuilder/blog', '@sveltebuilder/coreui'],
+  logistic: ['@sveltebuilder/logistic', '@sveltebuilder/coreui'],
 };
 
 function validateProjectName(value: string): string | undefined {
@@ -120,6 +121,11 @@ async function main() {
         value: 'blog',
         label: 'Blog',
         hint: 'Posts, categories, tags, comments, RSS, sitemap',
+      },
+      {
+        value: 'logistic',
+        label: 'Logistic',
+        hint: 'Warehouse: receiving, pick tasks, shipments, returns, cycle counts',
       },
     ],
     required: false,

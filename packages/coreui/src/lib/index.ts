@@ -32,6 +32,11 @@ export { default as ConfirmDialog } from './ConfirmDialog.svelte';
 export { default as MessageAriaLive } from './MessageAriaLive.svelte';
 
 // ============================================================
+// Scan input
+// ============================================================
+export { default as BarcodeInput } from './BarcodeInput.svelte';
+
+// ============================================================
 // Form primitives
 // ============================================================
 export { default as Field } from './Field.svelte';
@@ -93,6 +98,10 @@ export { default as Pagination } from './Pagination.svelte';
 // ============================================================
 // Data display
 // ============================================================
+export { default as MetricCard } from './MetricCard.svelte';
+export { default as Timeline } from './Timeline.svelte';
+export { default as TimelineItem } from './TimelineItem.svelte';
+export { default as StatusBadge } from './StatusBadge.svelte';
 export { default as Table } from './Table.svelte';
 export { default as TableHead } from './TableHead.svelte';
 export { default as TableBody } from './TableBody.svelte';
