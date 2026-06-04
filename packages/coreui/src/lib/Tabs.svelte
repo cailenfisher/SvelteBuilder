@@ -19,7 +19,7 @@
   }: Props = $props();
 
   const classes = $derived(
-    ['tabs', `tabs--${orientation}`, extraClass ?? ''].filter(Boolean).join(' ')
+    ['tabs', orientation, extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 
@@ -30,19 +30,3 @@
 >
   {@render children()}
 </Tabs.Root>
-
-<style>
-  :global(.tabs) {
-    display: flex;
-    width: 100%;
-  }
-
-  :global(.tabs--horizontal) {
-    flex-direction: column;
-  }
-
-  :global(.tabs--vertical) {
-    flex-direction: row;
-    gap: var(--space-4);
-  }
-</style>

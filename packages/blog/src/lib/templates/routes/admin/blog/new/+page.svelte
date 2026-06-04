@@ -69,7 +69,7 @@
   .admin-post-form__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -92,9 +92,9 @@
   }
 
   .admin-post-form__error {
-    color: var(--color-danger-text);
-    background-color: var(--color-danger-subtle);
-    border: 1px solid var(--color-danger-border);
+    color: var(--danger-text);
+    background-color: var(--danger-soft);
+    border: 1px solid var(--danger-border);
     border-radius: var(--radius-lg);
     padding: var(--space-3) var(--space-4);
     font-size: var(--text-sm);

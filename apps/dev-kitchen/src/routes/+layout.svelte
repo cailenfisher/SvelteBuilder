@@ -1,5 +1,5 @@
 <script lang="ts">
-  import '@sveltebuilder/coreui/styles/tokens.css';
+  import '../app.css';
   import { load } from '@sveltebuilder/hermes'
   import { localText, LocalText } from '@sveltebuilder/hermes'
   import { Banner, ToastRegion, MessageAriaLive } from '@sveltebuilder/coreui'

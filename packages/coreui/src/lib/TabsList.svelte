@@ -17,21 +17,3 @@
 <Tabs.List class={classes}>
   {@render children()}
 </Tabs.List>
-
-<style>
-  :global(.tabs-list) {
-    display: flex;
-    align-items: center;
-    background-color: var(--tabs-list-bg);
-    border-radius: var(--tabs-list-radius);
-    padding: var(--space-1);
-    gap: var(--tabs-gap);
-    flex-shrink: 0;
-  }
-
-  /* Vertical orientation */
-  :global(.tabs--vertical .tabs-list) {
-    flex-direction: column;
-    align-items: stretch;
-  }
-</style>

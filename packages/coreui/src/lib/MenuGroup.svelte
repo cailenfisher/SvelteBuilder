@@ -15,10 +15,3 @@
 >
   {@render children()}
 </DropdownMenu.Group>
-
-<style>
-  :global(.menu-group) {
-    display: flex;
-    flex-direction: column;
-  }
-</style>

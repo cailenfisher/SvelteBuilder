@@ -47,11 +47,3 @@
     <Textarea id="lte-content" name="content" value={content} rows={4} />
   </Field>
 </div>
-
-<style>
-  .local-text-edit {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-</style>

@@ -15,7 +15,8 @@
       "svelte": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./styles/tokens.css": "./styles/tokens.css"
+    "./styles/tokens.css": "./styles/tokens.css",
+    "./styles/components.css": "./styles/components.css"
   },
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",

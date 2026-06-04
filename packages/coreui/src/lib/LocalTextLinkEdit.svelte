@@ -26,11 +26,3 @@
     <Input id="ltl-scope" name="scope" value={scope ?? ''} placeholder="blog, product, …" />
   </Field>
 </div>
-
-<style>
-  .local-text-link-edit {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-  }
-</style>

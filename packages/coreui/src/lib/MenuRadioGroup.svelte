@@ -17,10 +17,3 @@
 >
   {@render children()}
 </DropdownMenu.RadioGroup>
-
-<style>
-  :global(.menu-radio-group) {
-    display: flex;
-    flex-direction: column;
-  }
-</style>

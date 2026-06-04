@@ -31,17 +31,17 @@
 
 {#if loading}
   <div
-    class="post-list post-list--loading"
+    class="post-list loading"
     role="status"
     aria-label="Loading posts"
     aria-live="polite"
   >
     {#each { length: 3 } as _}
-      <div class="post-list__skeleton-card">
+      <div class="skeleton-card">
         <Skeleton height="1.25rem" width="60%" />
         <Skeleton height="0.875rem" width="30%" />
         <Skeleton height="4rem" />
-        <div class="post-list__skeleton-pills">
+        <div class="skeleton-pills">
           <Skeleton height="1.5rem" width="5rem" />
           <Skeleton height="1.5rem" width="4rem" />
         </div>
@@ -49,7 +49,7 @@
     {/each}
   </div>
 {:else if posts.length === 0}
-  <p class="post-list__empty">{emptyLabel}</p>
+  <p class="empty">{emptyLabel}</p>
 {:else}
   <ul class={classes} aria-label="Blog posts">
     {#each posts as post (post.id)}
@@ -75,29 +75,29 @@
     padding: 0;
   }
 
-  .post-list--loading {
+  .post-list.loading {
     display: flex;
     flex-direction: column;
     gap: var(--space-6);
   }
 
-  .post-list__skeleton-card {
+  .skeleton-card {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
-    padding: var(--card-padding);
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--card-radius);
+    padding: var(--space-4);
+    background: var(--surface-raised);
+    border: var(--border);
+    border-radius: var(--radius-xl);
   }
 
-  .post-list__skeleton-pills {
+  .skeleton-pills {
     display: flex;
     gap: var(--space-2);
   }
 
-  .post-list__empty {
-    color: var(--color-text-secondary);
+  .empty {
+    color: var(--text-soft);
     font-size: var(--text-base);
     margin: var(--space-8) 0;
     text-align: center;

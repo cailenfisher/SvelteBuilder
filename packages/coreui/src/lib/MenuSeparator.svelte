@@ -8,11 +8,3 @@
 <DropdownMenu.Separator
   class={['menu-separator', extraClass ?? ''].filter(Boolean).join(' ')}
 />
-
-<style>
-  :global(.menu-separator) {
-    height: var(--divider-thickness);
-    background-color: var(--divider-color);
-    margin: var(--menu-padding) 0;
-  }
-</style>

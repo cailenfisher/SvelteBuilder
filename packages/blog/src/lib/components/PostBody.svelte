@@ -27,7 +27,7 @@
   .post-body {
     font-size: var(--text-base);
     line-height: var(--leading-relaxed);
-    color: var(--color-text-primary);
+    color: var(--text);
     max-width: 70ch;
   }
 
@@ -40,7 +40,7 @@
   .post-body :global(h6) {
     font-weight: var(--weight-semibold);
     line-height: var(--leading-snug);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin-block: var(--space-6) var(--space-3);
   }
 
@@ -55,14 +55,14 @@
 
   /* Links */
   .post-body :global(a) {
-    color: var(--color-text-link);
+    color: var(--link-text);
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
   }
 
   .post-body :global(a:hover) {
-    color: var(--color-text-link-hover);
+    color: var(--brand);
   }
 
   /* Lists */
@@ -78,11 +78,11 @@
 
   /* Blockquote */
   .post-body :global(blockquote) {
-    border-inline-start: 4px solid var(--color-border-brand);
+    border-inline-start: 4px solid color-mix(in srgb, var(--brand), white 65%);
     padding-inline-start: var(--space-4);
     margin-inline: 0;
     margin-block: var(--space-4);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-style: italic;
   }
 
@@ -90,16 +90,16 @@
   .post-body :global(code) {
     font-family: var(--font-mono);
     font-size: 0.875em;
-    background-color: var(--color-surface-overlay);
-    border: 1px solid var(--color-border-default);
+    background-color: var(--surface-overlay);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     padding: 0.125em 0.375em;
   }
 
   /* Code blocks */
   .post-body :global(pre) {
-    background-color: var(--color-surface-sunken);
-    border: 1px solid var(--color-border-default);
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: var(--space-4);
     overflow-x: auto;
@@ -116,7 +116,7 @@
   /* Horizontal rule */
   .post-body :global(hr) {
     border: none;
-    border-block-start: 1px solid var(--color-border-default);
+    border-block-start: 1px solid var(--border-color);
     margin-block: var(--space-8);
   }
 
@@ -137,13 +137,13 @@
 
   .post-body :global(th),
   .post-body :global(td) {
-    border: 1px solid var(--color-border-default);
+    border: 1px solid var(--border-color);
     padding: var(--space-2) var(--space-3);
     text-align: left;
   }
 
   .post-body :global(th) {
     font-weight: var(--weight-semibold);
-    background-color: var(--color-surface-raised);
+    background-color: var(--surface-raised);
   }
 </style>

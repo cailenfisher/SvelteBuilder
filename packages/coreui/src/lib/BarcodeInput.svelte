@@ -58,7 +58,7 @@
   const inputId = $derived(label ? `barcode-input-${Math.random().toString(36).slice(2)}` : undefined);
 
   const classes = $derived(
-    ['barcode-input', error ? 'barcode-input--error' : '', extraClass ?? '']
+    ['barcode-input', error ? 'error' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
@@ -66,11 +66,11 @@
 
 <div class={classes}>
   {#if label}
-    <label class="barcode-input__label" for={inputId}>{label}</label>
+    <label class="label" for={inputId}>{label}</label>
   {/if}
 
-  <div class="barcode-input__wrapper">
-    <span class="barcode-input__icon" aria-hidden="true">
+  <div class="input-wrap">
+    <span class="icon" aria-hidden="true">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <rect x="1" y="3" width="1.5" height="10" fill="currentColor"/>
         <rect x="4" y="3" width="1" height="10" fill="currentColor"/>
@@ -82,7 +82,7 @@
     <input
       id={inputId}
       type="text"
-      class="barcode-input__field"
+      class="field"
       bind:value={inputValue}
       {placeholder}
       {disabled}
@@ -98,76 +98,8 @@
   </div>
 
   {#if error}
-    <p id={inputId ? `${inputId}-error` : undefined} class="barcode-input__error" role="alert">
+    <p id={inputId ? `${inputId}-error` : undefined} class="error-msg" role="alert">
       {error}
     </p>
   {/if}
 </div>
-
-<style>
-  .barcode-input {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-  }
-
-  .barcode-input__label {
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
-    color: var(--color-text-primary);
-  }
-
-  .barcode-input__wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  .barcode-input__icon {
-    position: absolute;
-    inset-inline-start: var(--space-3);
-    color: var(--color-text-secondary);
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-  }
-
-  .barcode-input__field {
-    width: 100%;
-    height: var(--input-height-md);
-    padding-inline: calc(var(--space-3) + 16px + var(--space-2)) var(--space-3);
-    background-color: var(--input-bg);
-    border: 1px solid var(--input-border);
-    border-radius: var(--input-radius);
-    color: var(--color-text-primary);
-    font-size: var(--text-base);
-    font-family: var(--font-mono, monospace);
-    outline: none;
-    transition: border-color var(--duration-fast) var(--ease-out),
-                box-shadow var(--duration-fast) var(--ease-out);
-  }
-
-  .barcode-input__field:focus {
-    border-color: var(--input-border-focus);
-    box-shadow: 0 0 0 3px var(--color-focus-ring);
-  }
-
-  .barcode-input__field:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .barcode-input--error .barcode-input__field {
-    border-color: var(--color-danger-border);
-  }
-
-  .barcode-input--error .barcode-input__field:focus {
-    box-shadow: 0 0 0 3px var(--color-danger-subtle);
-  }
-
-  .barcode-input__error {
-    font-size: var(--text-sm);
-    color: var(--color-danger-text);
-    margin: 0;
-  }
-</style>

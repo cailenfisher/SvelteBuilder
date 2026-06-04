@@ -21,11 +21,7 @@
   }: Props = $props();
 
   const classes = $derived(
-    [
-      'table-header',
-      sortable ? 'table-header--sortable' : '',
-      extraClass ?? '',
-    ]
+    ['table-header', sortable ? 'sortable' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
@@ -37,9 +33,9 @@
 
 <th class={classes} {scope} aria-sort={ariaSort}>
   {#if sortable}
-    <span class="table-header__content">
+    <span class="content">
       {@render children()}
-      <span class="table-header__sort-icon" aria-hidden="true">
+      <span class="sort-icon" aria-hidden="true">
         {#if sorted === 'asc'}
           <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
             <path d="M8 4l4 6H4l4-6z" fill="currentColor"/>
@@ -59,37 +55,3 @@
     {@render children()}
   {/if}
 </th>
-
-<style>
-  .table-header {
-    padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
-    font-size: var(--table-font-size);
-    font-weight: var(--table-header-weight);
-    color: var(--color-text-secondary);
-    text-align: left;
-    white-space: nowrap;
-    background-color: var(--table-header-bg);
-    border-bottom: 1px solid var(--table-border);
-  }
-
-  .table-header--sortable {
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .table-header--sortable:hover {
-    color: var(--color-text-primary);
-  }
-
-  .table-header__content {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1-5);
-  }
-
-  .table-header__sort-icon {
-    display: inline-flex;
-    align-items: center;
-    flex-shrink: 0;
-  }
-</style>

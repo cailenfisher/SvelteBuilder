@@ -2,9 +2,6 @@
   import type { Snippet } from 'svelte';
   import { Accordion } from 'bits-ui';
 
-  // Single and multiple types share this wrapper component.
-  // Consumers use AccordionItem for individual items.
-
   type SingleProps = {
     type: 'single';
     value?: string;
@@ -55,14 +52,3 @@
     {@render children()}
   </Accordion.Root>
 {/if}
-
-<style>
-  :global(.accordion) {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    border: 1px solid var(--accordion-border);
-    border-radius: var(--accordion-radius);
-    overflow: hidden;
-  }
-</style>

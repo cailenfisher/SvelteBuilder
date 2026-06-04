@@ -82,7 +82,7 @@
   .comment-form__title {
     font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 

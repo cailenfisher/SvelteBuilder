@@ -23,7 +23,6 @@
       : null
   );
 
-  // Interpolate {author} into the resolved string
   const byLine = $derived(
     localText('blog.post.by', 'blog').replace('{author}', authorName)
   );
@@ -46,31 +45,31 @@
 </script>
 
 <dl class={classes}>
-  <div class="post-meta__item">
-    <dt class="post-meta__label sr-only">Author</dt>
-    <dd class="post-meta__value">{byLine}</dd>
+  <div class="item">
+    <dt class="sr-only">Author</dt>
+    <dd class="value">{byLine}</dd>
   </div>
 
   {#if publishedDate}
-    <div class="post-meta__item">
-      <dt class="post-meta__label sr-only">Published</dt>
-      <dd class="post-meta__value">
+    <div class="item">
+      <dt class="sr-only">Published</dt>
+      <dd class="value">
         <time datetime={post.publishedAt ?? undefined}>{publishedDate}</time>
       </dd>
     </div>
   {/if}
 
   {#if readingTimeLabel}
-    <div class="post-meta__item">
-      <dt class="post-meta__label sr-only">Reading time</dt>
-      <dd class="post-meta__value">{readingTimeLabel}</dd>
+    <div class="item">
+      <dt class="sr-only">Reading time</dt>
+      <dd class="value">{readingTimeLabel}</dd>
     </div>
   {/if}
 
   {#if updatedLabel}
-    <div class="post-meta__item">
-      <dt class="post-meta__label sr-only">Updated</dt>
-      <dd class="post-meta__value post-meta__value--secondary">{updatedLabel}</dd>
+    <div class="item">
+      <dt class="sr-only">Updated</dt>
+      <dd class="value secondary">{updatedLabel}</dd>
     </div>
   {/if}
 </dl>
@@ -82,33 +81,20 @@
     align-items: center;
     gap: var(--space-1) var(--space-4);
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     margin: 0;
   }
 
-  .post-meta__item {
+  .item {
     display: contents;
   }
 
-  .post-meta__label {
-    /* Visually hidden — for screen readers only */
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-
-  .post-meta__value {
+  .value {
     margin: 0;
   }
 
-  .post-meta__value--secondary {
-    color: var(--color-text-tertiary);
+  .value.secondary {
+    color: var(--text-muted);
     font-size: var(--text-xs);
   }
 

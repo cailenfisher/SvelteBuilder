@@ -18,6 +18,6 @@
 <style>
   .reading-time {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 </style>

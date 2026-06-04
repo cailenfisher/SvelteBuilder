@@ -34,7 +34,7 @@
 </script>
 
 <div class="locale-edit">
-  <div class="locale-edit__row">
+  <div class="row">
     <Field label={codeLabel} id="locale-edit-code" required>
       <Input id="locale-edit-code" name="code" value={code} placeholder="en" required />
     </Field>
@@ -45,7 +45,7 @@
       </Select>
     </Field>
   </div>
-  <div class="locale-edit__row">
+  <div class="row">
     <Field label={nameLabel} id="locale-edit-name" required>
       <Input id="locale-edit-name" name="name" value={name} placeholder="English" required />
     </Field>
@@ -60,17 +60,3 @@
     </Field>
   </div>
 </div>
-
-<style>
-  .locale-edit {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .locale-edit__row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-  }
-</style>
