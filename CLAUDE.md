@@ -334,6 +334,106 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
 
 6. **Scope is implied, never stored as a schema column or passed as a component prop.**
 
+7. **Visual styles for coreui components live in `packages/coreui/styles/components.css`, not in
+   Svelte `<style>` blocks.** A component `<style>` block may only contain private structural
+   wrapper rules (layout/sizing with no visual properties). Any color, border, background, shadow,
+   radius, padding, or transition that a developer should be able to override belongs in
+   `components.css` under `@layer component`.
+
+8. **Bits UI state is communicated via data attributes, never via class toggling.** Target
+   `[data-state='open']`, `[data-highlighted]`, `[data-disabled]`, etc. in CSS. Use a CSS custom
+   property bridge when the data attribute on a parent must affect a non-Bits child element.
+
+---
+
+## CSS Style System
+
+### Layer cascade
+
+All styles in a SvelteBuilder application flow through named CSS cascade layers in this order:
+
+```
+chrome  →  state  →  component  →  unlayered (developer)
+```
+
+Unlayered CSS always wins over every `@layer` block regardless of specificity. This is the
+mechanism that makes the entire visual system overridable by a developer after install — no
+`!important`, no specificity fights.
+
+The scaffold `app.css` establishes the import order:
+
+```css
+@import '@sveltebuilder/coreui/styles/tokens.css';        /* not layered — tokens are a base */
+@import './chrome.css' layer(chrome);
+@import './state.css' layer(state);
+@import '@sveltebuilder/coreui/styles/components.css' layer(component);
+
+/* developer overrides below — unlayered, always wins */
+```
+
+### What each layer owns
+
+| Layer       | File(s)                                          | Owns                                                              |
+| ----------- | ------------------------------------------------ | ----------------------------------------------------------------- |
+| *(none)*    | `packages/coreui/styles/tokens.css`              | CSS custom properties (design tokens) — not layered               |
+| `chrome`    | `src/chrome.css` (scaffold)                      | Base visual structure for inputs, cards, menus, buttons, badges   |
+| `state`     | `src/state.css` (scaffold)                       | Interactive field states: focus ring, error, disabled, read-only  |
+| `component` | `packages/coreui/styles/components.css`          | All coreui component visual styles                                |
+| *(none)*    | developer CSS / app-specific files               | Theme overrides and project-specific styles                       |
+
+### coreui component style rules
+
+**Visual styles belong in `packages/coreui/styles/components.css`.** A coreui Svelte component's
+`<style>` block may only contain private structural wrappers — `display: flex`, `width: 100%`,
+`position: relative` on an internal `div.wrap` — with no visual properties (color, border,
+background, shadow, radius, font, padding, transition).
+
+If you are adding a visual rule to a coreui `<style>` block, stop and put it in
+`components.css` instead.
+
+**Internal sub-elements** that have no public BEM class are namespaced under their parent in
+`components.css`:
+
+```css
+/* correct: parent context scopes the internal element */
+.alert .icon { … }
+.card .body  { … }
+.toast .close:hover { … }
+```
+
+**CSS custom property bridge for inherited state.** When a Bits UI data-attribute on a parent
+element needs to affect a non-Bits child element, use a CSS custom property as the bridge:
+
+```css
+/* declare on the state-carrying parent */
+.accordion-trigger              { --icon-rotate: 0deg; }
+.accordion-trigger[data-state='open'] { --icon-rotate: 180deg; }
+
+/* consume via inheritance in the child */
+.accordion-trigger .chevron { transform: rotate(var(--icon-rotate, 0deg)); }
+```
+
+This avoids mixed `:global(parent) .svelte-scoped-child` selectors that cannot be moved to a
+global file.
+
+### Bits UI data-attribute wiring
+
+All interactive state for Bits UI components **must** use data attributes, not class toggles.
+Bits UI sets these automatically; style rules target them directly:
+
+```css
+[data-state='open']       { … }   /* open/closed */
+[data-state='checked']    { … }   /* checkbox, radio */
+[data-highlighted]        { … }   /* menu items, listbox options */
+[data-disabled]           { … }   /* disabled state */
+[data-selected]           { … }   /* select options */
+[data-placeholder]        { … }   /* select value placeholder */
+```
+
+**Never** use a Svelte snippet child to read Bits UI state and apply a class manually when the
+data attribute already carries that state. Pseudo-elements driven by data-attribute selectors
+are the correct pattern for visual indicators (e.g., radio dot via `::after`).
+
 ---
 
 ## coreui Promotion Rule
@@ -393,11 +493,11 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | Item                        | Status                                                                                                                                                                                              |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@sveltebuilder/hermes`     | Complete and tested — types, store, `load`, `merge`, `localText`, `<LocalText />`, full test suite                                                                                                  |
-| `@sveltebuilder/coreui`     | Complete — 24+ components (Accordion, Alert, Avatar, Badge, Button, Card, Checkbox, Dialog, Divider, Field, Input, Label, LocaleSwitcher, Menu, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Tooltip); BEM/token CSS, Bits UI primitives, builds cleanly |
+| `@sveltebuilder/coreui`     | Complete — 24+ components (Accordion, Alert, Avatar, Badge, Button, Card, Checkbox, Dialog, Divider, Field, Input, Label, LocaleSwitcher, Menu, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Tooltip); all visual styles extracted to `styles/components.css` under `@layer component`; Bits UI data-attribute wiring throughout; builds cleanly |
 | `@sveltebuilder/blog`       | Complete — components, server query helpers, SQL schema with RLS, seed data, scaffold template routes; Camp 1/2 hermes boundary respected |
 | `@sveltebuilder/cli`        | Complete — `sveltebuilder sync` working (manifest discovery, topological sort, `config.toml` rewrite)                                                                                               |
 | `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync`, installs dependencies                |
 | Hermes DB schema            | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function                                                                                                       |
-| Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) |
+| Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary); CSS layer cascade established (`chrome.css`, `state.css`, `components.css` via `@import … layer(…)`) |
 | `apps/dev-kitchen`          | Working SvelteKit app — 40+ component showcase routes for coreui and blog, hermes i18n integration, live Supabase connection                                                                        |
 | Monorepo structure          | Clean — pnpm workspaces, Turborepo task graph, all workspace references correct                                                                                                                     |
