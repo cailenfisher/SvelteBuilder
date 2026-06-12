@@ -4,7 +4,7 @@ import pc from 'picocolors';
 import fs from 'fs-extra';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { syncSupabase } from '@sveltebuilder/cli/api';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -249,17 +249,22 @@ async function main() {
     p.log.info('Skipping install (--no-install). Run `sveltebuilder sync:supabase` manually after installing.');
   } else {
     s.start(`Installing dependencies with ${pm}...`);
-    const installResult = spawnSync(pm as string, ['install'], {
-      cwd: targetDir,
-      stdio: 'pipe',
-      shell: process.platform === 'win32',
+    const installResult = await new Promise<{ status: number; stderr: string }>((resolve) => {
+      const child = spawn(pm as string, ['install'], {
+        cwd: targetDir,
+        stdio: 'pipe',
+        shell: process.platform === 'win32',
+      });
+      let stderr = '';
+      child.stderr?.on('data', (chunk: Buffer) => { stderr += chunk; });
+      child.on('close', (code) => resolve({ status: code ?? 1, stderr }));
     });
     if (installResult.status !== 0) {
       s.stop(pc.yellow('Install failed'));
       p.log.warn(
         `Run \`${pm} install\` inside ${pc.cyan(projectName)} once dependencies are available.`,
       );
-      if (installResult.stderr) p.log.warn(installResult.stderr.toString().trim());
+      if (installResult.stderr) p.log.warn(installResult.stderr.trim());
     } else {
       s.stop('Dependencies installed');
     }
