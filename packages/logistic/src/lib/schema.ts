@@ -10,7 +10,6 @@ import {
   text,
   timestamp,
   uniqueIndex,
-  uuid,
 } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 
@@ -131,7 +130,7 @@ export const stockAdjustment = pgTable(
       .notNull()
       .references(() => stockLevel.id),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: uuid('user_account_id').notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
     delta: integer('delta').notNull(),
     onHandBefore: integer('on_hand_before').notNull(),
     onHandAfter: integer('on_hand_after').notNull(),
@@ -152,7 +151,7 @@ export const inboundReceipt = pgTable(
       .notNull()
       .references(() => supplier.id),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: uuid('user_account_id').notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
     status: inboundReceiptStatus('status').notNull().default('pending'),
     expectedAt: timestamp('expected_at'),
     receivedAt: timestamp('received_at'),
@@ -192,7 +191,7 @@ export const pickTask = pgTable(
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: uuid('user_account_id'),
+    userAccountId: bigint('user_account_id', { mode: 'bigint' }),
     status: pickTaskStatus('status').notNull().default('open'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -229,7 +228,7 @@ export const shipment = pgTable(
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: uuid('user_account_id').notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
     status: shipmentStatus('status').notNull().default('created'),
     carrier: text('carrier'),
     serviceLevel: text('service_level'),
@@ -289,7 +288,7 @@ export const returnAuthorization = pgTable(
       onDelete: 'set null',
     }),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: uuid('user_account_id').notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
     status: returnAuthorizationStatus('status').notNull().default('pending'),
     reason: text('reason'),
     note: text('note'),
@@ -330,7 +329,7 @@ export const cycleCount = pgTable(
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: uuid('user_account_id').notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
     status: cycleCountStatus('status').notNull().default('open'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),

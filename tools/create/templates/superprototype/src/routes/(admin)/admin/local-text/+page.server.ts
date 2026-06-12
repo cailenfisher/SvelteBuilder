@@ -1,70 +1,90 @@
-import { fail } from '@sveltejs/kit'
-import type { PageServerLoad, Actions } from './$types'
+import { fail } from '@sveltejs/kit';
+import { asc, eq } from 'drizzle-orm';
+import type { PageServerLoad, Actions } from './$types';
+import { locale, localTextLink, localText } from '@sveltebuilder/hermes-schema/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const { supabase } = locals
+  const [entries, translations, locales] = await locals.db.withUser(async (tx) => {
+    return Promise.all([
+      tx
+        .select({
+          id: localTextLink.id,
+          slug: localTextLink.slug,
+          scope: localTextLink.scope,
+          entityId: localTextLink.entityId,
+        })
+        .from(localTextLink)
+        .orderBy(asc(localTextLink.slug)),
+      tx
+        .select({
+          id: localText.id,
+          link: localText.link,
+          locale: localText.locale,
+          content: localText.content,
+        })
+        .from(localText),
+      tx
+        .select({
+          id: locale.id,
+          code: locale.code,
+          nativeName: locale.nativeName,
+        })
+        .from(locale)
+        .orderBy(asc(locale.code)),
+    ]);
+  });
 
-  const [linksResult, textsResult, localesResult] = await Promise.all([
-    supabase.from('local_text_link').select('id, slug, scope, entity_id').order('slug'),
-    supabase.from('local_text').select('id, link, locale, content'),
-    supabase.from('locale').select('id, code, native_name').order('code'),
-  ])
-
-  return {
-    entries: linksResult.data ?? [],
-    translations: textsResult.data ?? [],
-    locales: (localesResult.data ?? []).map((l) => ({
-      id: l.id,
-      code: l.code,
-      nativeName: l.native_name,
-    })),
-  }
-}
+  return { entries, translations, locales };
+};
 
 export const actions: Actions = {
   create: async ({ request, locals }) => {
-    const { supabase } = locals
-    const form = await request.formData()
+    const form = await request.formData();
 
-    const slug = (form.get('slug') as string | null)?.trim()
-    const scope = (form.get('scope') as string | null)?.trim() || null
+    const slug = (form.get('slug') as string | null)?.trim();
+    const scope = (form.get('scope') as string | null)?.trim() || null;
 
-    if (!slug) return fail(422, { error: 'Slug is required.' })
+    if (!slug) return fail(422, { error: 'Slug is required.' });
 
-    const { data: link, error: linkError } = await supabase
-      .from('local_text_link')
-      .insert({ slug, scope, entity_id: null })
-      .select('id')
-      .single()
+    const localeIds = form.getAll('locale_id') as string[];
+    const contents = form.getAll('content') as string[];
 
-    if (linkError || !link) {
-      return fail(422, { error: linkError?.message ?? 'Failed to create entry.' })
-    }
+    await locals.db.withUser(async (tx) => {
+      const [link] = await tx
+        .insert(localTextLink)
+        .values({ slug, scope, entityId: null })
+        .returning({ id: localTextLink.id });
 
-    const localeIds = form.getAll('locale_id') as string[]
-    const contents = form.getAll('content') as string[]
+      if (!link) throw new Error('Failed to create copy link.');
 
-    const translations = localeIds
-      .map((localeId, i) => ({ link: link.id, locale: parseInt(localeId), content: contents[i] }))
-      .filter((t) => t.content?.trim())
+      const translations = localeIds
+        .map((localeId, i) => ({
+          link: link.id,
+          locale: parseInt(localeId),
+          content: contents[i],
+        }))
+        .filter((t) => t.content?.trim());
 
-    if (translations.length > 0) {
-      await supabase.from('local_text').insert(translations)
-    }
+      if (translations.length > 0) {
+        await tx.insert(localText).values(translations);
+      }
+    });
 
-    return { success: true }
+    return { success: true };
   },
 
   delete: async ({ request, locals }) => {
-    const { supabase } = locals
-    const form = await request.formData()
-    const id = parseInt(form.get('id') as string)
+    const form = await request.formData();
+    const id = parseInt(form.get('id') as string);
 
-    if (isNaN(id)) return fail(422, { error: 'Invalid ID.' })
+    if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    await supabase.from('local_text').delete().eq('link', id)
-    await supabase.from('local_text_link').delete().eq('id', id)
+    // Delete texts first (FK constraint), then the link — one atomic transaction.
+    await locals.db.withUser(async (tx) => {
+      await tx.delete(localText).where(eq(localText.link, id));
+      await tx.delete(localTextLink).where(eq(localTextLink.id, id));
+    });
 
-    return { success: true }
+    return { success: true };
   },
-}
+};

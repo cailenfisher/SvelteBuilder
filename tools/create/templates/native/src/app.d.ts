@@ -1,14 +1,13 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+// @auth/sveltekit augments App.Locals with `auth(): Promise<Session | null>`.
+// Importing the package's types here makes that augmentation available project-wide.
+import '@auth/sveltekit';
+
 import type { DictionaryPayload, Locale } from '@sveltebuilder/hermes';
 import type { UserScopedDb } from '$lib/server/db/with-user';
 
 declare global {
   namespace App {
     interface Locals {
-      // Provider-specific: Supabase SSR client for auth flows (sign-in/out/callback).
-      // Route code should use event.locals.db.withUser(...) for data queries —
-      // supabase is only for Auth.js-equivalent operations in SuperPrototype.
-      supabase: SupabaseClient;
       // Domain principal ID (public.user_account.id). Null when unauthenticated.
       userAccountId: bigint | null;
       // Transaction-scoped DB access. Only path for route code to query the database.

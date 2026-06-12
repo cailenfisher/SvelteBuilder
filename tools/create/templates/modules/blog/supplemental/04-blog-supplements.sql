@@ -1,4 +1,10 @@
 -- Blog module supplements: cross-package FKs, updated_at triggers, RLS policies
+--
+-- BEFORE → AFTER mapping for predicates:
+--   user_account_id = auth.uid()  (uuid comparison against Supabase UUID)
+--     → user_account_id = public.current_user_id()  (bigint comparison against domain PK)
+--   auth.jwt() ->> 'role' = 'admin'
+--     → exists (select 1 from public.user_account where id = public.current_user_id() and admin)
 
 -- ── Cross-package foreign keys ───────────────────────────────────────────────
 -- These reference user_account which is defined in the scaffold schema, not
@@ -44,14 +50,24 @@ create policy "post_public_read"
 create policy "post_author_all"
   on public.post for all
   to authenticated
-  using (user_account_id = auth.uid())
-  with check (user_account_id = auth.uid());
+  using (user_account_id = public.current_user_id())
+  with check (user_account_id = public.current_user_id());
 
 create policy "post_admin_all"
   on public.post for all
   to authenticated
-  using (auth.jwt() ->> 'role' = 'admin')
-  with check (auth.jwt() ->> 'role' = 'admin');
+  using (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  );
 
 -- ────────────────────────────────────────────────────────────────────────────
 
@@ -65,8 +81,18 @@ create policy "post_category_public_read"
 create policy "post_category_admin_all"
   on public.post_category for all
   to authenticated
-  using (auth.jwt() ->> 'role' = 'admin')
-  with check (auth.jwt() ->> 'role' = 'admin');
+  using (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  );
 
 -- ────────────────────────────────────────────────────────────────────────────
 
@@ -80,8 +106,18 @@ create policy "post_tag_public_read"
 create policy "post_tag_admin_all"
   on public.post_tag for all
   to authenticated
-  using (auth.jwt() ->> 'role' = 'admin')
-  with check (auth.jwt() ->> 'role' = 'admin');
+  using (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  );
 
 -- ────────────────────────────────────────────────────────────────────────────
 
@@ -95,8 +131,18 @@ create policy "post_category_post_public_read"
 create policy "post_category_post_admin_all"
   on public.post_category_post for all
   to authenticated
-  using (auth.jwt() ->> 'role' = 'admin')
-  with check (auth.jwt() ->> 'role' = 'admin');
+  using (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  );
 
 -- ────────────────────────────────────────────────────────────────────────────
 
@@ -110,8 +156,18 @@ create policy "post_post_tag_public_read"
 create policy "post_post_tag_admin_all"
   on public.post_post_tag for all
   to authenticated
-  using (auth.jwt() ->> 'role' = 'admin')
-  with check (auth.jwt() ->> 'role' = 'admin');
+  using (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  );
 
 -- ────────────────────────────────────────────────────────────────────────────
 
@@ -132,7 +188,7 @@ create policy "comment_auth_insert"
   on public.comment for insert
   to authenticated
   with check (
-    user_account_id = auth.uid()
+    user_account_id = public.current_user_id()
     and exists (
       select 1 from public.post p
       where p.id = post_id
@@ -144,16 +200,26 @@ create policy "comment_auth_insert"
 create policy "comment_author_update"
   on public.comment for update
   to authenticated
-  using (user_account_id = auth.uid())
-  with check (user_account_id = auth.uid());
+  using (user_account_id = public.current_user_id())
+  with check (user_account_id = public.current_user_id());
 
 create policy "comment_author_delete"
   on public.comment for delete
   to authenticated
-  using (user_account_id = auth.uid());
+  using (user_account_id = public.current_user_id());
 
 create policy "comment_admin_all"
   on public.comment for all
   to authenticated
-  using (auth.jwt() ->> 'role' = 'admin')
-  with check (auth.jwt() ->> 'role' = 'admin');
+  using (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.user_account
+      where id = public.current_user_id() and admin
+    )
+  );

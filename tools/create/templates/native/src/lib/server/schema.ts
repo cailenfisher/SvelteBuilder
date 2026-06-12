@@ -11,12 +11,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { localTextLink } from '@sveltebuilder/hermes-schema/schema';
 
-// Reference the auth schema for the FK from user_account to the provider's user table.
-// In SuperPrototype this is Supabase's auth.users; in Native it is Auth.js's auth.user.
-// Both tables have a text PK, so auth_user_id is text in both cases.
+// Reference auth.user for the FK. Auth.js manages this table.
 const authSchema = pgSchema('auth');
-
-// Minimal stub — only the PK is needed for the FK reference.
 const authUser = authSchema.table('user', {
   id: text('id').primaryKey(),
 });
@@ -24,18 +20,11 @@ const authUser = authSchema.table('user', {
 // ── Domain principal ──────────────────────────────────────────────────────────
 //
 // user_account is the domain principal. Its bigint PK is the identity used
-// everywhere in public.*, including local_text_link.entity_id for user display
-// names and local_text for any user-facing copy tied to this entity.
+// everywhere in public.*, including local_text_link.entity_id.
 //
-// auth_user_id links to the identity provider (Supabase auth.users in
-// SuperPrototype; Auth.js auth.user in Native). It is stored as text because
-// both providers use text PKs, and the domain must remain decoupled from the
-// provider's type choice.
-//
-// email_address and display_name are intentionally absent — those are identity
-// layer and live in the provider's user table. User-facing copy (display name,
-// etc.) is linked via local_text_link with scope='user_account' and
-// entity_id=user_account.id per the i18n architecture.
+// auth_user_id links to auth.user.id (managed by Auth.js). It is text to match
+// Auth.js's string PK convention. On first sign-in, Auth.js creates auth.user
+// and then the events.createUser callback provisions this row.
 
 export const userAccount = pgTable(
   'user_account',

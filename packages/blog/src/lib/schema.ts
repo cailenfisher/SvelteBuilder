@@ -8,7 +8,6 @@ import {
   text,
   timestamp,
   uniqueIndex,
-  uuid,
 } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 
@@ -20,7 +19,7 @@ export const post = pgTable(
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     slug: text('slug').notNull().unique(),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: uuid('user_account_id').notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
     status: postStatus('status').notNull().default('draft'),
     featured: boolean('featured').notNull().default(false),
     allowComment: boolean('allow_comment').notNull().default(true),
@@ -95,7 +94,7 @@ export const comment = pgTable(
       .notNull()
       .references(() => post.id, { onDelete: 'cascade' }),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: uuid('user_account_id'),
+    userAccountId: bigint('user_account_id', { mode: 'bigint' }),
     // Self-referential FK
     parentCommentId: bigint('parent_comment_id', { mode: 'number' }).references(
       (): AnyPgColumn => comment.id,

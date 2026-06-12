@@ -311,6 +311,65 @@ translations at minimum — both entity-bound names and UI application-level cop
 
 ---
 
+## Auth Architecture
+
+### Principal–identity split
+
+`public.user_account` is the **domain principal** — the identity the rest of the system reasons about. Its `bigint` PK feeds `local_text_link.entity_id` (user display names via i18n), is carried on `event.locals.userAccountId`, and is what every RLS policy compares against.
+
+The **auth identity** lives in `auth.user` (managed by Auth.js in Native, by Supabase in SuperPrototype). `user_account.auth_user_id text` links the domain principal to the provider identity. Auth.js columns (email, name, image) stay in `auth.user`; they are not in `user_account`.
+
+### Session variable convention
+
+All RLS policies read the current user via `public.current_user_id()`:
+
+```sql
+create or replace function public.current_user_id()
+returns bigint language sql stable as $$
+  select nullif(current_setting('app.current_user_id', true), '')::bigint;
+$$;
+```
+
+**`STABLE` is mandatory.** Postgres evaluates STABLE functions once per transaction rather than once per row, making RLS fast. Never use `VOLATILE` here.
+
+The variable is set inside the `withUser` wrapper in TypeScript before any query runs. `auth.uid()` and `auth.jwt()` claims are no longer referenced by any RLS policy.
+
+### `withUser` database access pattern
+
+Every DB call that should be subject to RLS goes through `event.locals.db.withUser(fn)`:
+
+```ts
+const result = await event.locals.db.withUser(async (tx) => {
+  return tx.select(...).from(table).where(...);
+});
+```
+
+The wrapper opens a transaction, calls `set_config('app.current_user_id', ...)`, runs the callback, and commits. **Do not include external API calls, file I/O, or other non-DB work inside a `withUser` callback** — that extends the transaction unnecessarily. If a handler needs DB → external API → DB, use two separate `withUser` calls.
+
+The raw `db` client (in `src/lib/server/db/client.ts`) must NOT be imported by route code. Three deliberate exceptions:
+- `auth-resolver.ts` — bootstrap lookup before user context exists
+- `hooks.server.ts` — locale query (public data, no RLS needed)
+- Migration scripts and seed runners (no request context)
+
+### Admin role
+
+`user_account.admin boolean not null default false` is the source of truth for admin access. RLS policies gate write access with:
+
+```sql
+exists (select 1 from public.user_account where id = public.current_user_id() and admin)
+```
+
+No JWT role claims are used. Promote a user to admin by setting `admin = true` directly.
+
+### Template seam
+
+`resolveAuthenticatedUserId(event)` in `src/lib/server/auth-resolver.ts` is the **only line that differs between templates**. It returns `bigint | null` (the `user_account.id`). Both templates' `hooks.server.ts` are otherwise identical.
+
+- **SuperPrototype:** calls `event.locals.supabase.auth.getUser()` then looks up `user_account` by `auth_user_id`.
+- **Native:** calls `event.locals.auth()` (Auth.js session) then looks up `user_account` by `auth_user_id`.
+
+---
+
 ## Architecture Guardrails
 
 These rules are enforced by ESLint `no-restricted-imports` where possible. Violations are bugs.
@@ -340,7 +399,11 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
    radius, padding, or transition that a developer should be able to override belongs in
    `components.css` under `@layer component`.
 
-8. **Bits UI state is communicated via data attributes, never via class toggling.** Target
+8. **Route code accesses the database only through `event.locals.db.withUser(...)`.**
+   The raw `db` client is intentionally not re-exported for route use. Deliberate exceptions
+   (auth-resolver bootstrap, locale hook, migrations) must be documented with a comment.
+
+9. **Bits UI state is communicated via data attributes, never via class toggling.** Target
    `[data-state='open']`, `[data-highlighted]`, `[data-disabled]`, etc. in CSS. Use a CSS custom
    property bridge when the data attribute on a parent must affect a non-Bits child element.
 
@@ -479,7 +542,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | SSR title flicker                  | `localText('app.title')` in `<svelte:head>` renders the missing sentinel on first server render — `$effect` hasn't run yet. Needs SSR-safe dictionary hydration strategy.                                      |
 | `messageBus` SSR                   | `messageBus` uses module-level `$state`, which is shared across requests on the server. Safe for the CSR dev-kitchen. Scaffold template wiring requires a per-request solution (Svelte context or `$page.data`) before this is used in an SSR app. |
-| Auth UI                            | Sign in / sign up / sign out routes do not exist in the scaffold template.                                                                                                                                     |
+| Auth UI (dev-kitchen)              | `apps/dev-kitchen` still uses the old Supabase hook shape. It has not been migrated to the `withUser` pattern and will diverge from scaffold templates over time.                                               |
 | Publishing pipeline                | No `.changeset/` config. Packages cannot be published to npm until Changesets is initialized.                                                                                                                  |
 | `@sveltebuilder/commerce`          | Not started — single placeholder `index.ts`. The product's primary domain differentiator.                                                                                                                      |
 | `@sveltebuilder/logistic`          | Not started — single placeholder `index.ts`. The product's primary domain differentiator.                                                                                                                      |
@@ -498,6 +561,9 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | `@sveltebuilder/cli`        | Complete — `sveltebuilder sync` working (manifest discovery, topological sort, `config.toml` rewrite)                                                                                               |
 | `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync`, installs dependencies                |
 | Hermes DB schema            | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function                                                                                                       |
+| Auth architecture           | Principal–identity split, `public.current_user_id()` STABLE function, `withUser` transaction wrapper, unified `hooks.server.ts` shape, `resolveAuthenticatedUserId` seam between templates; all RLS policies migrated from `auth.uid()`/`auth.jwt()` to `current_user_id()` + `user_account.admin`       |
+| SuperPrototype template     | Full Drizzle + `withUser` migration complete — all admin + API routes use Drizzle queries through `event.locals.db.withUser`. Auth.js-ready `auth-resolver.ts` seam in place. `user_account` now has bigint PK + `auth_user_id text` + `admin bool`. Sign-in/out remain Supabase OAuth.                   |
+| Native template             | New — Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern.                                                                            |
 | Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary); CSS layer cascade established (`chrome.css`, `state.css`, `components.css` via `@import … layer(…)`) |
 | `apps/dev-kitchen`          | Working SvelteKit app — 40+ component showcase routes for coreui and blog, hermes i18n integration, live Supabase connection                                                                        |
 | Monorepo structure          | Clean — pnpm workspaces, Turborepo task graph, all workspace references correct                                                                                                                     |

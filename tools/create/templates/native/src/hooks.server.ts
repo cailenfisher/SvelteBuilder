@@ -10,7 +10,7 @@ import { locale as localeTable } from '@sveltebuilder/hermes-schema/schema';
 
 // Translates the provider's user identity to a public.user_account.id bigint,
 // then attaches userAccountId and db (the withUser wrapper) to locals.
-// This hook is identical across SuperPrototype and Native — the only line that
+// This hook is identical across Native and SuperPrototype — the only line that
 // differs is inside resolveAuthenticatedUserId (imported from auth-resolver.ts).
 const populateLocals: Handle = async ({ event, resolve }) => {
   const userAccountId = await resolveAuthenticatedUserId(event);
@@ -19,13 +19,11 @@ const populateLocals: Handle = async ({ event, resolve }) => {
   return resolve(event);
 };
 
-// Locale resolution reads from the database (public.locale is unrestricted) using
-// the raw db client — a deliberate exception documented in db/client.ts.
+// Locale resolution reads from the database using the raw db client — a
+// deliberate exception documented in db/client.ts.
 const localeHook: Handle = async ({ event, resolve }) => {
   const defaultCode = PUBLIC_DEFAULT_LOCALE ?? 'en';
 
-  // Locale table is world-readable (locale_public_read policy: using (true)).
-  // Raw db is intentional here — no user context needed for this lookup.
   const rows = await db.select().from(localeTable).orderBy(asc(localeTable.code));
   const available = rows.map((r) => ({
     id: r.id,
