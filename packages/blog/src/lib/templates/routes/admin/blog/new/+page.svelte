@@ -1,9 +1,9 @@
 <script lang="ts">
   import { localText } from '@sveltebuilder/hermes';
   import { Button, Field, Label, Select, SelectItem, Switch } from '@sveltebuilder/coreui';
-  import type { PageData, ActionData } from './$types';
+  import type { ActionData } from './$types';
 
-  let { data, form }: { data: PageData; form: ActionData } = $props();
+  let { form }: { form: ActionData } = $props();
 
   const title     = $derived(localText('blog.admin.post.new', 'blog'));
   const saveLabel = $derived(localText('blog.admin.post.save_draft', 'blog'));

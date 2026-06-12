@@ -3,7 +3,6 @@
     Table,
     TableHead,
     TableBody,
-    TableFoot,
     TableRow,
     TableHeader,
     TableCell,

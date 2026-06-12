@@ -1,2 +1,2 @@
-export * from './schema.ts';
-export * from './seed.ts';
+export * from './schema';
+export * from './seed';

@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/hermes",
-  "version": "0.0.2",
+  "version": "0.0.6",
   "private": false,
   "type": "module",
   "scripts": {
@@ -19,7 +19,9 @@
   },
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "peerDependencies": {
     "svelte": "^5.0.0"
   },

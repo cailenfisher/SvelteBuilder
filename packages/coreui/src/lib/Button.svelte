@@ -18,6 +18,7 @@
   type ButtonProps = BaseProps & HTMLButtonAttributes & { href?: never };
   type AnchorProps = BaseProps & HTMLAnchorAttributes & { href: string };
 
+  // svelte-ignore custom_element_props_identifier
   let {
     variant = 'primary',
     size = 'md',

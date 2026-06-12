@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/coreui",
-  "version": "0.0.10",
+  "version": "0.0.13",
   "private": false,
   "type": "module",
   "scripts": {
@@ -26,13 +26,13 @@
   ],
   "peerDependencies": {
     "svelte": "^5.0.0",
-    "@sveltebuilder/hermes": "workspace:*",
+    "@sveltebuilder/hermes": "^0.0.6",
     "bits-ui": "^2.18.1"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "@sveltebuilder/hermes": "workspace:*",
+    "@sveltebuilder/hermes": "^0.0.6",
     "svelte": "^5.0.0",
     "typescript": "^5.5.0",
     "vitest": "^2.0.0"

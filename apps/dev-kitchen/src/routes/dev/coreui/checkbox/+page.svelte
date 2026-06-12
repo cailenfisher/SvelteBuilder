@@ -2,7 +2,6 @@
   import { Checkbox, Field } from '@sveltebuilder/coreui';
 
   let checked = $state(false);
-  let indeterminate = $state(true);
 </script>
 
 <svelte:head>

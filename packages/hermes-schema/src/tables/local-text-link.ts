@@ -1,4 +1,5 @@
-import { pgTable, bigint, text, uniqueIndex, sql } from 'drizzle-orm/pg-core';
+import { pgTable, bigint, text, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const localTextLink = pgTable(
   'local_text_link',

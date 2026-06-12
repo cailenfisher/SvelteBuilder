@@ -1,6 +1,6 @@
 import { pgTable, bigint, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
-import { locale } from './locale.ts';
-import { localTextLink } from './local-text-link.ts';
+import { locale } from './locale';
+import { localTextLink } from './local-text-link';
 
 export const localText = pgTable(
   'local_text',

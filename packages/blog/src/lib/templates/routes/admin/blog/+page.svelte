@@ -28,6 +28,7 @@
 
   let deleteTarget = $state<Post | null>(null);
   let deleteOpen   = $state(false);
+  // svelte-ignore state_referenced_locally
   let page         = $state(data.page);
 
   function formatDate(iso: string): string {

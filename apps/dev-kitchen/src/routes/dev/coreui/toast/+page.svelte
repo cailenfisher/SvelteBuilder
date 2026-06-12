@@ -1,8 +1,6 @@
 <script lang="ts">
   import { messageBus } from '@sveltebuilder/coreui';
 
-  let lastId = $state('');
-
   function sendSuccess() {
     messageBus.sendToast({
       severity: 'success',

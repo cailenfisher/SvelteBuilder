@@ -6,11 +6,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   const { locale, defaultLocale } = locals;
   const supabase = locals.supabase;
 
-  const [post, comments] = await Promise.all([
-    getPublishedPostBySlug(supabase, params.slug, locale.code, defaultLocale.code),
-    // Comments are fetched optimistically; handled after post null-check below.
-    Promise.resolve(null),
-  ]);
+  const post = await getPublishedPostBySlug(supabase, params.slug, locale.code, defaultLocale.code);
 
   if (!post) {
     throw error(404, 'Post not found.');

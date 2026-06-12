@@ -29,6 +29,7 @@
     slugReadonly = false,
   }: Props = $props();
 
+  // svelte-ignore state_referenced_locally
   let selectedLocale = $state(localeId !== undefined ? String(localeId) : '');
 </script>
 

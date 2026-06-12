@@ -62,6 +62,10 @@
       name: data.authorName,
     },
   }));
+
+  // Build the script tag in JS to prevent the Svelte template parser from
+  // misinterpreting the literal <script> substring as a script element.
+  const jsonLdScript = $derived(`<` + `script type="application/ld+json">${jsonLd}</` + `script>`);
 </script>
 
 <svelte:head>
@@ -86,8 +90,7 @@
   <link rel="alternate" hreflang="x-default" href={`/blog/${encodeURIComponent(title)}`} />
 
   <!-- JSON-LD structured data -->
-  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-  {@html `<script type="application/ld+json">${jsonLd}</script>`}
+  {@html jsonLdScript}
 </svelte:head>
 
 <main class="blog-post-page">

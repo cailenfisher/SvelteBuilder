@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/blog",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "private": false,
   "type": "module",
   "scripts": {
@@ -33,8 +33,8 @@
     "drizzle-orm": "^0.38.0"
   },
   "peerDependencies": {
-    "@sveltebuilder/hermes": "workspace:*",
-    "@sveltebuilder/coreui": "workspace:*",
+    "@sveltebuilder/hermes": "^0.0.6",
+    "@sveltebuilder/coreui": "^0.0.13",
     "@supabase/supabase-js": ">=2.0.0",
     "svelte": ">=5.0.0"
   },

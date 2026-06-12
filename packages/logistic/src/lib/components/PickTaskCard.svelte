@@ -18,7 +18,6 @@
 
   const statusLabel = $derived(localText(`logistic.pick_task.status.${task.status}`, 'logistic'));
 
-  const pendingLines = $derived(lines.filter((l) => l.pickedQuantity < l.requestedQuantity));
   const completedLines = $derived(lines.filter((l) => l.pickedQuantity >= l.requestedQuantity));
 
   const completionPct = $derived(

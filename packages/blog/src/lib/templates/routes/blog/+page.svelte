@@ -1,7 +1,7 @@
 <script lang="ts">
   import { merge, localText } from '@sveltebuilder/hermes';
   import { Pagination } from '@sveltebuilder/coreui';
-  import { PostList, CategoryPill, TagPill } from '@sveltebuilder/blog';
+  import { PostList, CategoryPill } from '@sveltebuilder/blog';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -14,6 +14,7 @@
   const title    = $derived(localText('blog.post.list.title', 'blog'));
   const pageTitle = $derived(`${title} — ${localText('app.name')}`);
 
+  // svelte-ignore state_referenced_locally
   let page = $state(data.page);
 
   const categoriesByPost = $derived(
