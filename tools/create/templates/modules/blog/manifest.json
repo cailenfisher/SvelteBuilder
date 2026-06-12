@@ -1,5 +1,5 @@
 {
   "package": "@sveltebuilder/blog",
-  "schemas": ["supabase/schemas/blog.sql"],
-  "after": ["@sveltebuilder/base"]
+  "schema": "@sveltebuilder/blog/schema",
+  "after": ["@sveltebuilder/hermes-schema", "@sveltebuilder/superprototype"]
 }

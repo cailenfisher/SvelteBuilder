@@ -3,13 +3,17 @@ import { glob } from 'glob';
 
 export type SchemaManifest = {
   package: string;
-  schemas: string[];
+  /** ESM module specifier for the Drizzle schema export.
+   *  - npm package path: '@sveltebuilder/hermes-schema/schema'
+   *  - project-root-relative: './src/lib/server/schema.ts'
+   */
+  schema: string;
   after: string[];
 };
 
 export async function discover(root?: string): Promise<SchemaManifest[]> {
   const cwd = root ?? process.env.INIT_CWD ?? process.cwd();
-  const files = await glob('supabase/schemas/_registry/*.json', { cwd, absolute: true });
+  const files = await glob('.sveltebuilder/registry/*.json', { cwd, absolute: true });
 
   const manifests: SchemaManifest[] = [];
   for (const file of files.sort()) {

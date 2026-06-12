@@ -1,6 +1,6 @@
 import type { SchemaManifest } from './discover.ts';
 
-export function resolve(manifests: SchemaManifest[]): string[] {
+export function resolve(manifests: SchemaManifest[]): SchemaManifest[] {
   const byPackage = new Map<string, SchemaManifest>();
   for (const m of manifests) {
     byPackage.set(m.package, m);
@@ -44,5 +44,5 @@ export function resolve(manifests: SchemaManifest[]): string[] {
     throw new Error(`Circular dependency detected among: ${cycle}`);
   }
 
-  return sorted.flatMap((pkg) => byPackage.get(pkg)?.schemas ?? []);
+  return sorted.map((pkg) => byPackage.get(pkg)!);
 }

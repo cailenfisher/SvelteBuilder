@@ -1,0 +1,33 @@
+{
+  "name": "@sveltebuilder/hermes-schema",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "default": "./dist/schema.js"
+    },
+    "./seed": {
+      "types": "./dist/seed.d.ts",
+      "default": "./dist/seed.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.38.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0"
+  }
+}

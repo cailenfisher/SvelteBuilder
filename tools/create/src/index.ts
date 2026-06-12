@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { sync } from '@sveltebuilder/cli/api';
+import { syncSupabase } from '@sveltebuilder/cli/api';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -202,34 +202,33 @@ async function main() {
       await fs.copy(routesDir, path.join(targetDir, 'src', 'routes'), { overwrite: true });
     }
 
-    const schemasDir = path.join(modDir, 'schemas');
-    if (await fs.pathExists(schemasDir)) {
-      await fs.copy(schemasDir, path.join(targetDir, 'supabase', 'schemas'), {
+    // Copy module supplemental SQL (RLS, triggers, cross-FK constraints) to supabase/supplemental/
+    const supplementalDir = path.join(modDir, 'supplemental');
+    if (await fs.pathExists(supplementalDir)) {
+      await fs.copy(supplementalDir, path.join(targetDir, 'supabase', 'supplemental'), {
         overwrite: true,
       });
     }
 
+    // Copy module manifest to .sveltebuilder/registry/
     const manifestSrc = path.join(modDir, 'manifest.json');
     if (await fs.pathExists(manifestSrc)) {
       const manifestDest = path.join(
         targetDir,
-        'supabase',
-        'schemas',
-        '_registry',
+        '.sveltebuilder',
+        'registry',
         `@sveltebuilder-${mod}.json`,
       );
       await fs.copy(manifestSrc, manifestDest, { overwrite: true });
     }
 
-    // Append module seed SQL to the project seed file.
+    // Copy module seed SQL to supabase/seeds/<mod>.sql
+    // sync:supabase will append these to the generated seed.sql
     const modSeedPath = path.join(modDir, 'seed', 'seed.sql');
     if (await fs.pathExists(modSeedPath)) {
-      const mainSeedPath = path.join(targetDir, 'supabase', 'seed.sql');
-      const modSeedContent = await fs.readFile(modSeedPath, 'utf8');
-      await fs.appendFile(
-        mainSeedPath,
-        `\n-- ============================================================\n-- @sveltebuilder/${mod} seed (appended by create-sveltebuilder)\n-- ============================================================\n${modSeedContent}`,
-      );
+      const seedDestDir = path.join(targetDir, 'supabase', 'seeds');
+      await fs.ensureDir(seedDestDir);
+      await fs.copy(modSeedPath, path.join(seedDestDir, `${mod}.sql`), { overwrite: true });
     }
   }
 
@@ -244,19 +243,10 @@ async function main() {
 
   s.stop('Project scaffolded');
 
-  // ── Step 5: sveltebuilder sync ────────────────────────────────────────────
-  s.start('Resolving schema order...');
-  try {
-    await sync(targetDir);
-    s.stop('Schema order resolved');
-  } catch (err) {
-    s.stop(pc.yellow('Schema sync skipped (run `sveltebuilder sync` after setup)'));
-    if (err instanceof Error) p.log.warn(err.message);
-  }
-
-  // ── Step 6: Install dependencies ─────────────────────────────────────────
+  // ── Step 5: Install dependencies ─────────────────────────────────────────
+  // Must run before sync:supabase since drizzle-kit is installed as a dev dep.
   if (noInstall) {
-    p.log.info('Skipping install (--no-install).');
+    p.log.info('Skipping install (--no-install). Run `sveltebuilder sync:supabase` manually after installing.');
   } else {
     s.start(`Installing dependencies with ${pm}...`);
     const installResult = spawnSync(pm as string, ['install'], {
@@ -272,6 +262,18 @@ async function main() {
       if (installResult.stderr) p.log.warn(installResult.stderr.toString().trim());
     } else {
       s.stop('Dependencies installed');
+    }
+  }
+
+  // ── Step 6: sveltebuilder sync:supabase ───────────────────────────────────
+  if (!noInstall) {
+    s.start('Generating Supabase migrations...');
+    try {
+      await syncSupabase(targetDir);
+      s.stop('Supabase migrations generated');
+    } catch (err) {
+      s.stop(pc.yellow('Migration generation skipped — run `sveltebuilder sync:supabase` manually'));
+      if (err instanceof Error) p.log.warn(err.message);
     }
   }
 
