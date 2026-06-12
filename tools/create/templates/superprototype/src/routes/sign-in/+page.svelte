@@ -6,12 +6,15 @@
   let { form }: { form: ActionData } = $props()
 
   const title = $derived(localText('user.sign_in'))
+  const subtitle = $derived(localText('user.sign_in.subtitle'))
+  const signInWithGoogle = $derived(localText('user.sign_in_with_google'))
 </script>
 
 <div class="sign-in-page">
   <div class="sign-in-card">
     <header class="sign-in-card__header">
       <h1 class="sign-in-card__title">{title}</h1>
+      <p class="sign-in-card__subtitle">{subtitle}</p>
     </header>
 
     {#if form?.error}
@@ -19,7 +22,7 @@
     {/if}
 
     <form method="post">
-      <Button type="submit" full>Sign in with Google</Button>
+      <Button type="submit" full>{signInWithGoogle}</Button>
     </form>
   </div>
 </div>
@@ -57,6 +60,12 @@
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1.25;
+  }
+
+  .sign-in-card__subtitle {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, inherit);
   }
 
   .sign-in-card__error {
