@@ -11,6 +11,7 @@
     class?: string | undefined;
   };
 
+  // svelte-ignore custom_element_props_identifier
   let {
     size = 'md',
     error,
@@ -38,13 +39,13 @@
   });
 
   const classes = $derived(
-    ['textarea', `textarea--${size}`, hasError ? 'textarea--error' : '', extraClass ?? '']
+    ['textarea', size, hasError ? 'error' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
 </script>
 
-<div class="textarea-wrapper">
+<div class="wrap">
   <textarea
     class={classes}
     id={resolvedId}
@@ -59,98 +60,10 @@
 </div>
 
 <style>
-  .textarea-wrapper {
+  .wrap {
     display: flex;
     flex-direction: column;
-    gap: var(--primitive-space-1);
+    gap: var(--space-1);
     width: 100%;
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Base                                                                 */
-  /* ------------------------------------------------------------------ */
-  .textarea {
-    display: block;
-    width: 100%;
-    border: var(--input-border-width) solid var(--input-border);
-    border-radius: var(--input-radius);
-    background-color: var(--input-bg);
-    color: var(--input-text);
-    font-family: var(--font-sans);
-    font-size: var(--input-font-size);
-    line-height: var(--leading-normal);
-    padding: var(--textarea-padding-y) var(--input-padding-x);
-    transition:
-      border-color var(--input-transition),
-      box-shadow var(--input-transition);
-    resize: vertical;
-    appearance: none;
-  }
-
-  .textarea::placeholder {
-    color: var(--input-placeholder);
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Sizes                                                                */
-  /* ------------------------------------------------------------------ */
-  .textarea--sm {
-    min-height: var(--textarea-min-height-sm);
-    font-size: var(--text-xs);
-  }
-
-  .textarea--md {
-    min-height: var(--textarea-min-height-md);
-  }
-
-  .textarea--lg {
-    min-height: var(--textarea-min-height-lg);
-    font-size: var(--text-base);
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Focus                                                                */
-  /* ------------------------------------------------------------------ */
-  .textarea:focus-visible {
-    outline: none;
-    border-color: var(--input-border-focus);
-    box-shadow: 0 0 0 var(--focus-ring-width)
-      color-mix(in srgb, var(--color-focus-ring) 30%, transparent);
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Error state                                                          */
-  /* ------------------------------------------------------------------ */
-  .textarea--error {
-    border-color: var(--input-border-error);
-  }
-
-  .textarea--error:focus-visible {
-    border-color: var(--input-border-error);
-    box-shadow: 0 0 0 var(--focus-ring-width)
-      color-mix(in srgb, var(--color-danger-base) 30%, transparent);
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Disabled                                                             */
-  /* ------------------------------------------------------------------ */
-  .textarea:disabled {
-    background-color: var(--input-bg-disabled);
-    border-color: var(--color-disabled-border);
-    color: var(--color-disabled-text);
-    cursor: not-allowed;
-    resize: none;
-  }
-
-  .textarea:disabled::placeholder {
-    color: var(--color-disabled-text);
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Read-only                                                            */
-  /* ------------------------------------------------------------------ */
-  .textarea:read-only:not(:disabled) {
-    background-color: var(--color-surface-raised);
-    cursor: default;
   }
 </style>

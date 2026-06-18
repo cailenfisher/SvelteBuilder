@@ -27,26 +27,6 @@
 >
   {@render children()}
   {#if required}
-    <span class="label__required" aria-hidden="true">*</span>
+    <span class="required" aria-hidden="true">*</span>
   {/if}
 </Label.Root>
-
-<style>
-  /* Bits Label.Root renders the element — :global() is required. */
-  :global(.label) {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--primitive-space-0-5);
-    font-size: var(--label-font-size);
-    font-weight: var(--label-font-weight);
-    color: var(--label-color);
-    line-height: var(--leading-snug);
-    cursor: default;
-  }
-
-  .label__required {
-    color: var(--label-required-color);
-    font-weight: var(--weight-bold);
-    line-height: 1;
-  }
-</style>

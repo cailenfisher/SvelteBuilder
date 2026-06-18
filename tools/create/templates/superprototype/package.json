@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@sveltebuilder/hermes-schema": "latest",
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
+    "drizzle-orm": "^0.38.0",
+    "postgres": "^3.4.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.29.0"
+  }
+}

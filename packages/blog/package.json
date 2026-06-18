@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/blog",
-  "version": "0.0.1",
+  "version": "0.0.7",
   "private": false,
   "type": "module",
   "scripts": {
@@ -12,20 +12,29 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "svelte": "./src/lib/index.ts",
+      "svelte": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./server": {
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "default": "./dist/schema.js"
     }
   },
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "drizzle-orm": "^0.38.0"
+  },
   "peerDependencies": {
-    "@sveltebuilder/hermes": "workspace:*",
-    "@sveltebuilder/coreui": "workspace:*",
+    "@sveltebuilder/hermes": "^0.0.6",
+    "@sveltebuilder/coreui": "^0.0.13",
     "@supabase/supabase-js": ">=2.0.0",
     "svelte": ">=5.0.0"
   },

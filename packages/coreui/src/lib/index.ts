@@ -20,6 +20,23 @@ export { default as Skeleton } from './Skeleton.svelte';
 export { default as Spinner } from './Spinner.svelte';
 
 // ============================================================
+// Messaging system
+// ============================================================
+export { messageBus, AUTO_DISMISS_MS } from './message-bus.svelte.js';
+export type { SBMessage, SBMessageSeverity, SBMessageAction } from './message-bus.svelte.js';
+export { default as Toast } from './Toast.svelte';
+export { default as ToastRegion } from './ToastRegion.svelte';
+export { default as InlineNotification } from './InlineNotification.svelte';
+export { default as Banner } from './Banner.svelte';
+export { default as ConfirmDialog } from './ConfirmDialog.svelte';
+export { default as MessageAriaLive } from './MessageAriaLive.svelte';
+
+// ============================================================
+// Scan input
+// ============================================================
+export { default as BarcodeInput } from './BarcodeInput.svelte';
+
+// ============================================================
 // Form primitives
 // ============================================================
 export { default as Field } from './Field.svelte';
@@ -75,11 +92,16 @@ export { default as MenuSub } from './MenuSub.svelte';
 // ============================================================
 // Navigation
 // ============================================================
+export { default as LocaleSwitcher } from './LocaleSwitcher.svelte';
 export { default as Pagination } from './Pagination.svelte';
 
 // ============================================================
 // Data display
 // ============================================================
+export { default as MetricCard } from './MetricCard.svelte';
+export { default as Timeline } from './Timeline.svelte';
+export { default as TimelineItem } from './TimelineItem.svelte';
+export { default as StatusBadge } from './StatusBadge.svelte';
 export { default as Table } from './Table.svelte';
 export { default as TableHead } from './TableHead.svelte';
 export { default as TableBody } from './TableBody.svelte';
@@ -87,6 +109,13 @@ export { default as TableFoot } from './TableFoot.svelte';
 export { default as TableRow } from './TableRow.svelte';
 export { default as TableHeader } from './TableHeader.svelte';
 export { default as TableCell } from './TableCell.svelte';
+
+// ============================================================
+// LocalText admin components
+// ============================================================
+export { default as LocaleEdit } from './LocaleEdit.svelte';
+export { default as LocalTextLinkEdit } from './LocalTextLinkEdit.svelte';
+export { default as LocalTextEdit } from './LocalTextEdit.svelte';
 
 // ============================================================
 // Utilities — for consumers building custom form controls

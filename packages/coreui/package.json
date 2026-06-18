@@ -1,11 +1,11 @@
 {
   "name": "@sveltebuilder/coreui",
-  "version": "0.0.1",
+  "version": "0.0.13",
   "private": false,
   "type": "module",
   "scripts": {
-    "build": "svelte-package -i src",
-    "dev": "svelte-package -i src --watch",
+    "build": "svelte-package",
+    "dev": "svelte-package --watch",
     "lint": "eslint src",
     "test": "vitest run"
   },
@@ -14,22 +14,25 @@
       "types": "./dist/index.d.ts",
       "svelte": "./dist/index.js",
       "default": "./dist/index.js"
-    }
+    },
+    "./styles/tokens.css": "./styles/tokens.css",
+    "./styles/components.css": "./styles/components.css"
   },
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "styles"
   ],
   "peerDependencies": {
     "svelte": "^5.0.0",
-    "@sveltebuilder/hermes": "workspace:*",
+    "@sveltebuilder/hermes": "^0.0.6",
     "bits-ui": "^2.18.1"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "@sveltebuilder/hermes": "workspace:*",
+    "@sveltebuilder/hermes": "^0.0.6",
     "svelte": "^5.0.0",
     "typescript": "^5.5.0",
     "vitest": "^2.0.0"

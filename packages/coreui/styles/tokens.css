@@ -1,0 +1,40 @@
+/* =============================================================================
+   SvelteBuilder CoreUI — Design Tokens (public API)
+   tokens.css
+
+   Import once at the root of your application:
+     @import '@sveltebuilder/coreui/styles/tokens.css';
+
+   Override only what you need:
+     :root {
+       --brand:  #0f5a9c;
+       --chrome: #dde3ec;
+       --font:   'Inter', sans-serif;
+     }
+
+   The 9 custom properties below are the complete public theming surface.
+   All other tokens are internal — changing them directly is unsupported.
+   ============================================================================= */
+
+@import './_internal.css';
+
+:root {
+  /* Brand */
+  --brand:  #2563eb;
+
+  /* Chrome — single neutral reference for all UI chrome */
+  --chrome: #e2e8f0;
+
+  /* Status */
+  --danger:  #dc2626;
+  --warning: #d97706;
+  --success: #16a34a;
+  --info:    #0284c7;
+
+  /* Typography */
+  --font:      system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, monospace;
+
+  /* Shape */
+  --radius: 6px;
+}

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { merge, localText } from '@sveltebuilder/hermes';
   import { Pagination } from '@sveltebuilder/coreui';
-  import { PostList, CategoryPill, TagPill } from '@sveltebuilder/blog';
+  import { PostList, CategoryPill } from '@sveltebuilder/blog';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -14,6 +14,7 @@
   const title    = $derived(localText('blog.post.list.title', 'blog'));
   const pageTitle = $derived(`${title} — ${localText('app.name')}`);
 
+  // svelte-ignore state_referenced_locally
   let page = $state(data.page);
 
   const categoriesByPost = $derived(
@@ -110,7 +111,7 @@
     font-size: var(--text-4xl);
     font-weight: var(--weight-bold);
     line-height: var(--leading-tight);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -134,20 +135,20 @@
     align-items: center;
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     text-decoration: none;
     padding: 0 var(--space-2);
     height: var(--badge-height-md);
     border-radius: var(--badge-radius);
-    border: 1px solid var(--color-border-default);
-    background-color: var(--color-surface-base);
-    transition: background-color var(--duration-fast) var(--ease-out);
+    border: 1px solid var(--border-color);
+    background-color: var(--surface);
+    transition: background-color var(--duration) var(--ease);
   }
 
   .blog-list-page__filter-all:hover,
   .blog-list-page__filter-all[aria-current="page"] {
-    background-color: var(--color-surface-overlay);
-    color: var(--color-text-primary);
+    background-color: var(--surface-overlay);
+    color: var(--text);
   }
 
   .blog-list-page__pagination {

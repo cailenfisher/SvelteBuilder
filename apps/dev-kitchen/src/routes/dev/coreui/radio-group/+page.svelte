@@ -2,7 +2,6 @@
   import { RadioGroup, RadioItem } from '@sveltebuilder/coreui';
 
   let selectedV = $state('');
-  let selectedH = $state('');
 </script>
 
 <svelte:head>

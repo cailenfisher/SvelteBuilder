@@ -1,9 +1,9 @@
 <script lang="ts">
   import { localText } from '@sveltebuilder/hermes';
   import { Button, Field, Label, Select, SelectItem, Switch } from '@sveltebuilder/coreui';
-  import type { PageData, ActionData } from './$types';
+  import type { ActionData } from './$types';
 
-  let { data, form }: { data: PageData; form: ActionData } = $props();
+  let { form }: { form: ActionData } = $props();
 
   const title     = $derived(localText('blog.admin.post.new', 'blog'));
   const saveLabel = $derived(localText('blog.admin.post.save_draft', 'blog'));
@@ -69,7 +69,7 @@
   .admin-post-form__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -92,9 +92,9 @@
   }
 
   .admin-post-form__error {
-    color: var(--color-danger-text);
-    background-color: var(--color-danger-subtle);
-    border: 1px solid var(--color-danger-border);
+    color: var(--danger-text);
+    background-color: var(--danger-soft);
+    border: 1px solid var(--danger-border);
     border-radius: var(--radius-lg);
     padding: var(--space-3) var(--space-4);
     font-size: var(--text-sm);

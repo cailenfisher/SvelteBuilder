@@ -4,6 +4,13 @@ import tsParser from '@typescript-eslint/parser';
 import svelte from 'eslint-plugin-svelte';
 import svelteParser from 'svelte-eslint-parser';
 
+const unusedVarsOptions = {
+  argsIgnorePattern: '^_',
+  varsIgnorePattern: '^_',
+  destructuredArrayIgnorePattern: '^_',
+  ignoreRestSiblings: true,
+};
+
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   js.configs.recommended,
@@ -11,25 +18,42 @@ export default [
     files: ['**/*.ts'],
     languageOptions: {
       parser: tsParser,
-      parserOptions: { project: true }
+      parserOptions: { project: true },
     },
     plugins: { '@typescript-eslint': ts },
     rules: {
-      ...ts.configs.recommended.rules
-    }
+      ...ts.configs.recommended.rules,
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', unusedVarsOptions],
+    },
   },
   {
     files: ['**/*.svelte'],
     languageOptions: {
       parser: svelteParser,
-      parserOptions: { parser: tsParser }
+      parserOptions: { parser: tsParser },
     },
-    plugins: { svelte },
+    plugins: { svelte, '@typescript-eslint': ts },
     rules: {
-      ...svelte.configs.recommended.rules
-    }
+      ...svelte.configs.recommended.rules,
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', unusedVarsOptions],
+    },
   },
   {
-    ignores: ['**/dist/**', '**/.svelte-kit/**', '**/build/**', 'node_modules/**']
-  }
+    // These files intentionally use {@html} with sanitized/trusted content.
+    // Note: the bracket in [slug] is a glob character class, so we use a wildcard.
+    files: [
+      'packages/blog/src/lib/components/PostBody.svelte',
+      'packages/blog/src/lib/templates/routes/blog/*/+page.svelte',
+    ],
+    rules: {
+      'svelte/no-at-html-tags': 'off',
+    },
+  },
+  {
+    ignores: ['**/dist/**', '**/.svelte-kit/**', '**/build/**', 'node_modules/**'],
+  },
 ];

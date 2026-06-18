@@ -1,11 +1,11 @@
 {
   "name": "@sveltebuilder/logistic",
-  "version": "0.0.1",
+  "version": "0.0.8",
   "private": false,
   "type": "module",
   "scripts": {
-    "build": "svelte-package -i src",
-    "dev": "svelte-package -i src --watch",
+    "build": "svelte-package -i src/lib",
+    "dev": "svelte-package -i src/lib --watch",
     "lint": "eslint src",
     "test": "vitest run"
   },
@@ -14,13 +14,29 @@
       "types": "./dist/index.d.ts",
       "svelte": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "default": "./dist/server/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "default": "./dist/schema.js"
     }
   },
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "drizzle-orm": "^0.38.0"
+  },
   "peerDependencies": {
-    "svelte": "^5.0.0"
+    "@sveltebuilder/hermes": "^0.0.6",
+    "@sveltebuilder/coreui": "^0.0.13",
+    "@supabase/supabase-js": ">=2.0.0",
+    "svelte": ">=5.0.0"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",

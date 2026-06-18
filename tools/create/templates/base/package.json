@@ -1,7 +1,8 @@
 {
   "name": "my-sveltebuilder-app",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
@@ -11,9 +12,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@sveltebuilder/hermes": "latest",
-    "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest"
+    "@sveltebuilder/coreui": "latest",
+    "@sveltebuilder/hermes": "latest"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "latest",

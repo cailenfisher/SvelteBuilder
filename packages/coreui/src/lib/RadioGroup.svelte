@@ -27,11 +27,7 @@
   const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
 
   const classes = $derived(
-    [
-      'radio-group',
-      `radio-group--${orientation}`,
-      extraClass ?? '',
-    ]
+    ['radio-group', orientation, extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
@@ -46,19 +42,3 @@
 >
   {@render children()}
 </RadioGroup.Root>
-
-<style>
-  :global(.radio-group) {
-    display: flex;
-    gap: var(--primitive-space-2);
-  }
-
-  :global(.radio-group--vertical) {
-    flex-direction: column;
-  }
-
-  :global(.radio-group--horizontal) {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-</style>

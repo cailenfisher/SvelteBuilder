@@ -1,6 +1,6 @@
 {
   "name": "dev-kitchen",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,9 +12,9 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@sveltebuilder/blog": "workspace:*",
-    "@sveltebuilder/coreui": "workspace:*",
-    "@sveltebuilder/hermes": "workspace:*",
+    "@sveltebuilder/blog": "^0.0.7",
+    "@sveltebuilder/coreui": "^0.0.13",
+    "@sveltebuilder/hermes": "^0.0.6",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest"
   },

@@ -1,19 +1,26 @@
 {
   "name": "@sveltebuilder/cli",
-  "version": "0.0.1",
+  "version": "0.0.9",
   "private": false,
   "type": "module",
   "bin": {
     "sveltebuilder": "./dist/index.js"
   },
-  "files": ["dist"],
+  "exports": {
+    "./api": "./dist/api.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint src"
   },
   "dependencies": {
+    "@sveltebuilder/hermes-schema": "^0.0.6",
     "commander": "^12.0.0",
+    "drizzle-kit": "^0.29.0",
     "glob": "^11.0.0",
     "smol-toml": "^1.3.0"
   },

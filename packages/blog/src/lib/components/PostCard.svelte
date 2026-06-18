@@ -27,7 +27,6 @@
 
   const title   = $derived(localText('title',   'post', post.id));
   const excerpt = $derived(localText('excerpt', 'post', post.id));
-  const byLabel = $derived(localText('blog.post.by', 'blog'));
 
   const publishedDate = $derived(
     post.publishedAt
@@ -47,25 +46,25 @@
   const cardHref = $derived(href ?? `/blog/${post.slug}`);
 
   const classes = $derived(
-    ['post-card', post.featured ? 'post-card--featured' : '', extraClass ?? '']
+    ['post-card', post.featured ? 'featured' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
 </script>
 
 <article class={classes}>
-  <div class="post-card__body">
-    <header class="post-card__header">
+  <div class="body">
+    <header class="header">
       {#if showStatus}
         <Badge variant={statusVariant} size="sm">{statusLabel}</Badge>
       {/if}
 
-      <h2 class="post-card__title">
-        <a class="post-card__title-link" href={cardHref}>{title}</a>
+      <h2 class="title">
+        <a class="title-link" href={cardHref}>{title}</a>
       </h2>
 
       {#if publishedDate}
-        <p class="post-card__meta">
+        <p class="meta">
           <time datetime={post.publishedAt ?? undefined}>{publishedDate}</time>
           {#if post.readingTimeMinute}
             <span aria-hidden="true">·</span>
@@ -77,12 +76,12 @@
       {/if}
     </header>
 
-    <p class="post-card__excerpt">{excerpt}</p>
+    <p class="excerpt">{excerpt}</p>
 
     {#if categories.length > 0 || tags.length > 0}
-      <footer class="post-card__footer">
+      <footer class="footer">
         {#if categories.length > 0}
-          <ul class="post-card__categories" aria-label="Categories">
+          <ul class="categories" aria-label="Categories">
             {#each categories as category (category.id)}
               <li>
                 <CategoryPill
@@ -96,7 +95,7 @@
         {/if}
 
         {#if tags.length > 0}
-          <ul class="post-card__tags" aria-label="Tags">
+          <ul class="tags" aria-label="Tags">
             {#each tags as tag (tag.id)}
               <li>
                 <TagPill
@@ -114,68 +113,65 @@
 </article>
 
 <style>
+  /* @layer chrome provides base .card chrome */
   .post-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--card-radius);
-    box-shadow: var(--card-shadow);
-    transition: box-shadow var(--duration-fast) var(--ease-out),
-                border-color var(--duration-fast) var(--ease-out);
+    background: var(--surface-raised);
+    border: var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xs);
+    transition: box-shadow var(--duration) var(--ease), border-color var(--duration) var(--ease);
     overflow: hidden;
   }
 
   .post-card:hover {
-    box-shadow: var(--shadow-md);
-    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow);
+    border-color: var(--border-strong);
   }
 
-  .post-card--featured {
-    border-color: var(--color-border-brand);
+  .post-card.featured {
+    border-color: color-mix(in srgb, var(--brand), white 65%);
   }
 
-  .post-card__body {
-    padding: var(--card-padding);
+  .body {
+    padding: var(--space-4);
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
   }
 
-  .post-card__header {
+  .header {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
   }
 
-  .post-card__title {
+  .title {
     font-size: var(--text-xl);
     font-weight: var(--weight-semibold);
     line-height: var(--leading-snug);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
-  .post-card__title-link {
+  .title-link {
     color: inherit;
     text-decoration: none;
   }
+  .title-link:hover { color: var(--link-text); }
 
-  .post-card__title-link:hover {
-    color: var(--color-text-link);
-  }
-
-  .post-card__meta {
+  .meta {
     display: flex;
     align-items: center;
     gap: var(--space-2);
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     margin: 0;
   }
 
-  .post-card__excerpt {
+  .excerpt {
     font-size: var(--text-base);
     line-height: var(--leading-relaxed);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -183,15 +179,15 @@
     overflow: hidden;
   }
 
-  .post-card__footer {
+  .footer {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
     align-items: center;
   }
 
-  .post-card__categories,
-  .post-card__tags {
+  .categories,
+  .tags {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1);

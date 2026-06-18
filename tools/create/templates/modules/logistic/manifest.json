@@ -1,0 +1,5 @@
+{
+  "package": "@sveltebuilder/logistic",
+  "schema": "@sveltebuilder/logistic/schema",
+  "after": ["@sveltebuilder/hermes-schema", "@sveltebuilder/superprototype"]
+}

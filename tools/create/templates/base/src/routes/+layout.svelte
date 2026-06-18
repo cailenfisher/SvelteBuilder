@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { load } from '@sveltebuilder/hermes'
-  import { localText, LocalText } from '@sveltebuilder/hermes'
-  import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
+  import '../app.css'
+  import { page } from '$app/state'
+  import { load, localText, LocalText } from '@sveltebuilder/hermes'
+  import { LocaleSwitcher } from '@sveltebuilder/coreui'
   import type { LayoutData } from './$types'
 
   let { data, children }: { data: LayoutData; children: any } = $props()
@@ -9,33 +10,56 @@
   $effect(() => {
     load(data.dictionary, data.locale.code, data.defaultLocale.code)
   })
+
+  // Admin and auth routes manage their own chrome.
+  const isFullPage = $derived(
+    page.url.pathname.startsWith('/admin') ||
+    page.url.pathname.startsWith('/sign-')
+  )
 </script>
 
 <svelte:head>
   <title>{localText('app.name')}</title>
 </svelte:head>
 
-<!-- TODO: replace shell structure with @sveltebuilder/coreui layout components -->
-<div class="app" dir={data.locale.dir}>
-  <header class="app__header">
-    <a href="/" class="app__brand">
-      <LocalText slug="app.name" />
-    </a>
-    <nav class="app__nav">
-      <LocaleSwitcher current={data.locale} locales={data.locales} />
-    </nav>
-  </header>
-
-  <main class="app__main">
+{#if isFullPage}
+  <div dir={data.locale.dir} class="full-page">
     {@render children()}
-  </main>
+  </div>
+{:else}
+  <div class="app" dir={data.locale.dir}>
+    <header class="app__header">
+      <a href="/" class="app__brand">
+        <LocalText slug="app.name" />
+      </a>
+      <nav class="app__nav">
+        <LocaleSwitcher
+          label={localText('locale.select')}
+          current={data.locale}
+          locales={data.locales}
+        />
+      </nav>
+    </header>
 
-  <footer class="app__footer">
-    <!-- TODO: replace with @sveltebuilder/coreui Footer component -->
-  </footer>
-</div>
+    <main class="app__main">
+      {@render children()}
+    </main>
+
+    <footer class="app__footer">
+      <p class="app__footer-copy">
+        <LocalText slug="app.name" />
+      </p>
+    </footer>
+  </div>
+{/if}
 
 <style>
+  .full-page {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
   .app {
     display: grid;
     grid-template-rows: auto 1fr auto;
@@ -47,12 +71,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1.5rem;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--color-border-default, currentColor);
   }
 
   .app__brand {
     font-weight: 600;
     text-decoration: none;
+    color: var(--color-text-primary, inherit);
   }
 
   .app__nav {
@@ -67,6 +92,12 @@
 
   .app__footer {
     padding: 0.75rem 1.5rem;
-    border-top: 1px solid currentColor;
+    border-top: 1px solid var(--color-border-default, currentColor);
+  }
+
+  .app__footer-copy {
+    margin: 0;
+    font-size: var(--text-xs, 0.75rem);
+    color: var(--color-text-secondary, inherit);
   }
 </style>

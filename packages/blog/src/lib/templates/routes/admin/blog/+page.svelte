@@ -28,6 +28,7 @@
 
   let deleteTarget = $state<Post | null>(null);
   let deleteOpen   = $state(false);
+  // svelte-ignore state_referenced_locally
   let page         = $state(data.page);
 
   function formatDate(iso: string): string {
@@ -193,12 +194,12 @@
   .admin-post-list__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
   .admin-post-list__post-link {
-    color: var(--color-text-link);
+    color: var(--link-text);
     text-decoration: none;
     font-weight: var(--weight-medium);
   }

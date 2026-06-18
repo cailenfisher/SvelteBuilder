@@ -40,8 +40,8 @@
   }
 
   a.post-tag-pill:focus-visible {
-    outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
     border-radius: var(--radius-full);
   }
 </style>

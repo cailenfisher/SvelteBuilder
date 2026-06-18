@@ -18,15 +18,3 @@
 <Tabs.Content {value} class={classes}>
   {@render children()}
 </Tabs.Content>
-
-<style>
-  :global(.tabs-content) {
-    flex: 1;
-    min-width: 0;
-  }
-
-  :global(.tabs-content:focus-visible) {
-    outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
-  }
-</style>

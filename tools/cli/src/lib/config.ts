@@ -2,8 +2,8 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parse, stringify } from 'smol-toml';
 
-export async function writeSchemaConfig(schemaPaths: string[]): Promise<void> {
-  const cwd = process.env.INIT_CWD ?? process.cwd();
+export async function writeSchemaConfig(schemaPaths: string[], root?: string): Promise<void> {
+  const cwd = root ?? process.env.INIT_CWD ?? process.cwd();
   const configPath = path.join(cwd, 'supabase', 'config.toml');
 
   const raw = await readFile(configPath, 'utf-8');

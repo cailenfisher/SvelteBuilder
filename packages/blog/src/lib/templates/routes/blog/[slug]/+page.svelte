@@ -62,6 +62,10 @@
       name: data.authorName,
     },
   }));
+
+  // Build the script tag in JS to prevent the Svelte template parser from
+  // misinterpreting the literal <script> substring as a script element.
+  const jsonLdScript = $derived(`<` + `script type="application/ld+json">${jsonLd}</` + `script>`);
 </script>
 
 <svelte:head>
@@ -86,8 +90,7 @@
   <link rel="alternate" hreflang="x-default" href={`/blog/${encodeURIComponent(title)}`} />
 
   <!-- JSON-LD structured data -->
-  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-  {@html `<script type="application/ld+json">${jsonLd}</script>`}
+  {@html jsonLdScript}
 </svelte:head>
 
 <main class="blog-post-page">
@@ -193,14 +196,14 @@
     flex-direction: column;
     gap: var(--space-4);
     padding-block-end: var(--space-6);
-    border-block-end: 1px solid var(--color-border-default);
+    border-block-end: 1px solid var(--border-color);
   }
 
   .blog-post__title {
     font-size: var(--text-4xl);
     font-weight: var(--weight-bold);
     line-height: var(--leading-tight);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -226,21 +229,21 @@
     flex-direction: column;
     gap: var(--space-6);
     padding-block-start: var(--space-8);
-    border-block-start: 1px solid var(--color-border-default);
+    border-block-start: 1px solid var(--border-color);
   }
 
   .blog-post__comments-title {
     font-size: var(--text-xl);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
   .blog-post__comment-pending {
     font-size: var(--text-sm);
-    color: var(--color-warning-text);
-    background-color: var(--color-warning-subtle);
-    border: 1px solid var(--color-warning-border);
+    color: var(--warning-text);
+    background-color: var(--warning-soft);
+    border: 1px solid var(--warning-border);
     border-radius: var(--radius-lg);
     padding: var(--space-3) var(--space-4);
     margin: 0;
@@ -248,12 +251,12 @@
 
   .blog-post__sign-in-prompt {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     margin: 0;
   }
 
   .blog-post__sign-in-prompt a {
-    color: var(--color-text-link);
+    color: var(--link-text);
     text-decoration: underline;
   }
 </style>

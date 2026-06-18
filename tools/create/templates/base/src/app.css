@@ -1,0 +1,26 @@
+/* =============================================================================
+   app.css — Application stylesheet
+
+   Override CoreUI's public design tokens here, then the @layer chrome and
+   @layer state blocks below establish app-wide visual defaults that all
+   CoreUI components inherit. Override any layer rule in your own scoped
+   component styles — unlayered styles win over named layers.
+
+   Token reference: @sveltebuilder/coreui/styles/tokens.css
+   ============================================================================= */
+
+@import '@sveltebuilder/coreui/styles/tokens.css';
+@import './chrome.css' layer(chrome);
+@import './state.css' layer(state);
+@import '@sveltebuilder/coreui/styles/components.css' layer(component);
+
+/* ---- Token overrides ---- */
+:root {
+  --brand:  #45b1e8;   /* Picton Blue */
+  --chrome: #e2e8f0;
+
+  --danger:  #ef4444;
+  --warning: #f59e0b;
+  --success: #22c55e;
+  --info:    #8b5cf6;
+}
