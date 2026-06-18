@@ -6,12 +6,12 @@ import {
   check,
   index,
   integer,
-  sql,
   text,
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // ── Enums ────────────────────────────────────────────────────────────────────
 
