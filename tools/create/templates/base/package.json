@@ -16,6 +16,7 @@
     "@sveltebuilder/hermes": "latest"
   },
   "devDependencies": {
+    "@sveltebuilder/cli": "latest",
     "@sveltejs/adapter-auto": "latest",
     "@sveltejs/kit": "latest",
     "@sveltejs/vite-plugin-svelte": "latest",

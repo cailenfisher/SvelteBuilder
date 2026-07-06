@@ -8,17 +8,17 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  uuid,
 } from 'drizzle-orm/pg-core';
 import { localTextLink } from '@sveltebuilder/hermes-schema/schema';
 
-// Reference the auth schema for the FK from user_account to the provider's user table.
-// In SuperPrototype this is Supabase's auth.users; in Native it is Auth.js's auth.user.
-// Both tables have a text PK, so auth_user_id is text in both cases.
+// Reference Supabase's managed auth schema. The table is `auth.users` (plural) with
+// a uuid PK — this is Supabase's fixed schema, not something we define.
 const authSchema = pgSchema('auth');
 
 // Minimal stub — only the PK is needed for the FK reference.
-const authUser = authSchema.table('user', {
-  id: text('id').primaryKey(),
+const authUser = authSchema.table('users', {
+  id: uuid('id').primaryKey(),
 });
 
 // ── Domain principal ──────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ export const userAccount = pgTable(
   'user_account',
   {
     id: bigint('id', { mode: 'bigint' }).generatedAlwaysAsIdentity().primaryKey(),
-    authUserId: text('auth_user_id')
+    authUserId: uuid('auth_user_id')
       .notNull()
       .unique()
       .references(() => authUser.id, { onDelete: 'cascade' }),
