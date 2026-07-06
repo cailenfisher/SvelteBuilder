@@ -53,7 +53,11 @@
                     #{receipt.id}
                   </a>
                 </TableCell>
-                <TableCell>{localText('name', 'supplier', receipt.supplierId)}</TableCell>
+                <TableCell>
+                  {receipt.supplierId !== null
+                    ? localText('name', 'supplier', receipt.supplierId)
+                    : localText('logistic.inbound_receipt.blind', 'logistic')}
+                </TableCell>
                 <TableCell>
                   {receipt.expectedAt
                     ? new Intl.DateTimeFormat(data.locale.code, { dateStyle: 'medium' }).format(new Date(receipt.expectedAt))

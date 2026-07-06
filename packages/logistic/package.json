@@ -30,12 +30,12 @@
     "dist"
   ],
   "dependencies": {
-    "drizzle-orm": "^0.38.0"
+    "drizzle-orm": "^0.38.0",
+    "@sveltebuilder/hermes-schema": "^0.0.6"
   },
   "peerDependencies": {
     "@sveltebuilder/hermes": "^0.0.6",
     "@sveltebuilder/coreui": "^0.0.13",
-    "@supabase/supabase-js": ">=2.0.0",
     "svelte": ">=5.0.0"
   },
   "devDependencies": {

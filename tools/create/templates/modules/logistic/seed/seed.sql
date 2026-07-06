@@ -76,16 +76,17 @@ where not exists (
 -- Sample stock levels
 -- ──────────────────────────────────────────────────────────────────────────────
 
-insert into stock_level (storage_location_id, sku, on_hand, reserved)
-select sl.id, v.sku, v.on_hand, v.reserved
+-- SKU-DELTA-004 seeds below its reorder point so the low-stock dashboard has data.
+insert into stock_level (storage_location_id, sku, on_hand, reserved, reorder_point)
+select sl.id, v.sku, v.on_hand, v.reserved, v.reorder_point
 from (values
-  ('bin-a1-01', 'SKU-ALPHA-001', 120, 0),
-  ('bin-a1-01', 'SKU-BETA-002',   50, 0),
-  ('bin-a1-02', 'SKU-ALPHA-001',  30, 0),
-  ('bin-a1-03', 'SKU-GAMMA-003',  75, 0),
-  ('bin-a2-01', 'SKU-DELTA-004',  10, 0),
-  ('bin-b1-01', 'SKU-BETA-002',   45, 0)
-) as v(location_slug, sku, on_hand, reserved)
+  ('bin-a1-01', 'SKU-ALPHA-001', 120, 0, 25),
+  ('bin-a1-01', 'SKU-BETA-002',   50, 0, 20),
+  ('bin-a1-02', 'SKU-ALPHA-001',  30, 0, 25),
+  ('bin-a1-03', 'SKU-GAMMA-003',  75, 0, null),
+  ('bin-a2-01', 'SKU-DELTA-004',  10, 0, 15),
+  ('bin-b1-01', 'SKU-BETA-002',   45, 0, 20)
+) as v(location_slug, sku, on_hand, reserved, reorder_point)
 join storage_location sl on sl.slug = v.location_slug
 on conflict (storage_location_id, sku) do nothing;
 
@@ -124,6 +125,7 @@ insert into local_text_link (slug, scope, entity_id) values
   ('logistic.inbound_receipt.status.partial',           'logistic', null),
   ('logistic.inbound_receipt.status.complete',          'logistic', null),
   ('logistic.inbound_receipt.status.cancelled',         'logistic', null),
+  ('logistic.inbound_receipt.blind',                    'logistic', null),
   -- Pick task status
   ('logistic.pick_task.status.open',                    'logistic', null),
   ('logistic.pick_task.status.in_progress',             'logistic', null),
@@ -163,6 +165,9 @@ insert into local_text_link (slug, scope, entity_id) values
   ('logistic.adjustment_reason.cycle_count_variance',   'logistic', null),
   ('logistic.adjustment_reason.system_correction',      'logistic', null),
   ('logistic.adjustment_reason.other',                  'logistic', null),
+  ('logistic.adjustment_reason.inbound_receipt',        'logistic', null),
+  ('logistic.adjustment_reason.pick',                   'logistic', null),
+  ('logistic.adjustment_reason.return_restock',         'logistic', null),
   -- Admin navigation
   ('logistic.admin.nav.storage_location',               'logistic', null),
   ('logistic.admin.nav.supplier',                       'logistic', null),
@@ -180,7 +185,8 @@ insert into local_text_link (slug, scope, entity_id) values
   ('logistic.field.lead_time_day',                      'logistic', null),
   ('logistic.field.location_type',                      'logistic', null),
   ('logistic.field.carrier',                            'logistic', null),
-  ('logistic.field.tracking_number',                    'logistic', null)
+  ('logistic.field.tracking_number',                    'logistic', null),
+  ('logistic.field.reorder_point',                      'logistic', null)
 on conflict do nothing;
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -243,6 +249,7 @@ from (values
   ('logistic.inbound_receipt.status.partial',           'logistic', 'Partial'),
   ('logistic.inbound_receipt.status.complete',          'logistic', 'Complete'),
   ('logistic.inbound_receipt.status.cancelled',         'logistic', 'Cancelled'),
+  ('logistic.inbound_receipt.blind',                    'logistic', 'Blind receipt'),
   ('logistic.pick_task.status.open',                    'logistic', 'Open'),
   ('logistic.pick_task.status.in_progress',             'logistic', 'In progress'),
   ('logistic.pick_task.status.completed',               'logistic', 'Completed'),
@@ -275,6 +282,9 @@ from (values
   ('logistic.adjustment_reason.cycle_count_variance',   'logistic', 'Cycle count variance'),
   ('logistic.adjustment_reason.system_correction',      'logistic', 'System correction'),
   ('logistic.adjustment_reason.other',                  'logistic', 'Other'),
+  ('logistic.adjustment_reason.inbound_receipt',        'logistic', 'Inbound receipt'),
+  ('logistic.adjustment_reason.pick',                   'logistic', 'Pick'),
+  ('logistic.adjustment_reason.return_restock',         'logistic', 'Return restock'),
   ('logistic.admin.nav.storage_location',               'logistic', 'Locations'),
   ('logistic.admin.nav.supplier',                       'logistic', 'Suppliers'),
   ('logistic.admin.nav.stock_level',                    'logistic', 'Stock'),
@@ -290,7 +300,8 @@ from (values
   ('logistic.field.lead_time_day',                      'logistic', 'Lead time (days)'),
   ('logistic.field.location_type',                      'logistic', 'Location type'),
   ('logistic.field.carrier',                            'logistic', 'Carrier'),
-  ('logistic.field.tracking_number',                    'logistic', 'Tracking number')
+  ('logistic.field.tracking_number',                    'logistic', 'Tracking number'),
+  ('logistic.field.reorder_point',                      'logistic', 'Reorder point')
 ) as v(slug, scope, content)
 join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -355,6 +366,7 @@ from (values
   ('logistic.inbound_receipt.status.partial',           'logistic', 'Partiel'),
   ('logistic.inbound_receipt.status.complete',          'logistic', 'Complet'),
   ('logistic.inbound_receipt.status.cancelled',         'logistic', 'Annulé'),
+  ('logistic.inbound_receipt.blind',                    'logistic', 'Réception à l''aveugle'),
   ('logistic.pick_task.status.open',                    'logistic', 'Ouvert'),
   ('logistic.pick_task.status.in_progress',             'logistic', 'En cours'),
   ('logistic.pick_task.status.completed',               'logistic', 'Terminé'),
@@ -387,6 +399,9 @@ from (values
   ('logistic.adjustment_reason.cycle_count_variance',   'logistic', 'Écart d''inventaire tournant'),
   ('logistic.adjustment_reason.system_correction',      'logistic', 'Correction système'),
   ('logistic.adjustment_reason.other',                  'logistic', 'Autre'),
+  ('logistic.adjustment_reason.inbound_receipt',        'logistic', 'Réception entrante'),
+  ('logistic.adjustment_reason.pick',                   'logistic', 'Prélèvement'),
+  ('logistic.adjustment_reason.return_restock',         'logistic', 'Remise en stock (retour)'),
   ('logistic.admin.nav.storage_location',               'logistic', 'Emplacements'),
   ('logistic.admin.nav.supplier',                       'logistic', 'Fournisseurs'),
   ('logistic.admin.nav.stock_level',                    'logistic', 'Stock'),
@@ -402,7 +417,8 @@ from (values
   ('logistic.field.lead_time_day',                      'logistic', 'Délai de livraison (jours)'),
   ('logistic.field.location_type',                      'logistic', 'Type d''emplacement'),
   ('logistic.field.carrier',                            'logistic', 'Transporteur'),
-  ('logistic.field.tracking_number',                    'logistic', 'Numéro de suivi')
+  ('logistic.field.tracking_number',                    'logistic', 'Numéro de suivi'),
+  ('logistic.field.reorder_point',                      'logistic', 'Seuil de réapprovisionnement')
 ) as v(slug, scope, content)
 join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
 on conflict (link, locale) do nothing;

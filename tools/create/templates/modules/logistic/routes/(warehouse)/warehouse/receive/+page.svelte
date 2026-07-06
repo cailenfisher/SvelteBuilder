@@ -26,7 +26,7 @@
           <li class="receive-queue__item" class:receive-queue__item--partial={receipt.status === 'partial'}>
             <a href="/warehouse/receive/{receipt.id}" class="receive-queue__item-link">
               <div class="receive-queue__item-info">
-                <span class="receive-queue__item-supplier">{receipt.supplier.name}</span>
+                <span class="receive-queue__item-supplier">{receipt.supplier?.name ?? 'Blind receipt'}</span>
                 <span class="receive-queue__item-meta">
                   Receipt #{receipt.id}
                   {#if receipt.expectedAt}
@@ -57,7 +57,7 @@
       <ul class="receive-queue__list receive-queue__list--muted" aria-label="Recently completed receipts">
         {#each data.recent as receipt (receipt.id)}
           <li class="receive-queue__item receive-queue__item--complete">
-            <span class="receive-queue__item-supplier">{receipt.supplier.name}</span>
+            <span class="receive-queue__item-supplier">{receipt.supplier?.name ?? 'Blind receipt'}</span>
             <span class="receive-queue__item-meta">
               #{receipt.id}
               {#if receipt.receivedAt}· {formatDate(receipt.receivedAt)}{/if}
