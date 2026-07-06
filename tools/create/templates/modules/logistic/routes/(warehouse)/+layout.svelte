@@ -1,13 +1,11 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { LayoutData } from './$types';
 
   type Props = {
-    data: LayoutData;
     children: Snippet;
   };
 
-  let { data, children }: Props = $props();
+  let { children }: Props = $props();
 </script>
 
 <div class="warehouse-layout">
@@ -17,6 +15,7 @@
     <nav class="warehouse-layout__nav" aria-label="Warehouse navigation">
       <a href="/warehouse/pick" class="warehouse-layout__nav-link">Pick queue</a>
       <a href="/warehouse/receive" class="warehouse-layout__nav-link">Receiving</a>
+      <a href="/warehouse/count" class="warehouse-layout__nav-link">Counting</a>
     </nav>
   </header>
 

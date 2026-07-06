@@ -8,6 +8,9 @@
     scope?: Scope;
     sortable?: boolean;
     sorted?: SortDir;
+    // When provided with sortable, the header content becomes a button that
+    // triggers it — keyboard-accessible sorting for controlled tables.
+    onSort?: () => void;
     children: Snippet;
     class?: string | undefined;
   };
@@ -16,6 +19,7 @@
     scope = 'col',
     sortable = false,
     sorted = false,
+    onSort,
     children,
     class: extraClass,
   }: Props = $props();
@@ -31,26 +35,34 @@
   );
 </script>
 
-<th class={classes} {scope} aria-sort={ariaSort}>
-  {#if sortable}
-    <span class="content">
-      {@render children()}
-      <span class="sort-icon" aria-hidden="true">
-        {#if sorted === 'asc'}
-          <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
-            <path d="M8 4l4 6H4l4-6z" fill="currentColor"/>
-          </svg>
-        {:else if sorted === 'desc'}
-          <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
-            <path d="M8 12L4 6h8l-4 6z" fill="currentColor"/>
-          </svg>
-        {:else}
-          <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
-            <path d="M8 3l3 4H5l3-4zm0 10l-3-4h6l-3 4z" fill="currentColor" opacity="0.4"/>
-          </svg>
-        {/if}
-      </span>
+{#snippet sortContent()}
+  <span class="content">
+    {@render children()}
+    <span class="sort-icon" aria-hidden="true">
+      {#if sorted === 'asc'}
+        <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
+          <path d="M8 4l4 6H4l4-6z" fill="currentColor"/>
+        </svg>
+      {:else if sorted === 'desc'}
+        <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
+          <path d="M8 12L4 6h8l-4 6z" fill="currentColor"/>
+        </svg>
+      {:else}
+        <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
+          <path d="M8 3l3 4H5l3-4zm0 10l-3-4h6l-3 4z" fill="currentColor" opacity="0.4"/>
+        </svg>
+      {/if}
     </span>
+  </span>
+{/snippet}
+
+<th class={classes} {scope} aria-sort={ariaSort}>
+  {#if sortable && onSort}
+    <button type="button" class="sort-trigger" onclick={onSort}>
+      {@render sortContent()}
+    </button>
+  {:else if sortable}
+    {@render sortContent()}
   {:else}
     {@render children()}
   {/if}

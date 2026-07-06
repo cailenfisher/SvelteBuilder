@@ -12,7 +12,9 @@
 
   const available = $derived(onHand - reserved);
 
-  const belowReorder = $derived(reorderPoint !== undefined && onHand <= reorderPoint);
+  // Low stock is measured on available (on_hand - reserved), matching the
+  // lowStock query option and dashboard metric.
+  const belowReorder = $derived(reorderPoint !== undefined && onHand - reserved <= reorderPoint);
 
   const reservedPct = $derived(onHand > 0 ? Math.min((reserved / onHand) * 100, 100) : 0);
 

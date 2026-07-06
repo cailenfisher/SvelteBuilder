@@ -1093,11 +1093,21 @@ export async function processReturnAuthorization(tx: Tx, id: number): Promise<vo
 
 export async function getCycleCounts(
   tx: Tx,
-  options?: { status?: CycleCountStatus; page?: number; perPage?: number },
+  options?: {
+    status?: CycleCountStatus;
+    userAccountId?: UserAccountId;
+    page?: number;
+    perPage?: number;
+  },
 ): Promise<{ counts: CycleCount[]; total: number }> {
   const page = options?.page ?? 1;
   const perPage = options?.perPage ?? 20;
-  const where = options?.status ? eq(cycleCount.status, options.status) : undefined;
+
+  const conditions = [];
+  if (options?.status) conditions.push(eq(cycleCount.status, options.status));
+  if (options?.userAccountId !== undefined)
+    conditions.push(eq(cycleCount.userAccountId, Number(options.userAccountId)));
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const [counts, [{ value: total }]] = await Promise.all([
     tx
@@ -1185,6 +1195,19 @@ export async function createCycleCount(
   }
 
   return row.id;
+}
+
+// Claims an open cycle count, mirroring assignPickTask. Workers can only
+// record lines on counts assigned to them (enforced by RLS).
+export async function assignCycleCount(
+  tx: Tx,
+  id: number,
+  userAccountId: UserAccountId,
+): Promise<void> {
+  await tx
+    .update(cycleCount)
+    .set({ status: 'in_progress', userAccountId: Number(userAccountId) })
+    .where(and(eq(cycleCount.id, id), eq(cycleCount.status, 'open')));
 }
 
 export async function recordCycleCountLine(

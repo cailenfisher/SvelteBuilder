@@ -115,6 +115,8 @@ on conflict do nothing;
 -- ──────────────────────────────────────────────────────────────────────────────
 
 insert into local_text_link (slug, scope, entity_id) values
+  -- Admin dashboard
+  ('logistic.admin.dashboard.title',                    'logistic', null),
   -- Location type labels
   ('logistic.location_type.warehouse',                  'logistic', null),
   ('logistic.location_type.zone',                       'logistic', null),
@@ -241,6 +243,7 @@ select l.id,
        (select id from locale where code = 'en'),
        v.content
 from (values
+  ('logistic.admin.dashboard.title',                    'logistic', 'Logistics'),
   ('logistic.location_type.warehouse',                  'logistic', 'Warehouse'),
   ('logistic.location_type.zone',                       'logistic', 'Zone'),
   ('logistic.location_type.aisle',                      'logistic', 'Aisle'),
@@ -358,6 +361,7 @@ select l.id,
        (select id from locale where code = 'fr'),
        v.content
 from (values
+  ('logistic.admin.dashboard.title',                    'logistic', 'Logistique'),
   ('logistic.location_type.warehouse',                  'logistic', 'Entrepôt'),
   ('logistic.location_type.zone',                       'logistic', 'Zone'),
   ('logistic.location_type.aisle',                      'logistic', 'Allée'),

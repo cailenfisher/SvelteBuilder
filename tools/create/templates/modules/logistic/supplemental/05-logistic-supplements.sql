@@ -303,8 +303,10 @@ create policy "logistic_cycle_count_read" on public.cycle_count for select to au
 create policy "logistic_cycle_count_admin" on public.cycle_count for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
+-- Mirrors pick_task: workers may claim open counts, then only the assignee
+-- may keep updating.
 create policy "logistic_cycle_count_worker_update" on public.cycle_count for update to authenticated
-  using (user_account_id = public.current_user_id())
+  using (status = 'open' or user_account_id = public.current_user_id())
   with check (user_account_id = public.current_user_id());
 
 alter table public.cycle_count_line enable row level security;

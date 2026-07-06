@@ -2,13 +2,14 @@
   import type { Snippet } from 'svelte';
 
   type Props = {
+    colspan?: number;
     children: Snippet;
     class?: string | undefined;
   };
 
-  let { children, class: extraClass }: Props = $props();
+  let { colspan, children, class: extraClass }: Props = $props();
 </script>
 
-<td class={['table-cell', extraClass ?? ''].filter(Boolean).join(' ')}>
+<td class={['table-cell', extraClass ?? ''].filter(Boolean).join(' ')} {colspan}>
   {@render children()}
 </td>

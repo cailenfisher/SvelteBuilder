@@ -1,12 +1,36 @@
 <script lang="ts">
   import { localText } from '@sveltebuilder/hermes';
-  import { MetricCard, Button, Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@sveltebuilder/coreui';
+  import {
+    MetricCard, Button, DataTable,
+    Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
+  } from '@sveltebuilder/coreui';
+  import type { DataTableColumn } from '@sveltebuilder/coreui';
+  import type { StockLevelWithLocation } from '@sveltebuilder/logistic';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
 
   const pageTitle = $derived(localText('logistic.admin.dashboard.title', 'logistic'));
+
+  const lowStockColumns: DataTableColumn[] = [
+    { key: 'sku', label: 'SKU' },
+    { key: 'location', label: 'Location' },
+    { key: 'available', label: 'Available', align: 'right' },
+    { key: 'reorderPoint', label: 'Reorder point', align: 'right' },
+  ];
 </script>
+
+{#snippet lowStockCell(row: StockLevelWithLocation, column: DataTableColumn)}
+  {#if column.key === 'sku'}
+    <a href="/admin/logistic/stock?history={row.id}" class="logistic-dashboard__link">{row.sku}</a>
+  {:else if column.key === 'location'}
+    {row.storageLocation.name}
+  {:else if column.key === 'available'}
+    {row.available}
+  {:else if column.key === 'reorderPoint'}
+    {row.reorderPoint ?? '—'}
+  {/if}
+{/snippet}
 
 <div class="logistic-dashboard">
   <h1 class="logistic-dashboard__title">{pageTitle}</h1>
@@ -28,9 +52,27 @@
       value={data.metrics.openCycleCountCount}
       label="Active cycle counts"
     />
+    <MetricCard
+      value={data.metrics.lowStockCount}
+      label="Low-stock items"
+    />
   </div>
 
   <div class="logistic-dashboard__sections">
+    <section class="logistic-dashboard__section">
+      <div class="logistic-dashboard__section-header">
+        <h2 class="logistic-dashboard__section-title">Low stock</h2>
+        <Button href="/admin/logistic/stock" variant="ghost" size="sm">View all stock</Button>
+      </div>
+      <DataTable
+        columns={lowStockColumns}
+        rows={data.lowStockLevels}
+        rowKey={(row) => row.id}
+        cell={lowStockCell}
+        emptyLabel="No items below their reorder point."
+      />
+    </section>
+
     <section class="logistic-dashboard__section">
       <div class="logistic-dashboard__section-header">
         <h2 class="logistic-dashboard__section-title">Pending receipts</h2>
@@ -75,7 +117,7 @@
     <section class="logistic-dashboard__section">
       <div class="logistic-dashboard__section-header">
         <h2 class="logistic-dashboard__section-title">Open pick tasks</h2>
-        <Button href="/admin/logistic/pick-task" variant="ghost" size="sm">View all</Button>
+        <Button href="/warehouse/pick" variant="ghost" size="sm">View all</Button>
       </div>
       {#if data.openTasks.length > 0}
         <Table>
@@ -89,7 +131,7 @@
             {#each data.openTasks as task (task.id)}
               <TableRow>
                 <TableCell>
-                  <a href="/admin/logistic/pick-task/{task.id}" class="logistic-dashboard__link">
+                  <a href="/warehouse/pick/{task.id}" class="logistic-dashboard__link">
                     Task #{task.id}
                   </a>
                 </TableCell>
@@ -142,7 +184,9 @@
   <nav class="logistic-dashboard__nav" aria-label="Logistic sections">
     <Button href="/admin/logistic/supplier" variant="ghost">Suppliers</Button>
     <Button href="/admin/logistic/receipt" variant="ghost">Inbound receipts</Button>
-    <Button href="/admin/logistic/pick-task" variant="ghost">Pick tasks</Button>
+    <Button href="/admin/logistic/stock" variant="ghost">Stock</Button>
+    <Button href="/admin/logistic/shipment" variant="ghost">Shipments</Button>
+    <Button href="/admin/logistic/cycle-count" variant="ghost">Cycle counts</Button>
     <Button href="/admin/logistic/return" variant="ghost">Returns</Button>
   </nav>
 </div>

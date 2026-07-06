@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Button } from '@sveltebuilder/coreui';
 </script>
 
 <div class="warehouse-home">
@@ -16,6 +15,12 @@
       <span class="warehouse-home__flow-icon" aria-hidden="true">🚚</span>
       <span class="warehouse-home__flow-label">Receiving</span>
       <span class="warehouse-home__flow-desc">Process inbound receipts</span>
+    </a>
+
+    <a href="/warehouse/count" class="warehouse-home__flow-card">
+      <span class="warehouse-home__flow-icon" aria-hidden="true">📋</span>
+      <span class="warehouse-home__flow-label">Counting</span>
+      <span class="warehouse-home__flow-desc">Work assigned cycle counts</span>
     </a>
   </nav>
 </div>
