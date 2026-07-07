@@ -15,7 +15,7 @@ type PackageManager = 'pnpm' | 'npm' | 'yarn';
 type ScaffoldTemplate = 'superprototype' | 'native';
 
 const MODULE_DEPS: Record<string, string[]> = {
-  blog: ['@sveltebuilder/blog', '@sveltebuilder/coreui'],
+  content: ['@sveltebuilder/content', '@sveltebuilder/coreui'],
   logistic: ['@sveltebuilder/logistic', '@sveltebuilder/coreui'],
 };
 
@@ -118,9 +118,9 @@ async function main() {
     message: 'Select domain modules to include',
     options: [
       {
-        value: 'blog',
-        label: 'Blog',
-        hint: 'Posts, categories, tags, comments, RSS, sitemap',
+        value: 'content',
+        label: 'Content',
+        hint: 'Publisher/news: articles, sections, taxonomy, live coverage, newsletter, RSS, sitemap',
       },
       {
         value: 'logistic',
