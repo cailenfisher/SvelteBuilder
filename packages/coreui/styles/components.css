@@ -2,11 +2,11 @@
    SvelteBuilder CoreUI — Component Styles
    components.css
 
-   Imported by the application stylesheet:
-     @import '@sveltebuilder/coreui/styles/components.css' layer(component);
+   Imported by the scaffold app.css:
+     @import '@sveltebuilder/coreui/styles/components.css' layer(components);
 
-   All rules here live in @layer component (set by the import, not this file).
-   Layer order: chrome < state < component < unlayered app styles.
+   All rules here live in @layer components (set by the import, not this file).
+   Layer order: base < chrome < components < unlayered app styles.
 
    Token reference: @sveltebuilder/coreui/styles/tokens.css
    ============================================================================= */

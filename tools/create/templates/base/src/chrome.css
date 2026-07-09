@@ -1,4 +1,4 @@
-/* ---- Field controls ---- */
+/* ---- Field controls: base structure + interactive states ---- */
 .input,
 .textarea {
   display: block;
@@ -83,4 +83,45 @@
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-lg);
   border: 1px solid transparent;
+}
+
+/* ---- Field focus ---- */
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 20%, transparent);
+}
+
+/* ---- Field error ---- */
+.input.error,
+.textarea.error {
+  border-color: var(--danger);
+}
+
+.input.error:focus-visible,
+.textarea.error:focus-visible {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+}
+
+/* ---- Field disabled ---- */
+.input:disabled,
+.textarea:disabled {
+  background: var(--disabled-bg);
+  border-color: var(--disabled-border);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+}
+
+.input:disabled::placeholder,
+.textarea:disabled::placeholder {
+  color: var(--disabled-text);
+}
+
+/* ---- Field read-only ---- */
+.input:read-only:not(:disabled),
+.textarea:read-only:not(:disabled) {
+  background: var(--surface-raised);
+  cursor: default;
 }
