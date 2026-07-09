@@ -489,16 +489,31 @@ If you are adding a visual rule to a coreui `<style>` block, stop and put it in
 element needs to affect a non-Bits child element, use a CSS custom property as the bridge:
 
 ```css
-/* declare on the state-carrying parent */
-.accordion-trigger              { --icon-rotate: 0deg; }
-.accordion-trigger[data-state='open'] { --icon-rotate: 180deg; }
+/* declare on the state-carrying parent — --_ prefix marks it private */
+.accordion-trigger              { --_icon-rotate: 0deg; }
+.accordion-trigger[data-state='open'] { --_icon-rotate: 180deg; }
 
 /* consume via inheritance in the child */
-.accordion-trigger .chevron { transform: rotate(var(--icon-rotate, 0deg)); }
+.accordion-trigger .chevron { transform: rotate(var(--_icon-rotate, 0deg)); }
 ```
 
 This avoids mixed `:global(parent) .svelte-scoped-child` selectors that cannot be moved to a
 global file.
+
+**Private component tokens (`--_` prefix).** When a component needs an internal CSS variable
+that is not part of the public theming surface — to share a value between two selectors within
+one component's ruleset in `components.css` — name it with a `--_` prefix:
+
+```css
+/* private: consumers must not reference this */
+.accordion-trigger { --_icon-rotate: 0deg; }
+.accordion-trigger[data-state='open'] { --_icon-rotate: 180deg; }
+.accordion-trigger .chevron { transform: rotate(var(--_icon-rotate, 0deg)); }
+```
+
+The `--_` prefix signals "internal implementation detail." Do not advertise these in docs or
+override them from application CSS. If a value needs to be themeable, it should chain to a
+public semantic token instead.
 
 ### Bits UI data-attribute wiring
 

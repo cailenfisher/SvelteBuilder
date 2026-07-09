@@ -53,7 +53,7 @@
   text-align: left;
   gap: var(--space-3);
   transition: background var(--duration) var(--ease);
-  --icon-rotate: 0deg;
+  --_icon-rotate: 0deg;
 }
 
 .accordion-trigger:hover {
@@ -71,7 +71,7 @@
 }
 
 .accordion-trigger[data-state='open'] {
-  --icon-rotate: 180deg;
+  --_icon-rotate: 180deg;
 }
 
 .accordion-trigger .title {
@@ -84,7 +84,7 @@
   flex-shrink: 0;
   color: var(--text-muted);
   transition: transform var(--duration-slow) var(--ease);
-  transform: rotate(var(--icon-rotate, 0deg));
+  transform: rotate(var(--_icon-rotate, 0deg));
 }
 
 .accordion-content {
@@ -1446,7 +1446,7 @@
   text-align: left;
   transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
   appearance: none;
-  --icon-rotate: 0deg;
+  --_icon-rotate: 0deg;
 }
 
 .select-trigger.sm { height: 2rem;   font-size: var(--text-xs); }
@@ -1473,7 +1473,7 @@
 }
 
 .select-trigger[data-state='open'] {
-  --icon-rotate: 180deg;
+  --_icon-rotate: 180deg;
 }
 
 .select-trigger .chevron {
@@ -1482,7 +1482,7 @@
   flex-shrink: 0;
   color: var(--text-muted);
   transition: transform var(--duration) var(--ease);
-  transform: rotate(var(--icon-rotate, 0deg));
+  transform: rotate(var(--_icon-rotate, 0deg));
 }
 
 .select-value {

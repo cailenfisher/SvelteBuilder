@@ -7,12 +7,14 @@
 
    Override only what you need:
      :root {
-       --brand:  #0f5a9c;
-       --chrome: #dde3ec;
-       --font:   'Inter', sans-serif;
+       --brand:          #0f5a9c;
+       --chrome:         #dde3ec;
+       --font:           'Inter', sans-serif;
+       --font-size-base: 0.9375rem;  /* 15px */
+       --leading-base:   1.6;
      }
 
-   The 9 custom properties below are the complete public theming surface.
+   The 11 custom properties below are the complete public theming surface.
    All other tokens are internal — changing them directly is unsupported.
    ============================================================================= */
 
@@ -32,8 +34,10 @@
   --info:    #0284c7;
 
   /* Typography */
-  --font:      system-ui, -apple-system, sans-serif;
-  --font-mono: ui-monospace, monospace;
+  --font:           system-ui, -apple-system, sans-serif;
+  --font-mono:      ui-monospace, monospace;
+  --font-size-base: 1rem;    /* root font size — scales the entire rem-based type/spacing scale */
+  --leading-base:   1.5;     /* root line-height */
 
   /* Shape */
   --radius: 6px;
