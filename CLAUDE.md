@@ -515,6 +515,29 @@ The `--_` prefix signals "internal implementation detail." Do not advertise thes
 override them from application CSS. If a value needs to be themeable, it should chain to a
 public semantic token instead.
 
+### Theme and color scheme via `data-*`
+
+Dark mode and theme variants are driven by `data-*` attributes on ancestor elements, never by
+CSS class toggles. The token overrides in `@sveltebuilder/coreui/styles/_internal.css` respond
+to these attributes:
+
+| Attribute                        | Effect                                          |
+| -------------------------------- | ----------------------------------------------- |
+| `data-color-scheme="dark"`       | Force dark mode regardless of system preference |
+| `data-color-scheme="light"`      | Force light mode regardless of system preference|
+| *(attribute absent)*             | Follow `prefers-color-scheme` system preference |
+
+Set `data-color-scheme` on `<html>` or the root layout element. Read and persist the user's
+preference with JavaScript, then toggle the attribute.
+
+```ts
+// force dark
+document.documentElement.setAttribute('data-color-scheme', 'dark');
+
+// follow system
+document.documentElement.removeAttribute('data-color-scheme');
+```
+
 ### Bits UI data-attribute wiring
 
 All interactive state for Bits UI components **must** use data attributes, not class toggles.

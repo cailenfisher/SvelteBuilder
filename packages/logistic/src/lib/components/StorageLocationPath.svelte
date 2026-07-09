@@ -57,17 +57,17 @@
 
   .storage-location-path__name {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 
   .storage-location-path__name--current {
     font-weight: var(--weight-medium);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .storage-location-path__separator {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     padding-inline: var(--space-1);
   }
 </style>

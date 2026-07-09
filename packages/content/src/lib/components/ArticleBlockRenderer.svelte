@@ -144,7 +144,7 @@
     padding: var(--space-3) var(--space-4);
     background: color-mix(in srgb, var(--brand), white 92%);
     border-inline-start: 3px solid var(--brand);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    border-radius: 0 var(--radius) var(--radius) 0;
   }
 
   .article-block__live-update p {

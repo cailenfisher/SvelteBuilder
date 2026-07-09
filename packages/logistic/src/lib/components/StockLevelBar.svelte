@@ -72,24 +72,24 @@
   .stock-level-bar__count {
     font-size: var(--text-lg);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     line-height: 1;
   }
 
   .stock-level-bar--low .stock-level-bar__count {
-    color: var(--color-warning-text);
+    color: var(--warning-text);
   }
 
   .stock-level-bar__label {
     font-size: var(--text-xs);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .stock-level-bar__track {
     height: 4px;
-    background-color: var(--color-surface-overlay);
+    background-color: var(--surface-overlay);
     border-radius: 2px;
     overflow: hidden;
     position: relative;
@@ -99,14 +99,14 @@
     position: absolute;
     inset-block: 0;
     inset-inline-start: 0;
-    background-color: var(--color-brand-subtle);
+    background-color: var(--brand-soft);
     border-radius: 2px;
-    transition: width var(--duration-fast) var(--ease-out);
+    transition: width var(--duration) var(--ease);
   }
 
   .stock-level-bar__alert {
     font-size: var(--text-xs);
-    color: var(--color-warning-text);
+    color: var(--warning-text);
     margin: 0;
   }
 </style>

@@ -46,14 +46,14 @@
 
   .tracking-event-list__location {
     font-size: var(--text-xs);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     margin: var(--space-1) 0 0;
   }
 
   .tracking-event-list__empty {
     list-style: none;
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     padding: var(--space-3) 0;
   }
 </style>

@@ -108,7 +108,7 @@
   .newsletter-signup__success {
     margin: 0;
     font-size: var(--text-base);
-    color: var(--color-success, #16a34a);
+    color: var(--success);
     font-weight: var(--weight-medium);
     text-align: center;
     padding: var(--space-4);
@@ -117,6 +117,6 @@
   .newsletter-signup__error {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-error, #dc2626);
+    color: var(--danger);
   }
 </style>

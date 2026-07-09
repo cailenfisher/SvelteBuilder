@@ -83,25 +83,25 @@
 
 <style>
   .pick-task-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--card-radius);
-    padding: var(--card-padding);
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-4);
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
   }
 
   .pick-task-card--open {
-    border-inline-start: 3px solid var(--color-border-default);
+    border-inline-start: 3px solid var(--border-color);
   }
 
   .pick-task-card--in_progress {
-    border-inline-start: 3px solid var(--color-border-brand);
+    border-inline-start: 3px solid var(--brand);
   }
 
   .pick-task-card--completed {
-    border-inline-start: 3px solid var(--color-success-border);
+    border-inline-start: 3px solid var(--success);
   }
 
   .pick-task-card--cancelled {
@@ -125,18 +125,18 @@
   .pick-task-card__id {
     font-size: var(--text-base);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     text-decoration: none;
     display: block;
   }
 
   .pick-task-card__id-link:hover {
-    color: var(--color-text-link);
+    color: var(--link-text);
   }
 
   .pick-task-card__date {
     font-size: var(--text-xs);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     display: block;
     margin-block-start: var(--space-1);
   }
@@ -150,21 +150,21 @@
   .pick-task-card__progress-track {
     flex: 1;
     height: 4px;
-    background-color: var(--color-surface-overlay);
+    background-color: var(--surface-overlay);
     border-radius: 2px;
     overflow: hidden;
   }
 
   .pick-task-card__progress-fill {
     height: 100%;
-    background-color: var(--color-success-border);
+    background-color: var(--success);
     border-radius: 2px;
-    transition: width var(--duration-fast) var(--ease-out);
+    transition: width var(--duration) var(--ease);
   }
 
   .pick-task-card__progress-label {
     font-size: var(--text-xs);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     white-space: nowrap;
   }
 
@@ -182,7 +182,7 @@
     flex-direction: column;
     gap: var(--space-1);
     padding: var(--space-2);
-    background-color: var(--color-surface-overlay);
+    background-color: var(--surface-overlay);
     border-radius: var(--radius-sm);
   }
 
@@ -201,12 +201,12 @@
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
     font-family: var(--font-mono, monospace);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .pick-task-card__qty {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     white-space: nowrap;
   }
 </style>

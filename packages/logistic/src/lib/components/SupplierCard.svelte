@@ -67,10 +67,10 @@
 
 <style>
   .supplier-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--card-radius);
-    padding: var(--card-padding);
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-4);
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
@@ -92,19 +92,19 @@
   .supplier-card__name-link {
     font-size: var(--text-base);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
     text-decoration: none;
   }
 
   .supplier-card__name-link:hover {
-    color: var(--color-text-link);
+    color: var(--link-text);
     text-decoration: underline;
   }
 
   .supplier-card__lead-time {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     margin: 0;
   }
 
@@ -113,19 +113,19 @@
     flex-direction: column;
     gap: var(--space-1);
     padding-block-start: var(--space-2);
-    border-block-start: 1px solid var(--color-border-subtle);
+    border-block-start: 1px solid var(--border-color);
   }
 
   .supplier-card__contact-name {
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
   .supplier-card__contact-link {
     font-size: var(--text-sm);
-    color: var(--color-text-link);
+    color: var(--link-text);
     text-decoration: none;
   }
 
@@ -135,7 +135,7 @@
 
   .supplier-card__contact-count {
     font-size: var(--text-xs);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     margin: 0;
   }
 </style>

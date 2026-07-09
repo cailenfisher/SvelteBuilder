@@ -100,7 +100,7 @@
     height: 5rem;
     border-radius: var(--radius-full, 9999px);
     background: var(--brand);
-    color: white;
+    color: var(--brand-fg);
     display: flex;
     align-items: center;
     justify-content: center;

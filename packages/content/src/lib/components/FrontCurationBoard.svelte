@@ -164,14 +164,14 @@
     padding: var(--space-3) var(--space-4);
     background: var(--surface);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     cursor: grab;
     transition: background var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
   }
 
   .front-curation-board__slot:active {
     cursor: grabbing;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow);
     background: var(--surface-raised);
   }
 
@@ -233,6 +233,6 @@
   }
 
   .front-curation-board__remove:hover {
-    color: var(--color-error, #dc2626);
+    color: var(--danger);
   }
 </style>

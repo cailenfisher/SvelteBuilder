@@ -188,7 +188,7 @@
 
   .workflow-panel__required {
     font-size: var(--text-xs);
-    color: var(--color-error, #dc2626);
+    color: var(--danger);
     font-weight: var(--weight-medium);
   }
 

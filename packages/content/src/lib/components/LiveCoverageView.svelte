@@ -87,7 +87,7 @@
     width: 0.5rem;
     height: 0.5rem;
     border-radius: var(--radius-full, 9999px);
-    background: var(--color-error, #dc2626);
+    background: var(--danger);
     animation: live-pulse 2s ease-in-out infinite;
   }
 
@@ -101,7 +101,7 @@
     font-weight: var(--weight-semibold);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--color-error, #dc2626);
+    color: var(--danger);
   }
 
   .live-coverage-view__ended-label {
