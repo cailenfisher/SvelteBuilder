@@ -1,7 +1,7 @@
 <!-- Drawer: accessible slide-over panel backed by Bits UI Dialog.
      Camp 1 — i18n-agnostic. Caller provides title and content via snippets. -->
 <script lang="ts">
-  import * as Dialog from 'bits-ui';
+  import { Dialog } from 'bits-ui';
   import type { Snippet } from 'svelte';
 
   type Side = 'right' | 'left' | 'bottom';

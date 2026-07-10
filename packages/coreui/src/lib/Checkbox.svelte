@@ -47,7 +47,7 @@
     class={boxClasses}
   >
     {#snippet children({ checked: isChecked, indeterminate: isIndeterminate })}
-      <Checkbox.Indicator class="checkbox-indicator">
+      <span class="checkbox-indicator">
         {#if isIndeterminate}
           <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false" class="icon">
             <path d="M2.5 6h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -57,7 +57,7 @@
             <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         {/if}
-      </Checkbox.Indicator>
+      </span>
     {/snippet}
   </Checkbox.Root>
 

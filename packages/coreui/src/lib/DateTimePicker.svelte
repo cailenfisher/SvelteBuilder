@@ -32,7 +32,14 @@
     class: extraClass,
   }: Props = $props();
 
-  const { id: fieldId, describedBy } = useField(idProp);
+  const field = useField();
+  const fieldId = $derived(idProp ?? field?.id);
+  const describedBy = $derived.by(() => {
+    const parts: string[] = [];
+    if (field?.hintId) parts.push(field.hintId);
+    if (field?.errorId) parts.push(field.errorId);
+    return parts.length ? parts.join(' ') : undefined;
+  });
 
   // Convert a UTC ISO string to a datetime-local value (YYYY-MM-DDTHH:mm)
   // in the target timezone.

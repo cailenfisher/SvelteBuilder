@@ -2,6 +2,7 @@
      No hermes import — headline strings are passed as props from the server load.
      Emits onSlotsReorder with the new slot order for the parent to persist via form action. -->
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { Button, Badge } from '@sveltebuilder/coreui';
   import type { FrontSlotWithArticle } from '../schema/index.js';
 
@@ -15,7 +16,7 @@
 
   let { frontName, slots, onSlotsReorder, onSlotRemove, locale: _locale }: Props = $props();
 
-  let orderedSlots: FrontSlotWithArticle[] = $state([...slots]);
+  let orderedSlots: FrontSlotWithArticle[] = $state(untrack(() => [...slots]));
 
   $effect(() => {
     orderedSlots = [...slots];

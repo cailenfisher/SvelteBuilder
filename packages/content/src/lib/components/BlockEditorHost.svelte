@@ -2,6 +2,7 @@
      Emits onBlocksChange with the full updated block list for the parent form action to persist.
      This component is editor-only (never rendered in a published article view). -->
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { localText } from '@sveltebuilder/hermes';
   import { BlockEditor } from '@sveltebuilder/coreui';
   import type { EditorBlock } from '@sveltebuilder/coreui';
@@ -30,7 +31,7 @@
       }));
   }
 
-  let editorBlocks: EditorBlock[] = $state(toEditorBlocks(blocks));
+  let editorBlocks: EditorBlock[] = $state(untrack(() => toEditorBlocks(blocks)));
 
   $effect(() => {
     editorBlocks = toEditorBlocks(blocks);

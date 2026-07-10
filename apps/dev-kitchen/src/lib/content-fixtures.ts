@@ -60,7 +60,7 @@ export const sampleBlocks: ArticleBlockWithCopy[] = [
   {
     id: 1, articleId: 1, blockType: 'paragraph', position: 0,
     content: {}, mediaAssetId: null, createdAt: '2025-01-01T00:00:00Z',
-    text: 'The world's leading climate scientists gathered last week to present findings that suggest the pace of Arctic warming is accelerating beyond previous models.',
+    text: "The world's leading climate scientists gathered last week to present findings that suggest the pace of Arctic warming is accelerating beyond previous models.",
     mediaAsset: null,
   },
   {

@@ -42,7 +42,7 @@
       decoding="async"
     />
   {:else if asset.mediaType === 'video'}
-    <!-- svelte-ignore a11y-media-has-caption -->
+    <!-- svelte-ignore a11y_media_has_caption -->
     <video
       src={`${storageBaseUrl}/${asset.storageKey}`}
       class="media-figure__video"
