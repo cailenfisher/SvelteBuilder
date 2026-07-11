@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/content",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "type": "module",
   "scripts": {
@@ -34,6 +34,9 @@
     "@sveltebuilder/coreui": "^0.0.13",
     "@supabase/supabase-js": ">=2.0.0",
     "svelte": ">=5.0.0"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.38.0"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",

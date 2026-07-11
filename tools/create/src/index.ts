@@ -291,6 +291,10 @@ async function main() {
   ];
   if (scaffoldTemplate === 'superprototype') {
     nextSteps.push(`  ${pc.dim('cp')} .env.example .env   ${pc.dim('# add your Supabase credentials')}`);
+    nextSteps.push(`  ${pc.dim('sveltebuilder sync:supabase')}`);
+    nextSteps.push(`  ${pc.dim('supabase link --project-ref <project-ref>')}`);
+    nextSteps.push(`  ${pc.dim('supabase db push')}`);
+    nextSteps.push(`  ${pc.dim('# seed your database')}`);
   }
   if (noInstall) {
     nextSteps.push(`  ${pc.dim(pm + ' install')}   ${pc.dim('# install deps when packages are published')}`);
