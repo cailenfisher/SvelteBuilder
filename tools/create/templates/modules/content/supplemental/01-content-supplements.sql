@@ -14,32 +14,48 @@ create or replace function set_updated_at()
 returns trigger language plpgsql as $$
 begin new.updated_at = now(); return new; end; $$;
 
-create trigger article_set_updated_at
+create or replace trigger article_set_updated_at
   before update on public.article
   for each row execute function set_updated_at();
 
-create trigger comment_set_updated_at
+create or replace trigger comment_set_updated_at
   before update on public.comment
   for each row execute function set_updated_at();
 
 -- ── Cross-package foreign keys ────────────────────────────────────────────────
+-- Wrapped in DO blocks so re-running sync:supabase doesn't fail on duplicate constraints.
 
-alter table public.article_assignment
-  add constraint fk_article_assignment_user_account
-  foreign key (user_account_id) references public.user_account(id) on delete cascade;
+do $$ begin
+  alter table public.article_assignment
+    add constraint fk_article_assignment_user_account
+    foreign key (user_account_id) references public.user_account(id) on delete cascade;
+exception when duplicate_object then null;
+end $$;
 
-alter table public.article_revision
-  add constraint fk_article_revision_user_account
-  foreign key (user_account_id) references public.user_account(id) on delete cascade;
+do $$ begin
+  alter table public.article_revision
+    add constraint fk_article_revision_user_account
+    foreign key (user_account_id) references public.user_account(id) on delete cascade;
+exception when duplicate_object then null;
+end $$;
 
-alter table public.author_profile
-  add constraint fk_author_profile_user_account
-  foreign key (user_account_id) references public.user_account(id) on delete set null;
+do $$ begin
+  alter table public.author_profile
+    add constraint fk_author_profile_user_account
+    foreign key (user_account_id) references public.user_account(id) on delete set null;
+exception when duplicate_object then null;
+end $$;
 
-alter table public.comment
-  add constraint fk_comment_user_account
-  foreign key (user_account_id) references public.user_account(id) on delete set null;
+do $$ begin
+  alter table public.comment
+    add constraint fk_comment_user_account
+    foreign key (user_account_id) references public.user_account(id) on delete set null;
+exception when duplicate_object then null;
+end $$;
 
-alter table public.media_asset
-  add constraint fk_media_asset_uploaded_by
-  foreign key (uploaded_by) references public.user_account(id) on delete restrict;
+do $$ begin
+  alter table public.media_asset
+    add constraint fk_media_asset_uploaded_by
+    foreign key (uploaded_by) references public.user_account(id) on delete restrict;
+exception when duplicate_object then null;
+end $$;

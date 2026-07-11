@@ -9,30 +9,49 @@
 --     → p_user_account_id bigint
 
 -- ── Cross-package foreign keys ───────────────────────────────────────────────
+-- Wrapped in DO blocks so re-running sync:supabase doesn't fail on duplicate constraints.
 
-alter table public.stock_adjustment
-  add constraint fk_stock_adjustment_user_account
-  foreign key (user_account_id) references public.user_account(id);
+do $$ begin
+  alter table public.stock_adjustment
+    add constraint fk_stock_adjustment_user_account
+    foreign key (user_account_id) references public.user_account(id);
+exception when duplicate_object then null;
+end $$;
 
-alter table public.inbound_receipt
-  add constraint fk_inbound_receipt_user_account
-  foreign key (user_account_id) references public.user_account(id);
+do $$ begin
+  alter table public.inbound_receipt
+    add constraint fk_inbound_receipt_user_account
+    foreign key (user_account_id) references public.user_account(id);
+exception when duplicate_object then null;
+end $$;
 
-alter table public.pick_task
-  add constraint fk_pick_task_user_account
-  foreign key (user_account_id) references public.user_account(id) on delete set null;
+do $$ begin
+  alter table public.pick_task
+    add constraint fk_pick_task_user_account
+    foreign key (user_account_id) references public.user_account(id) on delete set null;
+exception when duplicate_object then null;
+end $$;
 
-alter table public.shipment
-  add constraint fk_shipment_user_account
-  foreign key (user_account_id) references public.user_account(id);
+do $$ begin
+  alter table public.shipment
+    add constraint fk_shipment_user_account
+    foreign key (user_account_id) references public.user_account(id);
+exception when duplicate_object then null;
+end $$;
 
-alter table public.return_authorization
-  add constraint fk_return_authorization_user_account
-  foreign key (user_account_id) references public.user_account(id);
+do $$ begin
+  alter table public.return_authorization
+    add constraint fk_return_authorization_user_account
+    foreign key (user_account_id) references public.user_account(id);
+exception when duplicate_object then null;
+end $$;
 
-alter table public.cycle_count
-  add constraint fk_cycle_count_user_account
-  foreign key (user_account_id) references public.user_account(id);
+do $$ begin
+  alter table public.cycle_count
+    add constraint fk_cycle_count_user_account
+    foreign key (user_account_id) references public.user_account(id);
+exception when duplicate_object then null;
+end $$;
 
 -- ── updated_at triggers ───────────────────────────────────────────────────────
 
@@ -40,27 +59,27 @@ create or replace function set_updated_at()
 returns trigger language plpgsql as $$
 begin new.updated_at = now(); return new; end; $$;
 
-create trigger stock_level_set_updated_at
+create or replace trigger stock_level_set_updated_at
   before update on public.stock_level
   for each row execute function set_updated_at();
 
-create trigger inbound_receipt_set_updated_at
+create or replace trigger inbound_receipt_set_updated_at
   before update on public.inbound_receipt
   for each row execute function set_updated_at();
 
-create trigger pick_task_set_updated_at
+create or replace trigger pick_task_set_updated_at
   before update on public.pick_task
   for each row execute function set_updated_at();
 
-create trigger shipment_set_updated_at
+create or replace trigger shipment_set_updated_at
   before update on public.shipment
   for each row execute function set_updated_at();
 
-create trigger return_authorization_set_updated_at
+create or replace trigger return_authorization_set_updated_at
   before update on public.return_authorization
   for each row execute function set_updated_at();
 
-create trigger cycle_count_set_updated_at
+create or replace trigger cycle_count_set_updated_at
   before update on public.cycle_count
   for each row execute function set_updated_at();
 
@@ -134,111 +153,111 @@ end; $$;
 -- ── RLS policies ─────────────────────────────────────────────────────────────
 
 alter table public.storage_location enable row level security;
-create policy "logistic_storage_location_read" on public.storage_location for select to authenticated using (true);
-create policy "logistic_storage_location_admin" on public.storage_location for all to authenticated
+create or replace policy "logistic_storage_location_read" on public.storage_location for select to authenticated using (true);
+create or replace policy "logistic_storage_location_admin" on public.storage_location for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 
 alter table public.supplier enable row level security;
-create policy "logistic_supplier_read" on public.supplier for select to authenticated using (true);
-create policy "logistic_supplier_admin" on public.supplier for all to authenticated
+create or replace policy "logistic_supplier_read" on public.supplier for select to authenticated using (true);
+create or replace policy "logistic_supplier_admin" on public.supplier for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 
 alter table public.supplier_contact enable row level security;
-create policy "logistic_supplier_contact_read" on public.supplier_contact for select to authenticated using (true);
-create policy "logistic_supplier_contact_admin" on public.supplier_contact for all to authenticated
+create or replace policy "logistic_supplier_contact_read" on public.supplier_contact for select to authenticated using (true);
+create or replace policy "logistic_supplier_contact_admin" on public.supplier_contact for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 
 alter table public.stock_level enable row level security;
-create policy "logistic_stock_level_read" on public.stock_level for select to authenticated using (true);
-create policy "logistic_stock_level_admin" on public.stock_level for all to authenticated
+create or replace policy "logistic_stock_level_read" on public.stock_level for select to authenticated using (true);
+create or replace policy "logistic_stock_level_admin" on public.stock_level for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 
 alter table public.stock_adjustment enable row level security;
-create policy "logistic_stock_adjustment_read" on public.stock_adjustment for select to authenticated using (true);
-create policy "logistic_stock_adjustment_insert" on public.stock_adjustment for insert to authenticated with check (true);
+create or replace policy "logistic_stock_adjustment_read" on public.stock_adjustment for select to authenticated using (true);
+create or replace policy "logistic_stock_adjustment_insert" on public.stock_adjustment for insert to authenticated with check (true);
 
 alter table public.inbound_receipt enable row level security;
-create policy "logistic_inbound_receipt_read" on public.inbound_receipt for select to authenticated using (true);
-create policy "logistic_inbound_receipt_admin" on public.inbound_receipt for all to authenticated
+create or replace policy "logistic_inbound_receipt_read" on public.inbound_receipt for select to authenticated using (true);
+create or replace policy "logistic_inbound_receipt_admin" on public.inbound_receipt for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
-create policy "logistic_inbound_receipt_worker_update" on public.inbound_receipt for update to authenticated using (true) with check (true);
+create or replace policy "logistic_inbound_receipt_worker_update" on public.inbound_receipt for update to authenticated using (true) with check (true);
 
 alter table public.inbound_receipt_line enable row level security;
-create policy "logistic_inbound_receipt_line_read" on public.inbound_receipt_line for select to authenticated using (true);
-create policy "logistic_inbound_receipt_line_admin" on public.inbound_receipt_line for all to authenticated
+create or replace policy "logistic_inbound_receipt_line_read" on public.inbound_receipt_line for select to authenticated using (true);
+create or replace policy "logistic_inbound_receipt_line_admin" on public.inbound_receipt_line for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
-create policy "logistic_inbound_receipt_line_worker_update" on public.inbound_receipt_line for update to authenticated using (true) with check (true);
+create or replace policy "logistic_inbound_receipt_line_worker_update" on public.inbound_receipt_line for update to authenticated using (true) with check (true);
 
 alter table public.pick_task enable row level security;
-create policy "logistic_pick_task_read" on public.pick_task for select to authenticated using (true);
-create policy "logistic_pick_task_admin" on public.pick_task for all to authenticated
+create or replace policy "logistic_pick_task_read" on public.pick_task for select to authenticated using (true);
+create or replace policy "logistic_pick_task_admin" on public.pick_task for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
-create policy "logistic_pick_task_worker_update" on public.pick_task for update to authenticated
+create or replace policy "logistic_pick_task_worker_update" on public.pick_task for update to authenticated
   using (status = 'open' or user_account_id = public.current_user_id())
   with check (user_account_id = public.current_user_id());
 
 alter table public.pick_task_line enable row level security;
-create policy "logistic_pick_task_line_read" on public.pick_task_line for select to authenticated using (true);
-create policy "logistic_pick_task_line_admin" on public.pick_task_line for all to authenticated
+create or replace policy "logistic_pick_task_line_read" on public.pick_task_line for select to authenticated using (true);
+create or replace policy "logistic_pick_task_line_admin" on public.pick_task_line for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
-create policy "logistic_pick_task_line_worker_update" on public.pick_task_line for update to authenticated
+create or replace policy "logistic_pick_task_line_worker_update" on public.pick_task_line for update to authenticated
   using (exists (select 1 from public.pick_task t where t.id = pick_task_id and t.user_account_id = public.current_user_id()))
   with check (true);
 
 alter table public.shipment enable row level security;
-create policy "logistic_shipment_read" on public.shipment for select to authenticated using (true);
-create policy "logistic_shipment_admin" on public.shipment for all to authenticated
+create or replace policy "logistic_shipment_read" on public.shipment for select to authenticated using (true);
+create or replace policy "logistic_shipment_admin" on public.shipment for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 
 alter table public.shipment_line enable row level security;
-create policy "logistic_shipment_line_read" on public.shipment_line for select to authenticated using (true);
-create policy "logistic_shipment_line_admin" on public.shipment_line for all to authenticated
+create or replace policy "logistic_shipment_line_read" on public.shipment_line for select to authenticated using (true);
+create or replace policy "logistic_shipment_line_admin" on public.shipment_line for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 
 alter table public.tracking_event enable row level security;
-create policy "logistic_tracking_event_read" on public.tracking_event for select to authenticated using (true);
-create policy "logistic_tracking_event_admin" on public.tracking_event for all to authenticated
+create or replace policy "logistic_tracking_event_read" on public.tracking_event for select to authenticated using (true);
+create or replace policy "logistic_tracking_event_admin" on public.tracking_event for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 
 alter table public.return_authorization enable row level security;
-create policy "logistic_return_authorization_read" on public.return_authorization for select to authenticated using (true);
-create policy "logistic_return_authorization_admin" on public.return_authorization for all to authenticated
+create or replace policy "logistic_return_authorization_read" on public.return_authorization for select to authenticated using (true);
+create or replace policy "logistic_return_authorization_admin" on public.return_authorization for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
-create policy "logistic_return_authorization_worker_update" on public.return_authorization for update to authenticated using (true) with check (true);
+create or replace policy "logistic_return_authorization_worker_update" on public.return_authorization for update to authenticated using (true) with check (true);
 
 alter table public.return_authorization_line enable row level security;
-create policy "logistic_return_authorization_line_read" on public.return_authorization_line for select to authenticated using (true);
-create policy "logistic_return_authorization_line_admin" on public.return_authorization_line for all to authenticated
+create or replace policy "logistic_return_authorization_line_read" on public.return_authorization_line for select to authenticated using (true);
+create or replace policy "logistic_return_authorization_line_admin" on public.return_authorization_line for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
-create policy "logistic_return_authorization_line_worker_update" on public.return_authorization_line for update to authenticated using (true) with check (true);
+create or replace policy "logistic_return_authorization_line_worker_update" on public.return_authorization_line for update to authenticated using (true) with check (true);
 
 alter table public.cycle_count enable row level security;
-create policy "logistic_cycle_count_read" on public.cycle_count for select to authenticated using (true);
-create policy "logistic_cycle_count_admin" on public.cycle_count for all to authenticated
+create or replace policy "logistic_cycle_count_read" on public.cycle_count for select to authenticated using (true);
+create or replace policy "logistic_cycle_count_admin" on public.cycle_count for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
-create policy "logistic_cycle_count_worker_update" on public.cycle_count for update to authenticated
+create or replace policy "logistic_cycle_count_worker_update" on public.cycle_count for update to authenticated
   using (user_account_id = public.current_user_id())
   with check (user_account_id = public.current_user_id());
 
 alter table public.cycle_count_line enable row level security;
-create policy "logistic_cycle_count_line_read" on public.cycle_count_line for select to authenticated using (true);
-create policy "logistic_cycle_count_line_admin" on public.cycle_count_line for all to authenticated
+create or replace policy "logistic_cycle_count_line_read" on public.cycle_count_line for select to authenticated using (true);
+create or replace policy "logistic_cycle_count_line_admin" on public.cycle_count_line for all to authenticated
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
-create policy "logistic_cycle_count_line_worker_update" on public.cycle_count_line for update to authenticated
+create or replace policy "logistic_cycle_count_line_worker_update" on public.cycle_count_line for update to authenticated
   using (exists (select 1 from public.cycle_count c where c.id = cycle_count_id and c.user_account_id = public.current_user_id()))
   with check (true);
