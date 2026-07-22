@@ -87,17 +87,26 @@ export async function syncSupabase(root?: string): Promise<void> {
     const latestMigration = migrationFiles.at(-1);
 
     if (latestMigration) {
+      const existingContent = await readFile(path.join(cwd, latestMigration), 'utf-8');
       const supplementalBlocks = await Promise.all(
         supplementalFiles.map(async (f) => {
+          const marker = `-- supplemental: ${path.basename(f)}`;
+          if (existingContent.includes(marker)) {
+            console.log(`[sveltebuilder] skipping already-appended supplemental: ${path.basename(f)}`);
+            return null;
+          }
           const content = await readFile(path.join(cwd, f), 'utf-8');
-          return `\n-- supplemental: ${path.basename(f)}\n${content}`;
+          return `\n${marker}\n${content}`;
         }),
       );
-      const combined = supplementalBlocks.join('\n');
-      await appendToFile(path.join(cwd, latestMigration), combined);
-      console.log(
-        `[sveltebuilder] appended ${supplementalFiles.length} supplemental file(s) to ${latestMigration}`,
-      );
+      const toAppend = supplementalBlocks.filter((b): b is string => b !== null);
+      if (toAppend.length > 0) {
+        const combined = toAppend.join('\n');
+        await appendToFile(path.join(cwd, latestMigration), combined);
+        console.log(
+          `[sveltebuilder] appended ${toAppend.length} supplemental file(s) to ${latestMigration}`,
+        );
+      }
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/coreui",
-  "version": "0.0.13",
+  "version": "0.0.15",
   "private": false,
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
       "default": "./dist/index.js"
     },
     "./styles/tokens.css": "./styles/tokens.css",
+    "./styles/base.css": "./styles/base.css",
     "./styles/components.css": "./styles/components.css"
   },
   "svelte": "./dist/index.js",

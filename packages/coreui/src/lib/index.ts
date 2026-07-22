@@ -118,6 +118,28 @@ export { default as LocalTextLinkEdit } from './LocalTextLinkEdit.svelte';
 export { default as LocalTextEdit } from './LocalTextEdit.svelte';
 
 // ============================================================
+// Editing
+// ============================================================
+export { default as BlockEditor } from './BlockEditor.svelte';
+export type { EditorBlock } from './BlockEditor.svelte';
+
+// ============================================================
+// Overlay / panel
+// ============================================================
+export { default as Drawer } from './Drawer.svelte';
+
+// ============================================================
+// Advanced data display
+// ============================================================
+export { default as DataTable } from './DataTable.svelte';
+export type { Column } from './DataTable.svelte';
+
+// ============================================================
+// Date / time input
+// ============================================================
+export { default as DateTimePicker } from './DateTimePicker.svelte';
+
+// ============================================================
 // Utilities — for consumers building custom form controls
 // ============================================================
 export { useField } from './use-field.js';

@@ -21,5 +21,5 @@
 </script>
 
 <Select.Item {value} {label} {disabled} class={classes}>
-  <Select.ItemText>{label}</Select.ItemText>
+  {label}
 </Select.Item>

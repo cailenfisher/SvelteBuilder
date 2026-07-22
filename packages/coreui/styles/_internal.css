@@ -193,10 +193,13 @@
 
 
 /* =============================================================================
-   DARK MODE — explicit .dark class (overrides system preference)
+   DARK MODE — explicit attribute (overrides system preference)
+   Set data-color-scheme="dark" on <html> to force dark mode.
+   Set data-color-scheme="light" to force light regardless of system preference.
+   Omit the attribute to follow the system preference above.
    ============================================================================= */
 
-.dark {
+[data-color-scheme='dark'] {
   --surface:         #0f172a;
   --surface-raised:  #1e293b;
   --surface-overlay: #334155;
@@ -239,43 +242,3 @@
 }
 
 
-/* =============================================================================
-   GLOBAL BASE STYLES
-   ============================================================================= */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  font-family: var(--font);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-  color: var(--text);
-  background-color: var(--surface);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
-
-:focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px;
-}
-
-:focus:not(:focus-visible) {
-  outline: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}

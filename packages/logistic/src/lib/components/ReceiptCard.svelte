@@ -85,10 +85,10 @@
 
 <style>
   .receipt-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--card-radius);
-    padding: var(--card-padding);
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-4);
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
@@ -111,18 +111,18 @@
   .receipt-card__id {
     font-size: var(--text-base);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     text-decoration: none;
     display: block;
   }
 
   .receipt-card__id-link:hover {
-    color: var(--color-text-link);
+    color: var(--link-text);
   }
 
   .receipt-card__supplier {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     display: block;
     margin-block-start: var(--space-1);
   }
@@ -142,7 +142,7 @@
 
   .receipt-card__detail dt {
     font-size: var(--text-xs);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -150,15 +150,15 @@
   .receipt-card__detail dd {
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
   .receipt-card__discrepancy-alert {
     font-size: var(--text-sm);
-    color: var(--color-warning-text);
-    background-color: var(--color-warning-subtle);
-    border: 1px solid var(--color-warning-border);
+    color: var(--warning-text);
+    background-color: var(--warning-soft);
+    border: 1px solid var(--warning-border);
     border-radius: var(--radius-sm);
     padding: var(--space-2) var(--space-3);
     margin: 0;
@@ -166,7 +166,7 @@
 
   .receipt-card__note {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     margin: 0;
     font-style: italic;
   }
