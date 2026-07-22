@@ -1,8 +1,9 @@
 <!-- Camp 1: no hermes import — receives pre-resolved headline strings from server.
-     Uses coreui DataTable for sortable, paginated article management. -->
+     Uses coreui DataTable for paginated article management. Sort/filter is a
+     server-side concern (load function); this component only reports intent. -->
 <script lang="ts">
   import { DataTable } from '@sveltebuilder/coreui';
-  import type { Column } from '@sveltebuilder/coreui';
+  import type { DataTableColumn } from '@sveltebuilder/coreui';
   import type { ArticleWithCopy } from '../schema/index.js';
 
   type Props = {
@@ -10,7 +11,6 @@
     total: number;
     page: number;
     perPage: number;
-    loading?: boolean;
     onPageChange?: (page: number) => void;
     onRowClick?: (article: ArticleWithCopy) => void;
     locale: string;
@@ -21,57 +21,68 @@
     total,
     page,
     perPage,
-    loading = false,
     onPageChange,
     onRowClick,
     locale,
   }: Props = $props();
 
-  type ArticleRow = {
-    id: number;
-    headline: string;
-    status: string;
-    section: string;
-    publishedAt: string | null;
-    bylines: string;
-    _article: ArticleWithCopy;
-  };
-
-  const rows: ArticleRow[] = $derived(
-    articles.map((a) => ({
-      id: a.id,
-      headline: a.headline,
-      status: a.status.label,
-      section: a.sections?.[0]?.name ?? '—',
-      publishedAt: a.publishedAt
-        ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(a.publishedAt))
-        : null,
-      bylines: a.bylines?.map((b) => b.name).join(', ') ?? '—',
-      _article: a,
-    })),
-  );
-
-  const columns: Column<ArticleRow>[] = [
-    { key: 'headline', label: 'Headline', sortable: true },
-    { key: 'bylines',  label: 'Author',   sortable: false },
-    { key: 'section',  label: 'Section',  sortable: true },
-    { key: 'status',   label: 'Status',   sortable: true },
-    { key: 'publishedAt', label: 'Published', sortable: true },
+  const columns: DataTableColumn[] = [
+    { key: 'headline', label: 'Headline' },
+    { key: 'bylines', label: 'Author' },
+    { key: 'section', label: 'Section' },
+    { key: 'status', label: 'Status' },
+    { key: 'publishedAt', label: 'Published' },
   ];
 
-  function handleRowClick(row: ArticleRow) {
-    onRowClick?.(row._article);
+  function formatDate(iso: string): string {
+    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(iso));
   }
 </script>
 
+{#snippet articleCell(article: ArticleWithCopy, column: DataTableColumn)}
+  {#if column.key === 'headline'}
+    {#if onRowClick}
+      <button type="button" class="article-list__row-link" onclick={() => onRowClick?.(article)}>
+        {article.headline}
+      </button>
+    {:else}
+      {article.headline}
+    {/if}
+  {:else if column.key === 'bylines'}
+    {article.bylines?.map((b) => b.name).join(', ') ?? '—'}
+  {:else if column.key === 'section'}
+    {article.sections?.[0]?.name ?? '—'}
+  {:else if column.key === 'status'}
+    {article.status.label}
+  {:else if column.key === 'publishedAt'}
+    {article.publishedAt ? formatDate(article.publishedAt) : '—'}
+  {/if}
+{/snippet}
+
 <DataTable
-  data={rows}
-  {columns}
-  {total}
+  columns={columns}
+  rows={articles}
+  rowKey={(article) => article.id}
+  cell={articleCell}
   {page}
   {perPage}
-  {loading}
-  onRowClick={handleRowClick}
+  {total}
   onPageChange={onPageChange ?? (() => {})}
-  emptyMessage="No articles found."
+  emptyLabel="No articles found."
 />
+
+<style>
+  .article-list__row-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--color-text-link);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .article-list__row-link:hover {
+    text-decoration: underline;
+  }
+</style>

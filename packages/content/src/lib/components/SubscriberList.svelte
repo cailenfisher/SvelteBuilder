@@ -2,7 +2,7 @@
      Uses coreui DataTable for paginated subscriber management. -->
 <script lang="ts">
   import { DataTable } from '@sveltebuilder/coreui';
-  import type { Column } from '@sveltebuilder/coreui';
+  import type { DataTableColumn } from '@sveltebuilder/coreui';
   import type { Subscriber, NewsletterWithCopy } from '../schema/index.js';
 
   type Props = {
@@ -11,7 +11,6 @@
     total: number;
     page: number;
     perPage: number;
-    loading?: boolean;
     onPageChange?: (page: number) => void;
     locale: string;
   };
@@ -22,38 +21,33 @@
     total,
     page,
     perPage,
-    loading = false,
     onPageChange,
     locale,
   }: Props = $props();
 
-  type SubscriberRow = {
-    id: number;
-    emailAddress: string;
-    subscriberLocale: string;
-    confirmedAt: string | null;
-    joinedAt: string;
-  };
-
-  const rows: SubscriberRow[] = $derived(
-    subscribers.map((s) => ({
-      id: s.id,
-      emailAddress: s.emailAddress,
-      subscriberLocale: s.locale,
-      confirmedAt: s.confirmedAt
-        ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(s.confirmedAt))
-        : 'Pending',
-      joinedAt: new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(s.createdAt)),
-    })),
-  );
-
-  const columns: Column<SubscriberRow>[] = [
-    { key: 'emailAddress',      label: 'Email',        sortable: true },
-    { key: 'subscriberLocale',  label: 'Locale',       sortable: true },
-    { key: 'confirmedAt',       label: 'Confirmed',    sortable: true },
-    { key: 'joinedAt',          label: 'Joined',       sortable: true },
+  const columns: DataTableColumn[] = [
+    { key: 'emailAddress', label: 'Email' },
+    { key: 'subscriberLocale', label: 'Locale' },
+    { key: 'confirmedAt', label: 'Confirmed' },
+    { key: 'joinedAt', label: 'Joined' },
   ];
+
+  function formatDate(iso: string): string {
+    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(iso));
+  }
 </script>
+
+{#snippet subscriberCell(subscriber: Subscriber, column: DataTableColumn)}
+  {#if column.key === 'emailAddress'}
+    {subscriber.emailAddress}
+  {:else if column.key === 'subscriberLocale'}
+    {subscriber.locale}
+  {:else if column.key === 'confirmedAt'}
+    {subscriber.confirmedAt ? formatDate(subscriber.confirmedAt) : 'Pending'}
+  {:else if column.key === 'joinedAt'}
+    {formatDate(subscriber.createdAt)}
+  {/if}
+{/snippet}
 
 <div class="subscriber-list">
   <header class="subscriber-list__header">
@@ -62,14 +56,15 @@
   </header>
 
   <DataTable
-    data={rows}
-    {columns}
-    {total}
+    columns={columns}
+    rows={subscribers}
+    rowKey={(subscriber) => subscriber.id}
+    cell={subscriberCell}
     {page}
     {perPage}
-    {loading}
+    {total}
     onPageChange={onPageChange ?? (() => {})}
-    emptyMessage="No subscribers yet."
+    emptyLabel="No subscribers yet."
   />
 </div>
 

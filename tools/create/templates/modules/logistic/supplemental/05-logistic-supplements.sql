@@ -150,6 +150,59 @@ begin
   if not found then raise exception 'stock_level % not found', p_stock_level_id; end if;
 end; $$;
 
+-- Physical pick of reserved stock: decrements on_hand AND reserved together so
+-- the reserved <= on_hand invariant holds under concurrent tasks, and appends
+-- the audit row. Negative p_quantity reverses a pick (both counters restored).
+create or replace function logistic_consume_stock(
+  p_stock_level_id  bigint,
+  p_quantity        integer,
+  p_reason          adjustment_reason,
+  p_user_account_id bigint,
+  p_note            text default null
+)
+returns void language plpgsql security definer
+as $$
+declare
+  v_on_hand  integer;
+  v_reserved integer;
+begin
+  select on_hand, reserved into v_on_hand, v_reserved
+  from public.stock_level where id = p_stock_level_id for update;
+  if not found then raise exception 'stock_level % not found', p_stock_level_id; end if;
+  if p_quantity > v_reserved then
+    raise exception 'cannot consume %: only % reserved', p_quantity, v_reserved;
+  end if;
+
+  update public.stock_level
+  set on_hand = on_hand - p_quantity, reserved = reserved - p_quantity
+  where id = p_stock_level_id;
+
+  insert into public.stock_adjustment (
+    stock_level_id, user_account_id, delta, on_hand_before, on_hand_after, reason, note
+  ) values (
+    p_stock_level_id, p_user_account_id, -p_quantity, v_on_hand, v_on_hand - p_quantity, p_reason, p_note
+  );
+end; $$;
+
+-- Finds or creates the stock_level row for a location + sku. SECURITY DEFINER
+-- because stock_level inserts are admin-only under RLS but workers receive goods.
+create or replace function logistic_ensure_stock_level(
+  p_storage_location_id bigint,
+  p_sku                 text
+)
+returns bigint language plpgsql security definer
+as $$
+declare v_id bigint;
+begin
+  insert into public.stock_level (storage_location_id, sku, on_hand, reserved)
+  values (p_storage_location_id, p_sku, 0, 0)
+  on conflict (storage_location_id, sku) do nothing;
+
+  select id into v_id from public.stock_level
+  where storage_location_id = p_storage_location_id and sku = p_sku;
+  return v_id;
+end; $$;
+
 -- ── RLS policies ─────────────────────────────────────────────────────────────
 
 alter table public.storage_location enable row level security;
@@ -188,7 +241,10 @@ alter table public.stock_adjustment enable row level security;
 drop policy if exists "logistic_stock_adjustment_read" on public.stock_adjustment;
 create policy "logistic_stock_adjustment_read" on public.stock_adjustment for select to authenticated using (true);
 drop policy if exists "logistic_stock_adjustment_insert" on public.stock_adjustment;
-create policy "logistic_stock_adjustment_insert" on public.stock_adjustment for insert to authenticated with check (true);
+-- Adjustments must be attributed to the acting user. (The SECURITY DEFINER
+-- stock functions bypass this; it guards the direct-insert path.)
+create policy "logistic_stock_adjustment_insert" on public.stock_adjustment for insert to authenticated
+  with check (user_account_id = public.current_user_id());
 
 alter table public.inbound_receipt enable row level security;
 drop policy if exists "logistic_inbound_receipt_read" on public.inbound_receipt;
@@ -198,7 +254,11 @@ create policy "logistic_inbound_receipt_admin" on public.inbound_receipt for all
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 drop policy if exists "logistic_inbound_receipt_worker_update" on public.inbound_receipt;
-create policy "logistic_inbound_receipt_worker_update" on public.inbound_receipt for update to authenticated using (true) with check (true);
+-- Workers may only touch receipts that are still open, and may only move them
+-- forward within the receiving lifecycle (cancellation is admin-only).
+create policy "logistic_inbound_receipt_worker_update" on public.inbound_receipt for update to authenticated
+  using (status in ('pending', 'partial'))
+  with check (status in ('pending', 'partial', 'complete'));
 
 alter table public.inbound_receipt_line enable row level security;
 drop policy if exists "logistic_inbound_receipt_line_read" on public.inbound_receipt_line;
@@ -208,7 +268,12 @@ create policy "logistic_inbound_receipt_line_admin" on public.inbound_receipt_li
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 drop policy if exists "logistic_inbound_receipt_line_worker_update" on public.inbound_receipt_line;
-create policy "logistic_inbound_receipt_line_worker_update" on public.inbound_receipt_line for update to authenticated using (true) with check (true);
+create policy "logistic_inbound_receipt_line_worker_update" on public.inbound_receipt_line for update to authenticated
+  using (exists (
+    select 1 from public.inbound_receipt r
+    where r.id = inbound_receipt_id and r.status in ('pending', 'partial')
+  ))
+  with check (true);
 
 alter table public.pick_task enable row level security;
 drop policy if exists "logistic_pick_task_read" on public.pick_task;
@@ -266,7 +331,10 @@ create policy "logistic_return_authorization_admin" on public.return_authorizati
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 drop policy if exists "logistic_return_authorization_worker_update" on public.return_authorization;
-create policy "logistic_return_authorization_worker_update" on public.return_authorization for update to authenticated using (true) with check (true);
+-- Workers may only touch open returns; cancellation is admin-only.
+create policy "logistic_return_authorization_worker_update" on public.return_authorization for update to authenticated
+  using (status in ('pending', 'received'))
+  with check (status in ('pending', 'received', 'processed'));
 
 alter table public.return_authorization_line enable row level security;
 drop policy if exists "logistic_return_authorization_line_read" on public.return_authorization_line;
@@ -276,7 +344,12 @@ create policy "logistic_return_authorization_line_admin" on public.return_author
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 drop policy if exists "logistic_return_authorization_line_worker_update" on public.return_authorization_line;
-create policy "logistic_return_authorization_line_worker_update" on public.return_authorization_line for update to authenticated using (true) with check (true);
+create policy "logistic_return_authorization_line_worker_update" on public.return_authorization_line for update to authenticated
+  using (exists (
+    select 1 from public.return_authorization ra
+    where ra.id = return_authorization_id and ra.status in ('pending', 'received')
+  ))
+  with check (true);
 
 alter table public.cycle_count enable row level security;
 drop policy if exists "logistic_cycle_count_read" on public.cycle_count;
@@ -286,8 +359,10 @@ create policy "logistic_cycle_count_admin" on public.cycle_count for all to auth
   using (exists (select 1 from public.user_account where id = public.current_user_id() and admin))
   with check (exists (select 1 from public.user_account where id = public.current_user_id() and admin));
 drop policy if exists "logistic_cycle_count_worker_update" on public.cycle_count;
+-- Mirrors pick_task: workers may claim open counts, then only the assignee
+-- may keep updating.
 create policy "logistic_cycle_count_worker_update" on public.cycle_count for update to authenticated
-  using (user_account_id = public.current_user_id())
+  using (status = 'open' or user_account_id = public.current_user_id())
   with check (user_account_id = public.current_user_id());
 
 alter table public.cycle_count_line enable row level security;

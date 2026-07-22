@@ -1,141 +1,115 @@
-<!-- DataTable: filterable, sortable, paginated wrapper around Table primitives.
-     Camp 1 — i18n-agnostic. Caller provides column definitions and data.
-     Generic over row type T. -->
-<script lang="ts" generics="T extends Record<string, unknown>">
-  import { Table, TableHead, TableBody, TableFoot, TableRow, TableHeader, TableCell, Pagination, Skeleton } from './index.js';
-  import type { Snippet } from 'svelte';
-
-  type SortDirection = 'asc' | 'desc' | null;
-
-  export type Column<Row> = {
+<!-- DataTable: controlled, server-side table. The parent owns the data, the
+     sort state, and the page — this component renders and reports intent via
+     callbacks. Client-side sorting/filtering is deliberately out of scope:
+     sort/filter/paginate in the load function, pass the slice in as rows. -->
+<script module lang="ts">
+  export type DataTableColumn = {
+    // Column identifier, passed back through onSortChange and the cell snippet.
     key: string;
     label: string;
     sortable?: boolean;
-    render?: Snippet<[Row]>;
-    class?: string;
+    // Right-align numeric columns (quantities, amounts).
+    align?: 'left' | 'right';
   };
+</script>
+
+<script lang="ts" generics="Row">
+  import type { Snippet } from 'svelte';
+  import Table from './Table.svelte';
+  import TableHead from './TableHead.svelte';
+  import TableBody from './TableBody.svelte';
+  import TableRow from './TableRow.svelte';
+  import TableHeader from './TableHeader.svelte';
+  import TableCell from './TableCell.svelte';
+  import Pagination from './Pagination.svelte';
 
   type Props = {
-    columns: Column<T>[];
-    rows: T[];
-    total?: number;
+    columns: DataTableColumn[];
+    rows: Row[];
+    rowKey: (row: Row) => string | number;
+    cell: Snippet<[Row, DataTableColumn]>;
+    caption?: string;
+    stickyHeader?: boolean;
+    emptyLabel?: string;
+    // Controlled sort. Headers are only interactive when onSortChange is given.
+    sortKey?: string;
+    sortDirection?: 'asc' | 'desc';
+    onSortChange?: (key: string, direction: 'asc' | 'desc') => void;
+    // Server-side pagination. The footer renders when total exceeds perPage.
     page?: number;
     perPage?: number;
-    loading?: boolean;
-    emptyMessage?: string;
+    total?: number;
     onPageChange?: (page: number) => void;
-    onSort?: (key: string, direction: SortDirection) => void;
-    sortKey?: string;
-    sortDirection?: SortDirection;
     class?: string | undefined;
   };
 
   let {
     columns,
     rows,
-    total = rows.length,
-    page = 1,
-    perPage = 20,
-    loading = false,
-    emptyMessage = 'No results.',
-    onPageChange,
-    onSort,
+    rowKey,
+    cell,
+    caption,
+    stickyHeader = false,
+    emptyLabel = 'No data',
     sortKey,
-    sortDirection = null,
+    sortDirection = 'asc',
+    onSortChange,
+    page = $bindable(1),
+    perPage = 20,
+    total,
+    onPageChange,
     class: extraClass,
   }: Props = $props();
 
-  function handleSort(key: string, sortable?: boolean) {
-    if (!sortable || !onSort) return;
-    const nextDir: SortDirection =
-      sortKey === key
-        ? sortDirection === 'asc' ? 'desc' : sortDirection === 'desc' ? null : 'asc'
-        : 'asc';
-    onSort(key, nextDir);
+  function handleSort(column: DataTableColumn) {
+    if (!onSortChange) return;
+    const direction = sortKey === column.key && sortDirection === 'asc' ? 'desc' : 'asc';
+    onSortChange(column.key, direction);
   }
 
-  const totalPages = $derived(Math.ceil(total / perPage));
+  const classes = $derived(
+    ['data-table', extraClass ?? ''].filter(Boolean).join(' ')
+  );
 </script>
 
-<div class={['data-table-wrap', extraClass ?? ''].filter(Boolean).join(' ')} role="region" aria-label="Data table" aria-live="polite">
-  <Table class="data-table">
+<div class={classes}>
+  <Table {caption} {stickyHeader}>
     <TableHead>
       <TableRow>
-        {#each columns as col (col.key)}
+        {#each columns as column (column.key)}
           <TableHeader
-            class={['data-table-th', col.sortable ? 'sortable' : '', col.key === sortKey ? 'sorted' : '', col.class ?? ''].filter(Boolean).join(' ')}
-            aria-sort={col.key === sortKey ? (sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : 'none') : undefined}
+            sortable={column.sortable === true && onSortChange !== undefined}
+            sorted={sortKey === column.key ? sortDirection : false}
+            onSort={column.sortable && onSortChange ? () => handleSort(column) : undefined}
+            class={column.align === 'right' ? 'align-right' : undefined}
           >
-            {#if col.sortable}
-              <button
-                class="sort-btn"
-                onclick={() => handleSort(col.key, col.sortable)}
-                aria-label={`Sort by ${col.label}`}
-              >
-                {col.label}
-                <span class="sort-icon" aria-hidden="true">
-                  {#if col.key === sortKey && sortDirection === 'asc'}↑{:else if col.key === sortKey && sortDirection === 'desc'}↓{:else}↕{/if}
-                </span>
-              </button>
-            {:else}
-              {col.label}
-            {/if}
+            {column.label}
           </TableHeader>
         {/each}
       </TableRow>
     </TableHead>
-
     <TableBody>
-      {#if loading}
-        {#each { length: perPage } as _, i (i)}
-          <TableRow>
-            {#each columns as col (col.key)}
-              <TableCell><Skeleton class="h-4 w-full" /></TableCell>
-            {/each}
-          </TableRow>
-        {/each}
-      {:else if rows.length === 0}
+      {#if rows.length === 0}
         <TableRow>
-          <TableCell colspan={columns.length} class="data-table-empty">
-            {emptyMessage}
-          </TableCell>
+          <TableCell colspan={columns.length} class="empty">{emptyLabel}</TableCell>
         </TableRow>
       {:else}
-        {#each rows as row, i (i)}
+        {#each rows as row (rowKey(row))}
           <TableRow>
-            {#each columns as col (col.key)}
-              <TableCell class={col.class}>
-                {#if col.render}
-                  {@render col.render(row)}
-                {:else}
-                  {row[col.key] ?? ''}
-                {/if}
+            {#each columns as column (column.key)}
+              <TableCell class={column.align === 'right' ? 'align-right' : undefined}>
+                {@render cell(row, column)}
               </TableCell>
             {/each}
           </TableRow>
         {/each}
       {/if}
     </TableBody>
-
-    {#if totalPages > 1}
-      <TableFoot>
-        <TableRow>
-          <TableCell colspan={columns.length} class="data-table-foot">
-            <Pagination
-              {page}
-              {totalPages}
-              onPageChange={(p) => onPageChange?.(p)}
-            />
-          </TableCell>
-        </TableRow>
-      </TableFoot>
-    {/if}
   </Table>
-</div>
 
-<style>
-  .data-table-wrap {
-    width: 100%;
-    overflow-x: auto;
-  }
-</style>
+  {#if total !== undefined && total > perPage}
+    <div class="footer">
+      <Pagination count={total} {perPage} bind:page {onPageChange} />
+    </div>
+  {/if}
+</div>

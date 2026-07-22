@@ -1,8 +1,8 @@
 <!-- Camp 1: no hermes import — receives pre-resolved copy from server.
      Uses coreui DataTable for article assignment queue management. -->
 <script lang="ts">
-  import { DataTable, Badge } from '@sveltebuilder/coreui';
-  import type { Column } from '@sveltebuilder/coreui';
+  import { DataTable } from '@sveltebuilder/coreui';
+  import type { DataTableColumn } from '@sveltebuilder/coreui';
   import type { ArticleAssignment, ArticleWithCopy } from '../schema/index.js';
 
   type AssignmentWithArticle = ArticleAssignment & {
@@ -15,7 +15,6 @@
     total: number;
     page: number;
     perPage: number;
-    loading?: boolean;
     onPageChange?: (page: number) => void;
     onRowClick?: (assignment: AssignmentWithArticle) => void;
     locale: string;
@@ -26,64 +25,79 @@
     total,
     page,
     perPage,
-    loading = false,
     onPageChange,
     onRowClick,
     locale,
   }: Props = $props();
 
-  type QueueRow = {
-    id: number;
-    headline: string;
-    role: string;
-    assignee: string;
-    dueAt: string | null;
-    status: string;
-    _assignment: AssignmentWithArticle;
-  };
-
   const ROLE_LABEL: Record<string, string> = {
     author: 'Author',
     editor: 'Editor',
-    photo:  'Photo',
-    copy:   'Copy',
+    photo: 'Photo',
+    copy: 'Copy',
   };
 
-  const rows: QueueRow[] = $derived(
-    assignments.map((a) => ({
-      id: a.id,
-      headline: a.article.headline,
-      role:     ROLE_LABEL[a.role] ?? a.role,
-      assignee: a.assigneeName,
-      dueAt: a.dueAt
-        ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(a.dueAt))
-        : '—',
-      status: a.article.status.label,
-      _assignment: a,
-    })),
-  );
-
-  const columns: Column<QueueRow>[] = [
-    { key: 'headline', label: 'Article',  sortable: true },
-    { key: 'role',     label: 'Role',     sortable: true },
-    { key: 'assignee', label: 'Assignee', sortable: true },
-    { key: 'status',   label: 'Status',   sortable: true },
-    { key: 'dueAt',    label: 'Due',      sortable: true },
+  const columns: DataTableColumn[] = [
+    { key: 'headline', label: 'Article' },
+    { key: 'role', label: 'Role' },
+    { key: 'assignee', label: 'Assignee' },
+    { key: 'status', label: 'Status' },
+    { key: 'dueAt', label: 'Due' },
   ];
 
-  function handleRowClick(row: QueueRow) {
-    onRowClick?.(row._assignment);
+  function formatDate(iso: string): string {
+    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(iso));
   }
 </script>
 
+{#snippet assignmentCell(assignment: AssignmentWithArticle, column: DataTableColumn)}
+  {#if column.key === 'headline'}
+    {#if onRowClick}
+      <button
+        type="button"
+        class="assignment-queue__row-link"
+        onclick={() => onRowClick?.(assignment)}
+      >
+        {assignment.article.headline}
+      </button>
+    {:else}
+      {assignment.article.headline}
+    {/if}
+  {:else if column.key === 'role'}
+    {ROLE_LABEL[assignment.role] ?? assignment.role}
+  {:else if column.key === 'assignee'}
+    {assignment.assigneeName}
+  {:else if column.key === 'status'}
+    {assignment.article.status.label}
+  {:else if column.key === 'dueAt'}
+    {assignment.dueAt ? formatDate(assignment.dueAt) : '—'}
+  {/if}
+{/snippet}
+
 <DataTable
-  data={rows}
-  {columns}
-  {total}
+  columns={columns}
+  rows={assignments}
+  rowKey={(assignment) => assignment.id}
+  cell={assignmentCell}
   {page}
   {perPage}
-  {loading}
-  onRowClick={handleRowClick}
+  {total}
   onPageChange={onPageChange ?? (() => {})}
-  emptyMessage="No assignments in queue."
+  emptyLabel="No assignments in queue."
 />
+
+<style>
+  .assignment-queue__row-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--color-text-link);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .assignment-queue__row-link:hover {
+    text-decoration: underline;
+  }
+</style>

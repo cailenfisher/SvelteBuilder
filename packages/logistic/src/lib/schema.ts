@@ -21,6 +21,7 @@ export const storageLocationType = pgEnum('storage_location_type', [
 
 export const adjustmentReason = pgEnum('adjustment_reason', [
   'damage', 'theft', 'receiving_error', 'cycle_count_variance', 'system_correction', 'other',
+  'inbound_receipt', 'pick', 'return_restock',
 ]);
 
 export const inboundReceiptStatus = pgEnum('inbound_receipt_status', [
@@ -66,7 +67,7 @@ export const storageLocation = pgTable(
     ),
     active: boolean('active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_storage_location_parent').on(table.parentStorageLocationId),
@@ -79,7 +80,7 @@ export const supplier = pgTable('supplier', {
   slug: text('slug').notNull().unique(),
   leadTimeDay: integer('lead_time_day'),
   active: boolean('active').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
 });
 
 export const supplierContact = pgTable(
@@ -94,7 +95,7 @@ export const supplierContact = pgTable(
     name: text('name').notNull(),
     email: text('email'),
     phone: text('phone'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_supplier_contact_supplier').on(table.supplierId)],
 );
@@ -109,8 +110,10 @@ export const stockLevel = pgTable(
     sku: text('sku').notNull(),
     onHand: integer('on_hand').notNull().default(0),
     reserved: integer('reserved').notNull().default(0),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    // Low-stock threshold compared against available (on_hand - reserved). Null = no alerting.
+    reorderPoint: integer('reorder_point'),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex('uq_stock_level_location_sku').on(table.storageLocationId, table.sku),
@@ -130,13 +133,13 @@ export const stockAdjustment = pgTable(
       .notNull()
       .references(() => stockLevel.id),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
     delta: integer('delta').notNull(),
     onHandBefore: integer('on_hand_before').notNull(),
     onHandAfter: integer('on_hand_after').notNull(),
     reason: adjustmentReason('reason').notNull(),
     note: text('note'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_stock_adjustment_stock_level').on(table.stockLevelId, table.createdAt),
@@ -147,17 +150,16 @@ export const inboundReceipt = pgTable(
   'inbound_receipt',
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
-    supplierId: bigint('supplier_id', { mode: 'number' })
-      .notNull()
-      .references(() => supplier.id),
+    // Null = blind receiving (ad-hoc inbound without a supplier/PO reference).
+    supplierId: bigint('supplier_id', { mode: 'number' }).references(() => supplier.id),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
     status: inboundReceiptStatus('status').notNull().default('pending'),
-    expectedAt: timestamp('expected_at'),
-    receivedAt: timestamp('received_at'),
+    expectedAt: timestamp('expected_at', { mode: 'string' }),
+    receivedAt: timestamp('received_at', { mode: 'string' }),
     note: text('note'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_inbound_receipt_supplier').on(table.supplierId),
@@ -178,10 +180,10 @@ export const inboundReceiptLine = pgTable(
     sku: text('sku').notNull(),
     expectedQuantity: integer('expected_quantity').notNull(),
     receivedQuantity: integer('received_quantity').notNull().default(0),
-    discrepancy: integer('discrepancy').generatedAlwaysAs(
-      sql`received_quantity - expected_quantity`,
-    ),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    discrepancy: integer('discrepancy')
+      .generatedAlwaysAs(sql`received_quantity - expected_quantity`)
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_inbound_receipt_line_receipt').on(table.inboundReceiptId)],
 );
@@ -191,10 +193,10 @@ export const pickTask = pgTable(
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: bigint('user_account_id', { mode: 'bigint' }),
+    userAccountId: bigint('user_account_id', { mode: 'number' }),
     status: pickTaskStatus('status').notNull().default('open'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_pick_task_status').on(table.status, table.createdAt),
@@ -218,9 +220,11 @@ export const pickTaskLine = pgTable(
     sku: text('sku').notNull(),
     requestedQuantity: integer('requested_quantity').notNull(),
     pickedQuantity: integer('picked_quantity').notNull().default(0),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    // Walk order within the task, snapshotted from storage_location.sort_order at creation.
+    sequence: integer('sequence').notNull().default(0),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
   },
-  (table) => [index('idx_pick_task_line_task').on(table.pickTaskId)],
+  (table) => [index('idx_pick_task_line_task').on(table.pickTaskId, table.sequence)],
 );
 
 export const shipment = pgTable(
@@ -228,15 +232,15 @@ export const shipment = pgTable(
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
     status: shipmentStatus('status').notNull().default('created'),
     carrier: text('carrier'),
     serviceLevel: text('service_level'),
     trackingNumber: text('tracking_number'),
-    shippedAt: timestamp('shipped_at'),
-    deliveredAt: timestamp('delivered_at'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    shippedAt: timestamp('shipped_at', { mode: 'string' }),
+    deliveredAt: timestamp('delivered_at', { mode: 'string' }),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_shipment_status').on(table.status, table.createdAt),
@@ -259,7 +263,7 @@ export const shipmentLine = pgTable(
     ),
     sku: text('sku').notNull(),
     quantity: integer('quantity').notNull(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_shipment_line_shipment').on(table.shipmentId)],
 );
@@ -274,8 +278,8 @@ export const trackingEvent = pgTable(
     status: text('status').notNull(),
     eventLocation: text('event_location'),
     description: text('description'),
-    occurredAt: timestamp('occurred_at').notNull().defaultNow(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    occurredAt: timestamp('occurred_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_tracking_event_shipment').on(table.shipmentId, table.occurredAt)],
 );
@@ -288,12 +292,12 @@ export const returnAuthorization = pgTable(
       onDelete: 'set null',
     }),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
     status: returnAuthorizationStatus('status').notNull().default('pending'),
     reason: text('reason'),
     note: text('note'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_return_authorization_status').on(table.status, table.createdAt),
@@ -317,7 +321,7 @@ export const returnAuthorizationLine = pgTable(
     receivedQuantity: integer('received_quantity').notNull().default(0),
     condition: returnCondition('condition'),
     disposition: returnDisposition('disposition'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_return_authorization_line_return').on(table.returnAuthorizationId),
@@ -329,10 +333,10 @@ export const cycleCount = pgTable(
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    userAccountId: bigint('user_account_id', { mode: 'bigint' }).notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
     status: cycleCountStatus('status').notNull().default('open'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_cycle_count_status').on(table.status, table.createdAt)],
 );
@@ -356,7 +360,7 @@ export const cycleCountLine = pgTable(
     variance: integer('variance').generatedAlwaysAs(
       sql`counted_quantity - expected_quantity`,
     ),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_cycle_count_line_count').on(table.cycleCountId)],
 );

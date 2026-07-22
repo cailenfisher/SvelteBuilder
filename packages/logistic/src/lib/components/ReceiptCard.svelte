@@ -5,7 +5,8 @@
 
   type Props = {
     receipt: InboundReceipt;
-    supplier: Supplier;
+    // Null = blind receipt (no supplier/PO reference).
+    supplier: Supplier | null;
     lines?: InboundReceiptLine[];
     href?: string;
     locale?: string;
@@ -14,7 +15,11 @@
 
   let { receipt, supplier, lines = [], href, locale = 'en', class: extraClass }: Props = $props();
 
-  const supplierName = $derived(localText('name', 'supplier', supplier.id));
+  const supplierName = $derived(
+    supplier
+      ? localText('name', 'supplier', supplier.id)
+      : localText('logistic.inbound_receipt.blind', 'logistic'),
+  );
 
   const statusVariant = $derived(
     receipt.status === 'complete'  ? 'success'
@@ -23,7 +28,9 @@
     : 'default'
   ) as 'success' | 'warning' | 'danger' | 'default';
 
-  const statusLabel = $derived(localText(`logistic.receipt.status.${receipt.status}`, 'logistic'));
+  const statusLabel = $derived(
+    localText(`logistic.inbound_receipt.status.${receipt.status}`, 'logistic'),
+  );
 
   const totalExpected = $derived(lines.reduce((sum, l) => sum + l.expectedQuantity, 0));
   const totalReceived = $derived(lines.reduce((sum, l) => sum + l.receivedQuantity, 0));

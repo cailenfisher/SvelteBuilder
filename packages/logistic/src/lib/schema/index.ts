@@ -22,7 +22,10 @@ export type AdjustmentReason =
   | 'receiving_error'
   | 'cycle_count_variance'
   | 'system_correction'
-  | 'other';
+  | 'other'
+  | 'inbound_receipt'
+  | 'pick'
+  | 'return_restock';
 
 export type InboundReceiptStatus = 'pending' | 'partial' | 'complete' | 'cancelled';
 
@@ -83,6 +86,7 @@ export type StockLevel = {
   sku: string;
   onHand: number;
   reserved: number;
+  reorderPoint: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -91,7 +95,7 @@ export type StockLevel = {
 export type StockAdjustment = {
   id: number;
   stockLevelId: number;
-  userAccountId: string;
+  userAccountId: number;
   delta: number;
   onHandBefore: number;
   onHandAfter: number;
@@ -102,8 +106,9 @@ export type StockAdjustment = {
 
 export type InboundReceipt = {
   id: number;
-  supplierId: number;
-  userAccountId: string;
+  // Null = blind receiving (no supplier/PO reference).
+  supplierId: number | null;
+  userAccountId: number;
   status: InboundReceiptStatus;
   expectedAt: string | null;
   receivedAt: string | null;
@@ -125,7 +130,7 @@ export type InboundReceiptLine = {
 
 export type PickTask = {
   id: number;
-  userAccountId: string | null;
+  userAccountId: number | null;
   status: PickTaskStatus;
   createdAt: string;
   updatedAt: string;
@@ -139,12 +144,14 @@ export type PickTaskLine = {
   sku: string;
   requestedQuantity: number;
   pickedQuantity: number;
+  // Walk order within the task, snapshotted from storage_location.sort_order at creation.
+  sequence: number;
   createdAt: string;
 };
 
 export type Shipment = {
   id: number;
-  userAccountId: string;
+  userAccountId: number;
   status: ShipmentStatus;
   carrier: string | null;
   serviceLevel: string | null;
@@ -177,7 +184,7 @@ export type TrackingEvent = {
 export type ReturnAuthorization = {
   id: number;
   shipmentId: number | null;
-  userAccountId: string;
+  userAccountId: number;
   status: ReturnAuthorizationStatus;
   reason: string | null;
   note: string | null;
@@ -199,7 +206,7 @@ export type ReturnAuthorizationLine = {
 
 export type CycleCount = {
   id: number;
-  userAccountId: string;
+  userAccountId: number;
   status: CycleCountStatus;
   createdAt: string;
   updatedAt: string;
@@ -238,7 +245,8 @@ export type StockLevelWithLocation = StockLevel & {
 };
 
 export type InboundReceiptWithCopy = InboundReceipt & {
-  supplier: SupplierWithCopy;
+  // Null for blind receipts.
+  supplier: SupplierWithCopy | null;
   lines: InboundReceiptLine[];
 };
 

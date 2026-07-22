@@ -109,6 +109,8 @@ export { default as TableFoot } from './TableFoot.svelte';
 export { default as TableRow } from './TableRow.svelte';
 export { default as TableHeader } from './TableHeader.svelte';
 export { default as TableCell } from './TableCell.svelte';
+export { default as DataTable } from './DataTable.svelte';
+export type { DataTableColumn } from './DataTable.svelte';
 
 // ============================================================
 // LocalText admin components
@@ -127,12 +129,6 @@ export type { EditorBlock } from './BlockEditor.svelte';
 // Overlay / panel
 // ============================================================
 export { default as Drawer } from './Drawer.svelte';
-
-// ============================================================
-// Advanced data display
-// ============================================================
-export { default as DataTable } from './DataTable.svelte';
-export type { Column } from './DataTable.svelte';
 
 // ============================================================
 // Date / time input
