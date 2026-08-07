@@ -25,15 +25,18 @@
     "dist",
     "styles"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "svelte": "^5.0.0",
-    "@sveltebuilder/hermes": "^0.0.6",
+    "@sveltebuilder/hermes": "workspace:^",
     "bits-ui": "^2.18.1"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "@sveltebuilder/hermes": "^0.0.6",
+    "@sveltebuilder/hermes": "workspace:^",
     "svelte": "^5.0.0",
     "typescript": "^5.5.0",
     "vitest": "^2.0.0"

@@ -29,13 +29,16 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "drizzle-orm": "^0.38.0",
-    "@sveltebuilder/hermes-schema": "^0.0.6"
+    "@sveltebuilder/hermes-schema": "workspace:^"
   },
   "peerDependencies": {
-    "@sveltebuilder/hermes": "^0.0.6",
-    "@sveltebuilder/coreui": "^0.0.13",
+    "@sveltebuilder/hermes": "workspace:^",
+    "@sveltebuilder/coreui": "workspace:^",
     "svelte": ">=5.0.0"
   },
   "devDependencies": {

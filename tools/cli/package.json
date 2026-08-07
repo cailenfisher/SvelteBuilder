@@ -12,13 +12,16 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint src"
   },
   "dependencies": {
-    "@sveltebuilder/hermes-schema": "latest",
+    "@sveltebuilder/hermes-schema": "workspace:^",
     "commander": "^12.0.0",
     "drizzle-kit": "^0.29.0",
     "glob": "^11.0.0",
