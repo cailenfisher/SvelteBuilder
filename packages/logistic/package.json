@@ -1,6 +1,21 @@
 {
   "name": "@sveltebuilder/logistic",
   "version": "0.0.9",
+  "description": "Warehouse and logistics domain module for SvelteBuilder — suppliers, storage locations, stock, receiving, pick tasks, shipments, returns, and cycle counts, with a Drizzle schema and i18n built in.",
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "sveltekit",
+    "logistics",
+    "warehouse",
+    "wms",
+    "inventory",
+    "shipping",
+    "fulfillment",
+    "supply-chain",
+    "drizzle",
+    "sveltebuilder"
+  ],
   "private": false,
   "license": "MIT",
   "type": "module",

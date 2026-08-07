@@ -1,6 +1,20 @@
 {
   "name": "create-sveltebuilder",
   "version": "0.0.25",
+  "description": "Scaffold a production-ready SvelteKit app with SvelteBuilder — i18n, accessible UI components, and domain modules, pre-wired to Supabase or Drizzle.",
+  "keywords": [
+    "sveltekit",
+    "svelte",
+    "svelte5",
+    "scaffold",
+    "starter",
+    "boilerplate",
+    "create",
+    "template",
+    "supabase",
+    "drizzle",
+    "sveltebuilder"
+  ],
   "private": false,
   "license": "MIT",
   "type": "module",

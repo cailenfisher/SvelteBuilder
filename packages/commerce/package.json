@@ -1,6 +1,19 @@
 {
   "name": "@sveltebuilder/commerce",
   "version": "0.0.4",
+  "description": "E-commerce domain module for SvelteBuilder — catalog, cart, checkout, and orders (planned; not yet implemented).",
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "sveltekit",
+    "ecommerce",
+    "e-commerce",
+    "commerce",
+    "shop",
+    "storefront",
+    "checkout",
+    "sveltebuilder"
+  ],
   "private": false,
   "license": "MIT",
   "type": "module",

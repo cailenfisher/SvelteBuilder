@@ -1,6 +1,21 @@
 {
   "name": "@sveltebuilder/coreui",
   "version": "0.0.15",
+  "description": "Accessible Svelte 5 UI component library built on Bits UI — buttons, forms, tables, dialogs, menus, and more, with a themeable CSS layer system.",
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "sveltekit",
+    "ui",
+    "ui-library",
+    "component-library",
+    "design-system",
+    "bits-ui",
+    "accessibility",
+    "a11y",
+    "wcag",
+    "sveltebuilder"
+  ],
   "private": false,
   "license": "MIT",
   "type": "module",
