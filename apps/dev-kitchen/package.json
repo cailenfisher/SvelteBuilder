@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@sveltebuilder/content": "workspace:*",
-    "@sveltebuilder/coreui": "^0.0.13",
-    "@sveltebuilder/hermes": "^0.0.6",
+    "@sveltebuilder/coreui": "workspace:*",
+    "@sveltebuilder/hermes": "workspace:*",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest"
   },
