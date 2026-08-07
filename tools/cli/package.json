@@ -2,6 +2,7 @@
   "name": "@sveltebuilder/cli",
   "version": "0.0.13",
   "private": false,
+  "license": "MIT",
   "type": "module",
   "bin": {
     "sveltebuilder": "./dist/index.js"

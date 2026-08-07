@@ -2,6 +2,7 @@
   "name": "@sveltebuilder/commerce",
   "version": "0.0.4",
   "private": false,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "svelte-package -i src",

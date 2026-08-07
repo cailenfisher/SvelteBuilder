@@ -2,6 +2,7 @@
   "name": "@sveltebuilder/logistic",
   "version": "0.0.9",
   "private": false,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "svelte-package -i src/lib",
