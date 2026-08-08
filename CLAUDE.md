@@ -397,7 +397,7 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
    Svelte `<style>` blocks.** A component `<style>` block may only contain private structural
    wrapper rules (layout/sizing with no visual properties). Any color, border, background, shadow,
    radius, padding, or transition that a developer should be able to override belongs in
-   `components.css` under `@layer component`.
+   `components.css` under `@layer components`.
 
 8. **Route code accesses the database only through `event.locals.db.withUser(...)`.**
    The raw `db` client is intentionally not re-exported for route use. Deliberate exceptions
@@ -411,38 +411,59 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
 
 ## CSS Style System
 
+### The scaffold is the integrator
+
+`@sveltebuilder/coreui` ships style files but never self-applies them. The scaffold `app.css`
+is responsible for importing each coreui stylesheet into the correct layer position. This is
+intentional: the scaffold controls the cascade; the library supplies the rules.
+
 ### Layer cascade
 
 All styles in a SvelteBuilder application flow through named CSS cascade layers in this order:
 
 ```
-chrome  →  state  →  component  →  unlayered (developer)
+base  →  chrome  →  components  →  unlayered (developer)
+```
+
+The layer order is declared explicitly at the top of `app.css` before any imports — this
+fixes the priority order regardless of import sequencing:
+
+```css
+@layer reset, tokens, base, chrome, components, utilities;
 ```
 
 Unlayered CSS always wins over every `@layer` block regardless of specificity. This is the
 mechanism that makes the entire visual system overridable by a developer after install — no
 `!important`, no specificity fights.
 
-The scaffold `app.css` establishes the import order:
+The scaffold `app.css` wires everything together:
 
 ```css
-@import '@sveltebuilder/coreui/styles/tokens.css';        /* not layered — tokens are a base */
+@layer reset, tokens, base, chrome, components, utilities;
+
+@import '@sveltebuilder/coreui/styles/tokens.css';          /* not layered — tokens are a base */
+@import '@sveltebuilder/coreui/styles/base.css' layer(base);
 @import './chrome.css' layer(chrome);
-@import './state.css' layer(state);
-@import '@sveltebuilder/coreui/styles/components.css' layer(component);
+@import '@sveltebuilder/coreui/styles/components.css' layer(components);
 
 /* developer overrides below — unlayered, always wins */
 ```
 
+`reset` and `utilities` are reserved layer slots. No files target them yet.
+
 ### What each layer owns
 
-| Layer       | File(s)                                          | Owns                                                              |
-| ----------- | ------------------------------------------------ | ----------------------------------------------------------------- |
-| *(none)*    | `packages/coreui/styles/tokens.css`              | CSS custom properties (design tokens) — not layered               |
-| `chrome`    | `src/chrome.css` (scaffold)                      | Base visual structure for inputs, cards, menus, buttons, badges   |
-| `state`     | `src/state.css` (scaffold)                       | Interactive field states: focus ring, error, disabled, read-only  |
-| `component` | `packages/coreui/styles/components.css`          | All coreui component visual styles                                |
-| *(none)*    | developer CSS / app-specific files               | Theme overrides and project-specific styles                       |
+| Layer        | File(s)                                          | Owns                                                                                                           |
+| ------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| *(none)*     | `packages/coreui/styles/tokens.css`              | CSS custom properties (design tokens) — not layered                                                            |
+| `base`       | `packages/coreui/styles/base.css`                | Box-sizing reset, `html` typography defaults, global `:focus-visible` ring, `prefers-reduced-motion`           |
+| `chrome`     | `src/chrome.css` (scaffold)                      | Structural base for element classes (`.input`, `.btn`, `.card`, etc.) plus all interactive field states        |
+| `components` | `packages/coreui/styles/components.css`          | All coreui component visual styles                                                                             |
+| *(none)*     | developer CSS / app-specific files               | Theme overrides and project-specific styles                                                                     |
+
+**Why `chrome` owns field interaction states:** focus, error, disabled, and read-only rules
+modify the same `.input`/`.textarea` classes that `chrome` establishes. Keeping them together
+in one layer and one file removes the ordering dependency that made `state` a separate layer.
 
 ### coreui component style rules
 
@@ -468,16 +489,54 @@ If you are adding a visual rule to a coreui `<style>` block, stop and put it in
 element needs to affect a non-Bits child element, use a CSS custom property as the bridge:
 
 ```css
-/* declare on the state-carrying parent */
-.accordion-trigger              { --icon-rotate: 0deg; }
-.accordion-trigger[data-state='open'] { --icon-rotate: 180deg; }
+/* declare on the state-carrying parent — --_ prefix marks it private */
+.accordion-trigger              { --_icon-rotate: 0deg; }
+.accordion-trigger[data-state='open'] { --_icon-rotate: 180deg; }
 
 /* consume via inheritance in the child */
-.accordion-trigger .chevron { transform: rotate(var(--icon-rotate, 0deg)); }
+.accordion-trigger .chevron { transform: rotate(var(--_icon-rotate, 0deg)); }
 ```
 
 This avoids mixed `:global(parent) .svelte-scoped-child` selectors that cannot be moved to a
 global file.
+
+**Private component tokens (`--_` prefix).** When a component needs an internal CSS variable
+that is not part of the public theming surface — to share a value between two selectors within
+one component's ruleset in `components.css` — name it with a `--_` prefix:
+
+```css
+/* private: consumers must not reference this */
+.accordion-trigger { --_icon-rotate: 0deg; }
+.accordion-trigger[data-state='open'] { --_icon-rotate: 180deg; }
+.accordion-trigger .chevron { transform: rotate(var(--_icon-rotate, 0deg)); }
+```
+
+The `--_` prefix signals "internal implementation detail." Do not advertise these in docs or
+override them from application CSS. If a value needs to be themeable, it should chain to a
+public semantic token instead.
+
+### Theme and color scheme via `data-*`
+
+Dark mode and theme variants are driven by `data-*` attributes on ancestor elements, never by
+CSS class toggles. The token overrides in `@sveltebuilder/coreui/styles/_internal.css` respond
+to these attributes:
+
+| Attribute                        | Effect                                          |
+| -------------------------------- | ----------------------------------------------- |
+| `data-color-scheme="dark"`       | Force dark mode regardless of system preference |
+| `data-color-scheme="light"`      | Force light mode regardless of system preference|
+| *(attribute absent)*             | Follow `prefers-color-scheme` system preference |
+
+Set `data-color-scheme` on `<html>` or the root layout element. Read and persist the user's
+preference with JavaScript, then toggle the attribute.
+
+```ts
+// force dark
+document.documentElement.setAttribute('data-color-scheme', 'dark');
+
+// follow system
+document.documentElement.removeAttribute('data-color-scheme');
+```
 
 ### Bits UI data-attribute wiring
 
@@ -556,7 +615,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | Item                        | Status                                                                                                                                                                                              |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@sveltebuilder/hermes`     | Complete and tested — types, store, `load`, `merge`, `localText`, `<LocalText />`, full test suite                                                                                                  |
-| `@sveltebuilder/coreui`     | Complete — 24+ components (Accordion, Alert, Avatar, Badge, Button, Card, Checkbox, Dialog, Divider, Field, Input, Label, LocaleSwitcher, Menu, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Tooltip); all visual styles extracted to `styles/components.css` under `@layer component`; Bits UI data-attribute wiring throughout; builds cleanly |
+| `@sveltebuilder/coreui`     | Complete — 24+ components (Accordion, Alert, Avatar, Badge, Button, Card, Checkbox, Dialog, Divider, Field, Input, Label, LocaleSwitcher, Menu, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Tooltip); all visual styles extracted to `styles/components.css` under `@layer components`; Bits UI data-attribute wiring throughout; builds cleanly |
 | `@sveltebuilder/blog`       | Complete — components, server query helpers, SQL schema with RLS, seed data, scaffold template routes; Camp 1/2 hermes boundary respected |
 | `@sveltebuilder/cli`        | Complete — `sveltebuilder sync` working (manifest discovery, topological sort, `config.toml` rewrite)                                                                                               |
 | `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync`, installs dependencies                |
@@ -564,6 +623,6 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | Auth architecture           | Principal–identity split, `public.current_user_id()` STABLE function, `withUser` transaction wrapper, unified `hooks.server.ts` shape, `resolveAuthenticatedUserId` seam between templates; all RLS policies migrated from `auth.uid()`/`auth.jwt()` to `current_user_id()` + `user_account.admin`       |
 | SuperPrototype template     | Full Drizzle + `withUser` migration complete — all admin + API routes use Drizzle queries through `event.locals.db.withUser`. Auth.js-ready `auth-resolver.ts` seam in place. `user_account` now has bigint PK + `auth_user_id text` + `admin bool`. Sign-in/out remain Supabase OAuth.                   |
 | Native template             | New — Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern.                                                                            |
-| Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary); CSS layer cascade established (`chrome.css`, `state.css`, `components.css` via `@import … layer(…)`) |
+| Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary); CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`) |
 | `apps/dev-kitchen`          | Working SvelteKit app — 40+ component showcase routes for coreui and blog, hermes i18n integration, live Supabase connection                                                                        |
 | Monorepo structure          | Clean — pnpm workspaces, Turborepo task graph, all workspace references correct                                                                                                                     |

@@ -1,6 +1,6 @@
 {
   "name": "my-sveltebuilder-app",
-  "version": "0.0.5",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
     "@sveltebuilder/hermes": "latest"
   },
   "devDependencies": {
+    "@sveltebuilder/cli": "latest",
     "@sveltejs/adapter-auto": "latest",
     "@sveltejs/kit": "latest",
     "@sveltejs/vite-plugin-svelte": "latest",

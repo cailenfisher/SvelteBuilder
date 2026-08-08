@@ -4,26 +4,23 @@ import { getReturnAuthorizations, createReturnAuthorization } from '@sveltebuild
 import type { ReturnAuthorizationStatus } from '@sveltebuilder/logistic';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-  const { session } = await locals.safeGetSession();
-  if (!session) throw redirect(303, '/sign-in');
+  if (locals.userAccountId === null) throw redirect(303, '/sign-in');
 
   const status = (url.searchParams.get('status') ?? undefined) as ReturnAuthorizationStatus | undefined;
   const page = Number(url.searchParams.get('page') ?? '1');
   const perPage = 20;
 
-  const { returns, total } = await getReturnAuthorizations(locals.supabase, {
-    status,
-    page,
-    perPage,
-  });
+  const { returns, total } = await locals.db.withUser((tx) =>
+    getReturnAuthorizations(tx, { status, page, perPage }),
+  );
 
   return { returns, total, status, page, perPage, locale: locals.locale };
 };
 
 export const actions: Actions = {
   create: async ({ locals, request }) => {
-    const { session } = await locals.safeGetSession();
-    if (!session) throw redirect(303, '/sign-in');
+    const userAccountId = locals.userAccountId;
+    if (userAccountId === null) throw redirect(303, '/sign-in');
 
     const data = await request.formData();
     const reason = (data.get('reason') as string) || undefined;
@@ -31,12 +28,14 @@ export const actions: Actions = {
     const sku = data.get('sku') as string;
     const expectedQuantity = Number(data.get('expected_quantity'));
 
-    const id = await createReturnAuthorization(locals.supabase, {
-      userAccountId: session.user.id,
-      reason,
-      note,
-      lines: [{ sku, expectedQuantity }],
-    });
+    const id = await locals.db.withUser((tx) =>
+      createReturnAuthorization(tx, {
+        userAccountId,
+        reason,
+        note,
+        lines: [{ sku, expectedQuantity }],
+      }),
+    );
 
     throw redirect(303, `/admin/logistic/return/${id}`);
   },

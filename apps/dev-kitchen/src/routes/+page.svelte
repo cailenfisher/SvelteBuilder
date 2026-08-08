@@ -13,6 +13,6 @@
   <p>Dictionary entries loaded: <strong>{data.dictionary.length}</strong></p>
   <nav>
     <a href="/dev">Component kitchen →</a>
-    <a href="/blog">Blog demo →</a>
+    <a href="/dev/content">Content components →</a>
   </nav>
 </section>

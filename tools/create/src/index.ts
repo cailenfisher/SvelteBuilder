@@ -15,7 +15,7 @@ type PackageManager = 'pnpm' | 'npm' | 'yarn';
 type ScaffoldTemplate = 'superprototype' | 'native';
 
 const MODULE_DEPS: Record<string, string[]> = {
-  blog: ['@sveltebuilder/blog', '@sveltebuilder/coreui'],
+  content: ['@sveltebuilder/content', '@sveltebuilder/coreui'],
   logistic: ['@sveltebuilder/logistic', '@sveltebuilder/coreui'],
 };
 
@@ -35,7 +35,7 @@ async function deepMergePackageJson(
   }
   if (overlay.devDependencies) {
     base.devDependencies = {
-      ...(base.devDependencies as Record<string, string> ?? {}),
+      ...((base.devDependencies as Record<string, string>) ?? {}),
       ...overlay.devDependencies,
     };
   }
@@ -118,9 +118,9 @@ async function main() {
     message: 'Select domain modules to include',
     options: [
       {
-        value: 'blog',
-        label: 'Blog',
-        hint: 'Posts, categories, tags, comments, RSS, sitemap',
+        value: 'content',
+        label: 'Content',
+        hint: 'Publisher/news: articles, sections, taxonomy, live coverage, newsletter, RSS, sitemap',
       },
       {
         value: 'logistic',
@@ -162,7 +162,7 @@ async function main() {
 
   // Read base package.json before overlaying the scaffold template.
   const pkgPath = path.join(targetDir, 'package.json');
-  const pkg = await fs.readJson(pkgPath) as Record<string, unknown> & {
+  const pkg = (await fs.readJson(pkgPath)) as Record<string, unknown> & {
     dependencies: Record<string, string>;
   };
   pkg.name = projectName;
@@ -185,7 +185,7 @@ async function main() {
     // Deep-merge scaffold template's package.json deps into base.
     const templatePkgPath = path.join(templateDir, 'package.json');
     if (await fs.pathExists(templatePkgPath)) {
-      const templatePkg = await fs.readJson(templatePkgPath) as {
+      const templatePkg = (await fs.readJson(templatePkgPath)) as {
         dependencies?: Record<string, string>;
         devDependencies?: Record<string, string>;
       };
@@ -217,7 +217,7 @@ async function main() {
         targetDir,
         '.sveltebuilder',
         'registry',
-        `@sveltebuilder-${mod}.json`,
+        `@sveltebuilder-${mod}.json`
       );
       await fs.copy(manifestSrc, manifestDest, { overwrite: true });
     }
@@ -246,7 +246,9 @@ async function main() {
   // ── Step 5: Install dependencies ─────────────────────────────────────────
   // Must run before sync:supabase since drizzle-kit is installed as a dev dep.
   if (noInstall) {
-    p.log.info('Skipping install (--no-install). Run `sveltebuilder sync:supabase` manually after installing.');
+    p.log.info(
+      'Skipping install (--no-install). Run `sveltebuilder sync:supabase` manually after installing.'
+    );
   } else {
     s.start(`Installing dependencies with ${pm}...`);
     const installResult = await new Promise<{ status: number; stderr: string }>((resolve) => {
@@ -256,13 +258,15 @@ async function main() {
         shell: process.platform === 'win32',
       });
       let stderr = '';
-      child.stderr?.on('data', (chunk: Buffer) => { stderr += chunk; });
+      child.stderr?.on('data', (chunk: Buffer) => {
+        stderr += chunk;
+      });
       child.on('close', (code) => resolve({ status: code ?? 1, stderr }));
     });
     if (installResult.status !== 0) {
       s.stop(pc.yellow('Install failed'));
       p.log.warn(
-        `Run \`${pm} install\` inside ${pc.cyan(projectName)} once dependencies are available.`,
+        `Run \`${pm} install\` inside ${pc.cyan(projectName)} once dependencies are available.`
       );
       if (installResult.stderr) p.log.warn(installResult.stderr.trim());
     } else {
@@ -277,7 +281,9 @@ async function main() {
       await syncSupabase(targetDir);
       s.stop('Supabase migrations generated');
     } catch (err) {
-      s.stop(pc.yellow('Migration generation skipped — run `sveltebuilder sync:supabase` manually'));
+      s.stop(
+        pc.yellow('Migration generation skipped — run `sveltebuilder sync:supabase` manually')
+      );
       if (err instanceof Error) p.log.warn(err.message);
     }
   }
@@ -290,10 +296,19 @@ async function main() {
     `  ${pc.dim('cd')} ${pc.cyan(projectName)}`,
   ];
   if (scaffoldTemplate === 'superprototype') {
-    nextSteps.push(`  ${pc.dim('cp')} .env.example .env   ${pc.dim('# add your Supabase credentials')}`);
+    nextSteps.push(
+      `  ${pc.dim('cp')} .env.example .env   ${pc.dim('# add your Supabase credentials')}`
+    );
+    nextSteps.push(`  ${pc.dim(`${pm} sveltebuilder sync:supabase`)}`);
+    nextSteps.push(`  ${pc.dim("# install supabase CLI if you haven't already")}`);
+    nextSteps.push(`  ${pc.dim('supabase link --project-ref <project-ref>')}`);
+    nextSteps.push(`  ${pc.dim('supabase db push')}`);
+    nextSteps.push(`  ${pc.dim('# seed your database')}`);
   }
   if (noInstall) {
-    nextSteps.push(`  ${pc.dim(pm + ' install')}   ${pc.dim('# install deps when packages are published')}`);
+    nextSteps.push(
+      `  ${pc.dim(pm + ' install')}   ${pc.dim('# install deps when packages are published')}`
+    );
   }
   nextSteps.push(`  ${pc.dim(runCmd)}`);
   p.outro(nextSteps.join('\n'));

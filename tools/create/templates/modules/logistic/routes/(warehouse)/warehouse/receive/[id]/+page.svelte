@@ -45,7 +45,7 @@
         {data.receipt.status}
       </Badge>
     </div>
-    <p class="receive-detail__supplier">{data.receipt.supplier.name}</p>
+    <p class="receive-detail__supplier">{data.receipt.supplier?.name ?? 'Blind receipt'}</p>
     <p class="receive-detail__progress">
       {progress.done} of {progress.total} lines received
     </p>

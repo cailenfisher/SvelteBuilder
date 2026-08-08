@@ -55,7 +55,7 @@
     flushTimeout = setTimeout(flush, delay);
   }
 
-  const inputId = $derived(label ? `barcode-input-${Math.random().toString(36).slice(2)}` : undefined);
+  const inputId = $props.id();
 
   const classes = $derived(
     ['barcode-input', error ? 'error' : '', extraClass ?? '']
@@ -91,14 +91,14 @@
       autocapitalize="off"
       spellcheck={false}
       aria-invalid={error ? 'true' : undefined}
-      aria-describedby={error && inputId ? `${inputId}-error` : undefined}
+      aria-describedby={error ? `${inputId}-error` : undefined}
       onkeydown={handleKeydown}
       oninput={handleInput}
     />
   </div>
 
   {#if error}
-    <p id={inputId ? `${inputId}-error` : undefined} class="error-msg" role="alert">
+    <p id={`${inputId}-error`} class="error-msg" role="alert">
       {error}
     </p>
   {/if}

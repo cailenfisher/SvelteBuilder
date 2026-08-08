@@ -78,7 +78,10 @@
     <form method="POST" action="?/create" class="receipt-new-form">
       <Field>
         <Label for="supplier-id">Supplier</Label>
-        <Select id="supplier-id" name="supplier_id" required>
+        <Select id="supplier-id" name="supplier_id">
+          <SelectItem value="">
+            {localText('logistic.inbound_receipt.blind', 'logistic')}
+          </SelectItem>
           {#each data.suppliers as supplier (supplier.id)}
             <SelectItem value={String(supplier.id)}>
               {localText('name', 'supplier', supplier.id)}

@@ -6,6 +6,7 @@
     perPage?: number;
     page?: number;
     siblingCount?: number;
+    onPageChange?: (page: number) => void;
     class?: string | undefined;
   };
 
@@ -14,6 +15,7 @@
     perPage = 10,
     page = $bindable(1),
     siblingCount = 1,
+    onPageChange,
     class: extraClass,
   }: Props = $props();
 
@@ -27,6 +29,7 @@
   {perPage}
   bind:page
   {siblingCount}
+  {onPageChange}
   class={classes}
 >
   {#snippet children({ pages })}

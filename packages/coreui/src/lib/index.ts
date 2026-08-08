@@ -109,6 +109,8 @@ export { default as TableFoot } from './TableFoot.svelte';
 export { default as TableRow } from './TableRow.svelte';
 export { default as TableHeader } from './TableHeader.svelte';
 export { default as TableCell } from './TableCell.svelte';
+export { default as DataTable } from './DataTable.svelte';
+export type { DataTableColumn } from './DataTable.svelte';
 
 // ============================================================
 // LocalText admin components
@@ -116,6 +118,22 @@ export { default as TableCell } from './TableCell.svelte';
 export { default as LocaleEdit } from './LocaleEdit.svelte';
 export { default as LocalTextLinkEdit } from './LocalTextLinkEdit.svelte';
 export { default as LocalTextEdit } from './LocalTextEdit.svelte';
+
+// ============================================================
+// Editing
+// ============================================================
+export { default as BlockEditor } from './BlockEditor.svelte';
+export type { EditorBlock } from './BlockEditor.svelte';
+
+// ============================================================
+// Overlay / panel
+// ============================================================
+export { default as Drawer } from './Drawer.svelte';
+
+// ============================================================
+// Date / time input
+// ============================================================
+export { default as DateTimePicker } from './DateTimePicker.svelte';
 
 // ============================================================
 // Utilities — for consumers building custom form controls

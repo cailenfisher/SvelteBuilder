@@ -8,8 +8,14 @@
 
   let { data }: { data: PageData } = $props();
 
-  const supplierName = $derived(localText('name', 'supplier', data.receipt.supplierId));
-  const statusLabel = $derived(localText(`logistic.receipt.status.${data.receipt.status}`, 'logistic'));
+  const supplierName = $derived(
+    data.receipt.supplierId !== null
+      ? localText('name', 'supplier', data.receipt.supplierId)
+      : localText('logistic.inbound_receipt.blind', 'logistic'),
+  );
+  const statusLabel = $derived(
+    localText(`logistic.inbound_receipt.status.${data.receipt.status}`, 'logistic'),
+  );
 
   const statusVariant = $derived(
     data.receipt.status === 'complete'   ? 'success'
