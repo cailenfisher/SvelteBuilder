@@ -1,7 +1,21 @@
 {
   "name": "@sveltebuilder/hermes",
   "version": "0.0.7",
+  "description": "Framework-agnostic, synchronous i18n dictionary store for Svelte 5 — types, load/merge, localText lookup, and a LocalText component.",
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "sveltekit",
+    "i18n",
+    "internationalization",
+    "localization",
+    "l10n",
+    "translation",
+    "dictionary",
+    "sveltebuilder"
+  ],
   "private": false,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "svelte-package -i src/lib",
@@ -22,6 +36,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "svelte": "^5.0.0"
   },

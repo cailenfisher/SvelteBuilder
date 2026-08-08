@@ -1,7 +1,22 @@
 {
   "name": "create-sveltebuilder",
   "version": "0.0.25",
+  "description": "Scaffold a production-ready SvelteKit app with SvelteBuilder — i18n, accessible UI components, and domain modules, pre-wired to Supabase or Drizzle.",
+  "keywords": [
+    "sveltekit",
+    "svelte",
+    "svelte5",
+    "scaffold",
+    "starter",
+    "boilerplate",
+    "create",
+    "template",
+    "supabase",
+    "drizzle",
+    "sveltebuilder"
+  ],
   "private": false,
+  "license": "MIT",
   "type": "module",
   "bin": {
     "create-sveltebuilder": "./dist/index.js"
@@ -17,7 +32,7 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.9.0",
-    "@sveltebuilder/cli": "latest",
+    "@sveltebuilder/cli": "workspace:^",
     "fs-extra": "^11.2.0",
     "picocolors": "^1.1.0"
   },

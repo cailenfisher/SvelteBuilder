@@ -1,7 +1,24 @@
 {
   "name": "@sveltebuilder/content",
   "version": "0.0.5",
+  "description": "Publisher/news domain module for SvelteBuilder — articles, sections, taxonomy, live coverage, newsletters, comments, RSS, sitemaps, and JSON-LD, with a Drizzle schema and i18n built in.",
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "sveltekit",
+    "cms",
+    "publishing",
+    "blog",
+    "news",
+    "articles",
+    "rss",
+    "sitemap",
+    "json-ld",
+    "drizzle",
+    "sveltebuilder"
+  ],
   "private": false,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "svelte-package -i src/lib",
@@ -29,9 +46,12 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
-    "@sveltebuilder/hermes": "^0.0.6",
-    "@sveltebuilder/coreui": "^0.0.13",
+    "@sveltebuilder/hermes": "workspace:^",
+    "@sveltebuilder/coreui": "workspace:^",
     "@supabase/supabase-js": ">=2.0.0",
     "svelte": ">=5.0.0"
   },
@@ -41,9 +61,10 @@
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "@sveltebuilder/hermes": "^0.0.6",
+    "@sveltebuilder/hermes": "workspace:^",
     "svelte": "^5.0.0",
     "typescript": "^5.5.0",
+    "vite": "^5.3.0",
     "vitest": "^2.0.0"
   }
 }
