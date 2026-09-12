@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { merge } from '@sveltebuilder/hermes';
+  import { merge } from 'diglossia';
   import { ArticleView, NewsletterSignup } from '@sveltebuilder/content';
   import { buildNewsArticleJsonLd, buildArticleMetaTags } from '@sveltebuilder/content/server';
   import type { PageData, ActionData } from './$types';

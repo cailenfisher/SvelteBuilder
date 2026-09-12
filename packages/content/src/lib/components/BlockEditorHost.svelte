@@ -3,7 +3,7 @@
      This component is editor-only (never rendered in a published article view). -->
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import { BlockEditor } from '@sveltebuilder/coreui';
   import type { EditorBlock } from '@sveltebuilder/coreui';
   import type { ArticleBlock, ArticleBlockType } from '../schema/index.js';

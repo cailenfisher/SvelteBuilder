@@ -1,7 +1,7 @@
 <!-- Camp 2: full article renderer. Resolves headline, dek, lede, and all block text via hermes.
      Accepts ArticleWithCopy (enriched) from the server load function. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import type { Snippet } from 'svelte';
   import ArticleBlockRenderer from './ArticleBlockRenderer.svelte';
   import MediaFigure from './MediaFigure.svelte';

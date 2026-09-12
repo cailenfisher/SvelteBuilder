@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes'
+  import { localText } from 'diglossia'
   import { Button, Field, Input, Checkbox, LocalTextEdit } from '@sveltebuilder/coreui'
   import type { PageData, ActionData } from './$types'
 

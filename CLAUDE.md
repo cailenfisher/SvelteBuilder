@@ -23,7 +23,6 @@ select which domain modules to include.
 ```
 SvelteBuilder/
 ├── packages/
-│   ├── hermes/         @sveltebuilder/hermes         i18n primitives
 │   ├── hermes-schema/  @sveltebuilder/hermes-schema  Drizzle schema + canonical seed data for hermes tables
 │   ├── coreui/         @sveltebuilder/coreui         universal UI components
 │   ├── content/        @sveltebuilder/content        publisher/news domain module
@@ -40,6 +39,11 @@ SvelteBuilder/
 
 Package manager: **pnpm**. Task orchestration: **Turborepo**. Publishing: **Changesets**.
 
+The i18n primitives package (`diglossia`, formerly `@sveltebuilder/hermes`) has been extracted to
+its own repo ([github.com/cailenfisher/diglossia](https://github.com/cailenfisher/diglossia)) and
+is consumed here as an external dependency rather than a workspace package. See
+[i18n Architecture](#i18n-architecture).
+
 ---
 
 ## Tech Stack
@@ -51,7 +55,7 @@ Package manager: **pnpm**. Task orchestration: **Turborepo**. Publishing: **Chan
 | Database        | PostgreSQL (Supabase-hosted). Drizzle is the schema source of truth for every package; `sveltebuilder sync:supabase` generates SQL migrations from it. |
 | Auth            | SuperPrototype template: Supabase Auth. Native template: Auth.js (`@auth/sveltekit`) with a Drizzle adapter. See [Auth Architecture](#auth-architecture). |
 | i18n formatting | `intl-messageformat` (FormatJS / ICU)                                                                                   |
-| i18n layer      | `@sveltebuilder/hermes` (schema: `@sveltebuilder/hermes-schema`)                                                        |
+| i18n layer      | `diglossia` (external dependency, schema: `@sveltebuilder/hermes-schema`)                                                |
 | UI components   | `@sveltebuilder/coreui` (on Bits UI primitives)                                                                         |
 
 ---
@@ -63,7 +67,8 @@ deliberate and must never be violated.
 
 ### Responsibility split
 
-**`@sveltebuilder/hermes`** is the single source of all i18n primitives. It owns:
+**`diglossia`** (an external npm package — see [Monorepo Layout](#monorepo-layout)) is the single
+source of all i18n primitives. It owns:
 
 - Types: `Locale`, `LocalText`, `LocalTextLink`, `Dictionary`, `DictionaryPayload`
 - Store functions: `load(payload, userLocaleCode, fallbackLocaleCode)`, `merge(...)`
@@ -73,25 +78,25 @@ deliberate and must never be violated.
 No other package redeclares these. Never redeclare them.
 
 **The scaffold / consuming app** owns locale resolution. It loads the full dictionary for the
-active locale from the database at the root layout, then calls `hermes.load()`.
+active locale from the database at the root layout, then calls diglossia's `load()`.
 
 **Feature module packages split internally:**
 
-| Component kind                                          | i18n dependency         | Receives                              |
-| ------------------------------------------------------- | ----------------------- | ------------------------------------- |
-| Application-level UI (`Button`, `Input`, layout chrome) | None — no hermes import | `label: string`, child snippets       |
-| Entity/domain (`ProductCard`, `TaskItem`)               | Imports hermes          | The domain entity (only carries `id`) |
+| Component kind                                          | i18n dependency            | Receives                              |
+| ------------------------------------------------------- | --------------------------- | ------------------------------------- |
+| Application-level UI (`Button`, `Input`, layout chrome) | None — no diglossia import | `label: string`, child snippets       |
+| Entity/domain (`ProductCard`, `TaskItem`)               | Imports diglossia          | The domain entity (only carries `id`) |
 
 `Button.svelte` and `ProductCard.svelte` behave differently within the same package. That is
 correct.
 
-### The absolute rule: hermes never touches the database
+### The absolute rule: diglossia never touches the database
 
-`@sveltebuilder/hermes` contains no database calls, no `fetch`, no async of any kind. It is a
+`diglossia` contains no database calls, no `fetch`, no async of any kind. It is a
 pure in-memory store. It only accepts typed JavaScript payloads. The consuming SvelteKit app
-handles all database communication and passes the result to hermes.
+handles all database communication and passes the result to diglossia.
 
-### Dictionary key format (internal to hermes)
+### Dictionary key format (internal to diglossia)
 
 The internal `buildKey(slug, scope?, entityId?)` function builds:
 
@@ -384,7 +389,7 @@ No JWT role claims are used. Promote a user to admin by setting `admin = true` d
 
 These rules are enforced by ESLint `no-restricted-imports` where possible. Violations are bugs.
 
-1. **Never import `@sveltebuilder/hermes` in application-level UI components.** `Button`,
+1. **Never import `diglossia` in application-level UI components.** `Button`,
    `Input`, layout chrome, form primitives — these take plain `string` props. If you find
    yourself reaching for `localText` inside a coreui component that has no entity context,
    stop and reconsider the component boundary.
@@ -392,7 +397,7 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
 2. **Never add `name`/`title`/`label`/`description` columns to domain entity tables.** The
    `LocalTextLink` wiring is the model from day one.
 
-3. **`@sveltebuilder/hermes` contains no database calls, no fetch, no async.** Full stop.
+3. **`diglossia` contains no database calls, no fetch, no async.** Full stop.
 
 4. **Domain modules do not reach past `@sveltebuilder/coreui` to Bits UI directly.** The
    coreui contract is the dependency boundary. If a domain module needs a primitive not in
@@ -613,7 +618,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | `messageBus` SSR                   | `messageBus` uses module-level `$state`, which is shared across requests on the server. Safe for the CSR dev-kitchen. Scaffold template wiring requires a per-request solution (Svelte context or `$page.data`) before this is used in an SSR app. |
 | Auth UI (dev-kitchen)              | `apps/dev-kitchen` still uses the old Supabase hook shape. It has not been migrated to the `withUser` pattern and will diverge from scaffold templates over time.                                               |
 | `@sveltebuilder/commerce`          | Not started — single placeholder `index.ts`. The product's remaining domain differentiator gap.                                                                                                                |
-| `@sveltebuilder/logistic` polish   | Core module is built (see Completed Foundation), but has no vitest suite (no test file in the package — the only tested package in the repo is `@sveltebuilder/hermes`) and no dev-kitchen showcase routes.    |
+| `@sveltebuilder/logistic` polish   | Core module is built (see Completed Foundation), but has no vitest suite (no test file in the package — `diglossia`, extracted from this repo, is the only i18n primitives code with a test suite) and no dev-kitchen showcase routes.    |
 | WCAG 2.2 AA audit                  | Bits UI provides accessible primitives but no accessibility audit has been run. Required before any module is marked production-ready.                                                                          |
 | `apps/docs`                        | Placeholder only — no content, no structure.                                                                                                                                                                   |
 
@@ -623,10 +628,10 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 
 | Item                        | Status                                                                                                                                                                                              |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@sveltebuilder/hermes`     | Complete and tested — types, store, `load`, `merge`, `localText`, `<LocalText />`, full test suite                                                                                                  |
+| `diglossia`                 | Complete and tested — types, store, `load`, `merge`, `localText`, `<LocalText />`, full test suite; extracted from this repo (formerly `@sveltebuilder/hermes`) into its own repo/npm package, consumed here as an external dependency |
 | `@sveltebuilder/hermes-schema` | Complete — pure TS + Drizzle package (no Svelte); exports `./schema` (locale/local_text_link/local_text Drizzle tables) and `./seed` (canonical `LOCALES`/`BASE_SLUGS` data consumed by `sveltebuilder sync:supabase`)                       |
 | `@sveltebuilder/coreui`     | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocaleSwitcher, Menu, MessageAriaLive, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `BlockEditor`/`DateTimePicker` added for content, `BarcodeInput`/`MetricCard`/`StatusBadge`/`Timeline` added for logistic); all visual styles extracted to `styles/components.css` under `@layer components`; Bits UI data-attribute wiring throughout; builds cleanly |
-| `@sveltebuilder/content`    | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data, scaffold template routes; Camp 1/2 hermes boundary respected. No unit tests yet. |
+| `@sveltebuilder/content`    | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data, scaffold template routes; Camp 1/2 diglossia boundary respected. No unit tests yet. |
 | `@sveltebuilder/logistic`   | Complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; Drizzle + `withUser` query layer, SECURITY DEFINER SQL for concurrency-sensitive stock mutations, full admin + worker route surface, README with v1-scope statement. Gaps: no vitest suite, no dev-kitchen showcase routes (tracked in Known Open Issues). |
 | `@sveltebuilder/cli`        | Complete — `sveltebuilder sync:supabase` working (`.sveltebuilder/registry/` manifest discovery, topological sort, Drizzle schema barrel + `drizzle-kit generate`, supplemental SQL append, seed.sql generation); bare `sync` kept as a deprecated alias; `sync:drizzle` (Native template) stubbed |
 | `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync:supabase`, installs dependencies                |
@@ -637,5 +642,5 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) generated via `sync:supabase`; CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`) |
 | Messaging system            | Universal message surface in coreui — `messageBus` store, `Toast`/`ToastRegion`, `Banner`, `InlineNotification`, `ConfirmDialog`, `MessageAriaLive`; wired into dev-kitchen's root layout. SSR gap tracked in Known Open Issues. |
 | Publishing pipeline         | `.changeset/` configured (GitHub changelog, public npm access) — packages are versioned independently (e.g. `coreui@0.0.15`, `logistic@0.0.9`) via Changesets                                       |
-| `apps/dev-kitchen`          | Working SvelteKit app — component showcase routes for coreui and content, hermes i18n integration, live Supabase connection. No logistic or commerce showcase yet.                                  |
+| `apps/dev-kitchen`          | Working SvelteKit app — component showcase routes for coreui and content, diglossia i18n integration, live Supabase connection. No logistic or commerce showcase yet.                                  |
 | Monorepo structure          | Clean — pnpm workspaces, Turborepo task graph, all workspace references correct                                                                                                                     |

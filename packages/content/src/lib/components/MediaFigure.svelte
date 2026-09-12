@@ -3,7 +3,7 @@
      Empty alt ("") is only valid for explicitly decorative images (pass decorative=true).
      SECURITY: storageBaseUrl is validated server-side before being passed to this component. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import type { MediaAsset } from '../schema/index.js';
 
   type Props = {

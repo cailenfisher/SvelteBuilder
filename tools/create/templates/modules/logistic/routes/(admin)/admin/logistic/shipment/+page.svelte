@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import { Button, DataTable, Dialog, Field, Label, Input } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
   import { ShipmentStatusBadge } from '@sveltebuilder/logistic';

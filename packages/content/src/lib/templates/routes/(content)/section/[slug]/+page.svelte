@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { merge } from '@sveltebuilder/hermes';
+  import { merge } from 'diglossia';
   import { SectionFront } from '@sveltebuilder/content';
   import type { PageData } from './$types';
 

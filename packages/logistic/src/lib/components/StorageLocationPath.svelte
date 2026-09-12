@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import type { StorageLocation } from '../schema/index.js';
 
   type Props = {

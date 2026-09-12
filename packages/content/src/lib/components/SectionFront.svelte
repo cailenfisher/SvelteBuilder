@@ -2,7 +2,7 @@
      Front title resolved via hermes (scope = 'front').
      Article copy within slots resolved via hermes inside ArticleCard. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import ArticleCard from './ArticleCard.svelte';
   import type { FrontWithSlots, MediaAsset, Section } from '../schema/index.js';
 

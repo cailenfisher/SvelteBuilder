@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import type { DictionaryPayload } from '@sveltebuilder/hermes'
+import type { DictionaryPayload } from 'diglossia'
 
 type GetDictionaryRow = {
   link_id: number;

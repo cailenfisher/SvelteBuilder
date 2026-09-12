@@ -1,6 +1,6 @@
 <!-- Camp 2: resolves section name from hermes. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import type { Section } from '../schema/index.js';
 
   type Props = {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import { Badge } from '@sveltebuilder/coreui';
   import type { InboundReceipt, InboundReceiptLine, Supplier } from '../schema/index.js';
 

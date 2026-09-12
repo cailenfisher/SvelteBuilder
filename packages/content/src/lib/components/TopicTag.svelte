@@ -1,6 +1,6 @@
 <!-- Camp 2: resolves topic name from hermes. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import type { Topic } from '../schema/index.js';
 
   type Props = {

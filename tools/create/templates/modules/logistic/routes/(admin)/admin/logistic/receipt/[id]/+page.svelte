@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import {
     Button, Badge, Field, Label, Input, Select, SelectItem,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,

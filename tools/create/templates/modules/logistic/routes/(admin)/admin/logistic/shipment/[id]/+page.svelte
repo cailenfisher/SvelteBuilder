@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import {
     Button, Field, Label, Input, Select, SelectItem,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
