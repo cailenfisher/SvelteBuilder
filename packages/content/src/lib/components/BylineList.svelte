@@ -1,6 +1,6 @@
 <!-- Camp 2: resolves author names from hermes. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import type { AuthorProfile } from '../schema/index.js';
 
   type Props = {

@@ -1,7 +1,7 @@
 <!-- Camp 2: renders a live coverage page with ordered live updates.
      Coverage title/description resolved via hermes (scope = 'live_coverage'). -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import LiveUpdateItem from './LiveUpdateItem.svelte';
   import type { LiveCoverageWithUpdates } from '../schema/index.js';
 

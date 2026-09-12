@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css';
-  import { load } from '@sveltebuilder/hermes'
-  import { localText, LocalText } from '@sveltebuilder/hermes'
+  import { load } from 'diglossia'
+  import { localText, LocalText } from 'diglossia'
   import { Banner, ToastRegion, MessageAriaLive } from '@sveltebuilder/coreui'
   import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
   import type { LayoutData } from './$types'

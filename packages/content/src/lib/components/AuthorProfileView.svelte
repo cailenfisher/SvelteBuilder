@@ -1,6 +1,6 @@
 <!-- Camp 2: resolves author name, bio, and expertise via hermes (scope = 'author_profile'). -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import ArticleCard from './ArticleCard.svelte';
   import type { AuthorProfile, ArticleWithCopy, MediaAsset } from '../schema/index.js';
 

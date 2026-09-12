@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Locale } from '@sveltebuilder/hermes'
-  import { localText } from '@sveltebuilder/hermes'
+  import type { Locale } from 'diglossia'
+  import { localText } from 'diglossia'
 
   let {
     current,

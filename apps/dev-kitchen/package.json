@@ -14,7 +14,7 @@
   "dependencies": {
     "@sveltebuilder/content": "workspace:*",
     "@sveltebuilder/coreui": "workspace:*",
-    "@sveltebuilder/hermes": "workspace:*",
+    "diglossia": "link:../../../diglossia",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest"
   },

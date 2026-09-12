@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@sveltebuilder/coreui": "latest",
-    "@sveltebuilder/hermes": "latest"
+    "diglossia": "latest"
   },
   "devDependencies": {
     "@sveltebuilder/cli": "latest",

@@ -162,7 +162,7 @@ This addresses notification fatigue elegantly: the toast channel stays sparse an
 
 ### Accessibility Implementation Notes
 
-Given that svelte-hermes is already in the foundation and you own the app shell in the scaffold:
+Given that diglossia is already in the foundation and you own the app shell in the scaffold:
 
 - Mount **two static ARIA live regions** on app boot in the root layout: one `aria-live="polite"` (for `success`/`info`/`warning`) and one `aria-live="assertive"` (for `error`/`critical`). Never create them dynamically.
 - All toast and banner visuals are backed by injecting into these two regions — the visual and audible channels are decoupled but synchronized.

@@ -1,4 +1,4 @@
-import type { DictionaryPayload, Locale } from '@sveltebuilder/hermes'
+import type { DictionaryPayload, Locale } from 'diglossia'
 
 declare global {
   namespace App {

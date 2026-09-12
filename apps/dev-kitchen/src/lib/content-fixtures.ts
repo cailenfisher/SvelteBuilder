@@ -18,7 +18,7 @@ import type {
   Newsletter,
   NewsletterWithCopy,
 } from '@sveltebuilder/content';
-import type { DictionaryPayload } from '@sveltebuilder/hermes';
+import type { DictionaryPayload } from 'diglossia';
 
 export const draftStatus: ArticleStatusWithCopy = {
   id: 1, slug: 'draft', ordinal: 1, label: 'Draft',

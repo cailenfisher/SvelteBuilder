@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes'
+  import { localText } from 'diglossia'
   import { page } from '$app/stores'
 </script>
 

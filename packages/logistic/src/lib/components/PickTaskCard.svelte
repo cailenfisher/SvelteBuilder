@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import StorageLocationPath from './StorageLocationPath.svelte';
   import PickTaskStatusBadge from './PickTaskStatusBadge.svelte';
   import type { PickTask, PickTaskLine, StorageLocation } from '../schema/index.js';

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import {
     Button, DataTable, Dialog, Field, Label, Input, Select, SelectItem, Textarea, Badge,
   } from '@sveltebuilder/coreui';

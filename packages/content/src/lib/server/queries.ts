@@ -51,7 +51,7 @@ import type {
   Topic,
   TopicWithCopy,
 } from '../schema/index.js';
-import type { DictionaryPayload } from '@sveltebuilder/hermes';
+import type { DictionaryPayload } from 'diglossia';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ---------------------------------------------------------------------------
