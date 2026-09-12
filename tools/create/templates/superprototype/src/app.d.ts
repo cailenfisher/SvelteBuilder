@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DictionaryPayload, Locale } from '@sveltebuilder/hermes';
+import type { DictionaryPayload, Locale } from 'diglossia';
 import type { UserScopedDb } from '$lib/server/db/with-user';
 
 declare global {

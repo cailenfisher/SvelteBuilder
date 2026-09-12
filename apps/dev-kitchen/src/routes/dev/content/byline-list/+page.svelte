@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { load as hermesLoad } from '@sveltebuilder/hermes';
+  import { load as hermesLoad } from 'diglossia';
   import { BylineList } from '@sveltebuilder/content';
   import { janeAuthor, johnAuthor, fixtureDictionaryPayload } from '$lib/content-fixtures.js';
 

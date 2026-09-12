@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
-import type { DictionaryPayload } from '@sveltebuilder/hermes';
+import type { DictionaryPayload } from 'diglossia';
 import { db } from '$lib/server/db/client';
 
 export const GET: RequestHandler = async ({ params, locals, url }) => {

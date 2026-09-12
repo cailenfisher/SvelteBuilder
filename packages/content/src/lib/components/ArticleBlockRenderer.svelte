@@ -2,7 +2,7 @@
      All text blocks resolve copy via hermes (scope = 'article_block', entityId = block.id).
      Structural config (heading level, embed provider) lives in block.content jsonb. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import MediaFigure from './MediaFigure.svelte';
   import type { ArticleBlock, MediaAsset } from '../schema/index.js';
 

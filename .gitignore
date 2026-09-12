@@ -10,6 +10,7 @@ supabase/
 .env
 .env.*
 !.env.example
+.npmrc
 
 # editor
 .vscode/settings.json

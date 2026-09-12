@@ -1,7 +1,7 @@
 <!-- Camp 2: newsletter signup form. Labels/placeholders resolved via hermes (scope = 'content').
      Submits to a SvelteKit form action — no client-side fetch. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import { Button, Field, Input } from '@sveltebuilder/coreui';
   import type { NewsletterWithCopy } from '../schema/index.js';
 

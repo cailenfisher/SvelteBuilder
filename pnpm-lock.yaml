@@ -56,9 +56,9 @@ importers:
       '@sveltebuilder/coreui':
         specifier: workspace:*
         version: link:../../packages/coreui
-      '@sveltebuilder/hermes':
-        specifier: workspace:*
-        version: link:../../packages/hermes
+      diglossia:
+        specifier: link:../../../diglossia
+        version: link:../../../diglossia
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: latest
@@ -117,15 +117,15 @@ importers:
         specifier: ^0.38.0
         version: 0.38.4
     devDependencies:
-      '@sveltebuilder/hermes':
-        specifier: workspace:^
-        version: link:../hermes
       '@sveltejs/package':
         specifier: ^2.3.0
         version: 2.5.7(svelte@5.56.4(@typescript-eslint/types@8.59.4))(typescript@5.9.3)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^4.0.0
         version: 4.0.4(svelte@5.56.4(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.1.2)(lightningcss@1.32.0))
+      diglossia:
+        specifier: link:../../../diglossia
+        version: link:../../../diglossia
       svelte:
         specifier: ^5.0.0
         version: 5.56.4(@typescript-eslint/types@8.59.4)
@@ -145,42 +145,18 @@ importers:
         specifier: ^2.18.1
         version: 2.18.1(@internationalized/date@3.12.1)(@sveltejs/kit@2.70.2(@sveltejs/vite-plugin-svelte@4.0.4(svelte@5.55.9(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.1.2)(lightningcss@1.32.0)))(svelte@5.55.9(@typescript-eslint/types@8.59.4))(typescript@5.9.3)(vite@5.4.21(@types/node@26.1.2)(lightningcss@1.32.0)))(svelte@5.55.9(@typescript-eslint/types@8.59.4))
     devDependencies:
-      '@sveltebuilder/hermes':
-        specifier: workspace:^
-        version: link:../hermes
       '@sveltejs/package':
         specifier: ^2.3.0
         version: 2.5.7(svelte@5.55.9(@typescript-eslint/types@8.59.4))(typescript@5.9.3)
       '@sveltejs/vite-plugin-svelte':
         specifier: ^4.0.0
         version: 4.0.4(svelte@5.55.9(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.1.2)(lightningcss@1.32.0))
+      diglossia:
+        specifier: link:../../../diglossia
+        version: link:../../../diglossia
       svelte:
         specifier: ^5.0.0
         version: 5.55.9(@typescript-eslint/types@8.59.4)
-      typescript:
-        specifier: ^5.5.0
-        version: 5.9.3
-      vite:
-        specifier: ^5.3.0
-        version: 5.4.21(@types/node@26.1.2)(lightningcss@1.32.0)
-      vitest:
-        specifier: ^2.0.0
-        version: 2.1.9(@types/node@26.1.2)(lightningcss@1.32.0)
-
-  packages/hermes:
-    devDependencies:
-      '@sveltejs/package':
-        specifier: ^2.3.0
-        version: 2.5.7(svelte@5.55.9(@typescript-eslint/types@8.59.4))(typescript@5.9.3)
-      '@sveltejs/vite-plugin-svelte':
-        specifier: ^4.0.0
-        version: 4.0.4(svelte@5.55.9(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.1.2)(lightningcss@1.32.0))
-      svelte:
-        specifier: ^5.0.0
-        version: 5.55.9(@typescript-eslint/types@8.59.4)
-      svelte-check:
-        specifier: ^4.0.0
-        version: 4.4.8(picomatch@4.0.5)(svelte@5.55.9(@typescript-eslint/types@8.59.4))(typescript@5.9.3)
       typescript:
         specifier: ^5.5.0
         version: 5.9.3
@@ -209,9 +185,6 @@ importers:
       '@sveltebuilder/coreui':
         specifier: workspace:^
         version: link:../coreui
-      '@sveltebuilder/hermes':
-        specifier: workspace:^
-        version: link:../hermes
       '@sveltebuilder/hermes-schema':
         specifier: workspace:^
         version: link:../hermes-schema
@@ -225,6 +198,9 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^4.0.0
         version: 4.0.4(svelte@5.55.9(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.1.2)(lightningcss@1.32.0))
+      diglossia:
+        specifier: link:../../../diglossia
+        version: link:../../../diglossia
       svelte:
         specifier: ^5.0.0
         version: 5.55.9(@typescript-eslint/types@8.59.4)
@@ -2610,14 +2586,6 @@ packages:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
 
-  svelte-check@4.4.8:
-    resolution: {integrity: sha512-67adfgBox5eNSNIvIIwgFizKGdcRrGpiMoNO2obHcYuLz7iTa8Xgm/NGU3ntMFnNm8K1grFOIG6HhMLX/vcN8w==}
-    engines: {node: '>= 18.0.0'}
-    hasBin: true
-    peerDependencies:
-      svelte: ^4.0.0 || ^5.0.0-next.0
-      typescript: '>=5.0.0'
-
   svelte-check@4.7.5:
     resolution: {integrity: sha512-NnkHGCTPH6k4ka1E9IpTuNv40uLArHnX52kLEuaHSGqRlPYTnkbFs529jSWG+y+wDy+v+jA2PQ0soN1umVK+OA==}
     engines: {node: '>= 18.0.0'}
@@ -4992,18 +4960,6 @@ snapshots:
   supports-color@7.2.0:
     dependencies:
       has-flag: 4.0.0
-
-  svelte-check@4.4.8(picomatch@4.0.5)(svelte@5.55.9(@typescript-eslint/types@8.59.4))(typescript@5.9.3):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      chokidar: 4.0.3
-      fdir: 6.5.0(picomatch@4.0.5)
-      picocolors: 1.1.1
-      sade: 1.8.1
-      svelte: 5.55.9(@typescript-eslint/types@8.59.4)
-      typescript: 5.9.3
-    transitivePeerDependencies:
-      - picomatch
 
   svelte-check@4.7.5(picomatch@4.0.5)(svelte@5.56.8(@typescript-eslint/types@8.59.4))(typescript@5.9.3):
     dependencies:

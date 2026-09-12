@@ -1,6 +1,6 @@
 import { json, redirect } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import type { Locale } from '@sveltebuilder/hermes'
+import type { Locale } from 'diglossia'
 
 export const GET: RequestHandler = async ({ locals }) => {
   const { data, error } = await locals.supabase

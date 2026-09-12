@@ -1,6 +1,6 @@
 <!-- Camp 2: imports hermes for entity copy resolution. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import { Badge } from '@sveltebuilder/coreui';
   import SectionLabel from './SectionLabel.svelte';
   import TopicTag from './TopicTag.svelte';

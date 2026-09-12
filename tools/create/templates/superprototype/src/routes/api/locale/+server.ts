@@ -1,7 +1,7 @@
 import { json, redirect } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
-import type { Locale } from '@sveltebuilder/hermes';
+import type { Locale } from 'diglossia';
 import { db } from '$lib/server/db/client';
 import { locale as localeTable } from '@sveltebuilder/hermes-schema/schema';
 

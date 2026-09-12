@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { load as hermesLoad } from '@sveltebuilder/hermes';
+  import { load as hermesLoad } from 'diglossia';
   import { TopicTag } from '@sveltebuilder/content';
   import { climateTopic, aiTopic, fixtureDictionaryPayload } from '$lib/content-fixtures.js';
 

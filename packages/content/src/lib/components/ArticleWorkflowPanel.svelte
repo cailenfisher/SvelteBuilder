@@ -1,7 +1,7 @@
 <!-- Camp 2: article workflow side panel. Resolves status labels and checklist item labels
      via hermes. Uses coreui Drawer + Tabs + Checkbox. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import { Drawer, Tabs, Checkbox, Button } from '@sveltebuilder/coreui';
   import type {
     ArticleWithCopy,

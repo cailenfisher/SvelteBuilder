@@ -23,35 +23,40 @@ select which domain modules to include.
 ```
 SvelteBuilder/
 ├── packages/
-│   ├── hermes/        @sveltebuilder/hermes     i18n primitives
-│   ├── coreui/        @sveltebuilder/coreui     universal UI components
-│   ├── blog/          @sveltebuilder/blog
-│   ├── commerce/      @sveltebuilder/commerce
-│   └── logistic/      @sveltebuilder/logistic
+│   ├── hermes-schema/  @sveltebuilder/hermes-schema  Drizzle schema + canonical seed data for hermes tables
+│   ├── coreui/         @sveltebuilder/coreui         universal UI components
+│   ├── content/        @sveltebuilder/content        publisher/news domain module
+│   ├── commerce/       @sveltebuilder/commerce
+│   └── logistic/       @sveltebuilder/logistic
 ├── tools/
-│   ├── create/        create-sveltebuilder      CLI installer (npm create)
-│   └── cli/           @sveltebuilder/cli        sveltebuilder sync, etc.
+│   ├── create/         create-sveltebuilder      CLI installer (npm create)
+│   └── cli/            @sveltebuilder/cli        sveltebuilder sync:supabase, etc.
 ├── apps/
-│   ├── dev-kitchen/   internal SvelteKit test app
+│   ├── dev-kitchen/    internal SvelteKit test app
 │   └── docs/
 └── [root config: pnpm workspaces, Turborepo, Changesets, ESLint, Prettier]
 ```
 
 Package manager: **pnpm**. Task orchestration: **Turborepo**. Publishing: **Changesets**.
 
+The i18n primitives package (`diglossia`, formerly `@sveltebuilder/hermes`) has been extracted to
+its own repo ([github.com/cailenfisher/diglossia](https://github.com/cailenfisher/diglossia)) and
+is consumed here as an external dependency rather than a workspace package. See
+[i18n Architecture](#i18n-architecture).
+
 ---
 
 ## Tech Stack
 
-| Concern         | Current                                         | Target release                          |
-| --------------- | ----------------------------------------------- | --------------------------------------- |
-| Framework       | SvelteKit + TypeScript                          | ← same                                  |
-| Svelte API      | Svelte 5 runes only                             | ← same                                  |
-| Database        | Supabase (PostgreSQL)                           | Drizzle ORM (Supabase preset available) |
-| Auth            | Supabase Auth                                   | Lucia-patterned in-application auth     |
-| i18n formatting | `intl-messageformat` (FormatJS / ICU)           | ← same                                  |
-| i18n layer      | `@sveltebuilder/hermes`                         | ← same                                  |
-| UI components   | `@sveltebuilder/coreui` (on Bits UI primitives) | ← same                                  |
+| Concern         | Implementation                                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Framework       | SvelteKit + TypeScript                                                                                                  |
+| Svelte API      | Svelte 5 runes only                                                                                                     |
+| Database        | PostgreSQL (Supabase-hosted). Drizzle is the schema source of truth for every package; `sveltebuilder sync:supabase` generates SQL migrations from it. |
+| Auth            | SuperPrototype template: Supabase Auth. Native template: Auth.js (`@auth/sveltekit`) with a Drizzle adapter. See [Auth Architecture](#auth-architecture). |
+| i18n formatting | `intl-messageformat` (FormatJS / ICU)                                                                                   |
+| i18n layer      | `diglossia` (external dependency, schema: `@sveltebuilder/hermes-schema`)                                                |
+| UI components   | `@sveltebuilder/coreui` (on Bits UI primitives)                                                                         |
 
 ---
 
@@ -62,7 +67,8 @@ deliberate and must never be violated.
 
 ### Responsibility split
 
-**`@sveltebuilder/hermes`** is the single source of all i18n primitives. It owns:
+**`diglossia`** (an external npm package — see [Monorepo Layout](#monorepo-layout)) is the single
+source of all i18n primitives. It owns:
 
 - Types: `Locale`, `LocalText`, `LocalTextLink`, `Dictionary`, `DictionaryPayload`
 - Store functions: `load(payload, userLocaleCode, fallbackLocaleCode)`, `merge(...)`
@@ -72,25 +78,25 @@ deliberate and must never be violated.
 No other package redeclares these. Never redeclare them.
 
 **The scaffold / consuming app** owns locale resolution. It loads the full dictionary for the
-active locale from the database at the root layout, then calls `hermes.load()`.
+active locale from the database at the root layout, then calls diglossia's `load()`.
 
 **Feature module packages split internally:**
 
-| Component kind                                          | i18n dependency         | Receives                              |
-| ------------------------------------------------------- | ----------------------- | ------------------------------------- |
-| Application-level UI (`Button`, `Input`, layout chrome) | None — no hermes import | `label: string`, child snippets       |
-| Entity/domain (`ProductCard`, `TaskItem`)               | Imports hermes          | The domain entity (only carries `id`) |
+| Component kind                                          | i18n dependency            | Receives                              |
+| ------------------------------------------------------- | --------------------------- | ------------------------------------- |
+| Application-level UI (`Button`, `Input`, layout chrome) | None — no diglossia import | `label: string`, child snippets       |
+| Entity/domain (`ProductCard`, `TaskItem`)               | Imports diglossia          | The domain entity (only carries `id`) |
 
 `Button.svelte` and `ProductCard.svelte` behave differently within the same package. That is
 correct.
 
-### The absolute rule: hermes never touches the database
+### The absolute rule: diglossia never touches the database
 
-`@sveltebuilder/hermes` contains no database calls, no `fetch`, no async of any kind. It is a
+`diglossia` contains no database calls, no `fetch`, no async of any kind. It is a
 pure in-memory store. It only accepts typed JavaScript payloads. The consuming SvelteKit app
-handles all database communication and passes the result to hermes.
+handles all database communication and passes the result to diglossia.
 
-### Dictionary key format (internal to hermes)
+### Dictionary key format (internal to diglossia)
 
 The internal `buildKey(slug, scope?, entityId?)` function builds:
 
@@ -257,33 +263,41 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
 
 ### Schema file layout (per module)
 
+Schema is **Drizzle-first**: each package exports its tables as TypeScript. SQL is a generated
+artifact — never hand-authored for a domain module.
+
 ```
 packages/<module>/
-└── supabase/
-    ├── schemas/
-    │   ├── _registry/
-    │   │   └── manifest.json   ← topological sort metadata for @sveltebuilder/cli
-    │   ├── <entity>.sql        ← no numeric prefix; order is set by the schemas array in manifest.json
-    │   └── <entity>.sql
-    └── seed/
-        └── seed.sql
+└── src/lib/
+    └── schema.ts             ← Drizzle table defs, exported as `<pkg>/schema`
 ```
 
-`manifest.json` shape:
+A scaffolded project registers every module's schema in `.sveltebuilder/registry/*.json`:
 
 ```json
 {
   "package": "@sveltebuilder/commerce",
-  "schemas": ["schemas/product.sql", "schemas/order.sql"],
-  "after": ["@sveltebuilder/hermes"]
+  "schema": "@sveltebuilder/commerce/schema",
+  "after": ["@sveltebuilder/hermes-schema"]
 }
 ```
 
-`@sveltebuilder/cli` runs `sveltebuilder sync` to topologically sort and merge module schemas
-into the scaffold's `supabase/migrations/` directory. **Do not use numeric prefixes on schema
-filenames** — intra-module ordering is controlled by the `schemas` array order in
-`manifest.json`. Inter-module ordering is controlled by the `after` array. All hermes schema
-files sort first; coreui next; domain modules after.
+`schema` is an ESM module specifier — either an npm export (`@pkg/schema`) or a
+project-root-relative path (`./src/lib/server/schema.ts`) for the scaffold's own tables.
+`after` controls topological ordering across modules; `@sveltebuilder/hermes-schema` sorts first.
+
+`sveltebuilder sync:supabase` (in `@sveltebuilder/cli`):
+1. Discovers manifests from `.sveltebuilder/registry/*.json` and resolves `after`-order.
+2. Writes a barrel file (`.sveltebuilder/schema.ts`) re-exporting every module's Drizzle schema.
+3. Runs `drizzle-kit generate` against that barrel to produce `supabase/migrations/*.sql`.
+4. Appends `supabase/supplemental/*.sql` (RLS, functions — anything Drizzle can't express) to
+   the latest generated migration.
+5. Regenerates `supabase/seed.sql` from `@sveltebuilder/hermes-schema`'s canonical locale/slug
+   data plus any `supabase/seeds/*.sql` files, appended in alphabetical order.
+
+`sveltebuilder sync` is a deprecated alias for `sync:supabase`. `sveltebuilder sync:drizzle`
+(intended for the Native template, which has no Supabase migrations step) is stubbed and not
+yet implemented.
 
 ### Seed file conventions
 
@@ -302,8 +316,9 @@ index on `(slug, scope) where entity_id is null` and the regular unique index on
 
 **Language coverage.** Every module seed must provide English (`en`) and French (`fr`)
 translations at minimum — both entity-bound names and UI application-level copy. Follow the
-`select … join local_text_link … on conflict (link, locale) do nothing` pattern from
-`tools/create/templates/base/supabase/seed.sql`.
+`select … join local_text_link … on conflict (link, locale) do nothing` pattern used by
+`tools/cli/src/lib/generate-seed-sql.ts` (base hermes seed) and each module's own
+`seed/seed.sql` template (e.g. `tools/create/templates/modules/logistic/seed/seed.sql`).
 
 **UI copy scope.** Application-level copy within a module uses `scope = '<module-name>'` and
 `entity_id = null`. Entity-bound copy uses `scope = '<table_name>'` and
@@ -374,7 +389,7 @@ No JWT role claims are used. Promote a user to admin by setting `admin = true` d
 
 These rules are enforced by ESLint `no-restricted-imports` where possible. Violations are bugs.
 
-1. **Never import `@sveltebuilder/hermes` in application-level UI components.** `Button`,
+1. **Never import `diglossia` in application-level UI components.** `Button`,
    `Input`, layout chrome, form primitives — these take plain `string` props. If you find
    yourself reaching for `localText` inside a coreui component that has no entity context,
    stop and reconsider the component boundary.
@@ -382,7 +397,7 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
 2. **Never add `name`/`title`/`label`/`description` columns to domain entity tables.** The
    `LocalTextLink` wiring is the model from day one.
 
-3. **`@sveltebuilder/hermes` contains no database calls, no fetch, no async.** Full stop.
+3. **`diglossia` contains no database calls, no fetch, no async.** Full stop.
 
 4. **Domain modules do not reach past `@sveltebuilder/coreui` to Bits UI directly.** The
    coreui contract is the dependency boundary. If a domain module needs a primitive not in
@@ -602,9 +617,8 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | SSR title flicker                  | `localText('app.title')` in `<svelte:head>` renders the missing sentinel on first server render — `$effect` hasn't run yet. Needs SSR-safe dictionary hydration strategy.                                      |
 | `messageBus` SSR                   | `messageBus` uses module-level `$state`, which is shared across requests on the server. Safe for the CSR dev-kitchen. Scaffold template wiring requires a per-request solution (Svelte context or `$page.data`) before this is used in an SSR app. |
 | Auth UI (dev-kitchen)              | `apps/dev-kitchen` still uses the old Supabase hook shape. It has not been migrated to the `withUser` pattern and will diverge from scaffold templates over time.                                               |
-| Publishing pipeline                | No `.changeset/` config. Packages cannot be published to npm until Changesets is initialized.                                                                                                                  |
-| `@sveltebuilder/commerce`          | Not started — single placeholder `index.ts`. The product's primary domain differentiator.                                                                                                                      |
-| `@sveltebuilder/logistic`          | Not started — single placeholder `index.ts`. The product's primary domain differentiator.                                                                                                                      |
+| `@sveltebuilder/commerce`          | Not started — single placeholder `index.ts`. The product's remaining domain differentiator gap.                                                                                                                |
+| `@sveltebuilder/logistic` polish   | Core module is built (see Completed Foundation), but has no vitest suite (no test file in the package — `diglossia`, extracted from this repo, is the only i18n primitives code with a test suite) and no dev-kitchen showcase routes.    |
 | WCAG 2.2 AA audit                  | Bits UI provides accessible primitives but no accessibility audit has been run. Required before any module is marked production-ready.                                                                          |
 | `apps/docs`                        | Placeholder only — no content, no structure.                                                                                                                                                                   |
 
@@ -614,15 +628,19 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 
 | Item                        | Status                                                                                                                                                                                              |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@sveltebuilder/hermes`     | Complete and tested — types, store, `load`, `merge`, `localText`, `<LocalText />`, full test suite                                                                                                  |
-| `@sveltebuilder/coreui`     | Complete — 24+ components (Accordion, Alert, Avatar, Badge, Button, Card, Checkbox, Dialog, Divider, Field, Input, Label, LocaleSwitcher, Menu, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Tooltip); all visual styles extracted to `styles/components.css` under `@layer components`; Bits UI data-attribute wiring throughout; builds cleanly |
-| `@sveltebuilder/blog`       | Complete — components, server query helpers, SQL schema with RLS, seed data, scaffold template routes; Camp 1/2 hermes boundary respected |
-| `@sveltebuilder/cli`        | Complete — `sveltebuilder sync` working (manifest discovery, topological sort, `config.toml` rewrite)                                                                                               |
-| `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync`, installs dependencies                |
-| Hermes DB schema            | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function                                                                                                       |
+| `diglossia`                 | Complete and tested — types, store, `load`, `merge`, `localText`, `<LocalText />`, full test suite; extracted from this repo (formerly `@sveltebuilder/hermes`) into its own repo/npm package, consumed here as an external dependency |
+| `@sveltebuilder/hermes-schema` | Complete — pure TS + Drizzle package (no Svelte); exports `./schema` (locale/local_text_link/local_text Drizzle tables) and `./seed` (canonical `LOCALES`/`BASE_SLUGS` data consumed by `sveltebuilder sync:supabase`)                       |
+| `@sveltebuilder/coreui`     | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocaleSwitcher, Menu, MessageAriaLive, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `BlockEditor`/`DateTimePicker` added for content, `BarcodeInput`/`MetricCard`/`StatusBadge`/`Timeline` added for logistic); all visual styles extracted to `styles/components.css` under `@layer components`; Bits UI data-attribute wiring throughout; builds cleanly |
+| `@sveltebuilder/content`    | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data, scaffold template routes; Camp 1/2 diglossia boundary respected. No unit tests yet. |
+| `@sveltebuilder/logistic`   | Complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; Drizzle + `withUser` query layer, SECURITY DEFINER SQL for concurrency-sensitive stock mutations, full admin + worker route surface, README with v1-scope statement. Gaps: no vitest suite, no dev-kitchen showcase routes (tracked in Known Open Issues). |
+| `@sveltebuilder/cli`        | Complete — `sveltebuilder sync:supabase` working (`.sveltebuilder/registry/` manifest discovery, topological sort, Drizzle schema barrel + `drizzle-kit generate`, supplemental SQL append, seed.sql generation); bare `sync` kept as a deprecated alias; `sync:drizzle` (Native template) stubbed |
+| `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync:supabase`, installs dependencies                |
+| Hermes DB schema            | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function; schema of record is now the Drizzle defs in `@sveltebuilder/hermes-schema`, SQL is generated |
 | Auth architecture           | Principal–identity split, `public.current_user_id()` STABLE function, `withUser` transaction wrapper, unified `hooks.server.ts` shape, `resolveAuthenticatedUserId` seam between templates; all RLS policies migrated from `auth.uid()`/`auth.jwt()` to `current_user_id()` + `user_account.admin`       |
 | SuperPrototype template     | Full Drizzle + `withUser` migration complete — all admin + API routes use Drizzle queries through `event.locals.db.withUser`. Auth.js-ready `auth-resolver.ts` seam in place. `user_account` now has bigint PK + `auth_user_id text` + `admin bool`. Sign-in/out remain Supabase OAuth.                   |
 | Native template             | New — Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern.                                                                            |
-| Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary); CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`) |
-| `apps/dev-kitchen`          | Working SvelteKit app — 40+ component showcase routes for coreui and blog, hermes i18n integration, live Supabase connection                                                                        |
+| Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) generated via `sync:supabase`; CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`) |
+| Messaging system            | Universal message surface in coreui — `messageBus` store, `Toast`/`ToastRegion`, `Banner`, `InlineNotification`, `ConfirmDialog`, `MessageAriaLive`; wired into dev-kitchen's root layout. SSR gap tracked in Known Open Issues. |
+| Publishing pipeline         | `.changeset/` configured (GitHub changelog, public npm access) — packages are versioned independently (e.g. `coreui@0.0.15`, `logistic@0.0.9`) via Changesets                                       |
+| `apps/dev-kitchen`          | Working SvelteKit app — component showcase routes for coreui and content, diglossia i18n integration, live Supabase connection. No logistic or commerce showcase yet.                                  |
 | Monorepo structure          | Clean — pnpm workspaces, Turborepo task graph, all workspace references correct                                                                                                                     |

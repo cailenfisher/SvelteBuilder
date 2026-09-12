@@ -1,6 +1,6 @@
 <!-- Camp 2: resolves update text from hermes. -->
 <script lang="ts">
-  import { localText } from '@sveltebuilder/hermes';
+  import { localText } from 'diglossia';
   import { Badge } from '@sveltebuilder/coreui';
   import type { LiveUpdate } from '../schema/index.js';
 

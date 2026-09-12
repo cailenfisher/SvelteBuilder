@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css'
   import { page } from '$app/state'
-  import { load, localText, LocalText } from '@sveltebuilder/hermes'
+  import { load, localText, LocalText } from 'diglossia'
   import { LocaleSwitcher } from '@sveltebuilder/coreui'
   import type { LayoutData } from './$types'
 

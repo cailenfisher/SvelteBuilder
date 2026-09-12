@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button } from '@sveltebuilder/coreui'
-  import { localText } from '@sveltebuilder/hermes'
+  import { localText } from 'diglossia'
   import type { ActionData } from './$types'
 
   let { form }: { form: ActionData } = $props()

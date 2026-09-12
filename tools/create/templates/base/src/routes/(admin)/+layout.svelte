@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import { localText } from '@sveltebuilder/hermes'
+  import { localText } from 'diglossia'
   import type { LayoutData } from './$types'
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props()

@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
-import type { DictionaryPayload } from '@sveltebuilder/hermes';
+import type { DictionaryPayload } from 'diglossia';
 import { db } from '$lib/server/db/client';
 
 // get_dictionary is STABLE + SECURITY DEFINER — safe to call without RLS context.
