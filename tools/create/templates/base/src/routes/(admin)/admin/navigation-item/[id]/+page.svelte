@@ -1,15 +1,17 @@
 <script lang="ts">
-  import { localText } from 'diglossia'
+  import { getDictionary } from 'diglossia/svelte'
   import { Button, Field, Input, Checkbox, LocalTextEdit } from '@sveltebuilder/coreui'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
 
-  const editLabel  = $derived(localText('admin.navigation_item.edit'))
-  const hrefLabel  = $derived(localText('admin.navigation_item.href'))
-  const scopeLabel = $derived(localText('admin.navigation_item.scope'))
-  const sortLabel  = $derived(localText('admin.navigation_item.sort_order'))
-  const slugLabel  = $derived(localText('admin.local_text.slug'))
+  const dictionary = getDictionary()
+
+  const editLabel  = $derived(dictionary.localText('admin.navigation_item.edit'))
+  const hrefLabel  = $derived(dictionary.localText('admin.navigation_item.href'))
+  const scopeLabel = $derived(dictionary.localText('admin.navigation_item.scope'))
+  const sortLabel  = $derived(dictionary.localText('admin.navigation_item.sort_order'))
+  const slugLabel  = $derived(dictionary.localText('admin.local_text.slug'))
 
   function translationFor(localeId: number): string {
     return data.translations.find((t) => t.locale === localeId)?.content ?? ''
@@ -18,7 +20,7 @@
 
 <div class="nav-item-edit-page">
   <header class="nav-item-edit-page__header">
-    <Button href="/admin/navigation-item" variant="ghost" size="sm">← {localText('nav.back')}</Button>
+    <Button href="/admin/navigation-item" variant="ghost" size="sm">← {dictionary.localText('nav.back')}</Button>
     <h1 class="nav-item-edit-page__title">{editLabel}</h1>
   </header>
 
@@ -33,11 +35,11 @@
     <p class="nav-item-edit-page__error" role="alert">{form.error}</p>
   {/if}
   {#if form?.success}
-    <p class="nav-item-edit-page__success" role="status">{localText('feedback.saved')}</p>
+    <p class="nav-item-edit-page__success" role="status">{dictionary.localText('feedback.saved')}</p>
   {/if}
 
   <section class="nav-item-edit-page__section">
-    <h2 class="nav-item-edit-page__section-title">{localText('admin.navigation_item.edit')}</h2>
+    <h2 class="nav-item-edit-page__section-title">{dictionary.localText('admin.navigation_item.edit')}</h2>
     <form method="post" action="?/update" class="nav-item-edit-page__form">
       <div class="nav-item-edit-page__form-row">
         <Field label={hrefLabel} id="nav-href" required>
@@ -50,29 +52,29 @@
           <Input id="nav-sort" name="sort_order" type="number" value={String(data.navItem.sort_order)} />
         </Field>
       </div>
-      <Field label={localText('admin.navigation_item.active')} id="nav-active">
+      <Field label={dictionary.localText('admin.navigation_item.active')} id="nav-active">
         <Checkbox id="nav-active" name="active" checked={data.navItem.active} />
       </Field>
-      <Button type="submit">{localText('action.save')}</Button>
+      <Button type="submit">{dictionary.localText('action.save')}</Button>
     </form>
   </section>
 
   <section class="nav-item-edit-page__section">
-    <h2 class="nav-item-edit-page__section-title">{localText('admin.local_text.title')}</h2>
+    <h2 class="nav-item-edit-page__section-title">{dictionary.localText('admin.local_text.title')}</h2>
     <div class="nav-item-edit-page__translations">
       {#each data.locales as locale (locale.id)}
         <form method="post" action="?/updateText" class="nav-item-edit-page__locale-form">
           <LocalTextEdit
             {slugLabel}
             localeLabel={locale.nativeName}
-            contentLabel={localText('admin.local_text.content')}
+            contentLabel={dictionary.localText('admin.local_text.content')}
             locales={[locale]}
             slug={data.navItem.local_text_link?.slug ?? ''}
             localeId={locale.id}
             content={translationFor(locale.id)}
             slugReadonly={true}
           />
-          <Button type="submit" size="sm">{localText('action.save')}</Button>
+          <Button type="submit" size="sm">{dictionary.localText('action.save')}</Button>
         </form>
       {/each}
     </div>
@@ -81,7 +83,7 @@
   <div class="nav-item-edit-page__danger">
     <form method="post" action="?/delete">
       <Button type="submit" variant="danger" size="sm">
-        {localText('action.delete')} {editLabel}
+        {dictionary.localText('action.delete')} {editLabel}
       </Button>
     </form>
   </div>

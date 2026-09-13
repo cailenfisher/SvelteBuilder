@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import { Badge } from '@sveltebuilder/coreui';
   import type { Supplier, SupplierContact } from '../schema/index.js';
 
@@ -7,12 +8,16 @@
     supplier: Supplier;
     contacts?: SupplierContact[];
     href?: string;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { supplier, contacts = [], href, class: extraClass }: Props = $props();
+  let { supplier, contacts = [], href, dictionary: dictionaryProp, class: extraClass }: Props = $props();
 
-  const name = $derived(localText('name', 'supplier', supplier.id));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const name = $derived(dictionary.localText('name', 'supplier', supplier.id));
 
   const primaryContact = $derived(
     contacts.find((c) => c.role === 'primary') ?? contacts[0] ?? null

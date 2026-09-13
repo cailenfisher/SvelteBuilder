@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.38.0",
-    "@sveltebuilder/hermes-schema": "workspace:^"
+    "@sveltebuilder/local-text-schema": "workspace:^"
   },
   "peerDependencies": {
     "diglossia": "^0.0.1",

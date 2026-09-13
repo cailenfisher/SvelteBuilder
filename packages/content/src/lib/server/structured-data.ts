@@ -1,4 +1,10 @@
+import type { DictionaryInstance } from 'diglossia';
 import type { ArticleWithCopy, LiveCoverageWithUpdates, PublisherProfileWithCopy } from '../schema/index.js';
+
+// headline/dek are resolved through the dictionary passed to each builder below,
+// not read as bare fields — closes the second resolution path these helpers used
+// to need since they run in +server.ts / +page.svelte outside component context.
+export type ArticleForStructuredData = Omit<ArticleWithCopy, 'headline' | 'dek'>;
 
 // Converts an ISO timestamp to RFC 3339 with explicit timezone offset.
 // Google requires timezone-offset dates (not naive UTC) in structured data.
@@ -45,8 +51,9 @@ export type LiveBlogPostingJsonLd = {
 };
 
 export function buildNewsArticleJsonLd(
-  article: ArticleWithCopy,
+  article: ArticleForStructuredData,
   publisher: PublisherProfileWithCopy,
+  dictionary: DictionaryInstance,
   options: {
     siteUrl: string;
     locale?: string;
@@ -56,6 +63,8 @@ export function buildNewsArticleJsonLd(
   const base = options.siteUrl.replace(/\/$/, '');
   const storageBase = options.storageBaseUrl ?? '';
   const articleUrl = `${base}/article/${article.canonicalSlug}`;
+  const headline = dictionary.localText('headline', 'article', article.id);
+  const dek = dictionary.localText('dek', 'article', article.id);
 
   // Lead image: first image block, or first media_asset in any block
   const images: string[] = [];
@@ -72,7 +81,7 @@ export function buildNewsArticleJsonLd(
   const ld: NewsArticleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
-    headline: article.headline,
+    headline,
     datePublished: toOffsetIso(article.publishedAt ?? article.createdAt),
     dateModified: toOffsetIso(article.updatedAt),
     author: article.bylines.map((b) => ({
@@ -89,7 +98,7 @@ export function buildNewsArticleJsonLd(
         : {}),
     },
     mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
-    ...(article.dek ? { description: article.dek } : {}),
+    ...(dek ? { description: dek } : {}),
     ...(options.locale ? { inLanguage: options.locale } : {}),
     ...(images.length > 0 ? { image: images } : {}),
   };
@@ -98,9 +107,10 @@ export function buildNewsArticleJsonLd(
 }
 
 export function buildLiveBlogPostingJsonLd(
-  article: ArticleWithCopy,
+  article: ArticleForStructuredData,
   coverage: LiveCoverageWithUpdates,
   publisher: PublisherProfileWithCopy,
+  dictionary: DictionaryInstance,
   options: {
     siteUrl: string;
     locale?: string;
@@ -112,7 +122,7 @@ export function buildLiveBlogPostingJsonLd(
   return {
     '@context': 'https://schema.org',
     '@type': 'LiveBlogPosting',
-    headline: article.headline,
+    headline: dictionary.localText('headline', 'article', article.id),
     datePublished: toOffsetIso(article.publishedAt ?? article.createdAt),
     dateModified: toOffsetIso(article.updatedAt),
     author: article.bylines.map((b) => ({ '@type': 'Person' as const, name: b.name })),
@@ -136,8 +146,9 @@ export function buildLiveBlogPostingJsonLd(
 
 // Open Graph / Twitter card meta tags as a key-value record.
 export function buildArticleMetaTags(
-  article: ArticleWithCopy,
+  article: ArticleForStructuredData,
   publisher: PublisherProfileWithCopy,
+  dictionary: DictionaryInstance,
   options: {
     siteUrl: string;
     locale?: string;
@@ -149,6 +160,8 @@ export function buildArticleMetaTags(
   const base = options.siteUrl.replace(/\/$/, '');
   const storageBase = options.storageBaseUrl ?? '';
   const articleUrl = `${base}/article/${article.canonicalSlug}`;
+  const headline = dictionary.localText('headline', 'article', article.id);
+  const dek = dictionary.localText('dek', 'article', article.id);
 
   const leadImage = article.blocks.find(
     (b) => b.blockType === 'image' && b.mediaAsset?.storageKey,
@@ -158,8 +171,8 @@ export function buildArticleMetaTags(
     // Open Graph
     'og:type': 'article',
     'og:url': articleUrl,
-    'og:title': article.headline,
-    'og:description': article.dek,
+    'og:title': headline,
+    'og:description': dek,
     'og:site_name': publisher.name,
     ...(options.locale ? { 'og:locale': options.locale.replace('-', '_') } : {}),
     ...(leadImage?.storageKey
@@ -167,8 +180,8 @@ export function buildArticleMetaTags(
       : {}),
     // Twitter / X card
     'twitter:card': leadImage ? 'summary_large_image' : 'summary',
-    'twitter:title': article.headline,
-    'twitter:description': article.dek,
+    'twitter:title': headline,
+    'twitter:description': dek,
     ...(options.twitterSite ? { 'twitter:site': options.twitterSite } : {}),
     ...(leadImage?.storageKey
       ? { 'twitter:image': `${storageBase}/${leadImage.storageKey}`, 'twitter:image:alt': leadImage.altText }

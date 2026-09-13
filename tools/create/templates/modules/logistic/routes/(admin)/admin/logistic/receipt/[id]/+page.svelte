@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import {
     Button, Badge, Field, Label, Input, Select, SelectItem,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
@@ -8,13 +8,15 @@
 
   let { data }: { data: PageData } = $props();
 
+  const dictionary = getDictionary();
+
   const supplierName = $derived(
     data.receipt.supplierId !== null
-      ? localText('name', 'supplier', data.receipt.supplierId)
-      : localText('logistic.inbound_receipt.blind', 'logistic'),
+      ? dictionary.localText('name', 'supplier', data.receipt.supplierId)
+      : dictionary.localText('logistic.inbound_receipt.blind', 'logistic'),
   );
   const statusLabel = $derived(
-    localText(`logistic.inbound_receipt.status.${data.receipt.status}`, 'logistic'),
+    dictionary.localText(`logistic.inbound_receipt.status.${data.receipt.status}`, 'logistic'),
   );
 
   const statusVariant = $derived(
@@ -83,7 +85,7 @@
           <Label for="storage-location">Storage location</Label>
           <Select id="storage-location" name="storage_location_id" required>
             {#each binLocations() as loc}
-              <SelectItem value={String(loc.id)}>{localText('name', 'storage_location', loc.id)}</SelectItem>
+              <SelectItem value={String(loc.id)}>{dictionary.localText('name', 'storage_location', loc.id)}</SelectItem>
             {/each}
           </Select>
         </Field>
@@ -113,7 +115,7 @@
           {#each data.receipt.lines as line (line.id)}
             <TableRow>
               <TableCell><code class="receipt-detail__sku">{line.sku}</code></TableCell>
-              <TableCell>{localText('name', 'storage_location', line.storageLocationId)}</TableCell>
+              <TableCell>{dictionary.localText('name', 'storage_location', line.storageLocationId)}</TableCell>
               <TableCell>{line.expectedQuantity}</TableCell>
               <TableCell>{line.receivedQuantity}</TableCell>
               <TableCell>

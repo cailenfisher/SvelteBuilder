@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import {
     MetricCard, Button, DataTable,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
@@ -10,7 +10,9 @@
 
   let { data }: { data: PageData } = $props();
 
-  const pageTitle = $derived(localText('logistic.admin.dashboard.title', 'logistic'));
+  const dictionary = getDictionary();
+
+  const pageTitle = $derived(dictionary.localText('logistic.admin.dashboard.title', 'logistic'));
 
   const lowStockColumns: DataTableColumn[] = [
     { key: 'sku', label: 'SKU' },
@@ -97,8 +99,8 @@
                 </TableCell>
                 <TableCell>
                   {receipt.supplierId !== null
-                    ? localText('name', 'supplier', receipt.supplierId)
-                    : localText('logistic.inbound_receipt.blind', 'logistic')}
+                    ? dictionary.localText('name', 'supplier', receipt.supplierId)
+                    : dictionary.localText('logistic.inbound_receipt.blind', 'logistic')}
                 </TableCell>
                 <TableCell>
                   {receipt.expectedAt

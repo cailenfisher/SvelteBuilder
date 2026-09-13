@@ -1,20 +1,25 @@
 <!-- Camp 2: renders a live coverage page with ordered live updates.
      Coverage title/description resolved via hermes (scope = 'live_coverage'). -->
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import LiveUpdateItem from './LiveUpdateItem.svelte';
   import type { LiveCoverageWithUpdates } from '../schema/index.js';
 
   type Props = {
     coverage: LiveCoverageWithUpdates;
     locale: string;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { coverage, locale, class: extraClass }: Props = $props();
+  let { coverage, locale, dictionary: dictionaryProp, class: extraClass }: Props = $props();
 
-  const title       = $derived(localText('title',       'live_coverage', coverage.id));
-  const description = $derived(localText('description', 'live_coverage', coverage.id));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const title       = $derived(dictionary.localText('title',       'live_coverage', coverage.id));
+  const description = $derived(dictionary.localText('description', 'live_coverage', coverage.id));
 
   const sortedUpdates = $derived(
     [...(coverage.updates ?? [])].sort(

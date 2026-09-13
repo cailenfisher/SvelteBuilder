@@ -1,25 +1,30 @@
 <!-- Camp 2: resolves author name, bio, and expertise via hermes (scope = 'author_profile'). -->
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import ArticleCard from './ArticleCard.svelte';
   import type { AuthorProfile, ArticleWithCopy, MediaAsset } from '../schema/index.js';
 
   type Props = {
     author: AuthorProfile;
     articles: ArticleWithCopy[];
-    mediaAssets: Map<bigint, MediaAsset>;
+    mediaAssets: Map<number, MediaAsset>;
     storageBaseUrl: string;
     locale: string;
     avatarSrc?: string;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { author, articles, mediaAssets, storageBaseUrl, locale, avatarSrc, class: extraClass }: Props =
+  let { author, articles, mediaAssets, storageBaseUrl, locale, avatarSrc, dictionary: dictionaryProp, class: extraClass }: Props =
     $props();
 
-  const name      = $derived(localText('name',      'author_profile', author.id));
-  const bio       = $derived(localText('bio',       'author_profile', author.id));
-  const expertise = $derived(localText('expertise', 'author_profile', author.id));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const name      = $derived(dictionary.localText('name',      'author_profile', author.id));
+  const bio       = $derived(dictionary.localText('bio',       'author_profile', author.id));
+  const expertise = $derived(dictionary.localText('expertise', 'author_profile', author.id));
 </script>
 
 <section class={['author-profile-view', extraClass ?? ''].filter(Boolean).join(' ')}>

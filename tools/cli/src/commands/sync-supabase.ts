@@ -6,7 +6,7 @@ import { glob } from 'glob';
 import { discover } from '../lib/discover.ts';
 import { resolve } from '../lib/resolve.ts';
 import { generateBaseSeedSql } from '../lib/generate-seed-sql.ts';
-import { LOCALES, BASE_SLUGS } from '@sveltebuilder/hermes-schema/seed';
+import { LOCALES, BASE_SLUGS } from '@sveltebuilder/local-text-schema/seed';
 
 const SVELTEBUILDER_DIR = '.sveltebuilder';
 const BARREL_SCHEMA_PATH = path.join(SVELTEBUILDER_DIR, 'schema.ts');

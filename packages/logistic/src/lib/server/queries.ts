@@ -15,7 +15,7 @@
 
 import { and, asc, count, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { PgTransaction } from 'drizzle-orm/pg-core';
-import { locale, localText, localTextLink } from '@sveltebuilder/hermes-schema/schema';
+import { locale, localText, localTextLink } from '@sveltebuilder/local-text-schema/schema';
 import type { DictionaryPayload } from 'diglossia';
 import {
   storageLocation,
@@ -1296,7 +1296,7 @@ export async function getLogisticMetrics(tx: Tx): Promise<{
 }
 
 // ---------------------------------------------------------------------------
-// Dictionary payload builder (for hermes client-side merge)
+// Dictionary payload builder (for diglossia client-side merge)
 // ---------------------------------------------------------------------------
 
 export function buildLogisticDictionaryPayload(

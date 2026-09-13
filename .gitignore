@@ -4,7 +4,8 @@ dist/
 .turbo/
 build/
 *.tsbuildinfo
-supabase/
+supabase/.temp/
+supabase/.branches/
 
 # env
 .env

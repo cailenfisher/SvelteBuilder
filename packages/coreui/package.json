@@ -46,7 +46,6 @@
   },
   "peerDependencies": {
     "svelte": "^5.0.0",
-    "diglossia": "^0.0.1",
     "bits-ui": "^2.18.1"
   },
   "devDependencies": {

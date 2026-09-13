@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import { Button, Field, Label, Input, Switch, Divider } from '@sveltebuilder/coreui';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
 
-  const supplierName = $derived(localText('name', 'supplier', data.supplier.id));
+  const dictionary = getDictionary();
+
+  const supplierName = $derived(dictionary.localText('name', 'supplier', data.supplier.id));
   let showContactForm = $state(false);
 </script>
 

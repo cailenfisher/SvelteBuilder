@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import {
     Button, StatusBadge,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
@@ -8,6 +8,8 @@
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+
+  const dictionary = getDictionary();
 
   function statusVariant(status: CycleCountStatus): 'success' | 'brand' | 'danger' | 'default' {
     return status === 'complete' ? 'success'
@@ -30,7 +32,7 @@
       <h1 class="count-detail__title">Cycle count #{data.count.id}</h1>
       <StatusBadge
         variant={statusVariant(data.count.status)}
-        label={localText(`logistic.cycle_count.status.${data.count.status}`, 'logistic')}
+        label={dictionary.localText(`logistic.cycle_count.status.${data.count.status}`, 'logistic')}
         size="sm"
       />
     </div>

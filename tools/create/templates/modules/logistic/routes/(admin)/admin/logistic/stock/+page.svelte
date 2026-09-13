@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import {
     Button, DataTable, Dialog, Field, Label, Input, Select, SelectItem, Textarea, Badge,
   } from '@sveltebuilder/coreui';
@@ -9,6 +9,8 @@
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+
+  const dictionary = getDictionary();
 
   let adjustOpen = $state(false);
   let adjustTarget = $state<StockLevelWithLocation | null>(null);
@@ -96,7 +98,7 @@
                 {adjustment.delta > 0 ? '+' : ''}{adjustment.delta}
               </span>
               <span class="stock-page__history-reason">
-                {localText(`logistic.adjustment_reason.${adjustment.reason}`, 'logistic')}
+                {dictionary.localText(`logistic.adjustment_reason.${adjustment.reason}`, 'logistic')}
               </span>
               <span class="stock-page__history-after">
                 → {adjustment.onHandAfter} on hand
@@ -154,7 +156,7 @@
           <Select id="adjust-reason" name="reason" required>
             {#each data.manualReasons as reason (reason)}
               <SelectItem value={reason}>
-                {localText(`logistic.adjustment_reason.${reason}`, 'logistic')}
+                {dictionary.localText(`logistic.adjustment_reason.${reason}`, 'logistic')}
               </SelectItem>
             {/each}
           </Select>

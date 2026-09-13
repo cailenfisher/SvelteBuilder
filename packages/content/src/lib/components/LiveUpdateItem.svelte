@@ -1,18 +1,23 @@
 <!-- Camp 2: resolves update text from hermes. -->
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import { Badge } from '@sveltebuilder/coreui';
   import type { LiveUpdate } from '../schema/index.js';
 
   type Props = {
     update: LiveUpdate;
     locale: string;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { update, locale, class: extraClass }: Props = $props();
+  let { update, locale, dictionary: dictionaryProp, class: extraClass }: Props = $props();
 
-  const text = $derived(localText('text', 'live_update', update.id));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const text = $derived(dictionary.localText('text', 'live_update', update.id));
   const publishedTime = $derived(
     new Intl.DateTimeFormat(locale, { timeStyle: 'short', dateStyle: 'medium' }).format(new Date(update.publishedAt)),
   );

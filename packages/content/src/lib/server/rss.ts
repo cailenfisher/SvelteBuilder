@@ -1,4 +1,9 @@
+import type { DictionaryInstance } from 'diglossia';
 import type { ArticleWithCopy } from '../schema/index.js';
+
+// headline/dek are resolved through the dictionary passed to generateRssFeed, not
+// read as bare fields — see structured-data.ts's ArticleForStructuredData.
+export type RssFeedArticle = Omit<ArticleWithCopy, 'headline' | 'dek'>;
 
 // XML escape — handles all five predefined XML entities correctly.
 function xmlEscape(str: string): string {
@@ -17,7 +22,8 @@ function toRfc822(iso: string): string {
 }
 
 export function generateRssFeed(
-  articles: ArticleWithCopy[],
+  articles: RssFeedArticle[],
+  dictionary: DictionaryInstance,
   options: {
     siteUrl: string;
     locale: string;
@@ -40,11 +46,13 @@ export function generateRssFeed(
       const link = `${base}/article/${a.canonicalSlug}`;
       const pubDate = toRfc822(a.publishedAt!);
       const bylineText = a.bylines.map((b) => b.name).join(', ');
+      const headline = dictionary.localText('headline', 'article', a.id);
+      const dek = dictionary.localText('dek', 'article', a.id);
 
       return `  <item>
-    <title>${xmlEscape(a.headline)}</title>
+    <title>${xmlEscape(headline)}</title>
     <link>${xmlEscape(link)}</link>
-    <description>${xmlEscape(a.dek)}</description>
+    <description>${xmlEscape(dek)}</description>
     <pubDate>${pubDate}</pubDate>
     <guid isPermaLink="true">${xmlEscape(link)}</guid>${bylineText ? `\n    <author>${xmlEscape(bylineText)}</author>` : ''}${a.sections[0] ? `\n    <category>${xmlEscape(a.sections[0].name)}</category>` : ''}
   </item>`;

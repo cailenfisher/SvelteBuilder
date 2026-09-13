@@ -1,22 +1,24 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import { localText } from 'diglossia'
+  import { getDictionary } from 'diglossia/svelte'
   import type { LayoutData } from './$types'
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props()
 
+  const dictionary = getDictionary()
+
   const navLinks = $derived(
     data.navItems.map((item) => ({
       href: item.href,
-      label: item.local_text_link ? localText(item.local_text_link.slug) : item.href,
+      label: item.local_text_link ? dictionary.localText(item.local_text_link.slug) : item.href,
     }))
   )
 </script>
 
 <div class="admin-layout">
-  <nav class="admin-layout__sidebar" aria-label={localText('admin.nav.label')}>
+  <nav class="admin-layout__sidebar" aria-label={dictionary.localText('admin.nav.label')}>
     <div class="admin-layout__logo">
-      <a href="/admin/dashboard">{localText('admin.title')}</a>
+      <a href="/admin/dashboard">{dictionary.localText('admin.title')}</a>
     </div>
     <ul class="admin-layout__nav">
       {#each navLinks as link}
