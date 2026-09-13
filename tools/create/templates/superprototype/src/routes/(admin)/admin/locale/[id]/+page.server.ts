@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad, Actions } from './$types';
-import { locale } from '@sveltebuilder/hermes-schema/schema';
+import { locale } from '@sveltebuilder/local-text-schema/schema';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);

@@ -3,7 +3,7 @@ import { asc, eq } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 import type { Locale } from 'diglossia';
 import { db } from '$lib/server/db/client';
-import { locale as localeTable } from '@sveltebuilder/hermes-schema/schema';
+import { locale as localeTable } from '@sveltebuilder/local-text-schema/schema';
 
 // Locale data is world-readable — no RLS restriction — so the raw db client is
 // used directly (a deliberate exception; see db/client.ts for the rule).

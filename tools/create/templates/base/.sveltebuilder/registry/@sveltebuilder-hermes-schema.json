@@ -1,5 +1,0 @@
-{
-  "package": "@sveltebuilder/hermes-schema",
-  "schema": "@sveltebuilder/hermes-schema/schema",
-  "after": []
-}

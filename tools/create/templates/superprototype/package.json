@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@sveltebuilder/hermes-schema": "latest",
+    "@sveltebuilder/local-text-schema": "latest",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "drizzle-orm": "^0.38.0",

@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
 import type { LayoutServerLoad } from './$types';
 import { navigationItem } from '$lib/server/schema';
-import { localTextLink } from '@sveltebuilder/hermes-schema/schema';
+import { localTextLink } from '@sveltebuilder/local-text-schema/schema';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
   if (!locals.userAccountId) throw redirect(303, '/sign-in');

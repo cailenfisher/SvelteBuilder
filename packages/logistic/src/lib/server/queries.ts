@@ -15,7 +15,7 @@
 
 import { and, asc, count, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { PgTransaction } from 'drizzle-orm/pg-core';
-import { locale, localText, localTextLink } from '@sveltebuilder/hermes-schema/schema';
+import { locale, localText, localTextLink } from '@sveltebuilder/local-text-schema/schema';
 import type { DictionaryPayload } from 'diglossia';
 import {
   storageLocation,

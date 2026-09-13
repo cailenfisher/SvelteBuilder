@@ -1,4 +1,4 @@
-import type { LocaleSeed, SlugSeed } from '@sveltebuilder/hermes-schema/seed';
+import type { LocaleSeed, SlugSeed } from '@sveltebuilder/local-text-schema/seed';
 
 function esc(s: string): string {
   return s.replace(/'/g, "''");

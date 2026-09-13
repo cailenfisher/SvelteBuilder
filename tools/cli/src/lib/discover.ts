@@ -4,7 +4,7 @@ import { glob } from 'glob';
 export type SchemaManifest = {
   package: string;
   /** ESM module specifier for the Drizzle schema export.
-   *  - npm package path: '@sveltebuilder/hermes-schema/schema'
+   *  - npm package path: '@sveltebuilder/local-text-schema/schema'
    *  - project-root-relative: './src/lib/server/schema.ts'
    */
   schema: string;
