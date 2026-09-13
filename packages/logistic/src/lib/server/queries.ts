@@ -1296,7 +1296,7 @@ export async function getLogisticMetrics(tx: Tx): Promise<{
 }
 
 // ---------------------------------------------------------------------------
-// Dictionary payload builder (for hermes client-side merge)
+// Dictionary payload builder (for diglossia client-side merge)
 // ---------------------------------------------------------------------------
 
 export function buildLogisticDictionaryPayload(

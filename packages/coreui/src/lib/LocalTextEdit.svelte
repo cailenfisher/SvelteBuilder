@@ -4,8 +4,7 @@
   import Textarea from './Textarea.svelte';
   import Select from './Select.svelte';
   import SelectItem from './SelectItem.svelte';
-
-  type Locale = { id: number; code: string; nativeName: string };
+  import type { Locale } from 'diglossia';
 
   type Props = {
     slugLabel: string;

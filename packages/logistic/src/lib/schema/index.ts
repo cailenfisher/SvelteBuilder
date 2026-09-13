@@ -2,7 +2,7 @@
 // @sveltebuilder/logistic — TypeScript types
 //
 // i18n convention: entities with user-facing names carry NO name/label/title
-// fields. Copy is linked via hermes (scope = table name, entity_id = bigint PK).
+// fields. Copy is linked via diglossia (scope = table name, entity_id = bigint PK).
 // Callers resolve via: localText('name', 'supplier', supplier.id)
 //
 // SCOPE DEVIATIONS (documented):
