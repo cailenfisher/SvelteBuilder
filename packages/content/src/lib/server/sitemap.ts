@@ -1,4 +1,9 @@
+import type { DictionaryInstance } from 'diglossia';
 import type { ArticleWithCopy } from '../schema/index.js';
+
+// headline is resolved through the dictionary passed to generateNewsSitemap, not
+// read as a bare field — see structured-data.ts's ArticleForStructuredData.
+export type NewsSitemapArticle = Omit<ArticleWithCopy, 'headline'>;
 
 function xmlEscape(str: string): string {
   return str
@@ -38,7 +43,8 @@ export function getArticleSitemapEntries(
 // Requires: publication name, language (BCP-47), title, publication date.
 // Dates must include timezone offset (ISO 8601 with offset, not UTC-naïve).
 export function generateNewsSitemap(
-  articles: ArticleWithCopy[],
+  articles: NewsSitemapArticle[],
+  dictionary: DictionaryInstance,
   options: {
     siteUrl: string;
     locale: string;
@@ -57,6 +63,7 @@ export function generateNewsSitemap(
     const link = `${base}/article/${a.canonicalSlug}`;
     // Use full ISO 8601 with offset — required for Google News structured data.
     const pubDate = new Date(a.publishedAt!).toISOString();
+    const headline = dictionary.localText('headline', 'article', a.id);
 
     return `  <url>
     <loc>${xmlEscape(link)}</loc>
@@ -66,7 +73,7 @@ export function generateNewsSitemap(
         <news:language>${xmlEscape(options.locale)}</news:language>
       </news:publication>
       <news:publication_date>${xmlEscape(pubDate)}</news:publication_date>
-      <news:title>${xmlEscape(a.headline)}</news:title>
+      <news:title>${xmlEscape(headline)}</news:title>
     </news:news>
   </url>`;
   });

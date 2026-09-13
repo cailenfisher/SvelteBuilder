@@ -1,16 +1,21 @@
 import type { RequestHandler } from './$types';
-import { getArticleSitemapEntries, generateStandardSitemap } from '@sveltebuilder/content/server';
+import {
+  getPublishedArticles,
+  getArticleSitemapEntries,
+  generateStandardSitemap,
+} from '@sveltebuilder/content/server';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
   const { locale, defaultLocale } = locals;
 
-  const entries = await getArticleSitemapEntries(locals.supabase, {
-    locale: locale.code,
-    defaultLocale: defaultLocale.code,
-    newsOnly: false,
+  const articles = await getPublishedArticles(locals.supabase, locale.code, {
+    fallbackLocale: defaultLocale.code,
+    perPage: 1000,
   });
 
-  const xml = generateStandardSitemap(entries, { siteUrl: url.origin });
+  const entries = getArticleSitemapEntries(articles.items, { siteUrl: url.origin });
+
+  const xml = generateStandardSitemap(entries);
 
   return new Response(xml, {
     headers: {

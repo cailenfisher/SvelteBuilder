@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { messageBus } from './message-bus.svelte.js';
+  import { getMessageBus } from './message-bus.svelte.js';
   import Toast from './Toast.svelte';
+
+  const messageBus = getMessageBus();
 
   const MAX_VISIBLE = 3;
 

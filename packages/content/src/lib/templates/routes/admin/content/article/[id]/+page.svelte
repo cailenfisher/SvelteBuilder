@@ -1,19 +1,17 @@
 <script lang="ts">
-  import { merge } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import { ArticleView, ArticleWorkflowPanel } from '@sveltebuilder/content';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
 
-  $effect(() => {
-    merge(data.dictionaryPayload, data.locale.code, data.defaultLocale.code);
-  });
+  getDictionary().merge(data.dictionaryPayload);
 
   const mediaAssets = $derived(
     new Map(
       (data.article.blocks ?? [])
         .filter((b: any) => b.mediaAsset != null)
-        .map((b: any) => [BigInt(b.mediaAssetId!), b.mediaAsset!]),
+        .map((b: any) => [b.mediaAssetId!, b.mediaAsset!]),
     ),
   );
 

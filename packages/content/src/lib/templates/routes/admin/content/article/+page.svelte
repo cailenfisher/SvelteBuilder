@@ -1,14 +1,12 @@
 <script lang="ts">
-  import { merge } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import { ArticleList } from '@sveltebuilder/content';
   import type { PageData } from './$types';
   import type { ArticleWithCopy } from '@sveltebuilder/content';
 
   let { data }: { data: PageData } = $props();
 
-  $effect(() => {
-    merge(data.dictionaryPayload, data.locale.code, data.defaultLocale.code);
-  });
+  getDictionary().merge(data.dictionaryPayload);
 
   function goToPage(page: number) {
     const url = new URL(window.location.href);

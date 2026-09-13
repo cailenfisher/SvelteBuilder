@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from 'diglossia'
+  import { getDictionary } from 'diglossia/svelte'
   import {
     Button, Field, Input,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
@@ -9,15 +9,17 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
 
-  const title       = $derived(localText('admin.navigation_item.title'))
-  const newLabel    = $derived(localText('admin.navigation_item.new'))
-  const hrefLabel   = $derived(localText('admin.navigation_item.href'))
-  const scopeLabel  = $derived(localText('admin.navigation_item.scope'))
-  const sortLabel   = $derived(localText('admin.navigation_item.sort_order'))
-  const slugLabel   = $derived(localText('admin.local_text.slug'))
-  const deleteLabel = $derived(localText('action.delete'))
-  const editLabel   = $derived(localText('action.edit'))
-  const activeLabel = $derived(localText('admin.navigation_item.active'))
+  const dictionary = getDictionary()
+
+  const title       = $derived(dictionary.localText('admin.navigation_item.title'))
+  const newLabel    = $derived(dictionary.localText('admin.navigation_item.new'))
+  const hrefLabel   = $derived(dictionary.localText('admin.navigation_item.href'))
+  const scopeLabel  = $derived(dictionary.localText('admin.navigation_item.scope'))
+  const sortLabel   = $derived(dictionary.localText('admin.navigation_item.sort_order'))
+  const slugLabel   = $derived(dictionary.localText('admin.local_text.slug'))
+  const deleteLabel = $derived(dictionary.localText('action.delete'))
+  const editLabel   = $derived(dictionary.localText('action.edit'))
+  const activeLabel = $derived(dictionary.localText('admin.navigation_item.active'))
 </script>
 
 <div class="nav-item-admin">
@@ -32,11 +34,11 @@
       <p class="nav-item-admin__error" role="alert">{form.error}</p>
     {/if}
     {#if form?.success}
-      <p class="nav-item-admin__success" role="status">{localText('feedback.saved')}</p>
+      <p class="nav-item-admin__success" role="status">{dictionary.localText('feedback.saved')}</p>
     {/if}
 
     <form method="post" action="?/create" class="nav-item-admin__form">
-      <LocalTextLinkEdit {slugLabel} scopeLabel={localText('admin.local_text.scope')} />
+      <LocalTextLinkEdit {slugLabel} scopeLabel={dictionary.localText('admin.local_text.scope')} />
 
       <div class="nav-item-admin__form-row">
         <Field label={hrefLabel} id="nav-href" required>
@@ -64,14 +66,14 @@
           <TableHeader>{sortLabel}</TableHeader>
           <TableHeader>{activeLabel}</TableHeader>
           <TableHeader>
-            <span class="sr-only">{localText('table.actions')}</span>
+            <span class="sr-only">{dictionary.localText('table.actions')}</span>
           </TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
         {#if data.navItems.length === 0}
           <TableRow>
-            <TableCell colspan={6}>{localText('feedback.empty')}</TableCell>
+            <TableCell colspan={6}>{dictionary.localText('feedback.empty')}</TableCell>
           </TableRow>
         {/if}
         {#each data.navItems as item (item.id)}

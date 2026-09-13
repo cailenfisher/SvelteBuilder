@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import { Button, DataTable, Dialog, Field, Label, Input } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
   import { ShipmentStatusBadge } from '@sveltebuilder/logistic';
@@ -7,6 +7,8 @@
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+
+  const dictionary = getDictionary();
 
   let newShipmentOpen = $state(false);
   let page = $state(data.page);
@@ -39,7 +41,7 @@
   {:else if column.key === 'status'}
     <ShipmentStatusBadge
       status={row.status}
-      label={localText(`logistic.shipment.status.${row.status}`, 'logistic')}
+      label={dictionary.localText(`logistic.shipment.status.${row.status}`, 'logistic')}
     />
   {:else if column.key === 'carrier'}
     {row.carrier ?? '—'}

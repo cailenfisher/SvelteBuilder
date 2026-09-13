@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from 'diglossia'
+  import { getDictionary } from 'diglossia/svelte'
   import {
     Button,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
@@ -9,16 +9,18 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
 
-  const title       = $derived(localText('admin.locale.title'))
-  const newLabel    = $derived(localText('admin.locale.new'))
-  const codeLabel   = $derived(localText('admin.locale.code'))
-  const nameLabel   = $derived(localText('admin.locale.name'))
-  const nativeLabel = $derived(localText('admin.locale.native_name'))
-  const dirLabel    = $derived(localText('admin.locale.dir'))
-  const ltrLabel    = $derived(localText('admin.locale.dir.ltr'))
-  const rtlLabel    = $derived(localText('admin.locale.dir.rtl'))
-  const deleteLabel = $derived(localText('action.delete'))
-  const editLabel   = $derived(localText('action.edit'))
+  const dictionary = getDictionary()
+
+  const title       = $derived(dictionary.localText('admin.locale.title'))
+  const newLabel    = $derived(dictionary.localText('admin.locale.new'))
+  const codeLabel   = $derived(dictionary.localText('admin.locale.code'))
+  const nameLabel   = $derived(dictionary.localText('admin.locale.name'))
+  const nativeLabel = $derived(dictionary.localText('admin.locale.native_name'))
+  const dirLabel    = $derived(dictionary.localText('admin.locale.dir'))
+  const ltrLabel    = $derived(dictionary.localText('admin.locale.dir.ltr'))
+  const rtlLabel    = $derived(dictionary.localText('admin.locale.dir.rtl'))
+  const deleteLabel = $derived(dictionary.localText('action.delete'))
+  const editLabel   = $derived(dictionary.localText('action.edit'))
 </script>
 
 <div class="locale-admin">
@@ -33,7 +35,7 @@
       <p class="locale-admin__error" role="alert">{form.error}</p>
     {/if}
     {#if form?.success}
-      <p class="locale-admin__success" role="status">{localText('feedback.saved')}</p>
+      <p class="locale-admin__success" role="status">{dictionary.localText('feedback.saved')}</p>
     {/if}
 
     <form method="post" action="?/create" class="locale-admin__form">
@@ -58,14 +60,14 @@
           <TableHeader>{nativeLabel}</TableHeader>
           <TableHeader>{dirLabel}</TableHeader>
           <TableHeader>
-            <span class="sr-only">{localText('table.actions')}</span>
+            <span class="sr-only">{dictionary.localText('table.actions')}</span>
           </TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
         {#if data.locales.length === 0}
           <TableRow>
-            <TableCell colspan={5}>{localText('feedback.empty')}</TableCell>
+            <TableCell colspan={5}>{dictionary.localText('feedback.empty')}</TableCell>
           </TableRow>
         {/if}
         {#each data.locales as locale (locale.id)}

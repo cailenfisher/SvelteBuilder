@@ -1,15 +1,27 @@
 <script lang="ts">
   import '../app.css'
   import { page } from '$app/state'
-  import { load, localText, LocalText } from 'diglossia'
-  import { LocaleSwitcher } from '@sveltebuilder/coreui'
+  import { createDictionary } from 'diglossia'
+  import { setDictionary, getDictionary, LocalText } from 'diglossia/svelte'
+  import {
+    LocaleSwitcher,
+    createMessageBus,
+    setMessageBus,
+    ToastRegion,
+    MessageAriaLive,
+  } from '@sveltebuilder/coreui'
   import type { LayoutData } from './$types'
 
   let { data, children }: { data: LayoutData; children: any } = $props()
 
-  $effect(() => {
-    load(data.dictionary, data.locale.code, data.defaultLocale.code)
-  })
+  // Not inside $effect: effects don't run during SSR, so a dictionary built in
+  // one would leave every server-rendered page showing [missing: …] sentinels.
+  setDictionary(createDictionary(data.dictionary))
+  const dictionary = getDictionary()
+
+  // Same reasoning as the dictionary: a module-level message bus would leak
+  // one visitor's toasts/banners into another's response on the server.
+  setMessageBus(createMessageBus())
 
   // Admin and auth routes manage their own chrome.
   const isFullPage = $derived(
@@ -19,7 +31,7 @@
 </script>
 
 <svelte:head>
-  <title>{localText('app.name')}</title>
+  <title>{dictionary.localText('app.name')}</title>
 </svelte:head>
 
 {#if isFullPage}
@@ -34,7 +46,7 @@
       </a>
       <nav class="app__nav">
         <LocaleSwitcher
-          label={localText('locale.select')}
+          label={dictionary.localText('locale.select')}
           current={data.locale}
           locales={data.locales}
         />
@@ -52,6 +64,9 @@
     </footer>
   </div>
 {/if}
+
+<ToastRegion />
+<MessageAriaLive />
 
 <style>
   .full-page {
