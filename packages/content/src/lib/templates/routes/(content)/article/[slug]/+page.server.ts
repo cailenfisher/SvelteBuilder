@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 
   const [article, publisherProfile] = await Promise.all([
     getPublishedArticleBySlug(locals.supabase, params.slug, locale.code, defaultLocale.code),
-    getPublisherProfile(locals.supabase),
+    getPublisherProfile(locals.supabase, locale.code, defaultLocale.code),
   ]);
 
   if (!article) {

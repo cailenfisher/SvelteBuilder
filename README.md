@@ -5,7 +5,7 @@
 SvelteBuilder is an opinionated scaffold and toolkit ecosystem for SvelteKit projects that need to be production-ready from day one. It ships with first-class localization, a clean set of common UI components, and strong established patterns for routing, data access, auth, and error handling — so you can skip the boilerplate and start building the parts that actually matter.
 
 > [!NOTE]
-> **Status: Beta in progress.** The foundational layer (`@sveltebuilder/hermes`, `@sveltebuilder/cli`, base scaffold template) is complete. The UI component library and first domain modules are actively being built. APIs are stabilizing but may still change.
+> **Status: Beta in progress.** The foundational layer (`diglossia`, `@sveltebuilder/cli`, base scaffold template) is complete. The UI component library and first domain modules are actively being built. APIs are stabilizing but may still change.
 
 ## Goals
 
@@ -24,29 +24,33 @@ SvelteBuilder is structured as a layered ecosystem. Each layer is a separate pac
 ```
 SvelteBuilder/
 ├── packages/
-│   ├── hermes/        → @sveltebuilder/hermes
-│   ├── coreui/        → @sveltebuilder/coreui
-│   ├── blog/          → @sveltebuilder/blog
-│   ├── commerce/      → @sveltebuilder/commerce
-│   └── logistic/      → @sveltebuilder/logistic
+│   ├── local-text-schema/  → @sveltebuilder/local-text-schema
+│   ├── coreui/             → @sveltebuilder/coreui
+│   ├── content/            → @sveltebuilder/content
+│   ├── commerce/           → @sveltebuilder/commerce
+│   └── logistic/           → @sveltebuilder/logistic
 ├── tools/
-│   ├── create/        → create-sveltebuilder
-│   └── cli/           → @sveltebuilder/cli
+│   ├── create/             → create-sveltebuilder
+│   └── cli/                → @sveltebuilder/cli
 └── apps/
     ├── dev-kitchen/
     └── docs/
 ```
 
+`diglossia`, the i18n primitives package (formerly `@sveltebuilder/hermes`), has been extracted
+to [its own repo](https://github.com/cailenfisher/diglossia) and is consumed here as an external
+dependency rather than a workspace package.
+
 ---
 
 ### Foundational Layer
 
-**`@sveltebuilder/hermes`** provides the i18n primitives used throughout the entire ecosystem: the `LocalText` type, `LocalTextLink`, the `Locale` type, the `<LocalText />` Svelte component, and the `localText(slug, scope, entityId)` function. It is the single source of these — no other package redeclares them.
+**`diglossia`** provides the i18n primitives used throughout the entire ecosystem: the `LocalText` type, `LocalTextLink`, the `Locale` type, `createDictionary()`, the `<LocalText />` Svelte component (from `diglossia/svelte`), and the `DictionaryInstance.localText(slug, scope, entityId)` method. It is the single source of these — no other package redeclares them.
 
 > [!NOTE]
 > **_Why a custom i18n toolkit?_** Paraglide (SvelteKit's official i18n) is build-time only, sveltekit-i18n doesn't solve the content model, and teams currently end up splitting UI strings and dynamic content across two unrelated systems — SvelteBuilder's toolkit unifies them. [Read the full rationale →](https://github.com/cailenfisher/SvelteBuilder/wiki/Why-a-Custom-i18n-Toolkit)
 
-**`@sveltebuilder/coreui`** provides universal UI elements shared across all domain-specific modules. Application-level UI components (buttons, layout chrome, forms, navigation) are i18n-agnostic — they accept a plain `label: string` and ordinary child snippets, exactly like any normal Svelte component. Entity-aware display components receive an entity `id` and resolve localized copy themselves via `@sveltebuilder/hermes`.
+**`@sveltebuilder/coreui`** provides universal UI elements shared across all domain-specific modules. Application-level UI components (buttons, layout chrome, forms, navigation) are i18n-agnostic — they accept a plain `label: string` and ordinary child snippets, exactly like any normal Svelte component. Entity-aware display components receive an entity `id` and resolve localized copy themselves via `diglossia`.
 
 > [!NOTE]
 > **_Why a custom UI library?_** Off-the-shelf component libraries make assumptions about structure, styling, and accessibility that break down at the edges of real enterprise applications — especially across niche industries. SvelteBuilder's UI layer is built around the repeating problems found across years of production web development, with semantic HTML and WCAG compliance as non-negotiable defaults. [Read the full rationale →](https://github.com/cailenfisher/SvelteBuilder/wiki/Why-a-Custom-UI-Library)
@@ -141,9 +145,9 @@ Each package ships its own schema files and a `manifest.json` that declares orde
 
 The localization model has a deliberate split of responsibility:
 
-- **`@sveltebuilder/hermes`** owns the primitives and is the single import source for them.
-- **The scaffold (base template)** owns locale resolution and dictionary loading — it queries the database, builds the payload, and passes it to `hermes`.
-- **Feature modules** split internally: application-level UI components are i18n-agnostic (plain `label: string` props); entity-aware display components resolve localized copy themselves via `localText(slug, scope, entityId)`.
+- **`diglossia`** owns the primitives and is the single import source for them.
+- **The scaffold (base template)** owns locale resolution and dictionary loading — it queries the database, builds the payload, and passes it to `createDictionary()`, then `setDictionary()`s the instance in the root layout's `<script>` body (never inside `$effect` — effects don't run during SSR).
+- **Feature modules** split internally: application-level UI components are i18n-agnostic (plain `label: string` props); entity-aware display components resolve localized copy themselves via `getDictionary().localText(slug, scope, entityId)`.
 
 Domain schema carries no conventional copy columns (`name`, `title`, `label`, `description`, etc.). User-facing copy is linked to entities via `LocalTextLink`, keyed by scope + entity ID. Scope is implied by convention (the `product` model resolves under the `product` scope) and is never a schema field or a prop.
 
@@ -162,28 +166,28 @@ Consistent naming is a first-class concern — the connective tissue between the
 ### Phase 1 — POC ✓
 
 - SvelteKit + TypeScript + Supabase + Supabase Auth baseline
-- `@sveltebuilder/hermes` — complete and tested
+- `diglossia` — complete and tested
 - `@sveltebuilder/cli` with `sveltebuilder sync` — complete
 - Base scaffold template (SuperPrototype) — complete
-- Hermes DB schema with RLS policies — complete
+- Local-text DB schema with RLS policies — complete
 - Monorepo structure — clean and correct
 
 ### Phase 2 — Beta (in progress)
 
 - `@sveltebuilder/coreui` — design tokens, CSS reset, universal component set
 - `apps/dev-kitchen` — full working SvelteKit app + `/dev` component explorer
-- `@sveltebuilder/blog` — first domain module, full production scope
+- `@sveltebuilder/content` — first domain module, full production scope
 - `create-sveltebuilder` — complete prompt/copy/install flow
 - Auth UI — sign in, sign up, sign out routes
 - Admin UI for content management
-- SSR-safe dictionary hydration (resolving first-render sentinel issue)
+- SSR-safe dictionary construction — complete (`createDictionary`/`setDictionary` called in the root layout's `<script>` body, not `$effect`)
 - Accessibility audit pass on all coreui components
 
 ### Phase 3 — Release
 
-- `@sveltebuilder/hermes` published as standalone NPM package
+- `diglossia` published as standalone NPM package
 - `@sveltebuilder/coreui` published as standalone NPM package
-- `@sveltebuilder/blog` stable release
+- `@sveltebuilder/content` stable release
 - `create-sveltebuilder` stable release with SuperPrototype and Native scaffold options
 - `sveltebuilder add <module>` — post-install module addition command
 - Documentation site (`apps/docs`)
@@ -196,7 +200,7 @@ Consistent naming is a first-class concern — the connective tissue between the
 
 ### Beyond Release
 
-- Plain-Svelte (client-side only, non-SvelteKit) support for `@sveltebuilder/hermes`. The initial release is strictly SvelteKit with SSR; broader Svelte compatibility is a deliberate follow-up once the SSR-anchored patterns have stabilized.
+- Plain-Svelte (client-side only, non-SvelteKit) support for `diglossia`'s core. The initial release is strictly SvelteKit with SSR; broader Svelte compatibility is a deliberate follow-up once the SSR-anchored patterns have stabilized.
 
 ---
 
@@ -205,8 +209,8 @@ Consistent naming is a first-class concern — the connective tissue between the
 | Concern           | SuperPrototype                            | Native                                    |
 | ----------------- | ----------------------------------------- | ----------------------------------------- |
 | Framework         | SvelteKit + TypeScript                    | ← same                                    |
-| i18n primitives   | `@sveltebuilder/hermes`                   | ← same                                    |
-| i18n formatting   | `intl-messageformat` (ICU MessageFormat)  | ← same                                    |
+| i18n primitives   | `diglossia`                               | ← same                                    |
+| i18n formatting   | `messageformat` (Unicode MessageFormat 2) | ← same                                    |
 | UI components     | `@sveltebuilder/coreui`                   | ← same                                    |
 | Database          | Supabase (Postgres)                       | Drizzle ORM (any driver)                  |
 | Auth              | Supabase Auth + `@supabase/ssr`           | Provider-agnostic                         |

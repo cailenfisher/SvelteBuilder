@@ -1,6 +1,6 @@
 {
-  "name": "@sveltebuilder/hermes-schema",
-  "version": "0.0.7",
+  "name": "@sveltebuilder/local-text-schema",
+  "version": "0.1.0",
   "description": "Drizzle table definitions and seed data for SvelteBuilder's core i18n tables — locale, local_text_link, local_text.",
   "keywords": [
     "drizzle",

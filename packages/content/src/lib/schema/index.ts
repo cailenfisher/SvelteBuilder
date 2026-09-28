@@ -2,7 +2,7 @@
 // @sveltebuilder/content — TypeScript types
 //
 // i18n convention: entities with user-facing copy carry NO name/title/body/etc.
-// Copy is linked via hermes (scope = table name, entity_id = bigint PK).
+// Copy is linked via diglossia (scope = table name, entity_id = bigint PK).
 //
 // SCOPE DEVIATIONS (documented):
 //   comment.author_name, comment.author_email, comment.body — reader-submitted

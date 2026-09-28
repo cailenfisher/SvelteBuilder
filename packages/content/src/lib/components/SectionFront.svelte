@@ -2,22 +2,27 @@
      Front title resolved via hermes (scope = 'front').
      Article copy within slots resolved via hermes inside ArticleCard. -->
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import ArticleCard from './ArticleCard.svelte';
   import type { FrontWithSlots, MediaAsset, Section } from '../schema/index.js';
 
   type Props = {
     front: FrontWithSlots;
-    mediaAssets: Map<bigint, MediaAsset>;
+    mediaAssets: Map<number, MediaAsset>;
     storageBaseUrl: string;
     locale: string;
     sections: Section[];
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { front, mediaAssets, storageBaseUrl, locale, sections, class: extraClass }: Props = $props();
+  let { front, mediaAssets, storageBaseUrl, locale, sections, dictionary: dictionaryProp, class: extraClass }: Props = $props();
 
-  const title = $derived(localText('title', 'front', front.id));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const title = $derived(dictionary.localText('title', 'front', front.id));
 
   const leadSlots      = $derived((front.slots ?? []).filter((s) => s.layoutVariant === 'lead'));
   const secondarySlots = $derived((front.slots ?? []).filter((s) => s.layoutVariant === 'secondary'));

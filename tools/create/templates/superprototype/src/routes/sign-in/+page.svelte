@@ -1,13 +1,15 @@
 <script lang="ts">
   import { Button } from '@sveltebuilder/coreui'
-  import { localText } from 'diglossia'
+  import { getDictionary } from 'diglossia/svelte'
   import type { ActionData } from './$types'
 
   let { form }: { form: ActionData } = $props()
 
-  const title = $derived(localText('user.sign_in'))
-  const subtitle = $derived(localText('user.sign_in.subtitle'))
-  const signInWithGoogle = $derived(localText('user.sign_in_with_google'))
+  const dictionary = getDictionary()
+
+  const title = $derived(dictionary.localText('user.sign_in'))
+  const subtitle = $derived(dictionary.localText('user.sign_in.subtitle'))
+  const signInWithGoogle = $derived(dictionary.localText('user.sign_in_with_google'))
 </script>
 
 <div class="sign-in-page">

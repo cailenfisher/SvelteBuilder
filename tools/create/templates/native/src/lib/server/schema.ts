@@ -9,7 +9,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { localTextLink } from '@sveltebuilder/hermes-schema/schema';
+import { localTextLink } from '@sveltebuilder/local-text-schema/schema';
 
 // Reference auth.user for the FK. Auth.js manages this table.
 const authSchema = pgSchema('auth');

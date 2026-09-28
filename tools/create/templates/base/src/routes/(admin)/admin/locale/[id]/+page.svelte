@@ -1,22 +1,24 @@
 <script lang="ts">
-  import { localText } from 'diglossia'
+  import { getDictionary } from 'diglossia/svelte'
   import { Button, LocaleEdit } from '@sveltebuilder/coreui'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
 
-  const editLabel   = $derived(localText('admin.locale.edit'))
-  const codeLabel   = $derived(localText('admin.locale.code'))
-  const nameLabel   = $derived(localText('admin.locale.name'))
-  const nativeLabel = $derived(localText('admin.locale.native_name'))
-  const dirLabel    = $derived(localText('admin.locale.dir'))
-  const ltrLabel    = $derived(localText('admin.locale.dir.ltr'))
-  const rtlLabel    = $derived(localText('admin.locale.dir.rtl'))
+  const dictionary = getDictionary()
+
+  const editLabel   = $derived(dictionary.localText('admin.locale.edit'))
+  const codeLabel   = $derived(dictionary.localText('admin.locale.code'))
+  const nameLabel   = $derived(dictionary.localText('admin.locale.name'))
+  const nativeLabel = $derived(dictionary.localText('admin.locale.native_name'))
+  const dirLabel    = $derived(dictionary.localText('admin.locale.dir'))
+  const ltrLabel    = $derived(dictionary.localText('admin.locale.dir.ltr'))
+  const rtlLabel    = $derived(dictionary.localText('admin.locale.dir.rtl'))
 </script>
 
 <div class="locale-edit-page">
   <header class="locale-edit-page__header">
-    <Button href="/admin/locale" variant="ghost" size="sm">← {localText('nav.back')}</Button>
+    <Button href="/admin/locale" variant="ghost" size="sm">← {dictionary.localText('nav.back')}</Button>
     <h1 class="locale-edit-page__title">{editLabel}</h1>
   </header>
 
@@ -24,7 +26,7 @@
     <p class="locale-edit-page__error" role="alert">{form.error}</p>
   {/if}
   {#if form?.success}
-    <p class="locale-edit-page__success" role="status">{localText('feedback.saved')}</p>
+    <p class="locale-edit-page__success" role="status">{dictionary.localText('feedback.saved')}</p>
   {/if}
 
   <form method="post" action="?/update" class="locale-edit-page__form">
@@ -40,13 +42,13 @@
       nativeName={data.locale.nativeName}
       dir={data.locale.dir as 'ltr' | 'rtl'}
     />
-    <Button type="submit">{localText('action.save')}</Button>
+    <Button type="submit">{dictionary.localText('action.save')}</Button>
   </form>
 
   <div class="locale-edit-page__danger">
     <form method="post" action="?/delete">
       <Button type="submit" variant="danger" size="sm">
-        {localText('action.delete')} {editLabel}
+        {dictionary.localText('action.delete')} {editLabel}
       </Button>
     </form>
   </div>

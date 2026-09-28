@@ -2,21 +2,26 @@
      All text blocks resolve copy via hermes (scope = 'article_block', entityId = block.id).
      Structural config (heading level, embed provider) lives in block.content jsonb. -->
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import MediaFigure from './MediaFigure.svelte';
   import type { ArticleBlock, MediaAsset } from '../schema/index.js';
 
   type Props = {
     block: ArticleBlock;
-    mediaAssets: Map<bigint, MediaAsset>;
+    mediaAssets: Map<number, MediaAsset>;
     storageBaseUrl: string;
     locale: string;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { block, mediaAssets, storageBaseUrl, locale, class: extraClass }: Props = $props();
+  let { block, mediaAssets, storageBaseUrl, locale, dictionary: dictionaryProp, class: extraClass }: Props = $props();
 
-  const text   = $derived(localText('text', 'article_block', block.id));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const text   = $derived(dictionary.localText('text', 'article_block', block.id));
   const asset  = $derived(block.mediaAssetId != null ? (mediaAssets.get(block.mediaAssetId) ?? null) : null);
   const level  = $derived((block.content as { level?: number } | null)?.level ?? 2);
   const provider = $derived((block.content as { provider?: string } | null)?.provider ?? '');

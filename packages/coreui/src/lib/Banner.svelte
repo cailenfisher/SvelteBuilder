@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { SBMessageAction } from './message-bus.svelte.js';
-  import { messageBus } from './message-bus.svelte.js';
+  import { getMessageBus } from './message-bus.svelte.js';
 
   type Severity = 'success' | 'info' | 'warning' | 'error';
 
@@ -23,6 +23,8 @@
     class: extraClass,
     icon,
   }: Props = $props();
+
+  const messageBus = getMessageBus();
 
   const busBanner = $derived(messageProp === undefined ? messageBus.banner : null);
   const active = $derived(messageProp !== undefined ? messageProp : busBanner);

@@ -56,7 +56,7 @@ Created `packages/content/`:
 
 All tables: bigint PKs, `public.current_user_id()` RLS, no `auth.uid()`/`auth.jwt()`.
 
-`manifest.json` — topological sort: after `@sveltebuilder/hermes-schema`, `@sveltebuilder/superprototype`.
+`manifest.json` — topological sort: after `@sveltebuilder/local-text-schema`, `@sveltebuilder/superprototype`.
 
 **Seed:** `seed.sql` — 7 article statuses (EN+FR), 5 checklist items (EN+FR), 31 UI strings (EN+FR), sections/topics/tags, publisher profile, jane-doe author, 2 sample articles with blocks/bylines/taxonomy/front slots.
 

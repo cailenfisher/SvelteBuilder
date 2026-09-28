@@ -3,7 +3,8 @@
      Empty alt ("") is only valid for explicitly decorative images (pass decorative=true).
      SECURITY: storageBaseUrl is validated server-side before being passed to this component. -->
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import type { MediaAsset } from '../schema/index.js';
 
   type Props = {
@@ -12,6 +13,7 @@
     storageBaseUrl: string;
     decorative?: boolean;
     loading?: 'lazy' | 'eager';
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
@@ -21,12 +23,16 @@
     storageBaseUrl,
     decorative = false,
     loading = 'lazy',
+    dictionary: dictionaryProp,
     class: extraClass,
   }: Props = $props();
 
-  const altText  = $derived(decorative ? '' : localText('alt_text', 'media_asset', asset.id));
-  const caption  = $derived(localText('caption', 'media_asset', asset.id));
-  const credit   = $derived(localText('credit',  'media_asset', asset.id));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const altText  = $derived(decorative ? '' : dictionary.localText('alt_text', 'media_asset', asset.id));
+  const caption  = $derived(dictionary.localText('caption', 'media_asset', asset.id));
+  const credit   = $derived(dictionary.localText('credit',  'media_asset', asset.id));
   const src      = $derived(`${storageBaseUrl}/${asset.storageKey}`);
 </script>
 

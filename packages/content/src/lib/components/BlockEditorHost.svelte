@@ -3,7 +3,8 @@
      This component is editor-only (never rendered in a published article view). -->
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import { BlockEditor } from '@sveltebuilder/coreui';
   import type { EditorBlock } from '@sveltebuilder/coreui';
   import type { ArticleBlock, ArticleBlockType } from '../schema/index.js';
@@ -14,9 +15,13 @@
     /** Called when blocks change — parent should debounce-persist via form action. */
     onBlocksChange?: (blocks: EditorBlock[]) => void;
     locale: string;
+    dictionary?: DictionaryInstance;
   };
 
-  let { blocks, articleId: _articleId, onBlocksChange, locale: _locale }: Props = $props();
+  let { blocks, articleId: _articleId, onBlocksChange, locale: _locale, dictionary: dictionaryProp }: Props = $props();
+
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
 
   /** Map ArticleBlock (server) → EditorBlock (coreui). */
   function toEditorBlocks(serverBlocks: ArticleBlock[]): EditorBlock[] {
@@ -26,7 +31,7 @@
       .map((b) => ({
         id: String(b.id),
         type: b.blockType as EditorBlock['type'],
-        text: localText('text', 'article_block', b.id),
+        text: dictionary.localText('text', 'article_block', b.id),
         content: b.content as EditorBlock['content'],
       }));
   }

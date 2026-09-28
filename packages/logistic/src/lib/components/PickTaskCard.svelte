@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import StorageLocationPath from './StorageLocationPath.svelte';
   import PickTaskStatusBadge from './PickTaskStatusBadge.svelte';
   import type { PickTask, PickTaskLine, StorageLocation } from '../schema/index.js';
@@ -11,12 +12,16 @@
     lines?: PickTaskLineWithLocation[];
     href?: string;
     locale?: string;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { task, lines = [], href, locale = 'en', class: extraClass }: Props = $props();
+  let { task, lines = [], href, locale = 'en', dictionary: dictionaryProp, class: extraClass }: Props = $props();
 
-  const statusLabel = $derived(localText(`logistic.pick_task.status.${task.status}`, 'logistic'));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const statusLabel = $derived(dictionary.localText(`logistic.pick_task.status.${task.status}`, 'logistic'));
 
   const completedLines = $derived(lines.filter((l) => l.pickedQuantity >= l.requestedQuantity));
 

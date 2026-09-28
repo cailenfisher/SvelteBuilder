@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import type { PageServerLoad, Actions } from './$types';
-import { locale } from '@sveltebuilder/hermes-schema/schema';
+import { locale } from '@sveltebuilder/local-text-schema/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const locales = await locals.db.withUser(async (tx) => {

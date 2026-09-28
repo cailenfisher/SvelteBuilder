@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { localText } from 'diglossia'
+  import { getDictionary } from 'diglossia/svelte'
   import { page } from '$app/state'
+
+  const dictionary = getDictionary()
 </script>
 
 <main>
   <h1>{page.status}</h1>
-  <p>{page.error?.message ?? localText('feedback.error')}</p>
+  <p>{page.error?.message ?? dictionary.localText('feedback.error')}</p>
 </main>

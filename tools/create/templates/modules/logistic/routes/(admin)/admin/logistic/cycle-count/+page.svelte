@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import { Button, Checkbox, DataTable, Dialog, StatusBadge } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
   import type { CycleCount, CycleCountStatus } from '@sveltebuilder/logistic';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+
+  const dictionary = getDictionary();
 
   let newCountOpen = $state(false);
 
@@ -33,7 +35,7 @@
   {:else if column.key === 'status'}
     <StatusBadge
       variant={statusVariant(row.status)}
-      label={localText(`logistic.cycle_count.status.${row.status}`, 'logistic')}
+      label={dictionary.localText(`logistic.cycle_count.status.${row.status}`, 'logistic')}
       size="sm"
     />
   {:else if column.key === 'createdAt'}
@@ -65,7 +67,7 @@
           <Checkbox
             name="location_ids"
             value={String(location.id)}
-            label={localText('name', 'storage_location', location.id)}
+            label={dictionary.localText('name', 'storage_location', location.id)}
           />
         {/each}
       </fieldset>

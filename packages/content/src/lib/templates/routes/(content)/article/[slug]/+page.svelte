@@ -1,30 +1,41 @@
 <script lang="ts">
-  import { merge } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import { ArticleView, NewsletterSignup } from '@sveltebuilder/content';
   import { buildNewsArticleJsonLd, buildArticleMetaTags } from '@sveltebuilder/content/server';
   import type { PageData, ActionData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
-  $effect(() => {
-    merge(data.dictionaryPayload, data.locale.code, data.defaultLocale.code);
-  });
+  const dictionary = getDictionary();
+  dictionary.merge(data.dictionaryPayload);
+
+  const siteUrl = $derived(new URL(data.canonicalUrl).origin);
 
   const jsonLd = $derived(
     data.publisherProfile
-      ? buildNewsArticleJsonLd(data.article, data.publisherProfile, data.canonicalUrl, data.locale.code)
+      ? buildNewsArticleJsonLd(data.article, data.publisherProfile, dictionary, {
+          siteUrl,
+          locale: data.locale.code,
+          storageBaseUrl: data.storageBaseUrl,
+        })
       : null,
   );
 
   const metaTags = $derived(
-    buildArticleMetaTags(data.article, data.canonicalUrl, data.locales),
+    data.publisherProfile
+      ? buildArticleMetaTags(data.article, data.publisherProfile, dictionary, {
+          siteUrl,
+          locale: data.locale.code,
+          storageBaseUrl: data.storageBaseUrl,
+        })
+      : {},
   );
 
   const mediaAssets = $derived(
     new Map(
       (data.article.blocks ?? [])
         .filter((b) => b.mediaAsset != null)
-        .map((b) => [BigInt(b.mediaAssetId!), b.mediaAsset!]),
+        .map((b) => [b.mediaAssetId!, b.mediaAsset!]),
     ),
   );
 
@@ -32,14 +43,14 @@
 </script>
 
 <svelte:head>
-  <title>{data.article.headline}</title>
-  {#each metaTags as tag}
-    {#if 'content' in tag}
-      <meta name={tag.name} content={tag.content} />
-    {:else if 'href' in tag}
-      <link rel={tag.rel} hreflang={tag.hreflang} href={tag.href} />
-    {:else if 'property' in tag}
-      <meta property={tag.property} content={tag.ogContent} />
+  <title>{dictionary.localText('headline', 'article', data.article.id)}</title>
+  {#each Object.entries(metaTags) as [key, value]}
+    {#if key === 'canonical'}
+      <link rel="canonical" href={value} />
+    {:else if key.startsWith('twitter:')}
+      <meta name={key} content={value} />
+    {:else}
+      <meta property={key} content={value} />
     {/if}
   {/each}
   {#if jsonLd}

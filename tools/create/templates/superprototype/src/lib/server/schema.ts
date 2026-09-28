@@ -10,7 +10,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { localTextLink } from '@sveltebuilder/hermes-schema/schema';
+import { localTextLink } from '@sveltebuilder/local-text-schema/schema';
 
 // Reference Supabase's managed auth schema. The table is `auth.users` (plural) with
 // a uuid PK — this is Supabase's fixed schema, not something we define.

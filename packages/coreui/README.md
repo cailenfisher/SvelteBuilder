@@ -1,14 +1,13 @@
 # @sveltebuilder/coreui
 
-Universal UI component library for [SvelteBuilder](https://github.com/cailenfisher/SvelteBuilder), built on [Bits UI](https://bits-ui.com) primitives. Components are split into two kinds:
+Universal UI component library for [SvelteBuilder](https://github.com/cailenfisher/SvelteBuilder), built on [Bits UI](https://bits-ui.com) primitives.
 
-- **Application-level UI** (`Button`, `Input`, `Card`, layout chrome) — i18n-agnostic, plain `label: string` props, no dependency on `@sveltebuilder/hermes`.
-- **Entity/domain UI** (`LocalTextLinkEdit`, admin editors) — imports `@sveltebuilder/hermes` and resolves localized copy from an entity `id`.
+Every component in coreui is Camp 1 (application-level UI) — plain `label: string` props, no `diglossia` import, no dependency on an entity `id`. `LocalTextLinkEdit`, `LocalTextEdit`, and `LocaleEdit` are admin editors for the i18n tables themselves, but they take plain props (slugs, scopes, locale codes) like any other coreui component; they only import `diglossia`'s types (`Locale`), never its runtime. Camp 2 (entity-aware) components live in the domain modules (`@sveltebuilder/content`, `@sveltebuilder/logistic`), not here.
 
 ## Install
 
 ```sh
-npm install @sveltebuilder/coreui @sveltebuilder/hermes bits-ui
+npm install @sveltebuilder/coreui bits-ui
 ```
 
 Requires Svelte 5.

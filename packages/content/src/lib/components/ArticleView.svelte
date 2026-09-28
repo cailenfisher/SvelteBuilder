@@ -1,7 +1,8 @@
-<!-- Camp 2: full article renderer. Resolves headline, dek, lede, and all block text via hermes.
+<!-- Camp 2: full article renderer. Resolves headline, dek, lede, and all block text via diglossia.
      Accepts ArticleWithCopy (enriched) from the server load function. -->
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import type { Snippet } from 'svelte';
   import ArticleBlockRenderer from './ArticleBlockRenderer.svelte';
   import MediaFigure from './MediaFigure.svelte';
@@ -11,18 +12,32 @@
 
   type Props = {
     article: ArticleWithCopy;
-    mediaAssets: Map<bigint, MediaAsset>;
+    mediaAssets: Map<number, MediaAsset>;
     storageBaseUrl: string;
     locale: string;
     /** Optional slot rendered after the article body (e.g. comment section). */
     after?: Snippet;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { article, mediaAssets, storageBaseUrl, locale, after, class: extraClass }: Props = $props();
+  let {
+    article,
+    mediaAssets,
+    storageBaseUrl,
+    locale,
+    after,
+    dictionary: dictionaryProp,
+    class: extraClass,
+  }: Props = $props();
 
-  const headline    = $derived(localText('headline',  'article', article.id));
-  const dek         = $derived(localText('dek',       'article', article.id));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const headline    = $derived(dictionary.localText('headline',  'article', article.id));
+  const headlineLocale = $derived(dictionary.localeOf('headline', 'article', article.id));
+  const dek         = $derived(dictionary.localText('dek',       'article', article.id));
+  const dekLocale   = $derived(dictionary.localeOf('dek', 'article', article.id));
   const primarySection: Section | undefined = $derived(article.sections?.[0]);
 
   const heroBlock  = $derived(article.blocks?.find((b) => b.blockType === 'image' && b.mediaAssetId != null) ?? null);
@@ -50,10 +65,13 @@
       <SectionLabel section={primarySection} {locale} class="article-view__section" />
     {/if}
 
-    <h1 class="article-view__headline">{headline}</h1>
+    <h1
+      class="article-view__headline"
+      lang={headlineLocale !== locale ? headlineLocale : undefined}
+    >{headline}</h1>
 
     {#if dek}
-      <p class="article-view__dek">{dek}</p>
+      <p class="article-view__dek" lang={dekLocale !== locale ? dekLocale : undefined}>{dek}</p>
     {/if}
 
     <div class="article-view__meta">

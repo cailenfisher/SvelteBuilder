@@ -1,7 +1,8 @@
 <!-- Camp 2: article workflow side panel. Resolves status labels and checklist item labels
      via hermes. Uses coreui Drawer + Tabs + Checkbox. -->
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import { Drawer, Tabs, Checkbox, Button } from '@sveltebuilder/coreui';
   import type {
     ArticleWithCopy,
@@ -20,6 +21,7 @@
     onTransitionStatus?: (statusSlug: string) => void;
     onChecklistToggle?: (itemId: number, satisfied: boolean) => void;
     locale: string;
+    dictionary?: DictionaryInstance;
   };
 
   let {
@@ -32,7 +34,11 @@
     onTransitionStatus,
     onChecklistToggle,
     locale: _locale,
+    dictionary: dictionaryProp,
   }: Props = $props();
+
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
 
   function getChecklistState(itemId: number): boolean {
     return checklistStates.find((s) => s.publishChecklistItemId === itemId)?.satisfied ?? false;
@@ -73,30 +79,30 @@
         <div class="workflow-panel__actions">
           {#if article.status.slug === 'draft'}
             <Button
-              label={localText('action.submit_for_review', 'content')}
+              label={dictionary.localText('action.submit_for_review', 'content')}
               variant="primary"
               onclick={() => onTransitionStatus?.('in_review')}
             />
           {:else if article.status.slug === 'in_review'}
             <Button
-              label={localText('action.approve', 'content')}
+              label={dictionary.localText('action.approve', 'content')}
               variant="primary"
               onclick={() => onTransitionStatus?.('approved')}
             />
             <Button
-              label={localText('action.send_back', 'content')}
+              label={dictionary.localText('action.send_back', 'content')}
               variant="secondary"
               onclick={() => onTransitionStatus?.('draft')}
             />
           {:else if article.status.slug === 'approved'}
             <Button
-              label={localText('action.publish', 'content')}
+              label={dictionary.localText('action.publish', 'content')}
               variant="primary"
               onclick={() => onTransitionStatus?.('published')}
             />
           {:else if article.status.slug === 'published'}
             <Button
-              label={localText('action.unpublish', 'content')}
+              label={dictionary.localText('action.unpublish', 'content')}
               variant="secondary"
               onclick={() => onTransitionStatus?.('draft')}
             />
@@ -112,7 +118,7 @@
             <Checkbox
               checked={checked}
               onCheckedChange={(value) => onChecklistToggle?.(item.id, value)}
-              label={localText('label', 'publish_checklist_item', item.id)}
+              label={dictionary.localText('label', 'publish_checklist_item', item.id)}
               id={`checklist-${item.id}`}
             />
             {#if item.required && !checked}

@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import { Badge } from '@sveltebuilder/coreui';
   import type { InboundReceipt, InboundReceiptLine, Supplier } from '../schema/index.js';
 
@@ -10,15 +11,19 @@
     lines?: InboundReceiptLine[];
     href?: string;
     locale?: string;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { receipt, supplier, lines = [], href, locale = 'en', class: extraClass }: Props = $props();
+  let { receipt, supplier, lines = [], href, locale = 'en', dictionary: dictionaryProp, class: extraClass }: Props = $props();
+
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
 
   const supplierName = $derived(
     supplier
-      ? localText('name', 'supplier', supplier.id)
-      : localText('logistic.inbound_receipt.blind', 'logistic'),
+      ? dictionary.localText('name', 'supplier', supplier.id)
+      : dictionary.localText('logistic.inbound_receipt.blind', 'logistic'),
   );
 
   const statusVariant = $derived(
@@ -29,7 +34,7 @@
   ) as 'success' | 'warning' | 'danger' | 'default';
 
   const statusLabel = $derived(
-    localText(`logistic.inbound_receipt.status.${receipt.status}`, 'logistic'),
+    dictionary.localText(`logistic.inbound_receipt.status.${receipt.status}`, 'logistic'),
   );
 
   const totalExpected = $derived(lines.reduce((sum, l) => sum + l.expectedQuantity, 0));

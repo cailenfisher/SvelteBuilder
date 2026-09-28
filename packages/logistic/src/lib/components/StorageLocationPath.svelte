@@ -1,15 +1,20 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import type { StorageLocation } from '../schema/index.js';
 
   type Props = {
     location: StorageLocation;
     ancestors?: StorageLocation[];
     separator?: string;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { location, ancestors = [], separator = ' › ', class: extraClass }: Props = $props();
+  let { location, ancestors = [], separator = ' › ', dictionary: dictionaryProp, class: extraClass }: Props = $props();
+
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
 
   // Build the full path from root to current location
   const fullPath = $derived([...ancestors, location]);
@@ -28,7 +33,7 @@
           class:storage-location-path__name--current={index === fullPath.length - 1}
           aria-current={index === fullPath.length - 1 ? 'location' : undefined}
         >
-          {localText('name', 'storage_location', loc.id)}
+          {dictionary.localText('name', 'storage_location', loc.id)}
         </span>
 
         {#if index < fullPath.length - 1}

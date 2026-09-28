@@ -1,6 +1,7 @@
-<!-- Camp 2: imports hermes for entity copy resolution. -->
+<!-- Camp 2: imports diglossia for entity copy resolution. -->
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import { Badge } from '@sveltebuilder/coreui';
   import SectionLabel from './SectionLabel.svelte';
   import TopicTag from './TopicTag.svelte';
@@ -17,6 +18,7 @@
     href?: string;
     showStatus?: boolean;
     variant?: 'lead' | 'secondary' | 'river' | 'brief';
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
@@ -30,11 +32,17 @@
     href,
     showStatus = false,
     variant = 'river',
+    dictionary: dictionaryProp,
     class: extraClass,
   }: Props = $props();
 
-  const headline = $derived(localText('headline', 'article', article.id));
-  const dek      = $derived(localText('dek',      'article', article.id));
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const headline = $derived(dictionary.localText('headline', 'article', article.id));
+  const headlineLocale = $derived(dictionary.localeOf('headline', 'article', article.id));
+  const dek      = $derived(dictionary.localText('dek',      'article', article.id));
+  const dekLocale = $derived(dictionary.localeOf('dek', 'article', article.id));
 
   const publishedDate = $derived(
     article.publishedAt
@@ -66,16 +74,20 @@
   <div class="article-card__body">
     <header class="article-card__header">
       {#if showStatus}
-        <Badge variant={statusVariant} size="sm">{localText(`label`, 'article_status', status.id)}</Badge>
+        <Badge variant={statusVariant} size="sm">{dictionary.localText(`label`, 'article_status', status.id)}</Badge>
       {/if}
 
       <h2 class="article-card__headline">
-        <a class="article-card__link" href={cardHref}>{headline}</a>
+        <a
+          class="article-card__link"
+          href={cardHref}
+          lang={headlineLocale !== locale ? headlineLocale : undefined}
+        >{headline}</a>
       </h2>
     </header>
 
     {#if variant !== 'brief'}
-      <p class="article-card__dek">{dek}</p>
+      <p class="article-card__dek" lang={dekLocale !== locale ? dekLocale : undefined}>{dek}</p>
     {/if}
 
     <footer class="article-card__meta">

@@ -6,7 +6,7 @@ import { db } from '$lib/server/db/client';
 import { createUserScopedDb } from '$lib/server/db/with-user';
 import { resolveAuthenticatedUserId } from '$lib/server/auth-resolver';
 import { providerHandle } from '$lib/server/auth-handle';
-import { locale as localeTable } from '@sveltebuilder/hermes-schema/schema';
+import { locale as localeTable } from '@sveltebuilder/local-text-schema/schema';
 
 // Translates the provider's user identity to a public.user_account.id bigint,
 // then attaches userAccountId and db (the withUser wrapper) to locals.

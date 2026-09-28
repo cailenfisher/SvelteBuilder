@@ -10,7 +10,7 @@ SvelteBuilder is a production-ready SvelteKit scaffold and ecosystem designed fo
 
 The ecosystem consists of:
 
-- **`diglossia`** — the i18n primitive library (LocalText, Locale, LocalTextLink, the `localText()` function, and the `<LocalText>` component)
+- **`diglossia`** — the i18n primitive library. The framework-agnostic core (`diglossia`) exports `createDictionary()` and the `Locale`/`LocalText`/`LocalTextLink` types; the Svelte adapter (`diglossia/svelte`) exports `setDictionary()`/`getDictionary()` and the `<LocalText>` component.
 - **`sveltebuilder-coreui`** — universal UI components shared across all domain modules
 - **Domain module libraries** (e.g. `sveltebuilder-blog`, `sveltebuilder-logistic`, `sveltebuilder-commerce`) — production-ready feature sets for specific industries
 
@@ -24,15 +24,18 @@ Getting i18n right is the most important constraint in this codebase. The rules 
 
 ### diglossia is the single source of i18n primitives
 
-Never redeclare or reimplement `Locale`, `LocalText`, `LocalTextLink`, the `<LocalText>` component, or the `localText(slug, scope?, entityId?)` function. Import them from `diglossia` and only from there.
+Never redeclare or reimplement `Locale`, `LocalText`, `LocalTextLink`, the `<LocalText>` component, or a dictionary lookup function. Import types from `diglossia` and the Svelte context helpers from `diglossia/svelte`.
 
 ```ts
-import { localText, type Locale, type LocalText, type LocalTextLink } from 'diglossia';
+import { createDictionary, type Locale, type LocalText, type LocalTextLink } from 'diglossia';
+import { setDictionary, getDictionary, LocalText } from 'diglossia/svelte';
 ```
+
+`setDictionary(createDictionary(payload))` is called once, in the root layout's `<script>` body — **never inside `$effect`**, since effects don't run during SSR and a module-level dictionary would leak one visitor's locale into another's response. Components read it with `getDictionary()`, called during component initialization, and call `.localText(slug, scope?, entityId?)`, `.localeOf(slug, scope?, entityId?)`, or `.formatText(slug, values?, scope?, entityId?)` on the returned instance.
 
 ### diglossia never touches the database
 
-The library is pure — it has no database access. The application (this project) owns locale resolution and dictionary loading. The app loads the dictionary and passes it to diglossia via the `load` function, or supplies partial scoped layers via `merge`. diglossia only reads what it is given.
+The library is pure — it has no database access. The application (this project) owns locale resolution and dictionary loading. The app builds the dictionary payload (already resolved to one row per key — locale-priority resolution happens in SQL, not in diglossia) and passes it to `createDictionary()`, or calls an instance's `.merge()` to add scoped layers. diglossia only reads what it is given.
 
 ### The app owns locale resolution and top-level UI text
 
@@ -48,9 +51,9 @@ Within any SvelteBuilder module (including coreui), components fall into one of 
 - Are i18n-agnostic by design
 
 **Entity/domain components** — things like `ProductCard`, `TaskItem`, `InvoiceRow`:
-- Receive the bare entity as props (the domain schema, no copy fields)
-- Resolve their own user-facing copy by calling `localText(slug, scope, entityId)`
-- **Do** import `diglossia`
+- Receive the bare entity as props (the domain schema, no copy fields), plus an optional `dictionary?: DictionaryInstance` prop for library consumers and unit tests to override context
+- Resolve their own user-facing copy by calling `dictionary.localText(slug, scope, entityId)`, where `const dictionary = dictionaryProp ?? getDictionary();`
+- **Do** import `diglossia/svelte`
 
 This split is intentional. `Button.svelte` and `ProductCard.svelte` in the same module will behave differently with respect to i18n, and that is correct.
 
@@ -142,10 +145,10 @@ src/
 
 ### Data flow
 
-1. `+page.server.ts` (or `+layout.server.ts`) loads data from the database, resolves the active locale, and loads the diglossia dictionary
-2. The page/layout calls diglossia `load()` or `merge()` with the dictionary payload
-3. Entity components call `localText(slug, scope, entityId)` to resolve their own copy
-4. Application UI components receive plain string props — they never call `localText` directly
+1. `+page.server.ts` (or `+layout.server.ts`) loads data from the database and resolves the active locale, building a `DictionaryPayload` already resolved to one row per key
+2. The root layout calls `setDictionary(createDictionary(data.dictionary))` once, in its `<script>` body; a page can call `getDictionary().merge(data.dictionaryPayload)` to add scoped entries — never inside `$effect`
+3. Entity components call `getDictionary()` and resolve their own copy via `dictionary.localText(slug, scope, entityId)`
+4. Application UI components receive plain string props — they never call `getDictionary()` or `localText` directly
 
 ### coreui components first
 
@@ -182,18 +185,21 @@ Use these as starting points when prompting Claude Code in this project.
 
 ```
 Add a new `[EntityName]` entity to [module].
-- SQL: singular snake_case table, no copy columns, id as UUID primary key
+- SQL: singular snake_case table, no copy columns, id as integer primary key
+  (generated always as identity) — bigint only for entities expected to reach
+  extreme row counts (event logs, telemetry, tracking scans)
 - TypeScript: PascalCase interface, no title/name/label fields
 - Scope for localText resolution: [scope name, usually matches table name]
-- Components: one for the entity card/row (calls localText), one list wrapper
+- Components: one for the entity card/row (calls dictionary.localText), one list wrapper
 ```
 
 ### Adding a new route
 
 ```
 Add a route for [resource] at /[kebab-case-path].
-- +page.server.ts loads data and calls diglossia load/merge for the locale
-- +page.svelte uses <LocalText> or localText() for entity copy
+- +page.server.ts loads data and builds a DictionaryPayload for the locale
+- +page.svelte calls getDictionary().merge(payload) in the script body (not $effect)
+- +page.svelte uses <LocalText> or dictionary.localText() for entity copy
 - Application chrome labels are plain strings passed as props from the layout
 ```
 
@@ -211,9 +217,11 @@ Add a [ComponentName] component to sveltebuilder-coreui.
 
 ```
 Add a [ComponentName] component for the [entity] entity in [module].
-- It is a domain component: imports localText from diglossia
-- Props: the bare entity schema (id + domain fields, no copy fields)
-- Resolves copy via localText(slug, '[scope]', entity.id)
+- It is a domain component: imports getDictionary from diglossia/svelte
+- Props: the bare entity schema (id + domain fields, no copy fields), plus
+  an optional dictionary?: DictionaryInstance prop overriding context
+- Resolves copy via dictionary.localText(slug, '[scope]', entity.id), where
+  const dictionary = dictionaryProp ?? getDictionary();
 - Uses coreui components for its UI structure
 ```
 

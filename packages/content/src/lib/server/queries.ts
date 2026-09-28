@@ -1300,7 +1300,7 @@ export async function getPublisherProfile(
 }
 
 // ---------------------------------------------------------------------------
-// DictionaryPayload builders (for hermes.merge)
+// DictionaryPayload builders (for diglossia merge)
 // ---------------------------------------------------------------------------
 
 export function buildArticleDictionaryPayload(article: ArticleWithCopy, locale: string): DictionaryPayload {

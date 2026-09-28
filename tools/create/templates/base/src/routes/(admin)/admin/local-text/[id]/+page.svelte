@@ -1,13 +1,15 @@
 <script lang="ts">
-  import { localText } from 'diglossia'
+  import { getDictionary } from 'diglossia/svelte'
   import { Button, LocalTextEdit } from '@sveltebuilder/coreui'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
 
-  const editLabel  = $derived(localText('admin.local_text.edit'))
-  const slugLabel  = $derived(localText('admin.local_text.slug'))
-  const scopeLabel = $derived(localText('admin.local_text.scope'))
+  const dictionary = getDictionary()
+
+  const editLabel  = $derived(dictionary.localText('admin.local_text.edit'))
+  const slugLabel  = $derived(dictionary.localText('admin.local_text.slug'))
+  const scopeLabel = $derived(dictionary.localText('admin.local_text.scope'))
 
   function translationFor(localeId: number): string {
     return data.translations.find((t) => t.locale === localeId)?.content ?? ''
@@ -16,7 +18,7 @@
 
 <div class="local-text-edit-page">
   <header class="local-text-edit-page__header">
-    <Button href="/admin/local-text" variant="ghost" size="sm">← {localText('nav.back')}</Button>
+    <Button href="/admin/local-text" variant="ghost" size="sm">← {dictionary.localText('nav.back')}</Button>
     <h1 class="local-text-edit-page__title">{editLabel}</h1>
   </header>
 
@@ -31,7 +33,7 @@
     <p class="local-text-edit-page__error" role="alert">{form.error}</p>
   {/if}
   {#if form?.success}
-    <p class="local-text-edit-page__success" role="status">{localText('feedback.saved')}</p>
+    <p class="local-text-edit-page__success" role="status">{dictionary.localText('feedback.saved')}</p>
   {/if}
 
   <div class="local-text-edit-page__translations">
@@ -40,14 +42,14 @@
         <LocalTextEdit
           {slugLabel}
           localeLabel={locale.nativeName}
-          contentLabel={localText('admin.local_text.content')}
+          contentLabel={dictionary.localText('admin.local_text.content')}
           locales={[locale]}
           slug={data.entry.slug}
           localeId={locale.id}
           content={translationFor(locale.id)}
           slugReadonly={true}
         />
-        <Button type="submit" size="sm">{localText('action.save')}</Button>
+        <Button type="submit" size="sm">{dictionary.localText('action.save')}</Button>
       </form>
     {/each}
   </div>
@@ -55,7 +57,7 @@
   <div class="local-text-edit-page__danger">
     <form method="post" action="?/delete">
       <Button type="submit" variant="danger" size="sm">
-        {localText('action.delete')} {editLabel}
+        {dictionary.localText('action.delete')} {editLabel}
       </Button>
     </form>
   </div>

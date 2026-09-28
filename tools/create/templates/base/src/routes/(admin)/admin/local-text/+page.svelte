@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from 'diglossia'
+  import { getDictionary } from 'diglossia/svelte'
   import {
     Button, Field, Textarea,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
@@ -9,12 +9,14 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
 
-  const title       = $derived(localText('admin.local_text.title'))
-  const slugLabel   = $derived(localText('admin.local_text.slug'))
-  const scopeLabel  = $derived(localText('admin.local_text.scope'))
-  const newLabel    = $derived(localText('admin.local_text.new'))
-  const deleteLabel = $derived(localText('action.delete'))
-  const editLabel   = $derived(localText('action.edit'))
+  const dictionary = getDictionary()
+
+  const title       = $derived(dictionary.localText('admin.local_text.title'))
+  const slugLabel   = $derived(dictionary.localText('admin.local_text.slug'))
+  const scopeLabel  = $derived(dictionary.localText('admin.local_text.scope'))
+  const newLabel    = $derived(dictionary.localText('admin.local_text.new'))
+  const deleteLabel = $derived(dictionary.localText('action.delete'))
+  const editLabel   = $derived(dictionary.localText('action.edit'))
 
   function translationFor(linkId: number, localeId: number): string {
     return data.translations.find((t) => t.link === linkId && t.locale === localeId)?.content ?? '—'
@@ -37,7 +39,7 @@
       <p class="local-text-admin__error" role="alert">{form.error}</p>
     {/if}
     {#if form?.success}
-      <p class="local-text-admin__success" role="status">{localText('feedback.saved')}</p>
+      <p class="local-text-admin__success" role="status">{dictionary.localText('feedback.saved')}</p>
     {/if}
 
     <form method="post" action="?/create" class="local-text-admin__form">
@@ -68,7 +70,7 @@
             <TableHeader>{locale.nativeName}</TableHeader>
           {/each}
           <TableHeader>
-            <span class="sr-only">{localText('table.actions')}</span>
+            <span class="sr-only">{dictionary.localText('table.actions')}</span>
           </TableHeader>
         </TableRow>
       </TableHead>
@@ -76,7 +78,7 @@
         {#if data.entries.length === 0}
           <TableRow>
             <TableCell colspan={3 + data.locales.length}>
-              {localText('feedback.empty')}
+              {dictionary.localText('feedback.empty')}
             </TableCell>
           </TableRow>
         {/if}

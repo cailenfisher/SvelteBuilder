@@ -167,7 +167,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@26.1.2)(lightningcss@1.32.0)
 
-  packages/hermes-schema:
+  packages/local-text-schema:
     dependencies:
       drizzle-orm:
         specifier: ^0.38.0
@@ -185,9 +185,9 @@ importers:
       '@sveltebuilder/coreui':
         specifier: workspace:^
         version: link:../coreui
-      '@sveltebuilder/hermes-schema':
+      '@sveltebuilder/local-text-schema':
         specifier: workspace:^
-        version: link:../hermes-schema
+        version: link:../local-text-schema
       drizzle-orm:
         specifier: ^0.38.0
         version: 0.38.4
@@ -216,9 +216,9 @@ importers:
 
   tools/cli:
     dependencies:
-      '@sveltebuilder/hermes-schema':
+      '@sveltebuilder/local-text-schema':
         specifier: workspace:^
-        version: link:../../packages/hermes-schema
+        version: link:../../packages/local-text-schema
       commander:
         specifier: ^12.0.0
         version: 12.1.0

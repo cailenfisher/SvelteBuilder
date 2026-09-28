@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { messageBus } from './message-bus.svelte.js';
+  import { getMessageBus } from './message-bus.svelte.js';
+
+  const messageBus = getMessageBus();
 
   // These two regions are the only aria-live regions in the app.
   // Toasts and banners are announced here; InlineNotification uses

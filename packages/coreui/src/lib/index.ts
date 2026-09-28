@@ -22,8 +22,8 @@ export { default as Spinner } from './Spinner.svelte';
 // ============================================================
 // Messaging system
 // ============================================================
-export { messageBus, AUTO_DISMISS_MS } from './message-bus.svelte.js';
-export type { SBMessage, SBMessageSeverity, SBMessageAction } from './message-bus.svelte.js';
+export { createMessageBus, setMessageBus, getMessageBus, AUTO_DISMISS_MS } from './message-bus.svelte.js';
+export type { MessageBus, SBMessage, SBMessageSeverity, SBMessageAction } from './message-bus.svelte.js';
 export { default as Toast } from './Toast.svelte';
 export { default as ToastRegion } from './ToastRegion.svelte';
 export { default as InlineNotification } from './InlineNotification.svelte';

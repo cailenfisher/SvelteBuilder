@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import {
     Button, Field, Label, Input, Select, SelectItem,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
@@ -9,6 +9,8 @@
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+
+  const dictionary = getDictionary();
 </script>
 
 <div class="shipment-detail">
@@ -17,7 +19,7 @@
       <h1 class="shipment-detail__title">Shipment #{data.shipment.id}</h1>
       <ShipmentStatusBadge
         status={data.shipment.status}
-        label={localText(`logistic.shipment.status.${data.shipment.status}`, 'logistic')}
+        label={dictionary.localText(`logistic.shipment.status.${data.shipment.status}`, 'logistic')}
       />
     </div>
     {#if data.shipment.carrier}
@@ -67,7 +69,7 @@
           <Select id="shipment-status" name="status" required>
             {#each data.statuses as status (status)}
               <SelectItem value={status}>
-                {localText(`logistic.shipment.status.${status}`, 'logistic')}
+                {dictionary.localText(`logistic.shipment.status.${status}`, 'logistic')}
               </SelectItem>
             {/each}
           </Select>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { localText } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import {
     Button, Tabs, TabsList, TabsTrigger, TabsContent,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
@@ -11,6 +11,8 @@
   import type { InboundReceiptStatus } from '@sveltebuilder/logistic';
 
   let { data }: { data: PageData } = $props();
+
+  const dictionary = getDictionary();
 
   const statusTabs: Array<{ value: InboundReceiptStatus | ''; label: string }> = [
     { value: '', label: 'All' },
@@ -80,11 +82,11 @@
         <Label for="supplier-id">Supplier</Label>
         <Select id="supplier-id" name="supplier_id">
           <SelectItem value="">
-            {localText('logistic.inbound_receipt.blind', 'logistic')}
+            {dictionary.localText('logistic.inbound_receipt.blind', 'logistic')}
           </SelectItem>
           {#each data.suppliers as supplier (supplier.id)}
             <SelectItem value={String(supplier.id)}>
-              {localText('name', 'supplier', supplier.id)}
+              {dictionary.localText('name', 'supplier', supplier.id)}
             </SelectItem>
           {/each}
         </Select>

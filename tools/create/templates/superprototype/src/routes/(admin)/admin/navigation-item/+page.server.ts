@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import type { PageServerLoad, Actions } from './$types';
 import { navigationItem } from '$lib/server/schema';
-import { localTextLink, localText } from '@sveltebuilder/hermes-schema/schema';
+import { localTextLink, localText } from '@sveltebuilder/local-text-schema/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const navItems = await locals.db.withUser(async (tx) => {
