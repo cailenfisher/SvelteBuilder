@@ -57,8 +57,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/coreui
       diglossia:
-        specifier: link:../../../diglossia
-        version: link:../../../diglossia
+        specifier: ^0.1.1
+        version: 0.1.1(svelte@5.56.8(@typescript-eslint/types@8.59.4))
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: latest
@@ -1639,6 +1639,15 @@ packages:
   devalue@5.8.1:
     resolution: {integrity: sha512-4CXDYRBGqN+57wVJkuXBYmpAVUSg3L6JAQa/DFqm238G73E1wuyc/JhGQJzN7vUf/CMphYau2zXbfWzDR5aTEw==}
 
+  diglossia@0.1.1:
+    resolution: {integrity: sha512-yIMuz//9o4kZCa5YAgOpCS01QhdRsjGyOhXC73Y3wGpd4uIpMHo3w/FVXUzvdsiUNlmSGoQozCXvh6LQWmFr+g==}
+    engines: {node: '>=20', pnpm: '>=9'}
+    peerDependencies:
+      svelte: ^5.0.0
+    peerDependenciesMeta:
+      svelte:
+        optional: true
+
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
@@ -2209,6 +2218,10 @@ packages:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
 
+  messageformat@4.0.0:
+    resolution: {integrity: sha512-XKmJ/ffTWToWOlHJzt85ZChQgVGC0LHzNWuNK8zuYpNySsB0nIEmytOdSAOW9ETKtkajAUJf520m5gFHHnrTYg==}
+    engines: {node: ^20.19 || ^22.12 || >=24}
+
   micromatch@4.0.8:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
@@ -2243,6 +2256,11 @@ packages:
 
   nanoid@3.3.12:
     resolution: {integrity: sha512-ZB9RH/39qpq5Vu6Y+NmUaFhQR6pp+M2Xt76XBnEwDaGcVAqhlvxrl3B2bKS5D3NH3QR76v3aSrKaF/Kiy7lEtQ==}
+    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+
+  nanoid@3.3.19:
+    resolution: {integrity: sha512-Y2tUNy4ouw6tq5oDSKeQYGOyhkUBhNOcGV/02KC+6kd9eDGqdZd++mjMiIDilrBYvjEnCYvVtsuHCuP+okSfug==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -4081,6 +4099,12 @@ snapshots:
 
   devalue@5.8.1: {}
 
+  diglossia@0.1.1(svelte@5.56.8(@typescript-eslint/types@8.59.4)):
+    dependencies:
+      messageformat: 4.0.0
+    optionalDependencies:
+      svelte: 5.56.8(@typescript-eslint/types@8.59.4)
+
   dir-glob@3.0.1:
     dependencies:
       path-type: 4.0.0
@@ -4635,6 +4659,8 @@ snapshots:
 
   merge2@1.4.1: {}
 
+  messageformat@4.0.0: {}
+
   micromatch@4.0.8:
     dependencies:
       braces: 3.0.3
@@ -4670,6 +4696,9 @@ snapshots:
       thenify-all: 1.6.0
 
   nanoid@3.3.12: {}
+
+  nanoid@3.3.19:
+    optional: true
 
   natural-compare@1.4.0: {}
 
@@ -4794,7 +4823,7 @@ snapshots:
 
   postcss@8.5.16:
     dependencies:
-      nanoid: 3.3.12
+      nanoid: 3.3.19
       picocolors: 1.1.1
       source-map-js: 1.2.1
     optional: true
