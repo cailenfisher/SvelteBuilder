@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# SvelteKit
+.svelte-kit/
+build/
+/.svelte-kit
+/build
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Supabase CLI local state — recreated by `supabase start`, machine-specific
+supabase/.branches
+supabase/.temp
+
+# Editor / OS
+.DS_Store
+*.log
