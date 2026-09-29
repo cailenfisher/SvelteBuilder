@@ -28,8 +28,18 @@ function validateProjectName(value: string): string | undefined {
 
 async function deepMergePackageJson(
   base: Record<string, unknown> & { dependencies: Record<string, string> },
-  overlay: { dependencies?: Record<string, string>; devDependencies?: Record<string, string> }
+  overlay: {
+    scripts?: Record<string, string>;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  }
 ): Promise<void> {
+  if (overlay.scripts) {
+    base.scripts = {
+      ...((base.scripts as Record<string, string>) ?? {}),
+      ...overlay.scripts,
+    };
+  }
   if (overlay.dependencies) {
     base.dependencies = { ...base.dependencies, ...overlay.dependencies };
   }
@@ -297,13 +307,18 @@ async function main() {
   ];
   if (scaffoldTemplate === 'superprototype') {
     nextSteps.push(
-      `  ${pc.dim('cp')} .env.example .env   ${pc.dim('# add your Supabase credentials')}`
+      `  ${pc.dim('cp')} .env.example .env`
     );
     nextSteps.push(`  ${pc.dim(`${pm} sveltebuilder sync:supabase`)}`);
-    nextSteps.push(`  ${pc.dim("# install supabase CLI if you haven't already")}`);
+    nextSteps.push('');
+    nextSteps.push(`  ${pc.dim('# Local development (Docker required):')}`);
+    nextSteps.push(`  ${pc.dim(`${pm} db:start`)}          ${pc.dim('# prints local URL + keys — copy them into .env')}`);
+    nextSteps.push(`  ${pc.dim(`${pm} db:reset`)}          ${pc.dim('# applies migrations + seed.sql')}`);
+    nextSteps.push('');
+    nextSteps.push(`  ${pc.dim('# — or deploy against a hosted Supabase project instead:')}`);
     nextSteps.push(`  ${pc.dim('supabase link --project-ref <project-ref>')}`);
     nextSteps.push(`  ${pc.dim('supabase db push')}`);
-    nextSteps.push(`  ${pc.dim('# seed your database')}`);
+    nextSteps.push(`  ${pc.dim('# then add its credentials to .env')}`);
   }
   if (noInstall) {
     nextSteps.push(

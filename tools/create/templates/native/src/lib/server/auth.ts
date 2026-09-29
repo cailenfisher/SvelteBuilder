@@ -3,7 +3,7 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import MicrosoftEntraID from '@auth/sveltekit/providers/microsoft-entra-id';
 import Google from '@auth/sveltekit/providers/google';
 import GitHub from '@auth/sveltekit/providers/github';
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db/client';
 import { userAccount } from '$lib/server/schema';
 import {
@@ -71,6 +71,10 @@ export const { handle, signIn, signOut } = SvelteKitAuth(async () => {
       // Provision a public.user_account row the first time a user signs in.
       // Auth.js has already created auth.user at this point, so auth_user_id
       // is guaranteed to exist. Idempotent — safe if called more than once.
+      //
+      // The very first user_account row ever created is granted admin — with
+      // no data yet, this is the only path into the admin area. Promote or
+      // revoke admins after that with a direct SQL update.
       createUser: async ({ user }) => {
         if (!user.id) return;
         const existing = await db
@@ -79,7 +83,8 @@ export const { handle, signIn, signOut } = SvelteKitAuth(async () => {
           .where(eq(userAccount.authUserId, user.id))
           .limit(1);
         if (existing.length === 0) {
-          await db.insert(userAccount).values({ authUserId: user.id });
+          const [{ value: userAccountCount }] = await db.select({ value: count() }).from(userAccount);
+          await db.insert(userAccount).values({ authUserId: user.id, admin: userAccountCount === 0 });
         }
       },
     },
