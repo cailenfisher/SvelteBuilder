@@ -14,12 +14,18 @@ major_version = 15
 enabled = true
 port = 54323
 
-[inbucket]
+[local_smtp]
 enabled = true
 port = 54324
 
 [storage]
 enabled = true
+
+# Logflare/Vector — Studio's centralized log viewer. Two extra always-on containers
+# that add real memory/CPU overhead for a feature most local dev doesn't need.
+# Flip to true if you actually want Studio's Logs pane locally.
+[analytics]
+enabled = false
 
 [auth]
 enabled = true
@@ -32,3 +38,11 @@ enable_signup = true
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
+
+# The scaffold's sign-in page (src/routes/sign-in/) calls signInWithOAuth({ provider: 'google' })
+# exclusively — this provider must be enabled, here and in your Google Cloud OAuth client, before
+# local sign-in works. See "Local development" in README.md for the full setup.
+[auth.external.google]
+enabled = false
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"

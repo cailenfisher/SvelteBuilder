@@ -398,6 +398,12 @@ No JWT role claims are used. Promote a user to admin by setting `admin = true` d
 - **SuperPrototype:** calls `event.locals.supabase.auth.getUser()` then looks up `user_account` by `auth_user_id`.
 - **Native:** calls `event.locals.auth()` (Auth.js session) then looks up `user_account` by `auth_user_id`.
 
+Both seams provision `user_account` just-in-time on first sign-in (SuperPrototype does this
+inline in `resolveAuthenticatedUserId`; Native's equivalent is the Auth.js `events.createUser`
+callback). The very first `user_account` row ever created is granted `admin = true` — with no
+data yet, that JIT insert is the only path into the admin area. Promote or revoke admins after
+that with a direct SQL update; there is no invite/promotion UI.
+
 ---
 
 ## Architecture Guardrails
