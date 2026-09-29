@@ -26,7 +26,7 @@
 
   <dl class="nav-item-edit-page__meta">
     <dt>{slugLabel}</dt>
-    <dd><code>{data.navItem.local_text_link?.slug ?? '—'}</code></dd>
+    <dd><code>{data.navItem.localTextLink?.slug ?? '—'}</code></dd>
     <dt>{hrefLabel}</dt>
     <dd>{data.navItem.href}</dd>
   </dl>
@@ -49,7 +49,7 @@
           <Input id="nav-scope" name="scope" value={data.navItem.scope} required />
         </Field>
         <Field label={sortLabel} id="nav-sort">
-          <Input id="nav-sort" name="sort_order" type="number" value={String(data.navItem.sort_order)} />
+          <Input id="nav-sort" name="sort_order" type="number" value={String(data.navItem.sortOrder)} />
         </Field>
       </div>
       <Field label={dictionary.localText('admin.navigation_item.active')} id="nav-active">
@@ -69,7 +69,7 @@
             localeLabel={locale.nativeName}
             contentLabel={dictionary.localText('admin.local_text.content')}
             locales={[locale]}
-            slug={data.navItem.local_text_link?.slug ?? ''}
+            slug={data.navItem.localTextLink?.slug ?? ''}
             localeId={locale.id}
             content={translationFor(locale.id)}
             slugReadonly={true}

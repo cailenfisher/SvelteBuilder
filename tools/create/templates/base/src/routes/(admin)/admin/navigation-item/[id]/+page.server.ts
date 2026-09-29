@@ -5,9 +5,9 @@ type NavItem = {
   id: number
   href: string
   scope: string
-  sort_order: number
+  sortOrder: number
   active: boolean
-  local_text_link: { id: number; slug: string; scope: string | null } | null
+  localTextLink: { id: number; slug: string; scope: string | null } | null
 }
 type LocalText = { id: number; link: number; locale: number; content: string }
 type Locale = { id: number; code: string; nativeName: string }
@@ -21,9 +21,9 @@ export const load: PageServerLoad = async ({ params }) => {
       id,
       href: '',
       scope: '',
-      sort_order: 0,
+      sortOrder: 0,
       active: true,
-      local_text_link: null,
+      localTextLink: null,
     } as NavItem,
     translations: [] as LocalText[],
     locales: [] as Locale[],

@@ -79,11 +79,11 @@
         {#each data.navItems as item (item.id)}
           <TableRow>
             <TableCell>
-              <code class="nav-item-admin__slug">{item.local_text_link?.slug ?? '—'}</code>
+              <code class="nav-item-admin__slug">{item.localTextLink?.slug ?? '—'}</code>
             </TableCell>
             <TableCell>{item.href}</TableCell>
             <TableCell>{item.scope}</TableCell>
-            <TableCell>{item.sort_order}</TableCell>
+            <TableCell>{item.sortOrder}</TableCell>
             <TableCell>{item.active ? '✓' : '—'}</TableCell>
             <TableCell>
               <div class="nav-item-admin__row-actions">

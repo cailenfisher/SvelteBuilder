@@ -1,29 +1,28 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 import type { PageServerLoad, Actions } from './$types';
-import { locale } from '@sveltebuilder/local-text-schema/schema';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
   if (isNaN(id)) throw error(404, 'Not found');
 
-  const rows = await locals.db.withUser(async (tx) => {
-    return tx
-      .select({
-        id: locale.id,
-        code: locale.code,
-        name: locale.name,
-        nativeName: locale.nativeName,
-        dir: locale.dir,
-      })
-      .from(locale)
-      .where(eq(locale.id, id))
-      .limit(1);
-  });
+  const { data, error: queryError } = await locals.supabase
+    .from('locale')
+    .select('id, code, name, native_name, dir')
+    .eq('id', id)
+    .maybeSingle();
 
-  if (!rows[0]) throw error(404, 'Locale not found');
+  if (queryError) throw error(500, 'Failed to load locale.');
+  if (!data) throw error(404, 'Locale not found');
 
-  return { locale: rows[0] };
+  return {
+    locale: {
+      id: data.id,
+      code: data.code,
+      name: data.name,
+      nativeName: data.native_name,
+      dir: data.dir,
+    },
+  };
 };
 
 export const actions: Actions = {
@@ -40,9 +39,12 @@ export const actions: Actions = {
       return fail(422, { error: 'Code, name, and native name are required.' });
     }
 
-    await locals.db.withUser(async (tx) => {
-      await tx.update(locale).set({ code, name, nativeName, dir }).where(eq(locale.id, id));
-    });
+    const { error: updateError } = await locals.supabase
+      .from('locale')
+      .update({ code, name, native_name: nativeName, dir })
+      .eq('id', id);
+
+    if (updateError) return fail(500, { error: 'Failed to update locale.' });
 
     return { success: true };
   },
@@ -51,9 +53,12 @@ export const actions: Actions = {
     const id = parseInt(params.id);
     if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    await locals.db.withUser(async (tx) => {
-      await tx.delete(locale).where(eq(locale.id, id));
-    });
+    const { error: deleteError } = await locals.supabase
+      .from('locale')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) return fail(500, { error: 'Failed to delete locale.' });
 
     throw redirect(303, '/admin/locale');
   },

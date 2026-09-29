@@ -37,6 +37,15 @@ What Native will need whenever it resumes (record additions here rather than fix
   is Supabase-specific; `CLAUDE.md` already notes Native has never defined a sync path.
 - A `README.md` (it has none) and `.env.example` guidance that does not point `DATABASE_URL` at a
   table-owning superuser role.
+- **Two SQL functions it does not define.** The shared base template's
+  `supabase/supplemental/00-local-text-rls.sql` calls `public.current_user_admin()` and
+  `public.current_user_id()`. SuperPrototype supplies both in
+  `supabase/supplemental/00-auth-functions.sql`, resolved from `auth.uid()`. Native has no
+  `supabase/` directory at all, so it supplies neither — it will need its own definitions with the
+  same signatures (`current_user_id() returns bigint`, `current_user_admin() returns boolean`),
+  plus an equivalent of `ensure_user_account()`. This is the seam; it is deliberately narrow.
+- **A route-code story.** SuperPrototype's routes now query `event.locals.supabase` directly, so
+  the two templates no longer share loader/action code at all.
 
 ---
 
@@ -63,6 +72,48 @@ the new API immediately rather than at some future upgrade):
 ---
 
 ## Pending manual steps
+
+**Migrate the Supabase project to asymmetric JWT signing keys.** `getClaims()` only verifies
+tokens locally — the whole reason it replaced `getUser()` in `auth-resolver.ts` — when the project
+signs with an asymmetric key (ES256/RSA) it can publish at `.well-known/jwks.json`. On a project
+still using the legacy shared HS256 secret, `getClaims()` falls back to asking the Auth server,
+which works but gives up the latency win. This is a dashboard action per project (Auth > Signing
+Keys), not something the scaffold can do. Wait ~20 minutes after creating a standby key before
+rotating, so in-flight tokens are not rejected.
+
+**Verify the app layer against a live Supabase project.** The SQL half of the RLS rebuild has been
+executed and tested (see below), but nothing has run against real Supabase or PostgREST.
+Specifically unverified:
+
+- `getClaims()` end to end against a real Supabase-issued JWT, and its behaviour on a project that
+  has *not* yet migrated to asymmetric signing keys.
+- PostgREST response shapes the loaders assume: that the embedded `local_text_link(...)` resource
+  comes back as a single object rather than an array (it should, given the FK), that `.rpc()` binds
+  `bigint[]` / `text[]` array arguments as written, and that `.upsert(..., { onConflict:
+  'link,locale' })` targets `uq_local_text_entry` correctly.
+- The whole scaffold flow: `npm create sveltebuilder` → `sync:supabase` → `db:reset` → `dev`, with
+  a real sign-in.
+- That the admin area's new 403 for a signed-in non-admin renders sensibly rather than as a raw
+  error page.
+
+**Already verified (2026-09-29, throwaway Postgres 16 container with a stand-in `auth.uid()` and
+non-owner `anon`/`authenticated` roles).** All five supplemental SQL files applied cleanly and
+twelve behavioural cases passed. Worth recording because two of them were the actual risks:
+
+- The **old** inline `exists (select 1 from public.user_account …)` policy on `user_account` does
+  raise `infinite recursion detected in policy for relation` — confirming the latent bug the total
+  RLS bypass had been masking. The `current_user_admin()` SECURITY DEFINER helper resolves it: the
+  rewritten policy returns 2 rows for an admin and 1 (own row only) for a non-admin.
+- `ensure_user_account()` grants `admin = true` to the first principal and, critically, **not** to
+  the second. This is the privilege-escalation trap that would appear if the emptiness check ever
+  moved back into application code, where RLS hides all rows from a brand-new user.
+- Non-admins are refused writes to `locale` and refused inside the SECURITY INVOKER RPCs, proving
+  those functions add atomicity without adding privilege.
+- `create_local_text_entry` rolls back as one unit on a bad locale FK, leaving no orphaned link.
+- `get_dictionary` resolves for `anon`, including locale fallback.
+
+The harness is not kept in the repo — it hand-rolls the Supabase-managed pieces and would rot
+against the real platform. Recreate it if these policies change materially.
 
 **Publish diglossia and switch off `link:`.** `packages/coreui`, `packages/content`, and
 `packages/logistic` each declare `"diglossia": "link:../../../diglossia"`, which resolves to a

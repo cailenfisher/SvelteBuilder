@@ -5,7 +5,7 @@ export const load: LayoutServerLoad = async () => {
     navItems: [] as Array<{
       id: number
       href: string
-      local_text_link: { slug: string; scope: string | null } | null
+      localTextLink: { slug: string; scope: string | null } | null
     }>,
   }
 }

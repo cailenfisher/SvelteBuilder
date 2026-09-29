@@ -21,12 +21,12 @@ names, run:
 ```bash
 supabase status -o env \
   --override-name api.url=PUBLIC_SUPABASE_URL \
-  --override-name auth.publishable_key=PUBLIC_SUPABASE_ANON_KEY \
-  --override-name auth.secret_key=SUPABASE_SECRET_KEY
+  --override-name auth.publishable_key=PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ```
 
-and copy the three matching lines into `.env`. `DATABASE_URL` for local Supabase is always
-`postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
+and copy the two matching lines into `.env`. There is no `DATABASE_URL`: this app never opens a
+direct Postgres connection, which is what keeps RLS in force on every query (see
+[CLAUDE.md](./CLAUDE.md)).
 
 ```bash
 pnpm db:reset                      # applies supabase/migrations + supabase/seed.sql
@@ -49,8 +49,9 @@ Without it, the public route (`/`) and the read-only `/api/locale` and `/api/loc
 endpoints still work — only the admin section is gated.
 
 The first person to ever sign in is provisioned as `user_account.admin = true` automatically
-(see `resolveAuthenticatedUserId` in `src/lib/server/auth-resolver.ts`) — there's no separate
-invite step on a fresh database. Promote or revoke admins after that with a direct SQL update.
+(by the `ensure_user_account()` function in `supabase/supplemental/00-auth-functions.sql`, called
+from `src/lib/server/auth-resolver.ts`) — there's no separate invite step on a fresh database.
+Promote or revoke admins after that with a direct SQL update.
 
 When you change the schema (`src/lib/server/schema.ts` or a module's), re-run
 `pnpm sveltebuilder sync:supabase` to regenerate migrations, then `pnpm db:reset` to apply them.
@@ -68,5 +69,5 @@ with `https://<project-ref>.supabase.co/auth/v1/callback` as the redirect URI.
 
 ## Everything else
 
-See [CLAUDE.md](./CLAUDE.md) for the i18n architecture, schema rules, naming conventions, and
-`withUser`/RLS auth pattern this project follows.
+See [CLAUDE.md](./CLAUDE.md) for the i18n architecture, schema rules, naming conventions, and the
+RLS/auth pattern this project follows.
