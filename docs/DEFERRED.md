@@ -5,6 +5,41 @@ SvelteBuilder integration work order. Read alongside `CLAUDE.md`'s Known Open Is
 
 ---
 
+## Native template — ON HOLD (2026-09-29)
+
+`tools/create/templates/native/` is frozen. It is not selectable in `npm create sveltebuilder`
+(the CLI cancels if chosen), and no further work goes into it until that decision is revisited.
+
+Rationale: SuperPrototype is being realigned to use Supabase's own client and patterns rather than
+a provider-neutral Drizzle + `withUser` data layer. Maintaining Native in lockstep would force
+SuperPrototype to keep fighting Supabase's model for the sake of a template nobody can install
+yet. SvelteBuilder is also locked to Postgres, which removes the portability argument that
+motivated a database-agnostic query layer in the first place.
+
+Standing rules while on hold:
+
+- Shared surfaces — base template, `@sveltebuilder/coreui`, `@sveltebuilder/local-text-schema`,
+  and the domain module packages — must not take hard Supabase dependencies. The seam stays where
+  it is.
+- SuperPrototype-only code may be fully Supabase-coupled.
+- Native's own drift is expected and not a defect to fix.
+
+What Native will need whenever it resumes (record additions here rather than fixing them now):
+
+- A data-access story to replace whatever SuperPrototype drops. If SuperPrototype moves to
+  `supabase-js`/PostgREST, Native needs its own query layer, and the two templates will no longer
+  share route code.
+- A working RLS enforcement mechanism. Native's current `withUser` + `app.current_user_id` GUC
+  pattern does not enforce RLS at all when the connection role owns the tables or is a superuser
+  (see the RLS section of this repo's history); a dedicated non-owner Postgres role plus
+  `ALTER DEFAULT PRIVILEGES` is the fix, and it has not been applied.
+- Its own schema/migration path. It has no `supabase/` directory and `sveltebuilder sync:supabase`
+  is Supabase-specific; `CLAUDE.md` already notes Native has never defined a sync path.
+- A `README.md` (it has none) and `.env.example` guidance that does not point `DATABASE_URL` at a
+  table-owning superuser role.
+
+---
+
 ## dev-kitchen
 
 `apps/dev-kitchen` is stagnant per this work order's standing rules — not fixed, not migrated.

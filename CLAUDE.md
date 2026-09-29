@@ -18,6 +18,28 @@ select which domain modules to include.
 
 ---
 
+## Template Status — read before touching scaffold code
+
+**SuperPrototype is the only active scaffold template. The Native template is ON HOLD as of
+2026-09-29 and is not accessible through `npm create sveltebuilder`.**
+
+Work SuperPrototype as a first-class Supabase application: use Supabase's own client, patterns,
+and tooling rather than provider-neutral abstractions that work against them. Where a choice
+exists between "the Supabase way" and "the portable way," SuperPrototype takes the Supabase way.
+
+Native is on hold, not cancelled. So:
+
+- **Shared surfaces stay provider-neutral in shape.** The base template, `@sveltebuilder/coreui`,
+  the domain module packages, and the local-text/i18n schema must not acquire hard Supabase
+  dependencies. Keep the seam where it already is; do not widen it.
+- **SuperPrototype-only surfaces may be fully Supabase-coupled.** Anything under
+  `tools/create/templates/superprototype/` is free to import `@supabase/*` and assume PostgREST,
+  Supabase Auth, and the Supabase CLI.
+- **Do not invest in Native.** Do not add features, migrate it to new patterns, or fix its drift.
+  Record what it will need in `docs/DEFERRED.md` instead.
+
+---
+
 ## Monorepo Layout
 
 ```
@@ -53,7 +75,7 @@ is consumed here as an external dependency rather than a workspace package. See
 | Framework       | SvelteKit + TypeScript                                                                                                  |
 | Svelte API      | Svelte 5 runes only                                                                                                     |
 | Database        | PostgreSQL (Supabase-hosted). Drizzle is the schema source of truth for every package; `sveltebuilder sync:supabase` generates SQL migrations from it. |
-| Auth            | SuperPrototype template: Supabase Auth. Native template: Auth.js (`@auth/sveltekit`) with a Drizzle adapter. See [Auth Architecture](#auth-architecture). |
+| Auth            | SuperPrototype template: Supabase Auth. Native template (ON HOLD): Auth.js (`@auth/sveltekit`). See [Auth Architecture](#auth-architecture). |
 | i18n formatting | `messageformat` (Unicode MessageFormat 2), via `diglossia`'s `formatText()`                                              |
 | i18n layer      | `diglossia` (external dependency, schema: `@sveltebuilder/local-text-schema`)                                            |
 | UI components   | `@sveltebuilder/coreui` (on Bits UI primitives)                                                                         |
@@ -635,6 +657,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 
 | Issue                              | Notes                                                                                                                                                                                                          |
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Native template (ON HOLD)          | Frozen 2026-09-29 — not accessible from `npm create sveltebuilder`, not being maintained. Its `withUser`/Drizzle data layer is the pattern SuperPrototype is moving away from, so expect it to fall further behind. Keep shared surfaces provider-neutral in shape; do not spend effort on Native itself. |
 | `apps/dev-kitchen`                 | Stagnant — not migrated to the diglossia 0.1.0 core/svelte split, the `withUser` auth pattern, or any other change made since. Do not fix or update it; it will keep diverging from scaffold templates over time. Known defects tracked in `docs/DEFERRED.md`. |
 | `@sveltebuilder/commerce`          | Not started — single placeholder `index.ts`. The product's remaining domain differentiator gap.                                                                                                                |
 | `@sveltebuilder/logistic` polish   | Core module is built (see Completed Foundation), but has no vitest suite (no test file in the package — `diglossia`, extracted from this repo, is the only i18n primitives code with a test suite) and no dev-kitchen showcase routes.    |
@@ -657,7 +680,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | Local-text DB schema        | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function (`security invoker`, explicit predicate parens); schema of record is the Drizzle defs in `@sveltebuilder/local-text-schema`, SQL is generated; RLS + `get_dictionary` now ship from `tools/create/templates/base/supabase/supplemental/`, applying to every scaffold flavor |
 | Auth architecture           | Principal–identity split, `public.current_user_id()` STABLE function, `withUser` transaction wrapper, unified `hooks.server.ts` shape, `resolveAuthenticatedUserId` seam between templates; all RLS policies migrated from `auth.uid()`/`auth.jwt()` to `current_user_id()` + `user_account.admin`       |
 | SuperPrototype template     | Full Drizzle + `withUser` migration complete — all admin + API routes use Drizzle queries through `event.locals.db.withUser`. Auth.js-ready `auth-resolver.ts` seam in place. `user_account` now has bigint PK + `auth_user_id text` + `admin bool`. Sign-in/out remain Supabase OAuth.                   |
-| Native template             | New — Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern.                                                                            |
+| Native template             | **ON HOLD 2026-09-29** — built but frozen and unreachable from the create CLI. Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern. Will diverge from SuperPrototype from here; see `docs/DEFERRED.md`. |
 | Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) generated via `sync:supabase`; CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`) |
 | Messaging system            | Universal message surface in coreui — `createMessageBus`/`setMessageBus`/`getMessageBus` (context-provided, same shape as diglossia's dictionary, replacing a module-level `$state` singleton), `Toast`/`ToastRegion`, `Banner`, `InlineNotification`, `ConfirmDialog`, `MessageAriaLive`; wired into the base scaffold template's root layout. |
 | Publishing pipeline         | `.changeset/` configured (GitHub changelog, public npm access) — packages are versioned independently (e.g. `coreui@0.0.15`, `logistic@0.0.9`) via Changesets                                       |

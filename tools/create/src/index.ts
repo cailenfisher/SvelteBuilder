@@ -95,7 +95,7 @@ async function main() {
       {
         value: 'native' as ScaffoldTemplate,
         label: 'Native',
-        hint: 'coming soon',
+        hint: 'on hold — not available',
       },
     ],
   });
@@ -104,7 +104,7 @@ async function main() {
     process.exit(0);
   }
   if (templateChoice === 'native') {
-    p.cancel('The Native template is not yet available. Select SuperPrototype to continue.');
+    p.cancel('The Native template is on hold and not available. Select SuperPrototype to continue.');
     process.exit(0);
   }
   const scaffoldTemplate = templateChoice as ScaffoldTemplate;
