@@ -12,20 +12,20 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
     "@sveltebuilder/content": "workspace:*",
     "@sveltebuilder/coreui": "workspace:*",
-    "diglossia": "link:../../../diglossia",
-    "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest"
+    "diglossia": "^0.1.1"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "latest",
     "@sveltejs/kit": "latest",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "@types/node": "latest",
     "svelte": "latest",
     "svelte-check": "latest",
     "typescript": "^5.5.0",
-    "vite": "^5.3.0",
-    "@types/node": "latest"
+    "vite": "^5.3.0"
   }
 }
