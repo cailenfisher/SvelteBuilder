@@ -3,11 +3,60 @@
 How domain modules should deliver route-level code (loaders, form actions, pages) given that the
 scaffold templates no longer agree on how to reach the database.
 
-**Status: open.** Nothing here is decided. The Logistic module is gated in `npm create sveltebuilder`
-until it is, and this document exists so the gate is a considered pause rather than an oversight.
-Read alongside `CLAUDE.md`'s *Template Status* and `docs/DEFERRED.md`.
+**Status: decided 2026-09-30.** The analysis below is kept as the rationale; the decisions it
+produced are stated here. Read alongside `CLAUDE.md`'s *Template Status* and `docs/DEFERRED.md`.
 
----
+## Decisions
+
+1. **Modules stay pure (Option A).** A module package ships its Drizzle schema, its supplemental SQL,
+   its components, and the view-model types that define its screen contracts. It ships no data-access
+   layer and no route code. The `./server` export is removed from every module.
+
+2. **Screens live in template-land, and are owned by the app once scaffolded.** Route code is a
+   one-time scaffold — a starting point the generated project owns outright, not a dependency it
+   tracks. Upgradeability is explicitly not a goal: real teams diverge from generated route code
+   immediately, and pretending otherwise produces an abstraction nobody wants. This closes the
+   upgradeability question raised under *Angles that are easy to miss* by declining it on purpose.
+
+3. **The line between a component and a screen: once it is a full screen, view, or page, it does not
+   belong in the library.** Components may compose other components freely. A `+page.svelte`, or a
+   composed view that exists to *be* a page, belongs in the template tree. Recorded as a guardrail in
+   `CLAUDE.md`.
+
+4. **The type is the contract.** Because a screen and its loader now live in different places, each
+   module exports view-model types (`@sveltebuilder/<mod>/views`). The neutral screen imports the
+   type; every flavor's loader returns it. The contract covers load data, form action names, field
+   names, and `fail()` payload shapes. This is what keeps the split checkable instead of implicit.
+
+5. **Screens split by flavor inside the module's template directory, not into `base`.** The property
+   wanted is provider-neutral, not always-installed; putting module screens in `base` would couple
+   base to modules. Layout is `screens/<screen-id>/{manifest.json, ui/**, server.<flavor>/**}`.
+   Only `server.superprototype/` exists today.
+
+6. **The selectable unit is a feature bundle, not a route file.** A bundle carries its list, detail
+   and any shared layout together, and declares `requires` for sibling bundles it links to. Screens
+   are selected in the create CLI after module selection.
+
+7. **SQL and seed data stay module-granular; only routes are screen-granular.** An unselected screen's
+   tables and copy are harmless, whereas a missing table is not. This keeps schema, supplemental SQL
+   and seeds exactly as they are.
+
+8. **Native is not cancelled, but is not served by this pass.** Its obligation reduces to supplying
+   `server.native/` halves satisfying the exported view-model types. That does not resolve its actual
+   blocker — `withUser` + GUC still bypasses RLS against a table-owning role, and the non-owner role
+   plus `ALTER DEFAULT PRIVILEGES` remains prerequisite.
+
+## Flagged for later
+
+| Severity | Item |
+| --- | --- |
+| **Critical — pending review** | Logistic's 40 RLS policies call `public.current_user_id()` bare rather than as `(select …)`, so they evaluate once per row instead of once per statement, and they re-implement the admin check as an inline `exists (select 1 from public.user_account …)` subquery instead of calling `public.current_user_admin()`. On warehouse-scale tables this is a real cost. The policies have also never been enforced — under `withUser` the connection role owned the tables, so Postgres skipped RLS entirely. This pass leaves them as they are; only a policy that blocks a screen from functioning gets touched, and it gets reported rather than silently optimised. |
+| **Important — later** | Nav, seed and supplemental data are module-granular while routes are screen-granular. Harmless today because logistic seeds no nav items at all and base's admin layout returns an empty `navItems` stub — but module screens are currently reachable only through hardcoded links between sibling screens, which is why bundles need `requires`. A real nav story would let selection drive discoverability. |
+| **Needs its own conversation** | What of logistic's 45 removed query functions belongs in Postgres as views or `SECURITY INVOKER` functions rather than in route loaders. Some already are (`logistic_adjust_stock`, `logistic_reserve_stock`, …). This pass does a quick pass on the obvious candidates and moves the rest into SuperPrototype loaders. |
+| **Revisit** | Feature-bundle granularity may need a second pass once several modules use it; cross-bundle hardcoded links are the pressure point. |
+| **Revisit** | Screens-as-components (a `<PickTaskListScreen>` in the package with a five-line route) preserves markup upgradeability and follows from screens being the valuable artifact. Declined for now in favour of editable template files; worth reopening if real consumers appear or a second flavour lands. |
+| **Practice** | Pin template dependencies at authoring time. `"latest"` across the board produced a scaffold whose `pnpm check` cannot run (TypeScript 7 against svelte-check 4). Screens are code written against specific component APIs, so this matters more now than it did. |
+
 
 ## What actually broke
 
@@ -19,9 +68,14 @@ const suppliers = await locals.db.withUser((tx) => getSuppliers(tx, locale.code)
 ```
 
 `locals.db` no longer exists. Phase 1 replaced SuperPrototype's Drizzle handle with
-`locals.supabase`, so scaffolding Logistic now produces a project that does not typecheck. The
-Content module escaped only because it never shipped route templates — its module template is a
-manifest plus supplemental SQL.
+`locals.supabase`, so scaffolding Logistic now produces a project that does not typecheck.
+
+Content escaped the break for a stranger reason: it *does* have 13 route templates, but they live
+inside the package at `packages/content/src/lib/templates/routes/` and the create CLI has never
+copied them. They were compiled into `dist/templates/routes/` and published as dead weight — build
+output no scaffolded project routes and no developer can edit. So content has been shipping as a pure
+Option A module by accident, and nobody noticed the routes never arrived. Those screens have value
+and move into the template tree alongside logistic's.
 
 ## The question is data access, not routes
 
@@ -194,31 +248,13 @@ weighing before investing in more of them.
 
 ---
 
-## Recommendation
+## What this became
 
-Sequenced, cheapest first:
+The plan executed from these decisions: pin template deps; strip `./server` and add `./views` to each
+module; carry one vertical slice (Supplier) end to end through the new layout and the CLI's screen
+selection; port the remaining bundles; then land a scaffold-and-build CI gate and ungate Logistic.
 
-1. **Decide G.** Everything else is contingent. If Native is cancelled, stop here and make modules
-   Supabase-native.
-2. **Decide the `./server` export.** It is unusable under SuperPrototype today regardless of what
-   routes do. This is the blocking item, not routes.
-3. **Prototype C on one module surface** — one read view and one write function for, say, suppliers —
-   and see what the route code shrinks to. If it collapses to a thin call, D becomes nearly free and
-   the N×M objection stops mattering.
-4. **Adopt D structurally** whichever way C goes, because it costs nothing now and removes the
-   category of break that caused this document.
-5. **Revisit E** once there are enough downstream projects that an unfixable copied route is a real
-   liability. Do not build it before then.
-
-A is the likely answer for anything that cannot be expressed in the database, and that is not a
-retreat: it is the same boundary coreui already draws successfully.
-
-## What would settle it
-
-- Is Native shipping? (G)
-- Does a module's value survive without routes? If a team would still install `@sveltebuilder/logistic`
-  for schema, SQL, and components alone, A is sufficient and the rest is optimisation.
-- How much of a module's data access can be expressed as views and SECURITY INVOKER functions without
-  contorting it? That number decides whether C is a foundation or a detour.
-- How many scaffolded projects exist, and has a module fix ever needed to reach them? The first time
-  the answer is "yes, and it couldn't", E stops being theoretical.
+The recommendation this document originally closed with was to decide Native's fate first, on the
+grounds that it collapses most of the question. That is still true, and it is still undecided — but
+the structure chosen here makes Native additive rather than a refactor, so the decision can wait
+without accruing cost.
