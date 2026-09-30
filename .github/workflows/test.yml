@@ -1,0 +1,42 @@
+name: Test
+
+# The unit suites, across every package that has one.
+#
+# Separate from Scaffold check because the two cost very different amounts and catch
+# very different things: this runs in seconds and never scaffolds a project, while that
+# one installs and builds four of them. A screen bundle whose manifest lies about itself
+# fails here; a screen whose loader and page disagree fails there.
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Apps are excluded: dev-kitchen is stagnant by decision and its build fails.
+      - name: Test
+        run: pnpm turbo run test --filter='!./apps/*'
