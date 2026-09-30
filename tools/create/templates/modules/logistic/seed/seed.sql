@@ -426,3 +426,66 @@ from (values
 ) as v(slug, scope, content)
 join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — supplier bundle
+--
+-- Added with the supplier screen bundle. Seeds stay module-granular (an unselected
+-- screen's copy is harmless, a missing row is not), so this lives here rather than
+-- beside the screen. Global labels the screen also uses — action.save, action.cancel,
+-- action.back, action.remove — come from the base seed under scope null.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.supplier.title',        'logistic', null),
+  ('logistic.supplier.add',          'logistic', null),
+  ('logistic.supplier.empty',        'logistic', null),
+  ('logistic.supplier.contacts',     'logistic', null),
+  ('logistic.supplier.contact_add',  'logistic', null),
+  ('logistic.supplier.contact_none', 'logistic', null),
+  ('logistic.field.slug',            'logistic', null),
+  ('logistic.field.active',          'logistic', null),
+  ('logistic.field.role',            'logistic', null),
+  ('logistic.field.name',            'logistic', null),
+  ('logistic.field.email',           'logistic', null),
+  ('logistic.field.phone',           'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.supplier.title',        'Suppliers'),
+  ('logistic.supplier.add',          'Add supplier'),
+  ('logistic.supplier.empty',        'No suppliers yet. Add one to start recording inbound receipts.'),
+  ('logistic.supplier.contacts',     'Contacts'),
+  ('logistic.supplier.contact_add',  'Add contact'),
+  ('logistic.supplier.contact_none', 'No contacts recorded for this supplier.'),
+  ('logistic.field.slug',            'Slug'),
+  ('logistic.field.active',          'Active'),
+  ('logistic.field.role',            'Role'),
+  ('logistic.field.name',            'Name'),
+  ('logistic.field.email',           'Email'),
+  ('logistic.field.phone',           'Phone')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.supplier.title',        'Fournisseurs'),
+  ('logistic.supplier.add',          'Ajouter un fournisseur'),
+  ('logistic.supplier.empty',        'Aucun fournisseur. Ajoutez-en un pour enregistrer des réceptions.'),
+  ('logistic.supplier.contacts',     'Contacts'),
+  ('logistic.supplier.contact_add',  'Ajouter un contact'),
+  ('logistic.supplier.contact_none', 'Aucun contact enregistré pour ce fournisseur.'),
+  ('logistic.field.slug',            'Identifiant'),
+  ('logistic.field.active',          'Actif'),
+  ('logistic.field.role',            'Rôle'),
+  ('logistic.field.name',            'Nom'),
+  ('logistic.field.email',           'Courriel'),
+  ('logistic.field.phone',           'Téléphone')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;

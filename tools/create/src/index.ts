@@ -19,6 +19,75 @@ const MODULE_DEPS: Record<string, string[]> = {
   logistic: ['@sveltebuilder/logistic', '@sveltebuilder/coreui'],
 };
 
+/**
+ * One selectable screen bundle, as declared by
+ * templates/modules/<module>/screens/<id>/manifest.json.
+ *
+ * A bundle is a coherent feature — its list, its detail, and any layout they share —
+ * not a single route file. Selecting individual routes would leave the cross-links
+ * screens make between each other pointing at pages that were never scaffolded, which
+ * is what `requires` exists to prevent.
+ */
+type ScreenManifest = {
+  id: string;
+  module: string;
+  label: string;
+  hint?: string;
+  routes?: string[];
+  requires?: string[];
+};
+
+/** A bundle's key in the prompt. Screen ids only have to be unique per module. */
+const screenKey = (screen: ScreenManifest) => `${screen.module}:${screen.id}`;
+
+/**
+ * Reads the screen bundles available for the chosen modules. Directories starting
+ * with `_` are holding areas for route code that has not been ported into a bundle
+ * yet — they are deliberately not selectable and never copied.
+ */
+async function discoverScreens(modules: string[]): Promise<ScreenManifest[]> {
+  const found: ScreenManifest[] = [];
+
+  for (const mod of modules) {
+    const screensDir = path.join(TEMPLATES_DIR, 'modules', mod, 'screens');
+    if (!(await fs.pathExists(screensDir))) continue;
+
+    for (const entry of (await fs.readdir(screensDir)).sort()) {
+      if (entry.startsWith('_')) continue;
+      const manifestPath = path.join(screensDir, entry, 'manifest.json');
+      if (!(await fs.pathExists(manifestPath))) continue;
+      found.push((await fs.readJson(manifestPath)) as ScreenManifest);
+    }
+  }
+
+  return found;
+}
+
+/**
+ * Expands a selection to include everything the chosen bundles declare in `requires`,
+ * so a screen never ships without the siblings it links to.
+ */
+function resolveScreenRequires(
+  selected: string[],
+  available: ScreenManifest[],
+): ScreenManifest[] {
+  const byKey = new Map(available.map((screen) => [screenKey(screen), screen]));
+  const chosen = new Map<string, ScreenManifest>();
+
+  const visit = (key: string) => {
+    if (chosen.has(key)) return;
+    const screen = byKey.get(key);
+    if (!screen) return;
+    chosen.set(key, screen);
+    for (const requiredId of screen.requires ?? []) {
+      visit(requiredId.includes(':') ? requiredId : `${screen.module}:${requiredId}`);
+    }
+  };
+
+  for (const key of selected) visit(key);
+  return [...chosen.values()];
+}
+
 function validateProjectName(value: string): string | undefined {
   if (!value.trim()) return 'Project name is required.';
   if (!/^[a-z0-9][a-z0-9-_.]*$/.test(value))
@@ -160,6 +229,49 @@ async function main() {
   }
 
   const modules = selectedModules as string[];
+
+  // ── Screen selection ──────────────────────────────────────────────────────
+  //
+  // Modules ship schema, components and SQL; the screens that use them are scaffolded
+  // from the template tree and owned by this project afterwards. Not every app wants
+  // every screen a module offers, so they are chosen here rather than assumed.
+  const availableScreens = await discoverScreens(modules);
+  let chosenScreens: ScreenManifest[] = [];
+
+  if (availableScreens.length > 0) {
+    const multipleModules = new Set(availableScreens.map((s) => s.module)).size > 1;
+
+    const screenChoice = await p.multiselect({
+      message: 'Select screens to scaffold',
+      options: availableScreens.map((screen) => ({
+        value: screenKey(screen),
+        label: multipleModules
+          ? `${screen.module}: ${screen.label}`
+          : screen.label,
+        hint: screen.hint,
+      })),
+      initialValues: availableScreens.map(screenKey),
+      required: false,
+    });
+    if (p.isCancel(screenChoice)) {
+      p.cancel('Cancelled.');
+      process.exit(0);
+    }
+
+    chosenScreens = resolveScreenRequires(screenChoice as string[], availableScreens);
+
+    const pulledIn = chosenScreens.length - (screenChoice as string[]).length;
+    if (pulledIn > 0) {
+      p.log.info(
+        `Added ${pulledIn} screen(s) required by your selection: ` +
+          chosenScreens
+            .filter((s) => !(screenChoice as string[]).includes(screenKey(s)))
+            .map((s) => s.label)
+            .join(', '),
+      );
+    }
+  }
+
   const targetDir = path.resolve(process.cwd(), projectName);
 
   // ── Overwrite check ───────────────────────────────────────────────────────
@@ -233,11 +345,6 @@ async function main() {
   for (const mod of modules) {
     const modDir = path.join(TEMPLATES_DIR, 'modules', mod);
 
-    const routesDir = path.join(modDir, 'routes');
-    if (await fs.pathExists(routesDir)) {
-      await fs.copy(routesDir, path.join(targetDir, 'src', 'routes'), { overwrite: true });
-    }
-
     // Copy module supplemental SQL (RLS, triggers, cross-FK constraints) to supabase/supplemental/
     const supplementalDir = path.join(modDir, 'supplemental');
     if (await fs.pathExists(supplementalDir)) {
@@ -265,6 +372,24 @@ async function main() {
       const seedDestDir = path.join(targetDir, 'supabase', 'seeds');
       await fs.ensureDir(seedDestDir);
       await fs.copy(modSeedPath, path.join(seedDestDir, `${mod}.sql`), { overwrite: true });
+    }
+  }
+
+  // ── Step 3b: Copy selected screen bundles ─────────────────────────────────
+  //
+  // Each bundle is two halves: `ui/` is provider-neutral (the +page.svelte files, which
+  // import their view-model types from the module) and `server.<template>/` holds the
+  // loaders and form actions for the chosen scaffold flavour. They merge into the same
+  // route directories, which is how a screen and its loader end up side by side in the
+  // generated project despite being authored apart.
+  for (const screen of chosenScreens) {
+    const screenDir = path.join(TEMPLATES_DIR, 'modules', screen.module, 'screens', screen.id);
+
+    for (const half of ['ui', `server.${scaffoldTemplate}`]) {
+      const from = path.join(screenDir, half);
+      if (await fs.pathExists(from)) {
+        await fs.copy(from, path.join(targetDir, 'src', 'routes'), { overwrite: true });
+      }
     }
   }
 

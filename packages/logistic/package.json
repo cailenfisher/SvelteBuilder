@@ -34,6 +34,10 @@
     "./schema": {
       "types": "./dist/schema.d.ts",
       "default": "./dist/schema.js"
+    },
+    "./views": {
+      "types": "./dist/views.d.ts",
+      "default": "./dist/views.js"
     }
   },
   "svelte": "./dist/index.js",

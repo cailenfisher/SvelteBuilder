@@ -1,0 +1,36 @@
+{
+  "id": "supplier",
+  "module": "logistic",
+  "label": "Suppliers",
+  "hint": "Supplier directory and editor, with contacts",
+  "routes": ["/admin/logistic/supplier", "/admin/logistic/supplier/[id]"],
+  "requires": [],
+  "views": ["SupplierListView", "SupplierDetailView"],
+  "actions": {
+    "/admin/logistic/supplier/[id]": {
+      "update": ["slug", "lead_time_day", "active"],
+      "addContact": ["role", "name", "email", "phone"],
+      "deleteContact": ["contact_id"]
+    }
+  },
+  "copySlugs": [
+    "logistic.supplier.title",
+    "logistic.supplier.add",
+    "logistic.supplier.empty",
+    "logistic.supplier.back",
+    "logistic.supplier.details",
+    "logistic.supplier.contacts",
+    "logistic.supplier.contact_add",
+    "logistic.supplier.contact_remove",
+    "logistic.supplier.contact_none",
+    "logistic.field.slug",
+    "logistic.field.lead_time_day",
+    "logistic.field.active",
+    "logistic.field.role",
+    "logistic.field.name",
+    "logistic.field.email",
+    "logistic.field.phone",
+    "action.save",
+    "action.cancel"
+  ]
+}
