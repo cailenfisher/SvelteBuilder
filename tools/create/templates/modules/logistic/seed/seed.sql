@@ -812,3 +812,86 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — cycle-count bundle
+--
+-- The four logistic.cycle_count.status.* labels are seeded above with the module's base
+-- copy; only what is new to the bundle is added here. progress_value and variance_count are
+-- MF2 patterns so a locale can place their numbers where its grammar needs them.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.cycle_count.title',                'logistic', null),
+  ('logistic.cycle_count.one',                  'logistic', null),
+  ('logistic.cycle_count.new',                  'logistic', null),
+  ('logistic.cycle_count.create',               'logistic', null),
+  ('logistic.cycle_count.empty',                'logistic', null),
+  ('logistic.cycle_count.filter_all',           'logistic', null),
+  ('logistic.cycle_count.filter_status',        'logistic', null),
+  ('logistic.cycle_count.status_label',         'logistic', null),
+  ('logistic.cycle_count.created_at',           'logistic', null),
+  ('logistic.cycle_count.progress',             'logistic', null),
+  ('logistic.cycle_count.progress_value',       'logistic', null),
+  ('logistic.cycle_count.choose_locations',     'logistic', null),
+  ('logistic.cycle_count.expected',             'logistic', null),
+  ('logistic.cycle_count.counted',              'logistic', null),
+  ('logistic.cycle_count.variance',             'logistic', null),
+  ('logistic.cycle_count.variance_count',       'logistic', null),
+  ('logistic.cycle_count.matched',              'logistic', null),
+  ('logistic.cycle_count.approve',              'logistic', null),
+  ('logistic.cycle_count.approve_confirm',      'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.cycle_count.title',                'Cycle counts'),
+  ('logistic.cycle_count.one',                  'Cycle count'),
+  ('logistic.cycle_count.new',                  'New cycle count'),
+  ('logistic.cycle_count.create',               'Open count'),
+  ('logistic.cycle_count.empty',                'No cycle counts found.'),
+  ('logistic.cycle_count.filter_all',           'All'),
+  ('logistic.cycle_count.filter_status',        'Filter counts by status'),
+  ('logistic.cycle_count.status_label',         'Status'),
+  ('logistic.cycle_count.created_at',           'Opened'),
+  ('logistic.cycle_count.progress',             'Counted'),
+  ('logistic.cycle_count.progress_value',       '{$counted} of {$total} counted'),
+  ('logistic.cycle_count.choose_locations',     'Locations to count'),
+  ('logistic.cycle_count.expected',             'Expected'),
+  ('logistic.cycle_count.counted',              'Counted'),
+  ('logistic.cycle_count.variance',             'Variance'),
+  ('logistic.cycle_count.variance_count',       '{$count} with variance'),
+  ('logistic.cycle_count.matched',              'Matched'),
+  ('logistic.cycle_count.approve',              'Approve count'),
+  ('logistic.cycle_count.approve_confirm',      'Approving writes a stock adjustment for every counted line with a variance. This cannot be undone.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.cycle_count.title',                'Inventaires tournants'),
+  ('logistic.cycle_count.one',                  'Inventaire tournant'),
+  ('logistic.cycle_count.new',                  'Nouvel inventaire'),
+  ('logistic.cycle_count.create',               'Ouvrir l''inventaire'),
+  ('logistic.cycle_count.empty',                'Aucun inventaire trouvé.'),
+  ('logistic.cycle_count.filter_all',           'Tous'),
+  ('logistic.cycle_count.filter_status',        'Filtrer les inventaires par statut'),
+  ('logistic.cycle_count.status_label',         'Statut'),
+  ('logistic.cycle_count.created_at',           'Ouvert'),
+  ('logistic.cycle_count.progress',             'Comptées'),
+  ('logistic.cycle_count.progress_value',       '{$counted} sur {$total} comptées'),
+  ('logistic.cycle_count.choose_locations',     'Emplacements à compter'),
+  ('logistic.cycle_count.expected',             'Attendu'),
+  ('logistic.cycle_count.counted',              'Compté'),
+  ('logistic.cycle_count.variance',             'Écart'),
+  ('logistic.cycle_count.variance_count',       '{$count} avec écart'),
+  ('logistic.cycle_count.matched',              'Conforme'),
+  ('logistic.cycle_count.approve',              'Approuver'),
+  ('logistic.cycle_count.approve_confirm',      'Approuver enregistre un ajustement de stock pour chaque ligne comptée présentant un écart. Cette action est irréversible.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;

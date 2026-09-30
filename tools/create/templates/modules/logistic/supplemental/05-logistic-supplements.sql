@@ -447,6 +447,102 @@ grant execute on function
     bigint, integer, public.return_condition, public.return_disposition, bigint, bigint
   ) to authenticated;
 
+-- Opening a cycle count snapshots what the system currently believes is in each chosen
+-- bin, so the count has something to be compared against. Two statements, and a count with
+-- no lines is a count of nothing — there would be no way to add them afterwards.
+--
+-- The snapshot is the point: expected_quantity is on_hand *at the moment the count opens*,
+-- so a later movement does not retroactively change what the counter was asked to verify.
+create or replace function public.logistic_create_cycle_count(
+  p_user_account_id     bigint,
+  p_storage_location_ids bigint[]
+)
+returns bigint
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_count_id bigint;
+  v_lines    integer;
+begin
+  if coalesce(array_length(p_storage_location_ids, 1), 0) = 0 then
+    raise exception 'a cycle count needs at least one storage location';
+  end if;
+
+  insert into public.cycle_count (user_account_id, status)
+  values (p_user_account_id, 'open')
+  returning id into v_count_id;
+
+  insert into public.cycle_count_line (
+    cycle_count_id, stock_level_id, storage_location_id, sku, expected_quantity, counted_quantity
+  )
+  select v_count_id, sl.id, sl.storage_location_id, sl.sku, sl.on_hand, null
+  from public.stock_level sl
+  where sl.storage_location_id = any(p_storage_location_ids);
+
+  get diagnostics v_lines = row_count;
+  if v_lines = 0 then
+    raise exception 'those locations hold no stock, so there is nothing to count';
+  end if;
+
+  return v_count_id;
+end;
+$$;
+
+grant execute on function
+  public.logistic_create_cycle_count(bigint, bigint[]) to authenticated;
+
+-- Approving a count applies every variance it found and closes it. One adjustment per
+-- line that differs, plus the status update — and a partly applied count is the worst
+-- possible outcome, because the remaining variances are then invisible: the count reads
+-- as closed while the stock it was meant to correct is still wrong.
+create or replace function public.logistic_approve_cycle_count(
+  p_cycle_count_id  bigint,
+  p_user_account_id bigint
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_line    record;
+  v_updated integer;
+begin
+  -- The status update goes first so RLS decides before any stock moves, the same ordering
+  -- rule as receiving and grading.
+  update public.cycle_count set status = 'complete' where id = p_cycle_count_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    raise exception insufficient_privilege
+      using message = 'not permitted to approve this cycle count';
+  end if;
+
+  -- An uncounted line is skipped rather than treated as zero: nobody counted it, which is
+  -- not the same as finding none there.
+  for v_line in
+    select id, stock_level_id, counted_quantity - expected_quantity as delta
+    from public.cycle_count_line
+    where cycle_count_id = p_cycle_count_id
+      and counted_quantity is not null
+      and counted_quantity <> expected_quantity
+  loop
+    perform public.logistic_adjust_stock(
+      v_line.stock_level_id,
+      v_line.delta,
+      'cycle_count_variance',
+      p_user_account_id,
+      'Cycle count ' || p_cycle_count_id || ' — line ' || v_line.id
+    );
+  end loop;
+end;
+$$;
+
+grant execute on function
+  public.logistic_approve_cycle_count(bigint, bigint) to authenticated;
+
 -- Receiving one line of an inbound receipt: five statements across three tables, and
 -- every partial result is a real operational problem. Stock moved with the line not
 -- updated means the next attempt receives it twice; the line updated with the receipt

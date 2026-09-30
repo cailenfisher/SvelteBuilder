@@ -260,7 +260,9 @@ export type CycleCountListView = ScreenCopy &
   ScreenPage & {
     counts: CycleCountRow[];
     status: CycleCountStatus | null;
-    /** Locations a new count can be opened against. */
+    /** Filterable statuses, from the loader — see ShipmentListView for why. */
+    statuses: CycleCountStatus[];
+    /** Locations a new count can be opened against — bins only, since stock lives there. */
     locations: LocationOption[];
   };
 
