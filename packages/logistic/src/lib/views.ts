@@ -1,5 +1,12 @@
 import type { DictionaryPayload } from 'diglossia';
-import type { Supplier, SupplierContact } from './schema/index.js';
+import type {
+  AdjustmentReason,
+  StockAdjustment,
+  StockLevel,
+  StorageLocation,
+  Supplier,
+  SupplierContact,
+} from './schema/index.js';
 
 /**
  * Screen contracts.
@@ -45,6 +52,49 @@ export type SupplierListView = ScreenCopy & {
 export type SupplierDetailView = ScreenCopy & {
   supplier: SupplierWithContacts;
 };
+
+/**
+ * The locale a screen formats dates and numbers in.
+ *
+ * Carried on the view rather than read from the root layout's data, because a screen is
+ * provider-neutral and the layout's shape is the scaffold's business. The loader knows
+ * it from `locals.locale`; this keeps the screen from having to know where that lives.
+ */
+export type ScreenLocale = {
+  localeCode: string;
+};
+
+/**
+ * A stock level with the location holding it.
+ *
+ * Note what is absent: the location's name. These types deliberately do not carry
+ * resolved copy, unlike the older StorageLocationWithCopy in ./schema — a screen holds a
+ * dictionary and reads `localText('name', 'storage_location', id)` itself. Baking the
+ * string into the row was the shape a query layer produced, and modules no longer ship
+ * one.
+ */
+export type StockLevelRow = StockLevel & {
+  /** on_hand - reserved. Derived, never stored — see the module's schema. */
+  available: number;
+  storageLocation: Pick<StorageLocation, 'id' | 'slug' | 'locationType'>;
+};
+
+/** `/admin/logistic/stock` */
+export type StockListView = ScreenCopy &
+  ScreenLocale & {
+    levels: StockLevelRow[];
+    /** The adjustment log for one level, when the screen is showing its history. */
+    history: StockAdjustment[];
+    historyId: number | null;
+    lowOnly: boolean;
+    /**
+     * Reasons a human may pick. The operational ones — inbound_receipt, pick,
+     * return_restock, cycle_count_variance — are written by their own workflows and
+     * would be a lie if chosen by hand, so the loader decides this rather than the
+     * screen enumerating the enum.
+     */
+    manualReasons: AdjustmentReason[];
+  };
 
 /**
  * What a screen's form actions return. `fail()` payloads and successful returns share

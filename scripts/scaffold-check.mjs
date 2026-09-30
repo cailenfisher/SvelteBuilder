@@ -11,11 +11,13 @@
  *
  * Two details are load-bearing.
  *
- * Workspace packages are linked in, not installed from npm. Templates are written
- * against the packages in this repo, which are usually ahead of what is published — a
- * screen importing `@sveltebuilder/logistic/views` fails against the registry copy until
- * a release happens. Verifying against npm would mean this gate can never check an
- * unreleased change, which is precisely the change that needs checking.
+ * Workspace packages are packed and installed from the tarball, not taken from npm.
+ * Templates are written against the packages in this repo, which are usually ahead of
+ * what is published — a screen importing `@sveltebuilder/logistic/views` fails against
+ * the registry copy until a release happens. Verifying against npm would mean this gate
+ * can never check an unreleased change, which is precisely the change that needs
+ * checking. See scripts/lib/workspace-packages.mjs for why tarballs rather than `link:`;
+ * the short version is that a linked package brings its own copy of svelte.
  *
  * The CLI is driven by flags, never by feeding keystrokes to its prompts. Scripting a
  * TUI over a pseudo-terminal works right up until a prompt is added or reordered.
@@ -26,10 +28,15 @@
  *   node scripts/scaffold-check.mjs --keep         # leave the projects behind
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  overrideWithTarballs,
+  packWorkspacePackages,
+  writeBuildEnv,
+} from './lib/workspace-packages.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CREATE_CLI = path.join(REPO, 'tools', 'create', 'dist', 'index.js');
@@ -46,14 +53,6 @@ const CASES = [
   { name: 'logistic', modules: 'logistic', screens: 'all' },
   { name: 'logistic-no-screens', modules: 'logistic', screens: 'none' },
 ];
-
-/** Linked so templates are checked against this repo's packages, not the registry. */
-const WORKSPACE_LINKS = {
-  '@sveltebuilder/coreui': 'packages/coreui',
-  '@sveltebuilder/local-text-schema': 'packages/local-text-schema',
-  '@sveltebuilder/content': 'packages/content',
-  '@sveltebuilder/logistic': 'packages/logistic',
-};
 
 const args = process.argv.slice(2);
 const keep = args.includes('--keep');
@@ -84,7 +83,7 @@ function step(label, fn) {
   }
 }
 
-function checkCase(testCase, workdir) {
+function checkCase(testCase, workdir, tarballs) {
   const projectName = `check-${testCase.name}`;
   const projectDir = path.join(workdir, projectName);
   const steps = [];
@@ -106,39 +105,18 @@ function checkCase(testCase, workdir) {
           testCase.screens,
           '--no-install',
         ],
-        workdir,
-      ),
-    ),
+        workdir
+      )
+    )
   );
   if (!steps.at(-1).ok) return steps;
 
   steps.push(
-    step('link workspace packages', () => {
-      const pkgPath = path.join(projectDir, 'package.json');
-      const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-      const overrides = {};
-      for (const [name, rel] of Object.entries(WORKSPACE_LINKS)) {
-        if (pkg.dependencies?.[name] || pkg.devDependencies?.[name]) {
-          overrides[name] = `link:${path.join(REPO, rel)}`;
-        }
-      }
-      pkg.pnpm = { ...(pkg.pnpm ?? {}), overrides };
-      writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
-
-      // $env/static/public is read at build time, so the values have to exist. They
-      // are never connected to: nothing here starts a server or opens a socket.
-      writeFileSync(
-        path.join(projectDir, '.env'),
-        [
-          'PUBLIC_SUPABASE_URL=http://127.0.0.1:54321',
-          'PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_scaffold_check',
-          'PUBLIC_DEFAULT_LOCALE=en',
-          'PUBLIC_SITE_URL=http://localhost:5173',
-          '',
-        ].join('\n'),
-      );
+    step('use workspace packages', () => {
+      overrideWithTarballs(projectDir, tarballs);
+      writeBuildEnv(projectDir);
       return '';
-    }),
+    })
   );
   if (!steps.at(-1).ok) return steps;
 
@@ -148,7 +126,7 @@ function checkCase(testCase, workdir) {
   if (!steps.at(-1).ok) return steps;
 
   // The local CLI rather than the project's installed copy: same reason the packages
-  // are linked — an unreleased sync change has to be what gets exercised.
+  // are packed from here — an unreleased sync change has to be what gets exercised.
   steps.push(step('sync:supabase', () => run('node', [SYNC_CLI, 'sync:supabase'], projectDir)));
   if (!steps.at(-1).ok) return steps;
 
@@ -166,16 +144,36 @@ for (const cli of [CREATE_CLI, SYNC_CLI]) {
 }
 
 const workdir = mkdtempSync(path.join(tmpdir(), 'sveltebuilder-scaffold-check-'));
-console.log(`workdir: ${workdir}\n`);
+console.log(`workdir: ${workdir}`);
+
+// Packed once and reused across cases: the tarballs do not change between them, and
+// packing four packages per case would be most of the runtime.
+let packed;
+try {
+  packed = packWorkspacePackages(REPO);
+} catch (err) {
+  console.error(
+    `Could not pack the workspace packages — run \`pnpm build\` first.\n${err.message}`
+  );
+  process.exit(1);
+}
+const { tarballs } = packed;
+console.log('');
 
 const results = [];
 for (const testCase of cases) {
   process.stdout.write(`── ${testCase.name} `.padEnd(60, '─') + '\n');
-  const steps = checkCase(testCase, workdir);
+  const steps = checkCase(testCase, workdir, tarballs);
 
   for (const s of steps) {
     console.log(`   ${s.ok ? '✓' : '✗'} ${s.label}`);
-    if (!s.ok) console.log(s.output.split('\n').map((l) => `     ${l}`).join('\n'));
+    if (!s.ok)
+      console.log(
+        s.output
+          .split('\n')
+          .map((l) => `     ${l}`)
+          .join('\n')
+      );
   }
 
   const ok = steps.every((s) => s.ok);
@@ -193,6 +191,7 @@ if (keep || failed.length > 0) {
   console.log(`projects left at ${workdir}`);
 } else {
   rmSync(workdir, { recursive: true, force: true });
+  rmSync(packed.dir, { recursive: true, force: true });
 }
 
 process.exit(failed.length > 0 ? 1 : 0);

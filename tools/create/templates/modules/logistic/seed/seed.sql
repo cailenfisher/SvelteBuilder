@@ -489,3 +489,80 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — stock bundle
+--
+-- The field and adjustment_reason slugs this screen also renders are seeded above with
+-- the module's base copy; only what is new to the bundle is added here. Global labels
+-- (action.save, action.cancel, action.close) come from the base seed under scope null.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.stock.title',                'logistic', null),
+  ('logistic.stock.filters',              'logistic', null),
+  ('logistic.stock.filter_all',           'logistic', null),
+  ('logistic.stock.filter_low',           'logistic', null),
+  ('logistic.stock.empty',                'logistic', null),
+  ('logistic.stock.empty_low',            'logistic', null),
+  ('logistic.stock.history',              'logistic', null),
+  ('logistic.stock.history_empty',        'logistic', null),
+  ('logistic.stock.adjust',               'logistic', null),
+  ('logistic.stock.adjust_title',         'logistic', null),
+  ('logistic.stock.adjust_delta',         'logistic', null),
+  ('logistic.stock.adjust_apply',         'logistic', null),
+  ('logistic.stock.reorder_point_hint',   'logistic', null),
+  ('logistic.field.location',             'logistic', null),
+  ('logistic.field.reason',               'logistic', null),
+  ('logistic.field.note',                 'logistic', null),
+  ('logistic.stock.history_after',        'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.stock.title',                'Stock'),
+  ('logistic.stock.filters',              'Stock filters'),
+  ('logistic.stock.filter_all',           'All'),
+  ('logistic.stock.filter_low',           'Low stock'),
+  ('logistic.stock.empty',                'No stock levels yet.'),
+  ('logistic.stock.empty_low',            'No items below their reorder point.'),
+  ('logistic.stock.history',              'History'),
+  ('logistic.stock.history_empty',        'No adjustments recorded for this stock level.'),
+  ('logistic.stock.adjust',               'Adjust'),
+  ('logistic.stock.adjust_title',         'Adjust stock'),
+  ('logistic.stock.adjust_delta',         'Change (negative to remove)'),
+  ('logistic.stock.adjust_apply',         'Apply adjustment'),
+  ('logistic.stock.reorder_point_hint',   'Reorder point (blank to disable alerts)'),
+  ('logistic.field.location',             'Location'),
+  ('logistic.field.reason',               'Reason'),
+  ('logistic.field.note',                 'Note'),
+  ('logistic.stock.history_after',        '→ {$count} on hand')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.stock.title',                'Stock'),
+  ('logistic.stock.filters',              'Filtres de stock'),
+  ('logistic.stock.filter_all',           'Tout'),
+  ('logistic.stock.filter_low',           'Stock faible'),
+  ('logistic.stock.empty',                'Aucun niveau de stock.'),
+  ('logistic.stock.empty_low',            'Aucun article sous son point de commande.'),
+  ('logistic.stock.history',              'Historique'),
+  ('logistic.stock.history_empty',        'Aucun ajustement enregistré pour ce niveau de stock.'),
+  ('logistic.stock.adjust',               'Ajuster'),
+  ('logistic.stock.adjust_title',         'Ajuster le stock'),
+  ('logistic.stock.adjust_delta',         'Variation (négative pour retirer)'),
+  ('logistic.stock.adjust_apply',         'Appliquer l''ajustement'),
+  ('logistic.stock.reorder_point_hint',   'Point de commande (vide pour désactiver les alertes)'),
+  ('logistic.field.location',             'Emplacement'),
+  ('logistic.field.reason',               'Motif'),
+  ('logistic.field.note',                 'Note'),
+  ('logistic.stock.history_after',        '→ {$count} en stock')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;

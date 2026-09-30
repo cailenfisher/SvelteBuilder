@@ -27,10 +27,11 @@
  *   node scripts/sql-check.mjs --keep              # leave the container running
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, existsSync, readdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { overrideWithTarballs, packWorkspacePackages } from './lib/workspace-packages.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CREATE_CLI = path.join(REPO, 'tools', 'create', 'dist', 'index.js');
@@ -153,22 +154,8 @@ if (!reuseProject) {
   // which needs its own dependencies — so this is the one place an install is required.
   if (ok()) {
     step('install', () => {
-      const pkgPath = path.join(projectDir, 'package.json');
-      const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-      const links = {
-        '@sveltebuilder/coreui': 'packages/coreui',
-        '@sveltebuilder/local-text-schema': 'packages/local-text-schema',
-        '@sveltebuilder/content': 'packages/content',
-        '@sveltebuilder/logistic': 'packages/logistic',
-      };
-      const overrides = {};
-      for (const [name, rel] of Object.entries(links)) {
-        if (pkg.dependencies?.[name] || pkg.devDependencies?.[name]) {
-          overrides[name] = `link:${path.join(REPO, rel)}`;
-        }
-      }
-      pkg.pnpm = { ...(pkg.pnpm ?? {}), overrides };
-      writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
+      const { tarballs } = packWorkspacePackages(REPO);
+      overrideWithTarballs(projectDir, tarballs);
       return run('pnpm', ['install', '--ignore-workspace'], projectDir);
     });
   }
@@ -205,17 +192,22 @@ if (ok()) {
       IMAGE
     );
 
-    // pg_isready rather than a fixed sleep: the image initialises in a few seconds but
-    // not a predictable number of them.
-    const deadline = Date.now() + 60_000;
+    // The postgres image runs initdb, starts a temporary server to apply init scripts,
+    // shuts it down, and only then starts the real one. A single pg_isready can therefore
+    // pass against the temporary server and the very next command hits "the database
+    // system is shutting down". Requiring consecutive successes rides that window out —
+    // a fixed sleep would either be flaky or slower than this.
+    const deadline = Date.now() + 90_000;
+    let consecutive = 0;
     for (;;) {
       try {
-        docker('exec', CONTAINER, 'pg_isready', '-U', 'postgres', '-d', DB);
-        return '';
+        docker('exec', CONTAINER, 'psql', '-U', 'postgres', '-d', DB, '-c', 'select 1');
+        if (++consecutive >= 3) return '';
       } catch (err) {
+        consecutive = 0;
         if (Date.now() > deadline) throw err;
-        execFileSync('sleep', ['1']);
       }
+      execFileSync('sleep', ['1']);
     }
   });
 }

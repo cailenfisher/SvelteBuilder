@@ -211,6 +211,15 @@ function readSlugUses(bundleDir: string): SlugUse[] {
       });
     }
 
+    // formatText('slug', { … }, 'scope') — the same dictionary key, MF2-interpolated, so
+    // a slug reached only this way still has to exist. The values object is skipped
+    // non-greedily up to the scope literal or the closing paren.
+    for (const m of source.matchAll(
+      /\.formatText\(\s*'([^']+)'\s*,[\s\S]*?(?:,\s*'([^']+)'\s*)?\)/g
+    )) {
+      uses.push({ slug: m[1], scope: m[2] ?? null, entityBound: false, file: rel });
+    }
+
     // <LocalText slug="..." /> resolves against the page context — global scope.
     for (const m of source.matchAll(/<LocalText\s+[^>]*slug="([^"]+)"/g)) {
       uses.push({ slug: m[1], scope: null, entityBound: false, file: rel });
