@@ -566,3 +566,82 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — receipt bundle
+--
+-- The status labels and logistic.inbound_receipt.blind this screen renders are seeded
+-- above with the module's base copy; only what is new to the bundle is added here.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.receipt.title',                'logistic', null),
+  ('logistic.receipt.one',                  'logistic', null),
+  ('logistic.receipt.new',                  'logistic', null),
+  ('logistic.receipt.create',               'logistic', null),
+  ('logistic.receipt.empty',                'logistic', null),
+  ('logistic.receipt.filter_all',           'logistic', null),
+  ('logistic.receipt.filter_status',        'logistic', null),
+  ('logistic.receipt.pagination',           'logistic', null),
+  ('logistic.receipt.supplier',             'logistic', null),
+  ('logistic.receipt.expected_at',          'logistic', null),
+  ('logistic.receipt.received_at',          'logistic', null),
+  ('logistic.receipt.lines',                'logistic', null),
+  ('logistic.receipt.lines_empty',          'logistic', null),
+  ('logistic.receipt.line_add',             'logistic', null),
+  ('logistic.receipt.expected_quantity',    'logistic', null),
+  ('logistic.receipt.received_quantity',    'logistic', null),
+  ('logistic.receipt.discrepancy',          'logistic', null),
+  ('logistic.receipt.receive',              'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.receipt.title',                'Inbound receipts'),
+  ('logistic.receipt.one',                  'Receipt'),
+  ('logistic.receipt.new',                  'New receipt'),
+  ('logistic.receipt.create',               'Create receipt'),
+  ('logistic.receipt.empty',                'No receipts found.'),
+  ('logistic.receipt.filter_all',           'All'),
+  ('logistic.receipt.filter_status',        'Filter receipts by status'),
+  ('logistic.receipt.pagination',           'Receipt pages'),
+  ('logistic.receipt.supplier',             'Supplier'),
+  ('logistic.receipt.expected_at',          'Expected'),
+  ('logistic.receipt.received_at',          'Received'),
+  ('logistic.receipt.lines',                'Lines'),
+  ('logistic.receipt.lines_empty',          'No lines yet. Add lines to begin receiving.'),
+  ('logistic.receipt.line_add',             'Add line'),
+  ('logistic.receipt.expected_quantity',    'Expected quantity'),
+  ('logistic.receipt.received_quantity',    'Received quantity'),
+  ('logistic.receipt.discrepancy',          'Discrepancy'),
+  ('logistic.receipt.receive',              'Receive')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.receipt.title',                'Réceptions'),
+  ('logistic.receipt.one',                  'Réception'),
+  ('logistic.receipt.new',                  'Nouvelle réception'),
+  ('logistic.receipt.create',               'Créer la réception'),
+  ('logistic.receipt.empty',                'Aucune réception trouvée.'),
+  ('logistic.receipt.filter_all',           'Toutes'),
+  ('logistic.receipt.filter_status',        'Filtrer les réceptions par statut'),
+  ('logistic.receipt.pagination',           'Pages de réceptions'),
+  ('logistic.receipt.supplier',             'Fournisseur'),
+  ('logistic.receipt.expected_at',          'Prévue'),
+  ('logistic.receipt.received_at',          'Reçue'),
+  ('logistic.receipt.lines',                'Lignes'),
+  ('logistic.receipt.lines_empty',          'Aucune ligne. Ajoutez des lignes pour commencer la réception.'),
+  ('logistic.receipt.line_add',             'Ajouter une ligne'),
+  ('logistic.receipt.expected_quantity',    'Quantité prévue'),
+  ('logistic.receipt.received_quantity',    'Quantité reçue'),
+  ('logistic.receipt.discrepancy',          'Écart'),
+  ('logistic.receipt.receive',              'Réceptionner')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;

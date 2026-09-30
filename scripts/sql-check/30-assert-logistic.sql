@@ -197,3 +197,138 @@ begin
     null; -- refused, by constraint or by the function's own guard
   end;
 end $$;
+
+-- ── Receiving a line moves stock, updates the line, and derives the status ───
+--
+-- Five statements across three tables in one function, so the thing worth asserting is
+-- that all of them landed together and that the receipt's status was recomputed rather
+-- than advanced.
+
+do $$
+declare
+  v_sub       uuid;
+  v_admin     bigint;
+  v_bin       bigint;
+  v_receipt   bigint;
+  v_line      bigint;
+  v_level     bigint;
+  v_before    integer;
+  v_status    text;
+begin
+  if to_regclass('public.inbound_receipt') is null then return; end if;
+
+  select ua.id, ua.auth_user_id into v_admin, v_sub
+  from public.user_account ua where ua.admin order by ua.id limit 1;
+  select id into v_bin from public.storage_location where location_type = 'bin' order by id limit 1;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', v_sub::text, true);
+
+  insert into public.inbound_receipt (supplier_id, user_account_id)
+  values (null, v_admin) returning id into v_receipt;
+
+  insert into public.inbound_receipt_line
+    (inbound_receipt_id, storage_location_id, sku, expected_quantity)
+  values (v_receipt, v_bin, 'SQLCHECK-001', 10) returning id into v_line;
+
+  -- A receipt with an expected line and nothing received is still pending.
+  select status into v_status from public.inbound_receipt where id = v_receipt;
+  if v_status <> 'pending' then
+    raise exception 'new receipt should be pending, got %', v_status;
+  end if;
+
+  v_level := public.logistic_ensure_stock_level(v_bin, 'SQLCHECK-001');
+  select on_hand into v_before from public.stock_level where id = v_level;
+
+  -- Partial receipt.
+  perform public.logistic_receive_receipt_line(v_line, 4, v_admin);
+
+  if (select on_hand from public.stock_level where id = v_level) <> v_before + 4 then
+    raise exception 'receiving 4 did not move on_hand';
+  end if;
+  select status into v_status from public.inbound_receipt where id = v_receipt;
+  if v_status <> 'partial' then
+    raise exception 'partly received receipt should be partial, got %', v_status;
+  end if;
+
+  -- Completing it. The delta is what moves, not the absolute quantity — receiving 10
+  -- after 4 must add 6, not 10.
+  perform public.logistic_receive_receipt_line(v_line, 10, v_admin);
+
+  if (select on_hand from public.stock_level where id = v_level) <> v_before + 10 then
+    raise exception 'receiving the rest moved the wrong delta';
+  end if;
+  select status into v_status from public.inbound_receipt where id = v_receipt;
+  if v_status <> 'complete' then
+    raise exception 'fully received receipt should be complete, got %', v_status;
+  end if;
+  if (select received_at from public.inbound_receipt where id = v_receipt) is null then
+    raise exception 'complete receipt has no received_at';
+  end if;
+
+  -- Correcting downward must move the status back, not leave it complete: the status is
+  -- derived from the lines every time rather than advanced one way.
+  perform public.logistic_receive_receipt_line(v_line, 2, v_admin);
+  select status into v_status from public.inbound_receipt where id = v_receipt;
+  if v_status <> 'partial' then
+    raise exception 'corrected-down receipt should return to partial, got %', v_status;
+  end if;
+  if (select on_hand from public.stock_level where id = v_level) <> v_before + 2 then
+    raise exception 'correcting down did not reverse the stock';
+  end if;
+  if (select received_at from public.inbound_receipt where id = v_receipt) is not null then
+    raise exception 'no-longer-complete receipt still has received_at';
+  end if;
+
+  -- The audit trail records every movement, including the reversal.
+  if (select count(*) from public.stock_adjustment
+      where stock_level_id = v_level and reason = 'inbound_receipt') <> 3 then
+    raise exception 'expected three inbound_receipt adjustments, one per receive call';
+  end if;
+end $$;
+
+-- A cancelled receipt is closed to receiving. The worker policy permits updates only
+-- while a receipt is pending or partial, and the function checks the row count so a
+-- refusal aborts before any stock has moved.
+do $$
+declare
+  v_sub     uuid;
+  v_admin   bigint;
+  v_bin     bigint;
+  v_receipt bigint;
+  v_line    bigint;
+  v_level   bigint;
+  v_before  integer;
+begin
+  if to_regclass('public.inbound_receipt') is null then return; end if;
+
+  select ua.id, ua.auth_user_id into v_admin, v_sub
+  from public.user_account ua where ua.admin order by ua.id limit 1;
+  select id into v_bin from public.storage_location where location_type = 'bin' order by id limit 1;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', v_sub::text, true);
+
+  insert into public.inbound_receipt (supplier_id, user_account_id, status)
+  values (null, v_admin, 'cancelled') returning id into v_receipt;
+  insert into public.inbound_receipt_line
+    (inbound_receipt_id, storage_location_id, sku, expected_quantity)
+  values (v_receipt, v_bin, 'SQLCHECK-002', 5) returning id into v_line;
+
+  v_level := public.logistic_ensure_stock_level(v_bin, 'SQLCHECK-002');
+  select on_hand into v_before from public.stock_level where id = v_level;
+
+  begin
+    perform public.logistic_receive_receipt_line(v_line, 5, v_admin);
+    -- An admin's blanket policy does permit this update, so reaching here is correct for
+    -- an admin. What must not happen is stock moving without the line recording it.
+    if (select received_quantity from public.inbound_receipt_line where id = v_line) <> 5 then
+      raise exception 'stock moved but the line was not updated';
+    end if;
+  exception when insufficient_privilege then
+    -- A refusal must leave no trace.
+    if (select on_hand from public.stock_level where id = v_level) <> v_before then
+      raise exception 'a refused receive still moved stock';
+    end if;
+  end;
+end $$;

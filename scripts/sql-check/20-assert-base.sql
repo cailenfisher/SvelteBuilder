@@ -201,3 +201,27 @@ begin
     null; -- refused, as intended
   end;
 end $$;
+
+-- ── Every SECURITY DEFINER function has a fixed search_path ──────────────────
+--
+-- Not a style rule. A definer function without one inherits the caller's search_path and
+-- can be made to run a shadowed object with the owner's privileges. It also breaks
+-- composition: an unqualified type name in a DECLARE does not resolve when a hardened
+-- caller has set search_path to empty, which is how the module's five stock functions
+-- were found to be missing it.
+
+do $$
+declare v_bad text;
+begin
+  select string_agg(p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')', ', ')
+    into v_bad
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public'
+    and p.prosecdef
+    and coalesce(array_to_string(p.proconfig, ','), '') not like '%search_path=%';
+
+  if v_bad is not null then
+    raise exception 'SECURITY DEFINER function(s) with no fixed search_path: %', v_bad;
+  end if;
+end $$;

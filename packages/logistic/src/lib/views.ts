@@ -1,11 +1,25 @@
 import type { DictionaryPayload } from 'diglossia';
 import type {
   AdjustmentReason,
+  CycleCount,
+  CycleCountLine,
+  CycleCountStatus,
+  InboundReceipt,
+  InboundReceiptLine,
+  InboundReceiptStatus,
+  ReturnAuthorization,
+  ReturnAuthorizationLine,
+  ReturnAuthorizationStatus,
+  Shipment,
+  ShipmentLine,
+  ShipmentStatus,
   StockAdjustment,
   StockLevel,
   StorageLocation,
+  StorageLocationType,
   Supplier,
   SupplierContact,
+  TrackingEvent,
 } from './schema/index.js';
 
 /**
@@ -94,6 +108,149 @@ export type StockListView = ScreenCopy &
      * screen enumerating the enum.
      */
     manualReasons: AdjustmentReason[];
+  };
+
+/**
+ * A server-paginated list. The screen renders the controls and links the page; the loader
+ * owns the slice, because DataTable is deliberately a controlled component — sorting and
+ * paging client-side would mean shipping every row to do it.
+ */
+export type ScreenPage = {
+  page: number;
+  perPage: number;
+  /** Rows matching the filter, not rows on this page. */
+  total: number;
+};
+
+/**
+ * An entity offered in a `<Select>`, carrying only what an option needs.
+ *
+ * `slug` is here for a fallback and for tests, not to render: the label is entity-bound
+ * copy the screen resolves with `localText('name', '<scope>', id)`. Selecting a whole row
+ * to render one option would be wasteful and would tempt a screen into displaying a slug.
+ */
+export type EntityOption = {
+  id: number;
+  slug: string;
+};
+
+export type LocationOption = EntityOption & {
+  locationType: StorageLocationType;
+};
+
+// ── Inbound receipts ─────────────────────────────────────────────────────────
+
+export type InboundReceiptLineRow = InboundReceiptLine & {
+  storageLocation: LocationOption;
+};
+
+/**
+ * A receipt as a list row, shaped for `ReceiptCard`.
+ *
+ * It carries its lines because the card shows expected-versus-received totals and flags a
+ * discrepancy, which cannot be known without them — and because a module's own components
+ * being usable without the screen reshaping their input is rather the point. The cost is
+ * bounded: the list is paginated and PostgREST embeds the lines in the same round trip,
+ * so this is one query, not one per row.
+ */
+export type InboundReceiptRow = InboundReceipt & {
+  /** Null for a blind receipt — goods arriving against no purchase order. */
+  supplier: Supplier | null;
+  lines: InboundReceiptLine[];
+};
+
+/** `/admin/logistic/receipt` */
+export type InboundReceiptListView = ScreenCopy &
+  ScreenLocale &
+  ScreenPage & {
+    receipts: InboundReceiptRow[];
+    /** Null means unfiltered, which is not the same as any particular status. */
+    status: InboundReceiptStatus | null;
+    /** Active suppliers, for the create form. Empty is valid — blind receiving. */
+    suppliers: EntityOption[];
+  };
+
+/** `/admin/logistic/receipt/[id]` */
+export type InboundReceiptDetailView = ScreenCopy &
+  ScreenLocale & {
+    receipt: InboundReceipt & { lines: InboundReceiptLineRow[] };
+    locations: LocationOption[];
+  };
+
+// ── Shipments ────────────────────────────────────────────────────────────────
+
+export type ShipmentRow = Shipment & {
+  lineCount: number;
+};
+
+/** `/admin/logistic/shipment` */
+export type ShipmentListView = ScreenCopy &
+  ScreenLocale &
+  ScreenPage & {
+    shipments: ShipmentRow[];
+    status: ShipmentStatus | null;
+  };
+
+/** `/admin/logistic/shipment/[id]` */
+export type ShipmentDetailView = ScreenCopy &
+  ScreenLocale & {
+    shipment: Shipment & {
+      lines: ShipmentLine[];
+      /** Newest first — a carrier's own ordering is not dependable. */
+      trackingEvents: TrackingEvent[];
+    };
+    /** The statuses an operator may move this shipment to. */
+    statuses: ShipmentStatus[];
+  };
+
+// ── Return authorizations ────────────────────────────────────────────────────
+
+export type ReturnAuthorizationRow = ReturnAuthorization & {
+  lineCount: number;
+};
+
+/** `/admin/logistic/return` */
+export type ReturnListView = ScreenCopy &
+  ScreenLocale &
+  ScreenPage & {
+    returns: ReturnAuthorizationRow[];
+    status: ReturnAuthorizationStatus | null;
+  };
+
+/** `/admin/logistic/return/[id]` */
+export type ReturnDetailView = ScreenCopy &
+  ScreenLocale & {
+    returnAuthorization: ReturnAuthorization & { lines: ReturnAuthorizationLine[] };
+    /** Where restocked returns may go. */
+    locations: LocationOption[];
+  };
+
+// ── Cycle counts ─────────────────────────────────────────────────────────────
+
+export type CycleCountLineRow = CycleCountLine & {
+  storageLocation: LocationOption;
+};
+
+export type CycleCountRow = CycleCount & {
+  lineCount: number;
+  /** Lines counted so far, so the list can show progress without embedding them. */
+  countedCount: number;
+};
+
+/** `/admin/logistic/cycle-count` */
+export type CycleCountListView = ScreenCopy &
+  ScreenLocale &
+  ScreenPage & {
+    counts: CycleCountRow[];
+    status: CycleCountStatus | null;
+    /** Locations a new count can be opened against. */
+    locations: LocationOption[];
+  };
+
+/** `/admin/logistic/cycle-count/[id]` */
+export type CycleCountDetailView = ScreenCopy &
+  ScreenLocale & {
+    cycleCount: CycleCount & { lines: CycleCountLineRow[] };
   };
 
 /**
