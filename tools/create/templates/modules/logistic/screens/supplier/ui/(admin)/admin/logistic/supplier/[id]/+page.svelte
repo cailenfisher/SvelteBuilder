@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
-  import { Button, Field, Input, Switch, Divider } from '@sveltebuilder/coreui';
+  import { Button, Field, Input, Switch, Divider, InlineNotification } from '@sveltebuilder/coreui';
   import type { SupplierDetailView, ScreenFormResult } from '@sveltebuilder/logistic/views';
 
   let { data, form }: { data: SupplierDetailView; form?: ScreenFormResult } = $props();
@@ -31,7 +31,7 @@
   </header>
 
   {#if form?.error}
-    <p class="supplier-detail__error" role="alert">{form.error}</p>
+    <InlineNotification severity="error" summary={form.error} />
   {/if}
 
   <form method="POST" action="?/update" class="supplier-detail__form">

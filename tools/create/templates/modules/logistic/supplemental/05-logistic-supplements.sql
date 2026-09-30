@@ -203,6 +203,62 @@ begin
   return v_id;
 end; $$;
 
+-- ── Compound admin writes ─────────────────────────────────────────────────────
+--
+-- SECURITY INVOKER, unlike the stock functions above: the body runs as the caller, so
+-- every statement inside is still checked against this module's admin-write policies.
+-- These buy atomicity, not privilege.
+--
+-- They exist because PostgREST has no client-side transactions and these entities carry
+-- their name in the i18n tables rather than a column. Creating one is three statements —
+-- the row, its local_text_link, its local_text — and any partial result is garbage: a
+-- supplier with no name row renders the [missing: name] sentinel in every list that
+-- shows it, and a link with no copy is invisible until something reads it.
+
+create or replace function public.logistic_create_supplier(
+  p_slug          text,
+  p_name          text,
+  p_locale_id     bigint,
+  p_lead_time_day integer default null
+)
+returns bigint
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_supplier_id bigint;
+  v_link_id     bigint;
+begin
+  if p_slug is null or btrim(p_slug) = '' then
+    raise exception 'slug is required';
+  end if;
+  if p_name is null or btrim(p_name) = '' then
+    raise exception 'name is required';
+  end if;
+
+  insert into public.supplier (slug, lead_time_day)
+  values (btrim(p_slug), p_lead_time_day)
+  returning id into v_supplier_id;
+
+  -- Scope is the table name and entity_id the new row's id, per the i18n convention.
+  insert into public.local_text_link (slug, scope, entity_id)
+  values ('name', 'supplier', v_supplier_id)
+  returning id into v_link_id;
+
+  insert into public.local_text (link, locale, content)
+  values (v_link_id, p_locale_id, btrim(p_name));
+
+  return v_supplier_id;
+end;
+$$;
+
+-- Matches the convention in superprototype's 04-admin-write-rpc.sql: an admin-write
+-- RPC is granted to authenticated and never to anon. RLS still decides whether the
+-- caller may actually touch the rows.
+grant execute on function
+  public.logistic_create_supplier(text, text, bigint, integer) to authenticated;
+
 -- ── RLS policies ─────────────────────────────────────────────────────────────
 
 alter table public.storage_location enable row level security;

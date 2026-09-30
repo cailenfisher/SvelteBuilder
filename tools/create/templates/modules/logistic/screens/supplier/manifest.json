@@ -3,31 +3,17 @@
   "module": "logistic",
   "label": "Suppliers",
   "hint": "Supplier directory and editor, with contacts",
-  "routes": [
-    "/admin/logistic/supplier",
-    "/admin/logistic/supplier/[id]"
-  ],
+  "routes": ["/admin/logistic/supplier", "/admin/logistic/supplier/[id]"],
   "requires": [],
-  "views": [
-    "SupplierListView",
-    "SupplierDetailView"
-  ],
+  "views": ["SupplierListView", "SupplierDetailView"],
   "actions": {
+    "/admin/logistic/supplier": {
+      "create": ["slug", "name", "lead_time_day"]
+    },
     "/admin/logistic/supplier/[id]": {
-      "update": [
-        "slug",
-        "lead_time_day",
-        "active"
-      ],
-      "addContact": [
-        "role",
-        "name",
-        "email",
-        "phone"
-      ],
-      "deleteContact": [
-        "contact_id"
-      ]
+      "update": ["slug", "lead_time_day", "active"],
+      "addContact": ["role", "name", "email", "phone"],
+      "deleteContact": ["contact_id"]
     }
   },
   "copySlugs": [

@@ -13,14 +13,16 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<Supplier
   const [supplierResult, copy] = await Promise.all([
     locals.supabase
       .from('supplier')
-      .select('id, slug, lead_time_day, active, created_at, supplier_contact(id, supplier_id, role, name, email, phone, created_at)')
+      .select(
+        'id, slug, lead_time_day, active, created_at, supplier_contact(id, supplier_id, role, name, email, phone, created_at)'
+      )
       .eq('id', id)
       .maybeSingle(),
     loadScopedCopy(
       locals.supabase,
       ['logistic', 'supplier'],
       locals.locale.code,
-      locals.defaultLocale.code,
+      locals.defaultLocale.code
     ),
   ]);
 
@@ -101,8 +103,8 @@ export const actions: Actions = {
       supplier_id: supplierId,
       role,
       name,
-      email: ((form.get('email') as string | null)?.trim()) || null,
-      phone: ((form.get('phone') as string | null)?.trim()) || null,
+      email: (form.get('email') as string | null)?.trim() || null,
+      phone: (form.get('phone') as string | null)?.trim() || null,
     });
 
     if (insertError) return fail(500, { error: 'Failed to add the contact.' });
