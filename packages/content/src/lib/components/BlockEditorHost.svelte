@@ -7,7 +7,7 @@
   import type { DictionaryInstance } from 'diglossia';
   import { BlockEditor } from '@sveltebuilder/coreui';
   import type { EditorBlock } from '@sveltebuilder/coreui';
-  import type { ArticleBlock, ArticleBlockType } from '../schema/index.js';
+  import type { ArticleBlock } from '../schema/index.js';
 
   type Props = {
     blocks: ArticleBlock[];

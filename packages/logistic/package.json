@@ -1,7 +1,7 @@
 {
   "name": "@sveltebuilder/logistic",
   "version": "0.0.10",
-  "description": "Warehouse and logistics domain module for SvelteBuilder — suppliers, storage locations, stock, receiving, pick tasks, shipments, returns, and cycle counts, with a Drizzle schema and i18n built in.",
+  "description": "Warehouse and logistics domain module for SvelteBuilder \u2014 suppliers, storage locations, stock, receiving, pick tasks, shipments, returns, and cycle counts, with a Drizzle schema and i18n built in.",
   "keywords": [
     "svelte",
     "svelte5",
@@ -31,10 +31,6 @@
       "svelte": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./server": {
-      "types": "./dist/server/index.d.ts",
-      "default": "./dist/server/index.js"
-    },
     "./schema": {
       "types": "./dist/schema.d.ts",
       "default": "./dist/schema.js"
@@ -53,7 +49,7 @@
     "@sveltebuilder/local-text-schema": "workspace:^"
   },
   "peerDependencies": {
-    "diglossia": "^0.0.1",
+    "diglossia": "^0.1.0",
     "@sveltebuilder/coreui": "workspace:^",
     "svelte": ">=5.0.0"
   },

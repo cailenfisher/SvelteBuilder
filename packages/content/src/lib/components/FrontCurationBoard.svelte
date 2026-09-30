@@ -3,7 +3,7 @@
      Emits onSlotsReorder with the new slot order for the parent to persist via form action. -->
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { Button, Badge } from '@sveltebuilder/coreui';
+  import { Badge } from '@sveltebuilder/coreui';
   import type { FrontSlotWithArticle } from '../schema/index.js';
 
   type Props = {

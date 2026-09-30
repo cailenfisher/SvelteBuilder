@@ -9,7 +9,9 @@ export default defineConfig({
       { find: '@sveltebuilder/coreui/styles', replacement: resolve('../../packages/coreui/styles') },
       { find: '@sveltebuilder/coreui', replacement: resolve('../../packages/coreui/src/lib/index.ts') },
       { find: '@sveltebuilder/hermes', replacement: resolve('../../packages/hermes/src/lib/index.ts') },
-      { find: '@sveltebuilder/content/server', replacement: resolve('../../packages/content/src/lib/server/index.ts') },
+      // content's Drizzle query layer was removed; the pure publishing utilities
+      // that lived beside it moved to @sveltebuilder/content/publishing.
+      { find: '@sveltebuilder/content/publishing', replacement: resolve('../../packages/content/src/lib/publishing/index.ts') },
       { find: '@sveltebuilder/content', replacement: resolve('../../packages/content/src/lib/index.ts') }
     ]
   },

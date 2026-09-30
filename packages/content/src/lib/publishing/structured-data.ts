@@ -117,8 +117,6 @@ export function buildLiveBlogPostingJsonLd(
     storageBaseUrl?: string;
   },
 ): LiveBlogPostingJsonLd {
-  const base = options.siteUrl.replace(/\/$/, '');
-
   return {
     '@context': 'https://schema.org',
     '@type': 'LiveBlogPosting',
