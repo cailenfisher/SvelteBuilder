@@ -1,0 +1,96 @@
+{
+  "id": "warehouse",
+  "module": "logistic",
+  "label": "Warehouse floor app",
+  "hint": "The worker-facing app: pick queue, receiving and counting, on its own layout — one bundle, since its nav links to all three",
+  "routes": [
+    "/warehouse",
+    "/warehouse/pick",
+    "/warehouse/pick/[id]",
+    "/warehouse/receive",
+    "/warehouse/receive/[id]",
+    "/warehouse/count",
+    "/warehouse/count/[id]"
+  ],
+  "requires": [],
+  "views": [
+    "WarehouseShellView",
+    "PickQueueView",
+    "PickTaskDetailView",
+    "PickTaskLineRow",
+    "ReceiveQueueView",
+    "ReceiveDetailView",
+    "CountQueueView",
+    "CountDetailView"
+  ],
+  "actions": {
+    "/warehouse/pick": {
+      "take": ["task_id"]
+    },
+    "/warehouse/pick/[id]": {
+      "pick": ["line_id", "quantity"],
+      "complete": []
+    },
+    "/warehouse/receive/[id]": {
+      "receive": ["line_id", "quantity"]
+    },
+    "/warehouse/count": {
+      "take": ["count_id"]
+    },
+    "/warehouse/count/[id]": {
+      "record": ["line_id", "quantity"]
+    }
+  },
+  "copySlugs": [
+    "logistic.warehouse.title",
+    "logistic.warehouse.nav",
+    "logistic.warehouse.pick",
+    "logistic.warehouse.pick.hint",
+    "logistic.warehouse.receive",
+    "logistic.warehouse.receive.hint",
+    "logistic.warehouse.count",
+    "logistic.warehouse.count.hint",
+    "logistic.pick.task",
+    "logistic.pick.mine",
+    "logistic.pick.open",
+    "logistic.pick.empty",
+    "logistic.pick.take",
+    "logistic.pick.showing",
+    "logistic.pick.remaining",
+    "logistic.pick.picked_of",
+    "logistic.pick.quantity",
+    "logistic.pick.record",
+    "logistic.pick.complete",
+    "logistic.pick.complete_confirm",
+    "logistic.pick.complete_short",
+    "logistic.pick_task.status.open",
+    "logistic.pick_task.status.in_progress",
+    "logistic.pick_task.status.completed",
+    "logistic.pick_task.status.cancelled",
+    "logistic.receive.active",
+    "logistic.receive.recent",
+    "logistic.receive.empty",
+    "logistic.receive.outstanding",
+    "logistic.receive.received_of",
+    "logistic.receive.discrepancy_note",
+    "logistic.receipt.one",
+    "logistic.receipt.receive",
+    "logistic.receipt.received_quantity",
+    "logistic.inbound_receipt.blind",
+    "logistic.inbound_receipt.status.pending",
+    "logistic.inbound_receipt.status.partial",
+    "logistic.inbound_receipt.status.complete",
+    "logistic.inbound_receipt.status.cancelled",
+    "logistic.count.mine",
+    "logistic.count.open",
+    "logistic.count.empty",
+    "logistic.count.take",
+    "logistic.count.lines",
+    "logistic.count.record",
+    "logistic.count.counted_quantity",
+    "logistic.count.approval_note",
+    "logistic.cycle_count.one",
+    "logistic.cycle_count.progress_value",
+    "action.cancel"
+  ]
+}

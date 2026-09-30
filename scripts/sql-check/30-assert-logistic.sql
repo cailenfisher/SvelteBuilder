@@ -332,3 +332,143 @@ begin
     end if;
   end;
 end $$;
+
+-- ── Picking consumes reserved stock, and completing releases the rest ────────
+--
+-- The subtlest invariant in the module. Picking reserved stock must decrement on_hand AND
+-- reserved together, or the reservation stays standing and double-counts against the next
+-- picker. Completing a short pick must release what was reserved and not taken, or that
+-- stock is reserved forever — invisible to every other task and unreconcilable after.
+
+do $$
+declare
+  v_sub        uuid;
+  v_worker     bigint;
+  v_worker_sub uuid;
+  v_bin        bigint;
+  v_level      bigint;
+  v_task       bigint;
+  v_line       bigint;
+  v_on_hand    integer;
+  v_reserved   integer;
+begin
+  if to_regclass('public.pick_task') is null then return; end if;
+
+  select ua.id, ua.auth_user_id into v_worker, v_worker_sub
+  from public.user_account ua where not ua.admin order by ua.id limit 1;
+  select id into v_bin from public.storage_location where location_type = 'bin' order by id limit 1;
+
+  -- Set the scene as an admin: stock on the shelf, reserved for a task assigned to the
+  -- worker. Admin because stock_level and pick_task inserts are admin-only under RLS.
+  select ua.auth_user_id into v_sub
+  from public.user_account ua where ua.admin order by ua.id limit 1;
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', v_sub::text, true);
+
+  v_level := public.logistic_ensure_stock_level(v_bin, 'SQLCHECK-PICK');
+  perform public.logistic_adjust_stock(v_level, 20, 'system_correction', v_worker);
+  perform public.logistic_reserve_stock(v_level, 8);
+
+  insert into public.pick_task (user_account_id, status)
+  values (v_worker, 'in_progress') returning id into v_task;
+
+  insert into public.pick_task_line
+    (pick_task_id, stock_level_id, storage_location_id, sku, requested_quantity, sequence)
+  values (v_task, v_level, v_bin, 'SQLCHECK-PICK', 8, 10) returning id into v_line;
+
+  select on_hand, reserved into v_on_hand, v_reserved
+  from public.stock_level where id = v_level;
+
+  -- Now as the worker, which is what the worker policies are for.
+  perform set_config('request.jwt.claim.sub', v_worker_sub::text, true);
+
+  perform public.logistic_record_picked_quantity(v_line, 5, v_worker);
+
+  if (select on_hand from public.stock_level where id = v_level) <> v_on_hand - 5 then
+    raise exception 'picking 5 did not decrement on_hand';
+  end if;
+  if (select reserved from public.stock_level where id = v_level) <> v_reserved - 5 then
+    raise exception 'picking 5 did not decrement reserved — the reservation is double-counting';
+  end if;
+
+  -- Correcting downward reverses both counters, so a mis-scan is recoverable.
+  perform public.logistic_record_picked_quantity(v_line, 3, v_worker);
+  if (select on_hand from public.stock_level where id = v_level) <> v_on_hand - 3 then
+    raise exception 'correcting the pick down did not restore on_hand';
+  end if;
+  if (select reserved from public.stock_level where id = v_level) <> v_reserved - 3 then
+    raise exception 'correcting the pick down did not restore reserved';
+  end if;
+
+  -- More than requested is a mistake, not an over-pick: the reservation only covers the
+  -- requested quantity.
+  begin
+    perform public.logistic_record_picked_quantity(v_line, 99, v_worker);
+    raise exception 'picked more than the line requested';
+  exception when raise_exception then
+    null; -- refused, as intended
+  end;
+
+  -- Completing short: 3 of 8 picked, so 5 must come back off the reservation.
+  perform public.logistic_complete_pick_task(v_task, v_worker);
+
+  if (select status from public.pick_task where id = v_task) <> 'completed' then
+    raise exception 'the task did not complete';
+  end if;
+  if (select reserved from public.stock_level where id = v_level) <> v_reserved - 8 then
+    raise exception 'completing a short pick left stock reserved';
+  end if;
+  if (select on_hand from public.stock_level where id = v_level) <> v_on_hand - 3 then
+    raise exception 'completing the task moved on_hand, which only picking should do';
+  end if;
+end $$;
+
+-- A worker may not pick against a task that is not theirs. The line update is what RLS
+-- governs, and the function checks its row count, so a refusal must leave stock untouched.
+do $$
+declare
+  v_admin      bigint;
+  v_admin_sub  uuid;
+  v_worker     bigint;
+  v_worker_sub uuid;
+  v_bin        bigint;
+  v_level      bigint;
+  v_task       bigint;
+  v_line       bigint;
+  v_on_hand    integer;
+begin
+  if to_regclass('public.pick_task') is null then return; end if;
+
+  select ua.id, ua.auth_user_id into v_admin, v_admin_sub
+  from public.user_account ua where ua.admin order by ua.id limit 1;
+  select ua.id, ua.auth_user_id into v_worker, v_worker_sub
+  from public.user_account ua where not ua.admin order by ua.id limit 1;
+  select id into v_bin from public.storage_location where location_type = 'bin' order by id limit 1;
+
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', v_admin_sub::text, true);
+
+  v_level := public.logistic_ensure_stock_level(v_bin, 'SQLCHECK-NOTMINE');
+  perform public.logistic_adjust_stock(v_level, 10, 'system_correction', v_admin);
+  perform public.logistic_reserve_stock(v_level, 4);
+
+  -- Assigned to the admin, so the worker has no claim on it.
+  insert into public.pick_task (user_account_id, status)
+  values (v_admin, 'in_progress') returning id into v_task;
+  insert into public.pick_task_line
+    (pick_task_id, stock_level_id, storage_location_id, sku, requested_quantity)
+  values (v_task, v_level, v_bin, 'SQLCHECK-NOTMINE', 4) returning id into v_line;
+
+  select on_hand into v_on_hand from public.stock_level where id = v_level;
+
+  perform set_config('request.jwt.claim.sub', v_worker_sub::text, true);
+
+  begin
+    perform public.logistic_record_picked_quantity(v_line, 4, v_worker);
+    raise exception 'a worker picked against a task assigned to someone else';
+  exception when insufficient_privilege then
+    if (select on_hand from public.stock_level where id = v_level) <> v_on_hand then
+      raise exception 'a refused pick still moved stock';
+    end if;
+  end;
+end $$;

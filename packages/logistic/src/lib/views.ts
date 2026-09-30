@@ -7,6 +7,8 @@ import type {
   InboundReceipt,
   InboundReceiptLine,
   InboundReceiptStatus,
+  PickTask,
+  PickTaskLine,
   ReturnAuthorization,
   ReturnAuthorizationLine,
   ReturnAuthorizationStatus,
@@ -268,6 +270,75 @@ export type CycleCountListView = ScreenCopy &
 
 /** `/admin/logistic/cycle-count/[id]` */
 export type CycleCountDetailView = ScreenCopy &
+  ScreenLocale & {
+    cycleCount: CycleCount & { lines: CycleCountLineRow[] };
+  };
+
+// ── The warehouse worker screens ─────────────────────────────────────────────
+//
+// These are one feature rather than four: the shell's nav and its home screen link to all
+// three flows, so shipping any one without the others would leave dead links. See the
+// bundle's manifest.
+
+/**
+ * `(warehouse)/+layout` — the shell.
+ *
+ * Its nav labels are module copy rather than base-seed global copy, because a scaffold
+ * without this module has no warehouse to navigate. Page data inherits a layout's data,
+ * which is how the home screen gets its labels without a loader of its own.
+ */
+export type WarehouseShellView = ScreenCopy;
+
+export type PickTaskLineRow = PickTaskLine & {
+  storageLocation: LocationOption;
+};
+
+/** `/warehouse/pick` */
+export type PickQueueView = ScreenCopy &
+  ScreenLocale & {
+    /** In progress and assigned to the signed-in worker. */
+    myTasks: PickTask[];
+    /** Unassigned and open to anyone. */
+    openTasks: PickTask[];
+    openTotal: number;
+  };
+
+/** `/warehouse/pick/[id]` */
+export type PickTaskDetailView = ScreenCopy &
+  ScreenLocale & {
+    task: PickTask & { lines: PickTaskLineRow[] };
+  };
+
+/** `/warehouse/receive` */
+export type ReceiveQueueView = ScreenCopy &
+  ScreenLocale & {
+    /** Still pending or partial — the work. */
+    active: InboundReceiptRow[];
+    /** Recently completed, for orientation rather than action. */
+    recent: InboundReceiptRow[];
+  };
+
+/**
+ * `/warehouse/receive/[id]`
+ *
+ * Narrower than InboundReceiptDetailView, which also carries the storage locations its add
+ * a line form needs. A worker receives against lines someone else planned, so shipping
+ * those locations here would be data the screen cannot use.
+ */
+export type ReceiveDetailView = ScreenCopy &
+  ScreenLocale & {
+    receipt: InboundReceipt & { lines: InboundReceiptLineRow[] };
+  };
+
+/** `/warehouse/count` */
+export type CountQueueView = ScreenCopy &
+  ScreenLocale & {
+    myCounts: CycleCountRow[];
+    openCounts: CycleCountRow[];
+  };
+
+/** `/warehouse/count/[id]` */
+export type CountDetailView = ScreenCopy &
   ScreenLocale & {
     cycleCount: CycleCount & { lines: CycleCountLineRow[] };
   };

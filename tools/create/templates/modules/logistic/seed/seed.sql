@@ -895,3 +895,138 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — warehouse bundle
+--
+-- The shell's own labels are module copy under scope 'logistic' rather than global copy in
+-- the base seed: a scaffold without this module has no warehouse to navigate, so its nav
+-- strings are not application chrome every project carries.
+--
+-- The status labels these screens render are seeded above with the module's base copy.
+-- Several of these are MF2 patterns, so a locale can place their numbers where its grammar
+-- needs them rather than the screen concatenating around a fixed word order.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.warehouse.title',                  'logistic', null),
+  ('logistic.warehouse.nav',                    'logistic', null),
+  ('logistic.warehouse.pick',                   'logistic', null),
+  ('logistic.warehouse.pick.hint',              'logistic', null),
+  ('logistic.warehouse.receive',                'logistic', null),
+  ('logistic.warehouse.receive.hint',           'logistic', null),
+  ('logistic.warehouse.count',                  'logistic', null),
+  ('logistic.warehouse.count.hint',             'logistic', null),
+  ('logistic.pick.task',                        'logistic', null),
+  ('logistic.pick.mine',                        'logistic', null),
+  ('logistic.pick.open',                        'logistic', null),
+  ('logistic.pick.empty',                       'logistic', null),
+  ('logistic.pick.take',                        'logistic', null),
+  ('logistic.pick.showing',                     'logistic', null),
+  ('logistic.pick.remaining',                   'logistic', null),
+  ('logistic.pick.picked_of',                   'logistic', null),
+  ('logistic.pick.quantity',                    'logistic', null),
+  ('logistic.pick.record',                      'logistic', null),
+  ('logistic.pick.complete',                    'logistic', null),
+  ('logistic.pick.complete_confirm',            'logistic', null),
+  ('logistic.pick.complete_short',              'logistic', null),
+  ('logistic.receive.active',                   'logistic', null),
+  ('logistic.receive.recent',                   'logistic', null),
+  ('logistic.receive.empty',                    'logistic', null),
+  ('logistic.receive.outstanding',              'logistic', null),
+  ('logistic.receive.received_of',              'logistic', null),
+  ('logistic.receive.discrepancy_note',         'logistic', null),
+  ('logistic.count.mine',                       'logistic', null),
+  ('logistic.count.open',                       'logistic', null),
+  ('logistic.count.empty',                      'logistic', null),
+  ('logistic.count.take',                       'logistic', null),
+  ('logistic.count.lines',                      'logistic', null),
+  ('logistic.count.record',                     'logistic', null),
+  ('logistic.count.counted_quantity',           'logistic', null),
+  ('logistic.count.approval_note',              'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.warehouse.title',                  'Warehouse'),
+  ('logistic.warehouse.nav',                    'Warehouse navigation'),
+  ('logistic.warehouse.pick',                   'Pick queue'),
+  ('logistic.warehouse.pick.hint',              'View and work open pick tasks'),
+  ('logistic.warehouse.receive',                'Receiving'),
+  ('logistic.warehouse.receive.hint',           'Process inbound receipts'),
+  ('logistic.warehouse.count',                  'Counting'),
+  ('logistic.warehouse.count.hint',             'Work assigned cycle counts'),
+  ('logistic.pick.task',                        'Task'),
+  ('logistic.pick.mine',                        'Your tasks'),
+  ('logistic.pick.open',                        'Open queue'),
+  ('logistic.pick.empty',                       'Nothing waiting to be picked.'),
+  ('logistic.pick.take',                        'Take'),
+  ('logistic.pick.showing',                     'showing {$showing} of {$total}'),
+  ('logistic.pick.remaining',                   '{$remaining} of {$total} lines still to pick'),
+  ('logistic.pick.picked_of',                   '{$picked} of {$requested} picked'),
+  ('logistic.pick.quantity',                    'Picked quantity'),
+  ('logistic.pick.record',                      'Record'),
+  ('logistic.pick.complete',                    'Complete task'),
+  ('logistic.pick.complete_confirm',            'Everything has been picked. Completing the task closes it.'),
+  ('logistic.pick.complete_short',              'Some lines are short. Completing the task releases the stock still reserved for them.'),
+  ('logistic.receive.active',                   'To receive'),
+  ('logistic.receive.recent',                   'Recently completed'),
+  ('logistic.receive.empty',                    'Nothing waiting to be received.'),
+  ('logistic.receive.outstanding',              '{$outstanding} of {$total} lines outstanding'),
+  ('logistic.receive.received_of',              '{$received} of {$expected} received'),
+  ('logistic.receive.discrepancy_note',         'Discrepancy of {$discrepancy} against what was expected'),
+  ('logistic.count.mine',                       'Your counts'),
+  ('logistic.count.open',                       'Open counts'),
+  ('logistic.count.empty',                      'Nothing waiting to be counted.'),
+  ('logistic.count.take',                       'Take'),
+  ('logistic.count.lines',                      '{$total} lines'),
+  ('logistic.count.record',                     'Record'),
+  ('logistic.count.counted_quantity',           'Counted quantity'),
+  ('logistic.count.approval_note',              'What you record here corrects nothing on its own. An administrator reviews the variances and approves the count.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.warehouse.title',                  'Entrepôt'),
+  ('logistic.warehouse.nav',                    'Navigation entrepôt'),
+  ('logistic.warehouse.pick',                   'File de prélèvement'),
+  ('logistic.warehouse.pick.hint',              'Consulter et traiter les tâches de prélèvement'),
+  ('logistic.warehouse.receive',                'Réception'),
+  ('logistic.warehouse.receive.hint',           'Traiter les réceptions entrantes'),
+  ('logistic.warehouse.count',                  'Comptage'),
+  ('logistic.warehouse.count.hint',             'Traiter les inventaires assignés'),
+  ('logistic.pick.task',                        'Tâche'),
+  ('logistic.pick.mine',                        'Vos tâches'),
+  ('logistic.pick.open',                        'File ouverte'),
+  ('logistic.pick.empty',                       'Rien à prélever.'),
+  ('logistic.pick.take',                        'Prendre'),
+  ('logistic.pick.showing',                     '{$showing} sur {$total} affichées'),
+  ('logistic.pick.remaining',                   '{$remaining} lignes sur {$total} à prélever'),
+  ('logistic.pick.picked_of',                   '{$picked} sur {$requested} prélevés'),
+  ('logistic.pick.quantity',                    'Quantité prélevée'),
+  ('logistic.pick.record',                      'Enregistrer'),
+  ('logistic.pick.complete',                    'Terminer la tâche'),
+  ('logistic.pick.complete_confirm',            'Tout a été prélevé. Terminer la tâche la clôture.'),
+  ('logistic.pick.complete_short',              'Certaines lignes sont incomplètes. Terminer la tâche libère le stock encore réservé.'),
+  ('logistic.receive.active',                   'À réceptionner'),
+  ('logistic.receive.recent',                   'Récemment terminées'),
+  ('logistic.receive.empty',                    'Rien à réceptionner.'),
+  ('logistic.receive.outstanding',              '{$outstanding} lignes sur {$total} en attente'),
+  ('logistic.receive.received_of',              '{$received} sur {$expected} reçus'),
+  ('logistic.receive.discrepancy_note',         'Écart de {$discrepancy} par rapport au prévu'),
+  ('logistic.count.mine',                       'Vos inventaires'),
+  ('logistic.count.open',                       'Inventaires ouverts'),
+  ('logistic.count.empty',                      'Rien à compter.'),
+  ('logistic.count.take',                       'Prendre'),
+  ('logistic.count.lines',                      '{$total} lignes'),
+  ('logistic.count.record',                     'Enregistrer'),
+  ('logistic.count.counted_quantity',           'Quantité comptée'),
+  ('logistic.count.approval_note',              'Ce que vous enregistrez ici ne corrige rien en soi. Un administrateur examine les écarts et approuve l''inventaire.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;

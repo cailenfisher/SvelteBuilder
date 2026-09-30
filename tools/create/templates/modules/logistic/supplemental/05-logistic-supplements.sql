@@ -543,6 +543,116 @@ $$;
 grant execute on function
   public.logistic_approve_cycle_count(bigint, bigint) to authenticated;
 
+-- Recording a picked quantity: update the line and consume the stock physically taken.
+-- Two statements plus the consume's own two, and a partial result means goods left the
+-- shelf with no record of it.
+--
+-- Consuming rather than adjusting is the distinction that matters: picking reserved stock
+-- decrements on_hand AND reserved together, so the reserved <= on_hand invariant survives
+-- concurrent tasks. A plain adjustment would drop on_hand and leave the reservation
+-- standing, which then double-counts against the next picker.
+create or replace function public.logistic_record_picked_quantity(
+  p_line_id          bigint,
+  p_picked_quantity  integer,
+  p_user_account_id  bigint
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_stock_level_id bigint;
+  v_requested      integer;
+  v_previous       integer;
+  v_delta          integer;
+  v_updated        integer;
+begin
+  select stock_level_id, requested_quantity, picked_quantity
+    into v_stock_level_id, v_requested, v_previous
+  from public.pick_task_line
+  where id = p_line_id;
+
+  if not found then
+    raise exception 'pick_task_line % not found', p_line_id;
+  end if;
+
+  -- More than requested is not an over-pick to be recorded, it is a mistake: the
+  -- reservation only covers the requested quantity.
+  if p_picked_quantity < 0 or p_picked_quantity > v_requested then
+    raise exception 'picked quantity % is outside [0, %]', p_picked_quantity, v_requested;
+  end if;
+
+  update public.pick_task_line
+  set picked_quantity = p_picked_quantity
+  where id = p_line_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    -- Zero rows is RLS refusing — the task is not this worker's. The select above found
+    -- the row, so it is not a missing-row case.
+    raise exception insufficient_privilege
+      using message = 'not permitted to pick against this task';
+  end if;
+
+  v_delta := p_picked_quantity - v_previous;
+  if v_delta <> 0 then
+    perform public.logistic_consume_stock(
+      v_stock_level_id,
+      v_delta,
+      'pick',
+      p_user_account_id,
+      'Pick task line ' || p_line_id
+    );
+  end if;
+end;
+$$;
+
+grant execute on function
+  public.logistic_record_picked_quantity(bigint, integer, bigint) to authenticated;
+
+-- Completing a pick task releases whatever was reserved but not picked, then closes the
+-- task. Without the release, a short pick leaves stock reserved forever — invisible to
+-- every other task, and impossible to reconcile after the fact.
+create or replace function public.logistic_complete_pick_task(
+  p_pick_task_id    bigint,
+  p_user_account_id bigint
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_line    record;
+  v_updated integer;
+begin
+  update public.pick_task
+  set status = 'completed'
+  where id = p_pick_task_id
+    and status = 'in_progress'
+    and user_account_id = p_user_account_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    raise exception insufficient_privilege
+      using message = 'not permitted to complete this task, or it is not in progress';
+  end if;
+
+  for v_line in
+    select stock_level_id, requested_quantity - picked_quantity as unpicked
+    from public.pick_task_line
+    where pick_task_id = p_pick_task_id
+      and requested_quantity > picked_quantity
+  loop
+    perform public.logistic_release_stock_reservation(v_line.stock_level_id, v_line.unpicked);
+  end loop;
+end;
+$$;
+
+grant execute on function
+  public.logistic_complete_pick_task(bigint, bigint) to authenticated;
+
 -- Receiving one line of an inbound receipt: five statements across three tables, and
 -- every partial result is a real operational problem. Stock moved with the line not
 -- updated means the next attempt receives it twice; the line updated with the receipt
