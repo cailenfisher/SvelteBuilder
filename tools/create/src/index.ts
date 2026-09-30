@@ -201,6 +201,18 @@ async function main() {
       };
       await deepMergePackageJson(pkg, templatePkg);
     }
+
+    // Stamp the project name into supabase/config.toml. project_id namespaces the
+    // local Docker containers (supabase_db_<project_id>); left at the template's
+    // placeholder, every scaffolded project would fight over the same container names.
+    const configPath = path.join(targetDir, 'supabase', 'config.toml');
+    if (await fs.pathExists(configPath)) {
+      const config = await fs.readFile(configPath, 'utf8');
+      await fs.writeFile(
+        configPath,
+        config.replace(/^project_id = ".*"$/m, `project_id = "${projectName}"`)
+      );
+    }
   }
 
   // ── Step 3: Copy module templates ─────────────────────────────────────────
