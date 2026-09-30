@@ -252,7 +252,15 @@ weighing before investing in more of them.
 
 The plan executed from these decisions: pin template deps; strip `./server` and add `./views` to each
 module; carry one vertical slice (Supplier) end to end through the new layout and the CLI's screen
-selection; port the remaining bundles; then land a scaffold-and-build CI gate and ungate Logistic.
+selection; land the scaffold-and-build gate; then port the remaining bundles.
+
+Done so far: deps pinned (which surfaced twelve type errors in the scaffold's own admin routes, since
+`pnpm check` had been unable to run at all), both modules made pure, the supplier bundle ported, and
+`pnpm scaffold:check` landed as a CI matrix. The gate on Logistic is gone — not because the port
+finished, but because moving unported routes into `screens/_unported/` removed the breakage the gate
+was standing in for. What a module offers is now read from the tree instead of hardcoded.
+
+Ten logistic bundles and content's thirteen route files remain.
 
 The recommendation this document originally closed with was to decide Native's fate first, on the
 grounds that it collapses most of the question. That is still true, and it is still undecided — but

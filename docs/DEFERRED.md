@@ -5,33 +5,39 @@ SvelteBuilder integration work order. Read alongside `CLAUDE.md`'s Known Open Is
 
 ---
 
-## Logistic module — GATED (2026-09-30)
+## Logistic module — partially ported (2026-09-30)
 
-`@sveltebuilder/logistic` is no longer selectable in `npm create sveltebuilder`. The CLI names the
-reason and stops rather than scaffolding without a module the user asked for.
+`@sveltebuilder/logistic` is selectable again. The gate it briefly carried is gone, because the thing
+the gate existed for is fixed: its unported route templates now sit in `screens/_unported/`, which the
+create CLI never copies, so selecting the module can no longer scaffold code that references a data
+layer SuperPrototype dropped.
 
-Its 18 route templates under `tools/create/templates/modules/logistic/routes/` query through
-`locals.db.withUser()`. Phase 1 removed that handle from SuperPrototype, so every one of those files
-references something the generated project no longer has — the scaffold did not typecheck, and
-nothing caught it until a smoke test, because no route template is exercised by CI.
+What the module offers is now read from the template tree rather than asserted by a flag — the
+prompt's hint reports how many screen bundles exist and whether more are pending, so a module becomes
+more capable as bundles land with nothing to update by hand.
 
-The module's `./server` export has the same problem one layer down: its queries import `drizzle-orm`
-at runtime, which guardrail 8 in `CLAUDE.md` forbids precisely because a direct connection runs as a
-table-owning role and bypasses RLS. So porting the route templates alone would strand the query layer
-they call. `@sveltebuilder/content` exports a Drizzle `./server` too; it escaped the break only
-because it ships no route templates.
+State of the port:
 
-What to decide before ungating — the full exploration is in `docs/MODULE-ROUTES.md`:
+- **supplier** — ported. List and detail, form actions against `event.locals.supabase`, i18n wired
+  (the originals were hardcoded English), verified by `pnpm scaffold:check`.
+- **ten bundles remaining** — the admin dashboard, storage locations, stock, receipts, shipments,
+  returns, cycle counts, plus the warehouse shell and its three worker screens. All still in
+  `screens/_unported/`, all still written against `locals.db.withUser()`.
 
-- whether Native is cancelled, which collapses most of the question;
-- what happens to the modules' `./server` export (deleted, moved into Postgres as views and
-  `SECURITY INVOKER` functions, or made Native-only);
-- whether modules should ship route code by copying at all, given that a copied route is a fork at
-  scaffold time and can never receive a fix.
+Two things to carry into that work:
 
-Do not simply rewrite the 18 files against `locals.supabase`. That restores the option while
-re-committing to the pattern that broke, and leaves both the `./server` question and the
-upgradeability question untouched.
+- **The 40 RLS policies have never been enforced.** Under `withUser` the connection role owned the
+  tables, so Postgres skipped RLS entirely. Porting a bundle to PostgREST turns its policies on for
+  the first time, so expect a screen to come back empty rather than to error. Only a policy that
+  blocks a screen from functioning gets touched in a port; the pattern problems below are a separate
+  pass.
+- **Those policies also predate the current conventions**: they call `public.current_user_id()` bare
+  instead of as `(select …)`, so it evaluates once per row rather than once per statement, and they
+  re-implement the admin check as an inline `exists (select 1 from public.user_account …)` rather than
+  calling `public.current_user_admin()`. Flagged critical in `docs/MODULE-ROUTES.md`.
+
+`@sveltebuilder/content` is in the same shape one step earlier: its 13 route templates are in
+`screens/_unsorted/` awaiting bundling, and it exports no view-model types yet.
 
 ---
 

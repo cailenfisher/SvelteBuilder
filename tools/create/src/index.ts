@@ -14,6 +14,26 @@ const TEMPLATES_DIR = path.resolve(__dirname, '..', 'templates');
 type PackageManager = 'pnpm' | 'npm' | 'yarn';
 type ScaffoldTemplate = 'superprototype' | 'native';
 
+/**
+ * The modules offered at the prompt. A module is always installable: it ships a
+ * schema, components and supplemental SQL, none of which depend on any of its screens
+ * being scaffolded. What varies is how many screen bundles it has been ported to, and
+ * the prompt reports that from the template tree rather than from a hardcoded flag —
+ * so a module becomes more capable as bundles land, with nothing here to update.
+ */
+const MODULE_CATALOG: Array<{ id: string; label: string; blurb: string }> = [
+  {
+    id: 'content',
+    label: 'Content',
+    blurb: 'Publisher/news: articles, sections, taxonomy, live coverage, newsletter, RSS, sitemap',
+  },
+  {
+    id: 'logistic',
+    label: 'Logistic',
+    blurb: 'Warehouse: receiving, pick tasks, shipments, returns, cycle counts',
+  },
+];
+
 const MODULE_DEPS: Record<string, string[]> = {
   content: ['@sveltebuilder/content', '@sveltebuilder/coreui'],
   logistic: ['@sveltebuilder/logistic', '@sveltebuilder/coreui'],
@@ -88,6 +108,31 @@ function resolveScreenRequires(
   return [...chosen.values()];
 }
 
+/**
+ * How much of a module's route surface has been ported to screen bundles. Anything
+ * still sitting in a `_` directory is not selectable and never copied, so reporting it
+ * is the honest way to say "partially ported" without a flag that has to be maintained
+ * by hand.
+ */
+async function moduleCoverage(mod: string): Promise<{ bundles: number; pending: boolean }> {
+  const screensDir = path.join(TEMPLATES_DIR, 'modules', mod, 'screens');
+  if (!(await fs.pathExists(screensDir))) return { bundles: 0, pending: false };
+
+  const entries = await fs.readdir(screensDir);
+  let bundles = 0;
+  let pending = false;
+
+  for (const entry of entries) {
+    if (entry.startsWith('_')) {
+      pending = true;
+      continue;
+    }
+    if (await fs.pathExists(path.join(screensDir, entry, 'manifest.json'))) bundles += 1;
+  }
+
+  return { bundles, pending };
+}
+
 function validateProjectName(value: string): string | undefined {
   if (!value.trim()) return 'Project name is required.';
   if (!/^[a-z0-9][a-z0-9-_.]*$/.test(value))
@@ -126,6 +171,33 @@ async function main() {
   const argName = args.find((a) => !a.startsWith('-'));
   const validArg = argName ? argName : undefined;
 
+  // Any prompt whose answer arrives as a flag is skipped, so supplying all of them
+  // makes a run non-interactive. That is what CI drives: scripting a scaffolder by
+  // feeding keystrokes to its prompts over a pseudo-terminal is a maintenance
+  // liability, and these are useful to anyone automating a project's creation.
+  //
+  //   --template <superprototype|native>
+  //   --pm <pnpm|npm|yarn>
+  //   --modules <none|content,logistic>
+  //   --screens <all|none|logistic:supplier,...>
+  const flag = (name: string): string | undefined => {
+    const inline = args.find((a) => a.startsWith(`--${name}=`));
+    if (inline) return inline.slice(name.length + 3);
+    const index = args.indexOf(`--${name}`);
+    return index >= 0 ? args[index + 1] : undefined;
+  };
+
+  const csv = (value: string | undefined): string[] | undefined => {
+    if (value === undefined) return undefined;
+    if (value === 'none') return [];
+    return value.split(',').map((part) => part.trim()).filter(Boolean);
+  };
+
+  const templateFlag = flag('template');
+  const pmFlag = flag('pm');
+  const modulesFlag = csv(flag('modules'));
+  const screensFlag = flag('screens');
+
   console.log('');
   p.intro(pc.bgCyan(pc.black(' create-sveltebuilder ')));
 
@@ -153,7 +225,7 @@ async function main() {
   }
 
   // ── Scaffold template ─────────────────────────────────────────────────────
-  const templateChoice = await p.select({
+  const templateChoice = templateFlag ?? (await p.select({
     message: 'Scaffold template',
     options: [
       {
@@ -167,7 +239,7 @@ async function main() {
         hint: 'on hold — not available',
       },
     ],
-  });
+  }));
   if (p.isCancel(templateChoice)) {
     p.cancel('Cancelled.');
     process.exit(0);
@@ -179,56 +251,60 @@ async function main() {
   const scaffoldTemplate = templateChoice as ScaffoldTemplate;
 
   // ── Package manager ───────────────────────────────────────────────────────
-  const pm = await p.select({
+  const pm = pmFlag ?? (await p.select({
     message: 'Package manager',
     options: [
       { value: 'pnpm' as PackageManager, label: 'pnpm' },
       { value: 'npm' as PackageManager, label: 'npm' },
       { value: 'yarn' as PackageManager, label: 'yarn' },
     ],
-  });
+  }));
   if (p.isCancel(pm)) {
     p.cancel('Cancelled.');
     process.exit(0);
   }
 
   // ── Module selection ──────────────────────────────────────────────────────
-  const selectedModules = await p.multiselect({
-    message: 'Select domain modules to include',
-    options: [
-      {
-        value: 'content',
-        label: 'Content',
-        hint: 'Publisher/news: articles, sections, taxonomy, live coverage, newsletter, RSS, sitemap',
-      },
-      {
-        value: 'logistic',
-        label: 'Logistic',
-        hint: 'on hold — route templates predate the Supabase data layer',
-      },
-    ],
-    required: false,
-  });
+  //
+  // Each option's hint reports its screen coverage, read from the template tree. This
+  // replaces the hardcoded "on hold" gate Logistic carried: that gate existed because
+  // its route templates called a data layer SuperPrototype had dropped, and moving the
+  // unported ones into screens/_unported/ — where nothing copies them — is what
+  // actually fixed it. A module with no bundles is still perfectly installable; it just
+  // brings schema, components and SQL rather than pages.
+  const moduleOptions = await Promise.all(
+    MODULE_CATALOG.map(async (mod) => {
+      const { bundles, pending } = await moduleCoverage(mod.id);
+      const coverage =
+        bundles === 0
+          ? pending
+            ? 'no screens yet — schema, components and SQL only'
+            : 'schema, components and SQL'
+          : `${bundles} screen bundle${bundles === 1 ? '' : 's'}${pending ? ', more in progress' : ''}`;
+
+      return { value: mod.id, label: mod.label, hint: `${mod.blurb} · ${coverage}` };
+    }),
+  );
+
+  const selectedModules =
+    modulesFlag ??
+    (await p.multiselect({
+      message: 'Select domain modules to include',
+      options: moduleOptions,
+      required: false,
+    }));
   if (p.isCancel(selectedModules)) {
     p.cancel('Cancelled.');
     process.exit(0);
   }
 
-  // Logistic's route templates still call locals.db.withUser(), the Drizzle handle
-  // SuperPrototype dropped when it moved to PostgREST. Scaffolding them produces a
-  // project that does not typecheck, so the option is gated rather than shipped
-  // broken. Gated the same way as the Native template — say so and stop, instead of
-  // quietly scaffolding without a module the user asked for.
-  // See docs/MODULE-ROUTES.md for the open design question behind this.
-  if ((selectedModules as string[]).includes('logistic')) {
-    p.cancel(
-      'The Logistic module is on hold: its route templates target the Drizzle data layer that ' +
-        'SuperPrototype has replaced. Re-run without it to continue.',
-    );
-    process.exit(0);
-  }
-
   const modules = selectedModules as string[];
+
+  const unknownModules = modules.filter((mod) => !MODULE_CATALOG.some((m) => m.id === mod));
+  if (unknownModules.length > 0) {
+    p.cancel(`Unknown module(s): ${unknownModules.join(', ')}`);
+    process.exit(1);
+  }
 
   // ── Screen selection ──────────────────────────────────────────────────────
   //
@@ -241,18 +317,21 @@ async function main() {
   if (availableScreens.length > 0) {
     const multipleModules = new Set(availableScreens.map((s) => s.module)).size > 1;
 
-    const screenChoice = await p.multiselect({
-      message: 'Select screens to scaffold',
-      options: availableScreens.map((screen) => ({
-        value: screenKey(screen),
-        label: multipleModules
-          ? `${screen.module}: ${screen.label}`
-          : screen.label,
-        hint: screen.hint,
-      })),
-      initialValues: availableScreens.map(screenKey),
-      required: false,
-    });
+    const screenChoice =
+      screensFlag === 'all'
+        ? availableScreens.map(screenKey)
+        : screensFlag !== undefined
+          ? (csv(screensFlag) as string[])
+          : await p.multiselect({
+              message: 'Select screens to scaffold',
+              options: availableScreens.map((screen) => ({
+                value: screenKey(screen),
+                label: multipleModules ? `${screen.module}: ${screen.label}` : screen.label,
+                hint: screen.hint,
+              })),
+              initialValues: availableScreens.map(screenKey),
+              required: false,
+            });
     if (p.isCancel(screenChoice)) {
       p.cancel('Cancelled.');
       process.exit(0);

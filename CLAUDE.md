@@ -56,8 +56,44 @@ SvelteBuilder/
 ├── apps/
 │   ├── dev-kitchen/    internal SvelteKit test app
 │   └── docs/
+├── scripts/            repo tooling — scaffold-check.mjs (see Template Verification)
 └── [root config: pnpm workspaces, Turborepo, Changesets, ESLint, Prettier]
 ```
+
+### Template Verification
+
+`pnpm scaffold:check` scaffolds real projects from `tools/create/templates/` and checks that each
+one typechecks and builds. Run it after touching anything under `templates/`, and note that
+`svelte-check` is the step that matters — Vite does not typecheck, so a build can pass over a
+loader referencing a field that no longer exists.
+
+Templates are the one part of this repo that no package test can reach: they are inert text until
+the create CLI copies them into a project. That gap is how the Logistic module came to ship a
+scaffold that could not typecheck, from the day SuperPrototype moved to PostgREST until someone
+tried it by hand.
+
+Two things the harness does deliberately. It **links the workspace packages** into each scaffolded
+project instead of installing them from npm, because templates are written against the packages in
+this repo and those are usually ahead of what is published — verifying against the registry would
+mean the gate can never check an unreleased change. And it drives the CLI **by flags**
+(`--template`, `--pm`, `--modules`, `--screens`), never by feeding keystrokes to its prompts.
+
+### Screen bundles
+
+A module's route code lives in the create CLI's template tree, never in the package — see
+guardrail 10. Each selectable bundle is:
+
+```
+tools/create/templates/modules/<module>/screens/<screen-id>/
+├── manifest.json            id, label, hint, routes, requires, actions, copySlugs
+├── ui/                      +page.svelte — provider-neutral, imports its view types
+└── server.superprototype/   +page.server.ts — loaders and form actions for that flavour
+```
+
+Both halves merge into `src/routes/` at scaffold time. The contract between them is the module's
+exported view-model types (`@sveltebuilder/<module>/views`), because nothing typechecks across that
+boundary until a project exists. A directory starting with `_` is a holding area for route code not
+yet ported into a bundle: never selectable, never copied. Full rationale in `docs/MODULE-ROUTES.md`.
 
 Package manager: **pnpm**. Task orchestration: **Turborepo**. Publishing: **Changesets**.
 
@@ -673,7 +709,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | Native template (ON HOLD)          | Frozen 2026-09-29 — not accessible from `npm create sveltebuilder`, not being maintained. Its `withUser`/Drizzle data layer is the pattern SuperPrototype is moving away from, so expect it to fall further behind. Keep shared surfaces provider-neutral in shape; do not spend effort on Native itself. |
 | `apps/dev-kitchen`                 | Stagnant — not migrated to the diglossia 0.1.0 core/svelte split, the `withUser` auth pattern, or any other change made since. Do not fix or update it; it will keep diverging from scaffold templates over time. Known defects tracked in `docs/DEFERRED.md`. |
 | `@sveltebuilder/commerce`          | Not started — single placeholder `index.ts`. The product's remaining domain differentiator gap.                                                                                                                |
-| `@sveltebuilder/logistic` (GATED)  | **Not selectable in `npm create sveltebuilder` as of 2026-09-30.** Its 18 route templates call `locals.db.withUser()`, the Drizzle handle SuperPrototype dropped in Phase 1, so scaffolding it produced a project that did not typecheck. The module's own `./server` export is Drizzle-at-runtime too, which guardrail 8 forbids. The design question behind both — how modules deliver route code across templates — is explored in `docs/MODULE-ROUTES.md` and is undecided. Also still missing: vitest suite, dev-kitchen showcase routes. |
+| `@sveltebuilder/logistic` (partially ported) | Selectable again as of 2026-09-30, but only the **supplier** screen bundle has been ported to the screen structure; the other ten sit in `screens/_unported/`, which nothing copies. The module installs schema, components and SQL regardless. Its 40 RLS policies have never actually been enforced (under `withUser` the connection role owned the tables) and call `current_user_id()` bare rather than as `(select …)` — flagged critical in `docs/MODULE-ROUTES.md`. Also still missing: vitest suite, dev-kitchen showcase routes. |
 | WCAG 2.2 AA audit                  | Bits UI provides accessible primitives but no accessibility audit has been run. Required before any module is marked production-ready.                                                                          |
 | `apps/docs`                        | Placeholder only — no content, no structure.                                                                                                                                                                   |
 
@@ -687,7 +723,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | `@sveltebuilder/local-text-schema` | Complete — pure TS + Drizzle package (no Svelte), renamed from `@sveltebuilder/hermes-schema`; exports `./schema` (locale/local_text_link/local_text Drizzle tables) and `./seed` (canonical `LOCALES`/`BASE_SLUGS` data consumed by `sveltebuilder sync:supabase`)                       |
 | `@sveltebuilder/coreui`     | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocaleSwitcher, Menu, MessageAriaLive, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `BlockEditor`/`DateTimePicker` added for content, `BarcodeInput`/`MetricCard`/`StatusBadge`/`Timeline` added for logistic); all visual styles extracted to `styles/components.css` under `@layer components`; Bits UI data-attribute wiring throughout; builds cleanly |
 | `@sveltebuilder/content`    | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data; Camp 1/2 diglossia boundary respected. Its 13 route templates lived inside the package, were never copied by the create CLI, and shipped compiled as dead weight — they are being moved into the template tree as screen bundles (see `docs/MODULE-ROUTES.md`). No unit tests yet. |
-| `@sveltebuilder/logistic`   | Schema, components and SQL complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; SECURITY DEFINER SQL for concurrency-sensitive stock mutations; README with v1-scope statement. **Its Drizzle + `withUser` query layer and route templates are stranded by the Supabase realignment and the module is gated in the create CLI** — see Known Open Issues and `docs/MODULE-ROUTES.md`. |
+| `@sveltebuilder/logistic`   | Schema, components and SQL complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; SECURITY DEFINER SQL for concurrency-sensitive stock mutations; README with v1-scope statement. Its Drizzle query layer is removed (guardrail 11) and its route templates are being ported to screen bundles one at a time — **supplier** is done, ten remain in `screens/_unported/`. See Known Open Issues and `docs/MODULE-ROUTES.md`. |
 | `@sveltebuilder/cli`        | Complete — `sveltebuilder sync:supabase` working (`.sveltebuilder/registry/` manifest discovery, topological sort, Drizzle schema barrel + `drizzle-kit generate`, supplemental SQL append, seed.sql generation); bare `sync` kept as a deprecated alias; the dead `sync:drizzle` stub was removed |
 | `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync:supabase`, installs dependencies                |
 | Local-text DB schema        | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function (`security invoker`, explicit predicate parens); schema of record is the Drizzle defs in `@sveltebuilder/local-text-schema`, SQL is generated; RLS + `get_dictionary` now ship from `tools/create/templates/base/supabase/supplemental/`, applying to every scaffold flavor |
