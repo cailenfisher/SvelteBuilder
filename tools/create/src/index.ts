@@ -135,13 +135,27 @@ async function main() {
       {
         value: 'logistic',
         label: 'Logistic',
-        hint: 'Warehouse: receiving, pick tasks, shipments, returns, cycle counts',
+        hint: 'on hold — route templates predate the Supabase data layer',
       },
     ],
     required: false,
   });
   if (p.isCancel(selectedModules)) {
     p.cancel('Cancelled.');
+    process.exit(0);
+  }
+
+  // Logistic's route templates still call locals.db.withUser(), the Drizzle handle
+  // SuperPrototype dropped when it moved to PostgREST. Scaffolding them produces a
+  // project that does not typecheck, so the option is gated rather than shipped
+  // broken. Gated the same way as the Native template — say so and stop, instead of
+  // quietly scaffolding without a module the user asked for.
+  // See docs/MODULE-ROUTES.md for the open design question behind this.
+  if ((selectedModules as string[]).includes('logistic')) {
+    p.cancel(
+      'The Logistic module is on hold: its route templates target the Drizzle data layer that ' +
+        'SuperPrototype has replaced. Re-run without it to continue.',
+    );
     process.exit(0);
   }
 
