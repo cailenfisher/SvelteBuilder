@@ -727,3 +727,88 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — return bundle
+--
+-- The condition, disposition and return_authorization.status labels this screen renders
+-- are seeded above with the module's base copy; only what is new is added here.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.return.title',                   'logistic', null),
+  ('logistic.return.one',                     'logistic', null),
+  ('logistic.return.new',                     'logistic', null),
+  ('logistic.return.create',                  'logistic', null),
+  ('logistic.return.empty',                   'logistic', null),
+  ('logistic.return.filter_all',              'logistic', null),
+  ('logistic.return.filter_status',           'logistic', null),
+  ('logistic.return.status_label',            'logistic', null),
+  ('logistic.return.reason',                  'logistic', null),
+  ('logistic.return.lines',                   'logistic', null),
+  ('logistic.return.lines_empty',             'logistic', null),
+  ('logistic.return.created_at',              'logistic', null),
+  ('logistic.return.expected_quantity',       'logistic', null),
+  ('logistic.return.received_quantity',       'logistic', null),
+  ('logistic.return.grade',                   'logistic', null),
+  ('logistic.return.no_location',             'logistic', null),
+  ('logistic.return.process',                 'logistic', null),
+  ('logistic.return.process_confirm',         'logistic', null),
+  ('logistic.return.condition',               'logistic', null),
+  ('logistic.return.disposition',             'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.return.title',                   'Returns'),
+  ('logistic.return.one',                     'RMA'),
+  ('logistic.return.new',                     'New return'),
+  ('logistic.return.create',                  'Create return'),
+  ('logistic.return.empty',                   'No returns found.'),
+  ('logistic.return.filter_all',              'All'),
+  ('logistic.return.filter_status',           'Filter returns by status'),
+  ('logistic.return.status_label',            'Status'),
+  ('logistic.return.reason',                  'Reason'),
+  ('logistic.return.lines',                   'Lines'),
+  ('logistic.return.lines_empty',             'No lines on this return.'),
+  ('logistic.return.created_at',              'Created'),
+  ('logistic.return.expected_quantity',       'Expected'),
+  ('logistic.return.received_quantity',       'Received'),
+  ('logistic.return.grade',                   'Grade'),
+  ('logistic.return.no_location',             'No location'),
+  ('logistic.return.process',                 'Mark processed'),
+  ('logistic.return.process_confirm',         'Every line has been graded. Marking this return processed cannot be undone.'),
+  ('logistic.return.condition',               'Condition'),
+  ('logistic.return.disposition',             'Disposition')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.return.title',                   'Retours'),
+  ('logistic.return.one',                     'RMA'),
+  ('logistic.return.new',                     'Nouveau retour'),
+  ('logistic.return.create',                  'Créer le retour'),
+  ('logistic.return.empty',                   'Aucun retour trouvé.'),
+  ('logistic.return.filter_all',              'Tous'),
+  ('logistic.return.filter_status',           'Filtrer les retours par statut'),
+  ('logistic.return.status_label',            'Statut'),
+  ('logistic.return.reason',                  'Motif'),
+  ('logistic.return.lines',                   'Lignes'),
+  ('logistic.return.lines_empty',             'Aucune ligne sur ce retour.'),
+  ('logistic.return.created_at',              'Créé'),
+  ('logistic.return.expected_quantity',       'Attendue'),
+  ('logistic.return.received_quantity',       'Reçue'),
+  ('logistic.return.grade',                   'Évaluer'),
+  ('logistic.return.no_location',             'Aucun emplacement'),
+  ('logistic.return.process',                 'Marquer traité'),
+  ('logistic.return.process_confirm',         'Toutes les lignes sont évaluées. Marquer ce retour comme traité est irréversible.'),
+  ('logistic.return.condition',               'État'),
+  ('logistic.return.disposition',             'Traitement')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;

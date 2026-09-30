@@ -330,6 +330,123 @@ $$;
 grant execute on function
   public.logistic_create_shipment(bigint, text[], integer[], text, text) to authenticated;
 
+create or replace function public.logistic_create_return_authorization(
+  p_user_account_id bigint,
+  p_skus            text[],
+  p_quantities      integer[],
+  p_shipment_id     bigint default null,
+  p_reason          text default null,
+  p_note            text default null
+)
+returns bigint
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_return_id bigint;
+begin
+  if coalesce(array_length(p_skus, 1), 0) = 0 then
+    raise exception 'a return authorization needs at least one line';
+  end if;
+  if coalesce(array_length(p_skus, 1), 0) <> coalesce(array_length(p_quantities, 1), 0) then
+    raise exception 'skus and quantities must have the same length';
+  end if;
+
+  insert into public.return_authorization (shipment_id, user_account_id, reason, note, status)
+  values (
+    p_shipment_id,
+    p_user_account_id,
+    nullif(btrim(coalesce(p_reason, '')), ''),
+    nullif(btrim(coalesce(p_note, '')), ''),
+    'pending'
+  )
+  returning id into v_return_id;
+
+  insert into public.return_authorization_line (return_authorization_id, sku, expected_quantity)
+  select v_return_id, btrim(p_skus[i]), p_quantities[i]
+  from generate_subscripts(p_skus, 1) as i;
+
+  return v_return_id;
+end;
+$$;
+
+grant execute on function
+  public.logistic_create_return_authorization(bigint, text[], integer[], bigint, text, text)
+  to authenticated;
+
+-- Grading one returned line: record what came back and, when it is salable enough to
+-- restock, put it away. Two or four statements depending on the disposition, and a partial
+-- result is stock added with no record of which line it came from.
+--
+-- SECURITY INVOKER for the same reason as receiving: the line update is what RLS governs,
+-- while the stock movement goes through the SECURITY DEFINER helpers. And the same
+-- ordering rule — the RLS-governed update first, its row count checked, so a refusal
+-- aborts before anything is restocked.
+create or replace function public.logistic_grade_return_line(
+  p_line_id             bigint,
+  p_received_quantity   integer,
+  p_condition           public.return_condition,
+  p_disposition         public.return_disposition,
+  p_user_account_id     bigint,
+  p_storage_location_id bigint default null
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_sku            text;
+  v_stock_level_id bigint;
+  v_updated        integer;
+begin
+  if p_received_quantity < 0 then
+    raise exception 'received quantity cannot be negative';
+  end if;
+  -- Restocking without somewhere to put it would silently drop the goods, so this is a
+  -- hard error rather than a skipped branch.
+  if p_disposition = 'restock' and p_storage_location_id is null then
+    raise exception 'a restock disposition needs a storage location';
+  end if;
+
+  select sku into v_sku from public.return_authorization_line where id = p_line_id;
+  if not found then
+    raise exception 'return_authorization_line % not found', p_line_id;
+  end if;
+
+  update public.return_authorization_line
+  set received_quantity = p_received_quantity,
+      condition = p_condition,
+      disposition = p_disposition
+  where id = p_line_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    raise exception insufficient_privilege
+      using message = 'not permitted to grade this return line';
+  end if;
+
+  -- Only a restock moves stock. Quarantine, scrap and refurbish are all recorded
+  -- dispositions that deliberately leave sellable stock untouched.
+  if p_disposition = 'restock' and p_received_quantity > 0 then
+    v_stock_level_id := public.logistic_ensure_stock_level(p_storage_location_id, v_sku);
+    perform public.logistic_adjust_stock(
+      v_stock_level_id,
+      p_received_quantity,
+      'return_restock',
+      p_user_account_id,
+      'Return authorization line ' || p_line_id || ' — restocked'
+    );
+  end if;
+end;
+$$;
+
+grant execute on function
+  public.logistic_grade_return_line(
+    bigint, integer, public.return_condition, public.return_disposition, bigint, bigint
+  ) to authenticated;
+
 -- Receiving one line of an inbound receipt: five statements across three tables, and
 -- every partial result is a real operational problem. Stock moved with the line not
 -- updated means the next attempt receives it twice; the line updated with the receipt

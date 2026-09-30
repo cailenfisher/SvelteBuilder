@@ -10,6 +10,8 @@ import type {
   ReturnAuthorization,
   ReturnAuthorizationLine,
   ReturnAuthorizationStatus,
+  ReturnCondition,
+  ReturnDisposition,
   Shipment,
   ShipmentLine,
   ShipmentStatus,
@@ -221,14 +223,23 @@ export type ReturnListView = ScreenCopy &
   ScreenPage & {
     returns: ReturnAuthorizationRow[];
     status: ReturnAuthorizationStatus | null;
+    /** Filterable statuses, from the loader — see ShipmentListView for why. */
+    statuses: ReturnAuthorizationStatus[];
   };
 
 /** `/admin/logistic/return/[id]` */
 export type ReturnDetailView = ScreenCopy &
   ScreenLocale & {
     returnAuthorization: ReturnAuthorization & { lines: ReturnAuthorizationLine[] };
-    /** Where restocked returns may go. */
+    /** Where restocked returns may go — bins only, since nothing else holds stock. */
     locations: LocationOption[];
+    /**
+     * The grading vocabulary, from the loader rather than spelled out in the screen. The
+     * original listed all eight values as literal markup, which is how a screen and an
+     * enum drift apart without anything noticing.
+     */
+    conditions: ReturnCondition[];
+    dispositions: ReturnDisposition[];
   };
 
 // ── Cycle counts ─────────────────────────────────────────────────────────────
