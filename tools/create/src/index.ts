@@ -95,7 +95,7 @@ async function main() {
       {
         value: 'native' as ScaffoldTemplate,
         label: 'Native',
-        hint: 'coming soon',
+        hint: 'on hold — not available',
       },
     ],
   });
@@ -104,7 +104,7 @@ async function main() {
     process.exit(0);
   }
   if (templateChoice === 'native') {
-    p.cancel('The Native template is not yet available. Select SuperPrototype to continue.');
+    p.cancel('The Native template is on hold and not available. Select SuperPrototype to continue.');
     process.exit(0);
   }
   const scaffoldTemplate = templateChoice as ScaffoldTemplate;
@@ -200,6 +200,18 @@ async function main() {
         devDependencies?: Record<string, string>;
       };
       await deepMergePackageJson(pkg, templatePkg);
+    }
+
+    // Stamp the project name into supabase/config.toml. project_id namespaces the
+    // local Docker containers (supabase_db_<project_id>); left at the template's
+    // placeholder, every scaffolded project would fight over the same container names.
+    const configPath = path.join(targetDir, 'supabase', 'config.toml');
+    if (await fs.pathExists(configPath)) {
+      const config = await fs.readFile(configPath, 'utf8');
+      await fs.writeFile(
+        configPath,
+        config.replace(/^project_id = ".*"$/m, `project_id = "${projectName}"`)
+      );
     }
   }
 

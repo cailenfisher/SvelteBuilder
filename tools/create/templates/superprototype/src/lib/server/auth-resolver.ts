@@ -1,52 +1,38 @@
 // SuperPrototype auth resolver — resolves the Supabase session to a
-// public.user_account.id (bigint domain principal). This is the single seam
-// that differs between SuperPrototype and Native.
+// public.user_account.id, the bigint domain principal the rest of the system
+// reasons about.
 //
-// Deliberate db import: this is the pre-auth bootstrap lookup that runs before
-// any user context exists, so it cannot go through withUser.
+// getClaims() rather than getUser(): it verifies the access token's signature
+// locally against the project's cached JWKS instead of making a network round trip
+// to the Auth server on every single request. getUser() is still the right call
+// when something needs a freshly-read auth.users record — see the admin layout,
+// which reads the operator's email that way.
 //
-// First sign-in for a given Supabase auth identity provisions the domain
-// principal row (Native's parallel to this is events.createUser). The very
-// first user_account ever created is granted admin — there is no other seam
-// to reach the admin area from a freshly seeded database, hosted or local.
-// Revoke it (or promote someone else) with a direct SQL update once you have
-// a real admin.
+// Provisioning on first sign-in lives in public.ensure_user_account(), not here.
+// Two reasons, both load-bearing:
+//   1. It derives the identity from auth.uid(), so a caller cannot provision or
+//      claim a principal for someone else's auth identity.
+//   2. The "first account ever created becomes admin" check has to see the whole
+//      table. Under RLS this code can only see its own row, so the same check
+//      written here would read "table is empty" for every new user and grant admin
+//      to all of them.
 
 import type { RequestEvent } from '@sveltejs/kit';
-import { count, eq } from 'drizzle-orm';
-import { db } from '$lib/server/db/client';
-import { userAccount } from '$lib/server/schema';
 
 export async function resolveAuthenticatedUserId(
   event: RequestEvent,
-): Promise<bigint | null> {
-  const { data: { user }, error } = await event.locals.supabase.auth.getUser();
-  if (error || !user) return null;
+): Promise<number | null> {
+  const { data: claimsData, error: claimsError } =
+    await event.locals.supabase.auth.getClaims();
 
-  const existing = await db
-    .select({ id: userAccount.id })
-    .from(userAccount)
-    .where(eq(userAccount.authUserId, user.id))
-    .limit(1);
+  if (claimsError || !claimsData?.claims) return null;
 
-  if (existing[0]) return existing[0].id;
+  const { data, error } = await event.locals.supabase.rpc('ensure_user_account');
 
-  const [{ value: userAccountCount }] = await db.select({ value: count() }).from(userAccount);
+  if (error) {
+    console.error('[auth] ensure_user_account failed:', error);
+    return null;
+  }
 
-  const [created] = await db
-    .insert(userAccount)
-    .values({ authUserId: user.id, admin: userAccountCount === 0 })
-    .onConflictDoNothing({ target: userAccount.authUserId })
-    .returning({ id: userAccount.id });
-
-  if (created) return created.id;
-
-  // Lost a race with a concurrent request provisioning the same identity.
-  const retry = await db
-    .select({ id: userAccount.id })
-    .from(userAccount)
-    .where(eq(userAccount.authUserId, user.id))
-    .limit(1);
-
-  return retry[0]?.id ?? null;
+  return data ?? null;
 }

@@ -18,6 +18,28 @@ select which domain modules to include.
 
 ---
 
+## Template Status — read before touching scaffold code
+
+**SuperPrototype is the only active scaffold template. The Native template is ON HOLD as of
+2026-09-29 and is not accessible through `npm create sveltebuilder`.**
+
+Work SuperPrototype as a first-class Supabase application: use Supabase's own client, patterns,
+and tooling rather than provider-neutral abstractions that work against them. Where a choice
+exists between "the Supabase way" and "the portable way," SuperPrototype takes the Supabase way.
+
+Native is on hold, not cancelled. So:
+
+- **Shared surfaces stay provider-neutral in shape.** The base template, `@sveltebuilder/coreui`,
+  the domain module packages, and the local-text/i18n schema must not acquire hard Supabase
+  dependencies. Keep the seam where it already is; do not widen it.
+- **SuperPrototype-only surfaces may be fully Supabase-coupled.** Anything under
+  `tools/create/templates/superprototype/` is free to import `@supabase/*` and assume PostgREST,
+  Supabase Auth, and the Supabase CLI.
+- **Do not invest in Native.** Do not add features, migrate it to new patterns, or fix its drift.
+  Record what it will need in `docs/DEFERRED.md` instead.
+
+---
+
 ## Monorepo Layout
 
 ```
@@ -52,8 +74,8 @@ is consumed here as an external dependency rather than a workspace package. See
 | --------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Framework       | SvelteKit + TypeScript                                                                                                  |
 | Svelte API      | Svelte 5 runes only                                                                                                     |
-| Database        | PostgreSQL (Supabase-hosted). Drizzle is the schema source of truth for every package; `sveltebuilder sync:supabase` generates SQL migrations from it. |
-| Auth            | SuperPrototype template: Supabase Auth. Native template: Auth.js (`@auth/sveltekit`) with a Drizzle adapter. See [Auth Architecture](#auth-architecture). |
+| Database        | PostgreSQL (Supabase-hosted), reached through the Supabase Data API (PostgREST) via `@supabase/ssr` — never a direct connection. Drizzle is the **build-time** schema source of truth for every package; `sveltebuilder sync:supabase` generates SQL migrations from it. Whether to keep Drizzle in that role is an open topic. |
+| Auth            | SuperPrototype template: Supabase Auth. Native template (ON HOLD): Auth.js (`@auth/sveltekit`). See [Auth Architecture](#auth-architecture). |
 | i18n formatting | `messageformat` (Unicode MessageFormat 2), via `diglossia`'s `formatText()`                                              |
 | i18n layer      | `diglossia` (external dependency, schema: `@sveltebuilder/local-text-schema`)                                            |
 | UI components   | `@sveltebuilder/coreui` (on Bits UI primitives)                                                                         |
@@ -171,8 +193,10 @@ local_text_link (
   slug       text NOT NULL,
   scope      text NULL,       -- null = global/application-level
   entity_id  bigint NULL,     -- polymorphic, no FK constraint
-  UNIQUE (slug, scope, entity_id)
-  -- partial index required for null entity_id: UNIQUE (slug, scope) WHERE entity_id IS NULL
+  UNIQUE NULLS NOT DISTINCT (slug, scope, entity_id)
+  -- NULLS NOT DISTINCT is required, not cosmetic: global copy has scope and
+  -- entity_id both NULL, and a plain UNIQUE treats NULLs as distinct, so it would
+  -- not constrain those rows at all. See the note under Seed file conventions.
 )
 
 local_text (
@@ -325,9 +349,17 @@ entity, join on the entity's `slug` column — never copy-paste a generated inte
 **Resolve locale IDs by code.** Use `(select id from locale where code = 'en')` as an inline
 subquery — never assume a locale has a specific integer ID.
 
-**`local_text_link` conflicts.** Use `on conflict do nothing` for all link inserts. The partial
-index on `(slug, scope) where entity_id is null` and the regular unique index on
-`(slug, scope, entity_id)` both produce conflicts PostgreSQL resolves with this clause.
+**`local_text_link` conflicts.** Use `on conflict do nothing` for all link inserts. The single
+`UNIQUE NULLS NOT DISTINCT (slug, scope, entity_id)` constraint produces the conflict this clause
+resolves, for entity-bound copy, scoped UI copy, and global copy alike.
+
+That constraint is what makes seeds re-runnable, so do not "simplify" it to a plain `UNIQUE`.
+Without `NULLS NOT DISTINCT`, global rows (`scope` and `entity_id` both null) raise no conflict —
+Postgres treats NULLs as distinct in a unique index — so `on conflict do nothing` becomes a silent
+no-op and re-running a seed duplicates every global link. `get_dictionary`'s `distinct on` masks
+the damage at read time, so the first symptom is a doubled admin list, not a failure. Use the bare
+clause rather than naming a conflict target: one constraint now covers every case, and the bare
+form keeps working if that ever changes.
 
 **Language coverage.** Every module seed must provide English (`en`) and French (`fr`)
 translations at minimum — both entity-bound names and UI application-level copy. Follow the
@@ -347,62 +379,51 @@ translations at minimum — both entity-bound names and UI application-level cop
 
 `public.user_account` is the **domain principal** — the identity the rest of the system reasons about. Its `bigint` PK feeds `local_text_link.entity_id` (user display names via i18n), is carried on `event.locals.userAccountId`, and is what every RLS policy compares against.
 
-The **auth identity** lives in `auth.user` (managed by Auth.js in Native, by Supabase in SuperPrototype). `user_account.auth_user_id text` links the domain principal to the provider identity. Auth.js columns (email, name, image) stay in `auth.user`; they are not in `user_account`.
+The **auth identity** lives in Supabase's managed `auth.users` table. `user_account.auth_user_id uuid` links the domain principal to it, with an FK and a unique index. Identity columns (email, name, image) stay in `auth.users`; they are not in `user_account`.
 
-### Session variable convention
+### How RLS gets its user
 
-All RLS policies read the current user via `public.current_user_id()`:
+Data access goes through `event.locals.supabase` — a per-request `@supabase/ssr` client built from the request's own cookies. Queries run through PostgREST as the `authenticated` (or `anon`) role, carrying the user's JWT, so **RLS applies to every query without the application doing anything**. There is no session variable, no transaction wrapper, and no direct Postgres connection anywhere in the app.
+
+This matters: a direct connection as the `postgres` role owns every table, and Postgres skips RLS entirely for table owners and superusers. Any design that opens its own connection has to solve that; going through PostgREST means never having the problem.
+
+### The two-function identity bridge
+
+Policies never reference `auth.uid()` directly. Two SECURITY DEFINER helpers in `supabase/supplemental/00-auth-functions.sql` translate the auth identity into domain terms, and every policy calls one of them:
 
 ```sql
-create or replace function public.current_user_id()
-returns bigint language sql stable as $$
-  select nullif(current_setting('app.current_user_id', true), '')::bigint;
-$$;
+(select public.current_user_id())     -- bigint: the user_account.id, or null
+(select public.current_user_admin())  -- boolean: is that principal an admin
 ```
 
-**`STABLE` is mandatory.** Postgres evaluates STABLE functions once per transaction rather than once per row, making RLS fast. Never use `VOLATILE` here.
+Three rules for these, all load-bearing:
 
-The variable is set inside the `withUser` wrapper in TypeScript before any query runs. `auth.uid()` and `auth.jwt()` claims are no longer referenced by any RLS policy.
+- **`SECURITY DEFINER` is mandatory.** Both read `public.user_account`, which is RLS-protected. As invoker they re-enter that table's policies — and `user_account`'s admin policy calls `current_user_admin()`, so a policy would consult a function that reads the table the policy is on. Postgres rejects that with `infinite recursion detected in policy for relation`.
+- **`STABLE` is mandatory**, and always call them wrapped as `(select fn())`. The subselect lets the planner hoist the call into an InitPlan evaluated once per statement instead of once per row.
+- **`set search_path = ''` is mandatory**, with every reference fully schema-qualified. Otherwise a definer function inherits the caller's search_path and can be tricked into running a shadowed object with elevated privileges.
 
-### `withUser` database access pattern
+### Compound writes use SECURITY INVOKER RPCs
 
-Every DB call that should be subject to RLS goes through `event.locals.db.withUser(fn)`:
+PostgREST has no client-side transactions — two `supabase-js` calls are two transactions. Where a mutation spans more than one statement and a partial result would be garbage (an i18n link with no copy), it goes in a Postgres function called via `.rpc()`, defined in `supabase/supplemental/04-admin-write-rpc.sql`.
 
-```ts
-const result = await event.locals.db.withUser(async (tx) => {
-  return tx.select(...).from(table).where(...);
-});
-```
-
-The wrapper opens a transaction, calls `set_config('app.current_user_id', ...)`, runs the callback, and commits. **Do not include external API calls, file I/O, or other non-DB work inside a `withUser` callback** — that extends the transaction unnecessarily. If a handler needs DB → external API → DB, use two separate `withUser` calls.
-
-The raw `db` client (in `src/lib/server/db/client.ts`) must NOT be imported by route code. Three deliberate exceptions:
-- `auth-resolver.ts` — bootstrap lookup before user context exists
-- `hooks.server.ts` — locale query (public data, no RLS needed)
-- Migration scripts and seed runners (no request context)
+Those functions are **SECURITY INVOKER on purpose**: the body runs as the caller, so RLS still checks every statement inside. They buy atomicity, not privilege. Anything expressible as one statement — including upserts against a unique constraint — stays a plain `supabase-js` call in the route.
 
 ### Admin role
 
-`user_account.admin boolean not null default false` is the source of truth for admin access. RLS policies gate write access with:
+`user_account.admin boolean not null default false` is the source of truth. Policies gate writes with `(select public.current_user_admin())`. No JWT role claims are used. Promote a user by setting `admin = true` directly.
 
-```sql
-exists (select 1 from public.user_account where id = public.current_user_id() and admin)
-```
+### Provisioning the principal
 
-No JWT role claims are used. Promote a user to admin by setting `admin = true` directly.
+`resolveAuthenticatedUserId(event)` in `src/lib/server/auth-resolver.ts` verifies the session with `getClaims()` — which checks the token signature locally against the cached JWKS rather than making a network call to the Auth server — then calls the `ensure_user_account()` RPC. It returns `number | null` (the `user_account.id`), which lands on `event.locals.userAccountId`.
 
-### Template seam
+Provisioning lives in SQL, not TypeScript, for two reasons that are easy to get wrong:
 
-`resolveAuthenticatedUserId(event)` in `src/lib/server/auth-resolver.ts` is the **only line that differs between templates**. It returns `bigint | null` (the `user_account.id`). Both templates' `hooks.server.ts` are otherwise identical.
+- The function derives the identity from `auth.uid()`, never a parameter, so a caller cannot provision or claim a principal for someone else's auth identity.
+- The very first `user_account` row ever created is granted `admin = true`, since a freshly seeded database has no other route into the admin area. That emptiness check **must** run as definer: under RLS a brand-new user can see no `user_account` rows at all, so the same check written in application code reads "table is empty" for every new user and grants admin to all of them.
 
-- **SuperPrototype:** calls `event.locals.supabase.auth.getUser()` then looks up `user_account` by `auth_user_id`.
-- **Native:** calls `event.locals.auth()` (Auth.js session) then looks up `user_account` by `auth_user_id`.
+Promote or revoke admins after the first with a direct SQL update; there is no invite UI.
 
-Both seams provision `user_account` just-in-time on first sign-in (SuperPrototype does this
-inline in `resolveAuthenticatedUserId`; Native's equivalent is the Auth.js `events.createUser`
-callback). The very first `user_account` row ever created is granted `admin = true` — with no
-data yet, that JIT insert is the only path into the admin area. Promote or revoke admins after
-that with a direct SQL update; there is no invite/promotion UI.
+Use `getUser()` instead of `getClaims()` only when something genuinely needs a freshly-read `auth.users` record — the admin layout does, to show the operator's email.
 
 ---
 
@@ -435,9 +456,11 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
    radius, padding, or transition that a developer should be able to override belongs in
    `components.css` under `@layer components`.
 
-8. **Route code accesses the database only through `event.locals.db.withUser(...)`.**
-   The raw `db` client is intentionally not re-exported for route use. Deliberate exceptions
-   (auth-resolver bootstrap, locale hook, migrations) must be documented with a comment.
+8. **Route code accesses the database only through `event.locals.supabase`.** Never open a
+   direct Postgres connection from application code, and never introduce a `DATABASE_URL`.
+   A direct connection runs as a table-owning role, which bypasses RLS entirely — every
+   policy in the project silently stops applying. Drizzle is a build-time schema and type
+   tool only (`drizzle-kit generate`); importing `drizzle-orm` at runtime is a bug.
 
 9. **Bits UI state is communicated via data attributes, never via class toggling.** Target
    `[data-state='open']`, `[data-highlighted]`, `[data-disabled]`, etc. in CSS. Use a CSS custom
@@ -635,6 +658,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 
 | Issue                              | Notes                                                                                                                                                                                                          |
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Native template (ON HOLD)          | Frozen 2026-09-29 — not accessible from `npm create sveltebuilder`, not being maintained. Its `withUser`/Drizzle data layer is the pattern SuperPrototype is moving away from, so expect it to fall further behind. Keep shared surfaces provider-neutral in shape; do not spend effort on Native itself. |
 | `apps/dev-kitchen`                 | Stagnant — not migrated to the diglossia 0.1.0 core/svelte split, the `withUser` auth pattern, or any other change made since. Do not fix or update it; it will keep diverging from scaffold templates over time. Known defects tracked in `docs/DEFERRED.md`. |
 | `@sveltebuilder/commerce`          | Not started — single placeholder `index.ts`. The product's remaining domain differentiator gap.                                                                                                                |
 | `@sveltebuilder/logistic` polish   | Core module is built (see Completed Foundation), but has no vitest suite (no test file in the package — `diglossia`, extracted from this repo, is the only i18n primitives code with a test suite) and no dev-kitchen showcase routes.    |
@@ -655,9 +679,9 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | `@sveltebuilder/cli`        | Complete — `sveltebuilder sync:supabase` working (`.sveltebuilder/registry/` manifest discovery, topological sort, Drizzle schema barrel + `drizzle-kit generate`, supplemental SQL append, seed.sql generation); bare `sync` kept as a deprecated alias; the dead `sync:drizzle` stub was removed |
 | `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync:supabase`, installs dependencies                |
 | Local-text DB schema        | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function (`security invoker`, explicit predicate parens); schema of record is the Drizzle defs in `@sveltebuilder/local-text-schema`, SQL is generated; RLS + `get_dictionary` now ship from `tools/create/templates/base/supabase/supplemental/`, applying to every scaffold flavor |
-| Auth architecture           | Principal–identity split, `public.current_user_id()` STABLE function, `withUser` transaction wrapper, unified `hooks.server.ts` shape, `resolveAuthenticatedUserId` seam between templates; all RLS policies migrated from `auth.uid()`/`auth.jwt()` to `current_user_id()` + `user_account.admin`       |
-| SuperPrototype template     | Full Drizzle + `withUser` migration complete — all admin + API routes use Drizzle queries through `event.locals.db.withUser`. Auth.js-ready `auth-resolver.ts` seam in place. `user_account` now has bigint PK + `auth_user_id text` + `admin bool`. Sign-in/out remain Supabase OAuth.                   |
-| Native template             | New — Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern.                                                                            |
+| Auth architecture           | Principal–identity split; `current_user_id()` + `current_user_admin()` SECURITY DEFINER helpers resolving `auth.uid()` → `user_account.id`; `ensure_user_account()` JIT provisioning in SQL; all policies call the helpers as `(select fn())` and name their role with `to`                               |
+| SuperPrototype template     | Supabase-native — all admin + API routes query through `event.locals.supabase` (PostgREST), so RLS applies to every request with no session variable or transaction wrapper. `getClaims()` for guards, publishable key, SECURITY INVOKER RPCs for compound writes. No direct Postgres connection; no `DATABASE_URL`. Sign-in/out remain Supabase OAuth. |
+| Native template             | **ON HOLD 2026-09-29** — built but frozen and unreachable from the create CLI. Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern. Will diverge from SuperPrototype from here; see `docs/DEFERRED.md`. |
 | Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) generated via `sync:supabase`; CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`) |
 | Messaging system            | Universal message surface in coreui — `createMessageBus`/`setMessageBus`/`getMessageBus` (context-provided, same shape as diglossia's dictionary, replacing a module-level `$state` singleton), `Toast`/`ToastRegion`, `Banner`, `InlineNotification`, `ConfirmDialog`, `MessageAriaLive`; wired into the base scaffold template's root layout. |
 | Publishing pipeline         | `.changeset/` configured (GitHub changelog, public npm access) — packages are versioned independently (e.g. `coreui@0.0.15`, `logistic@0.0.9`) via Changesets                                       |
