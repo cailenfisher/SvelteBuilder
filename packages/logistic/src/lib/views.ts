@@ -189,6 +189,12 @@ export type ShipmentListView = ScreenCopy &
   ScreenPage & {
     shipments: ShipmentRow[];
     status: ShipmentStatus | null;
+    /**
+     * Every status that can be filtered on, from the loader rather than enumerated in the
+     * screen. The filter row this replaced listed five of the six and silently omitted
+     * `packed`, so packed shipments could not be filtered for at all.
+     */
+    statuses: ShipmentStatus[];
   };
 
 /** `/admin/logistic/shipment/[id]` */

@@ -645,3 +645,85 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — shipment bundle
+--
+-- The six logistic.shipment.status.* labels this screen renders are seeded above with the
+-- module's base copy; only what is new to the bundle is added here.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.shipment.title',                 'logistic', null),
+  ('logistic.shipment.one',                   'logistic', null),
+  ('logistic.shipment.new',                   'logistic', null),
+  ('logistic.shipment.create',                'logistic', null),
+  ('logistic.shipment.empty',                 'logistic', null),
+  ('logistic.shipment.filter_all',            'logistic', null),
+  ('logistic.shipment.filter_status',         'logistic', null),
+  ('logistic.shipment.lines',                 'logistic', null),
+  ('logistic.shipment.lines_empty',           'logistic', null),
+  ('logistic.shipment.quantity',              'logistic', null),
+  ('logistic.shipment.service_level',         'logistic', null),
+  ('logistic.shipment.created_at',            'logistic', null),
+  ('logistic.shipment.status_label',          'logistic', null),
+  ('logistic.shipment.status_update',         'logistic', null),
+  ('logistic.shipment.carrier_tracking',      'logistic', null),
+  ('logistic.shipment.tracking_events',       'logistic', null),
+  ('logistic.shipment.event',                 'logistic', null),
+  ('logistic.shipment.event_add',             'logistic', null),
+  ('logistic.shipment.event_description',     'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.shipment.title',                 'Shipments'),
+  ('logistic.shipment.one',                   'Shipment'),
+  ('logistic.shipment.new',                   'New shipment'),
+  ('logistic.shipment.create',                'Create shipment'),
+  ('logistic.shipment.empty',                 'No shipments found.'),
+  ('logistic.shipment.filter_all',            'All'),
+  ('logistic.shipment.filter_status',         'Filter shipments by status'),
+  ('logistic.shipment.lines',                 'Lines'),
+  ('logistic.shipment.lines_empty',           'No lines on this shipment.'),
+  ('logistic.shipment.quantity',              'Quantity'),
+  ('logistic.shipment.service_level',         'Service level'),
+  ('logistic.shipment.created_at',            'Created'),
+  ('logistic.shipment.status_label',          'Status'),
+  ('logistic.shipment.status_update',         'Update status'),
+  ('logistic.shipment.carrier_tracking',      'Carrier and tracking'),
+  ('logistic.shipment.tracking_events',       'Tracking events'),
+  ('logistic.shipment.event',                 'Event'),
+  ('logistic.shipment.event_add',             'Add tracking event'),
+  ('logistic.shipment.event_description',     'Description')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.shipment.title',                 'Expéditions'),
+  ('logistic.shipment.one',                   'Expédition'),
+  ('logistic.shipment.new',                   'Nouvelle expédition'),
+  ('logistic.shipment.create',                'Créer l''expédition'),
+  ('logistic.shipment.empty',                 'Aucune expédition trouvée.'),
+  ('logistic.shipment.filter_all',            'Toutes'),
+  ('logistic.shipment.filter_status',         'Filtrer les expéditions par statut'),
+  ('logistic.shipment.lines',                 'Lignes'),
+  ('logistic.shipment.lines_empty',           'Aucune ligne sur cette expédition.'),
+  ('logistic.shipment.quantity',              'Quantité'),
+  ('logistic.shipment.service_level',         'Niveau de service'),
+  ('logistic.shipment.created_at',            'Créée'),
+  ('logistic.shipment.status_label',          'Statut'),
+  ('logistic.shipment.status_update',         'Mettre à jour le statut'),
+  ('logistic.shipment.carrier_tracking',      'Transporteur et suivi'),
+  ('logistic.shipment.tracking_events',       'Événements de suivi'),
+  ('logistic.shipment.event',                 'Événement'),
+  ('logistic.shipment.event_add',             'Ajouter un événement'),
+  ('logistic.shipment.event_description',     'Description')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;

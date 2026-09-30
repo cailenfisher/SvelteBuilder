@@ -285,6 +285,51 @@ begin
 end;
 $$;
 
+create or replace function public.logistic_create_shipment(
+  p_user_account_id bigint,
+  p_skus            text[],
+  p_quantities      integer[],
+  p_carrier         text default null,
+  p_service_level   text default null
+)
+returns bigint
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_shipment_id bigint;
+begin
+  if coalesce(array_length(p_skus, 1), 0) = 0 then
+    raise exception 'a shipment needs at least one line';
+  end if;
+  if coalesce(array_length(p_skus, 1), 0) <> coalesce(array_length(p_quantities, 1), 0) then
+    raise exception 'skus and quantities must have the same length';
+  end if;
+
+  insert into public.shipment (user_account_id, carrier, service_level, status)
+  values (
+    p_user_account_id,
+    nullif(btrim(coalesce(p_carrier, '')), ''),
+    nullif(btrim(coalesce(p_service_level, '')), ''),
+    'created'
+  )
+  returning id into v_shipment_id;
+
+  insert into public.shipment_line (shipment_id, sku, quantity)
+  select v_shipment_id, btrim(p_skus[i]), p_quantities[i]
+  from generate_subscripts(p_skus, 1) as i;
+
+  return v_shipment_id;
+end;
+$$;
+
+-- Arrays rather than one sku, following create_local_text_entry: the schema allows many
+-- lines even though the create form offers one, and a signature shaped by today's form
+-- would have to change the moment a shipment is built from a pick task.
+grant execute on function
+  public.logistic_create_shipment(bigint, text[], integer[], text, text) to authenticated;
+
 -- Receiving one line of an inbound receipt: five statements across three tables, and
 -- every partial result is a real operational problem. Stock moved with the line not
 -- updated means the next attempt receives it twice; the line updated with the receipt
