@@ -193,8 +193,10 @@ local_text_link (
   slug       text NOT NULL,
   scope      text NULL,       -- null = global/application-level
   entity_id  bigint NULL,     -- polymorphic, no FK constraint
-  UNIQUE (slug, scope, entity_id)
-  -- partial index required for null entity_id: UNIQUE (slug, scope) WHERE entity_id IS NULL
+  UNIQUE NULLS NOT DISTINCT (slug, scope, entity_id)
+  -- NULLS NOT DISTINCT is required, not cosmetic: global copy has scope and
+  -- entity_id both NULL, and a plain UNIQUE treats NULLs as distinct, so it would
+  -- not constrain those rows at all. See the note under Seed file conventions.
 )
 
 local_text (
@@ -347,9 +349,17 @@ entity, join on the entity's `slug` column — never copy-paste a generated inte
 **Resolve locale IDs by code.** Use `(select id from locale where code = 'en')` as an inline
 subquery — never assume a locale has a specific integer ID.
 
-**`local_text_link` conflicts.** Use `on conflict do nothing` for all link inserts. The partial
-index on `(slug, scope) where entity_id is null` and the regular unique index on
-`(slug, scope, entity_id)` both produce conflicts PostgreSQL resolves with this clause.
+**`local_text_link` conflicts.** Use `on conflict do nothing` for all link inserts. The single
+`UNIQUE NULLS NOT DISTINCT (slug, scope, entity_id)` constraint produces the conflict this clause
+resolves, for entity-bound copy, scoped UI copy, and global copy alike.
+
+That constraint is what makes seeds re-runnable, so do not "simplify" it to a plain `UNIQUE`.
+Without `NULLS NOT DISTINCT`, global rows (`scope` and `entity_id` both null) raise no conflict —
+Postgres treats NULLs as distinct in a unique index — so `on conflict do nothing` becomes a silent
+no-op and re-running a seed duplicates every global link. `get_dictionary`'s `distinct on` masks
+the damage at read time, so the first symptom is a doubled admin list, not a failure. Use the bare
+clause rather than naming a conflict target: one constraint now covers every case, and the bare
+form keeps working if that ever changes.
 
 **Language coverage.** Every module seed must provide English (`en`) and French (`fr`)
 translations at minimum — both entity-bound names and UI application-level copy. Follow the
