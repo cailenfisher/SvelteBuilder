@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { DictionaryPayload } from 'diglossia';
+import { toDictionaryPayload, type DictionaryRow } from '$lib/server/postgrest';
 
 export const GET: RequestHandler = async ({ params, locals, url }) => {
   const { locale: localeCode, scope } = params;
@@ -18,16 +19,7 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
     return json([] satisfies DictionaryPayload, { status: 200 });
   }
 
-  const payload: DictionaryPayload = (data ?? []).map((row) => ({
-    link: {
-      id: Number(row.link_id),
-      slug: row.slug,
-      scope: row.scope,
-      entityId: row.entity_id !== null ? Number(row.entity_id) : null,
-    },
-    content: row.content,
-    localeCode: row.locale_code,
-  }));
+  const payload = toDictionaryPayload(data as DictionaryRow[] | null);
 
   return json(payload);
 };

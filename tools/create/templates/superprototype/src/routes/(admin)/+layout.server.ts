@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
+import { toOne } from '$lib/server/postgrest';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
   if (!locals.userAccountId) throw redirect(303, '/sign-in');
@@ -34,7 +35,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
   const navItems = (data ?? []).map((row) => ({
     id: row.id,
     href: row.href,
-    localTextLink: row.local_text_link,
+    localTextLink: toOne(row.local_text_link),
   }));
 
   return { navItems, user };

@@ -11,7 +11,7 @@
   const navLinks = $derived(
     data.navItems.map((item) => ({
       href: item.href,
-      label: item.local_text_link ? dictionary.localText(item.local_text_link.slug) : item.href,
+      label: item.localTextLink ? dictionary.localText(item.localTextLink.slug) : item.href,
     }))
   )
 </script>
