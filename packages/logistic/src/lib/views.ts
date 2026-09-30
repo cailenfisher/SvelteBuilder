@@ -343,6 +343,30 @@ export type CountDetailView = ScreenCopy &
     cycleCount: CycleCount & { lines: CycleCountLineRow[] };
   };
 
+// ── The admin dashboard ──────────────────────────────────────────────────────
+
+/**
+ * Counts of what is waiting. Each is "how many exist", not "how many are shown".
+ */
+export type LogisticMetrics = {
+  openPickTaskCount: number;
+  pendingReceiptCount: number;
+  openReturnCount: number;
+  openCycleCountCount: number;
+  lowStockCount: number;
+};
+
+/** `/admin/logistic` */
+export type LogisticDashboardView = ScreenCopy &
+  ScreenLocale & {
+    metrics: LogisticMetrics;
+    /** Short previews — the metric says how many there are, these say which. */
+    lowStockLevels: StockLevelRow[];
+    pendingReceipts: InboundReceiptRow[];
+    openPickTasks: PickTask[];
+    openReturns: ReturnAuthorizationRow[];
+  };
+
 /**
  * What a screen's form actions return. `fail()` payloads and successful returns share
  * one shape so a screen can render `form?.error` without narrowing per action — which

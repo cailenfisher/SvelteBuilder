@@ -1030,3 +1030,52 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — dashboard bundle
+--
+-- The nav labels and dashboard title are seeded above with the module's base copy; only the
+-- dashboard's own section headings and metric descriptions are new.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.dashboard.open',                 'logistic', null),
+  ('logistic.dashboard.pending',              'logistic', null),
+  ('logistic.dashboard.low_stock',            'logistic', null),
+  ('logistic.dashboard.below_reorder',        'logistic', null),
+  ('logistic.dashboard.pending_receipts',     'logistic', null),
+  ('logistic.dashboard.open_picks',           'logistic', null),
+  ('logistic.dashboard.open_returns',         'logistic', null),
+  ('logistic.dashboard.sections',             'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.dashboard.open',                 'Open'),
+  ('logistic.dashboard.pending',              'Pending'),
+  ('logistic.dashboard.low_stock',            'Low stock'),
+  ('logistic.dashboard.below_reorder',        'Below reorder point'),
+  ('logistic.dashboard.pending_receipts',     'Pending receipts'),
+  ('logistic.dashboard.open_picks',           'Open pick tasks'),
+  ('logistic.dashboard.open_returns',         'Open returns'),
+  ('logistic.dashboard.sections',             'Logistics sections')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.dashboard.open',                 'Ouverts'),
+  ('logistic.dashboard.pending',              'En attente'),
+  ('logistic.dashboard.low_stock',            'Stock faible'),
+  ('logistic.dashboard.below_reorder',        'Sous le point de commande'),
+  ('logistic.dashboard.pending_receipts',     'Réceptions en attente'),
+  ('logistic.dashboard.open_picks',           'Tâches de prélèvement ouvertes'),
+  ('logistic.dashboard.open_returns',         'Retours ouverts'),
+  ('logistic.dashboard.sections',             'Sections logistique')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;

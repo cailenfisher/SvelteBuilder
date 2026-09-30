@@ -5,39 +5,73 @@ SvelteBuilder integration work order. Read alongside `CLAUDE.md`'s Known Open Is
 
 ---
 
-## Logistic module — partially ported (2026-09-30)
+## Logistic module — route port complete (2026-09-30)
 
-`@sveltebuilder/logistic` is selectable again. The gate it briefly carried is gone, because the thing
-the gate existed for is fixed: its unported route templates now sit in `screens/_unported/`, which the
-create CLI never copies, so selecting the module can no longer scaffold code that references a data
-layer SuperPrototype dropped.
+`@sveltebuilder/logistic` ships all of its route code as 8 screen bundles: supplier, stock, receipt,
+shipment, return, cycle-count, warehouse, and dashboard. `screens/_unported/` is gone. Every loader
+queries `event.locals.supabase`, every screen is internationalised (the originals were hardcoded
+English throughout), and what a module offers is read from the template tree, so the create CLI's
+hint now reports "8 screen bundles" with nothing left pending.
 
-What the module offers is now read from the template tree rather than asserted by a flag — the
-prompt's hint reports how many screen bundles exist and whether more are pending, so a module becomes
-more capable as bundles land with nothing to update by hand.
+The warehouse app is one bundle rather than four. Its shell nav and home screen link to all three
+flows, so any subset renders dead links, and a warehouse app without picking is not a configuration
+anyone wants. `MODULE-ROUTES.md` already defines the selectable unit as a coherent feature carrying
+its shared layout, so this applies that rule rather than bending it.
 
-State of the port:
+**Seven operations became RPCs**, all in `supabase/supplemental/05-logistic-supplements.sql` and all
+SECURITY INVOKER so RLS still checks each statement inside:
 
-- **supplier** — ported. List and detail, form actions against `event.locals.supabase`, i18n wired
-  (the originals were hardcoded English), verified by `pnpm scaffold:check`.
-- **ten bundles remaining** — the admin dashboard, storage locations, stock, receipts, shipments,
-  returns, cycle counts, plus the warehouse shell and its three worker screens. All still in
-  `screens/_unported/`, all still written against `locals.db.withUser()`.
+| Function                                                          | Why it cannot be two calls                                                                                                                                            |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `logistic_create_supplier`                                        | The name is a `local_text_link` plus a `local_text`, not a column, so a partial result renders `[missing: name]` in every list.                                       |
+| `logistic_create_shipment`                                        | Shipment plus lines, and no screen can add a line afterwards.                                                                                                         |
+| `logistic_create_return_authorization`                            | Same, and a return with no lines has nothing to grade.                                                                                                                |
+| `logistic_create_cycle_count`                                     | The lines _are_ the snapshot of what the system believed was there; a later movement must not change what the counter was asked to verify.                            |
+| `logistic_receive_receipt_line`                                   | Move stock, update the line, recompute the receipt's derived status. Stock moved without the line recording it double-receives on retry.                              |
+| `logistic_grade_return_line`                                      | Update the line and, for a restock, put the goods away.                                                                                                               |
+| `logistic_record_picked_quantity` / `logistic_complete_pick_task` | Picking must decrement on_hand and reserved together or the reservation double-counts; completing short must release the remainder or that stock is reserved forever. |
 
-Two things to carry into that work:
+One rule runs through all of them: **the RLS-governed update goes first, and its row count is
+checked.** Under RLS a forbidden UPDATE affects zero rows rather than raising, so ordering it first
+means a refusal aborts before any stock has moved. The other order moves stock and then silently
+fails to record it.
 
-- **The 40 RLS policies have never been enforced.** Under `withUser` the connection role owned the
-  tables, so Postgres skipped RLS entirely. Porting a bundle to PostgREST turns its policies on for
-  the first time, so expect a screen to come back empty rather than to error. Only a policy that
-  blocks a screen from functioning gets touched in a port; the pattern problems below are a separate
-  pass.
-- **Those policies also predate the current conventions**: they call `public.current_user_id()` bare
-  instead of as `(select …)`, so it evaluates once per row rather than once per statement, and they
-  re-implement the admin check as an inline `exists (select 1 from public.user_account …)` rather than
-  calling `public.current_user_admin()`. Flagged critical in `docs/MODULE-ROUTES.md`.
+### Found and fixed along the way
 
-`@sveltebuilder/content` is in the same shape one step earlier: its 13 route templates are in
-`screens/_unsorted/` awaiting bundling, and it exports no view-model types yet.
+- **All five SECURITY DEFINER stock functions had no `set search_path`**, which CLAUDE.md makes
+  mandatory precisely because a definer function without one inherits the caller's search_path and
+  can be made to run a shadowed object with the owner's privileges. It surfaced as a composition
+  failure, not a security report: an unqualified type name in a DECLARE stops resolving once a
+  hardened caller sets search_path to empty. All are schema-qualified now, with explicit grants
+  rather than relying on Postgres defaulting EXECUTE to PUBLIC, and `sql:check` asserts the property
+  for every definer function in `public`.
+- **Props that could never have typechecked**, because these templates had never been typechecked:
+  `Tabs`/`TabsTrigger` given `aria-label` and `href`, `Select` given `required`, `SelectItem` given
+  children, `StatusBadge` given `status`, `PickTaskStatusBadge` imported from coreui.
+- **The supplier bundle's "Add supplier" button 404'd** — it linked to `/supplier/new`, which no
+  route serves. Carried over faithfully from the original.
+- **Two i18n violations**: a location select rendered a raw database slug to the user, and all eight
+  return condition/disposition values were literal English markup.
+- **A silently dropped write**: grading a return as restocked with no location recorded the
+  disposition and moved no stock.
+- **A filter missing a value**: the shipment status row omitted `packed`, so packed shipments could
+  not be filtered for.
+- **A list capped by a fetch**: the receiving queue fetched fifty receipts and split them in JS, so
+  both of its lists were bounded by whatever those fifty happened to contain.
+
+### Still open
+
+The 40 RLS policies work — `pnpm sql:check` exercises them as an admin, a non-admin and an anonymous
+caller — but they predate the current conventions: `public.current_user_id()` is called bare rather
+than as `(select …)`, so it evaluates once per row instead of once per statement, and the admin check
+is an inline `exists (select 1 from public.user_account …)` rather than a call to
+`public.current_user_admin()`. On warehouse-scale tables that is a real cost. It is now a performance
+and consistency question rather than a correctness one, and it is a single mechanical pass.
+
+Also outstanding for the package: a vitest suite, and dev-kitchen showcase routes.
+
+`@sveltebuilder/content` is one step behind: its 13 route templates are in `screens/_unsorted/`
+awaiting bundling, and it exports no view-model types yet.
 
 ---
 
@@ -97,7 +131,7 @@ the new API immediately rather than at some future upgrade):
   `src/routes/+error.svelte`, `src/routes/+page.svelte`,
   `src/lib/components/LocaleSwitcher.svelte`, `src/routes/dev/hermes/+page.svelte`, and the 7
   `src/routes/dev/content/*/+page.svelte` showcase routes (`import { load as hermesLoad } from
-  'diglossia'`). Type-only imports (`DictionaryPayload`, `Locale` in `app.d.ts` and the
+'diglossia'`). Type-only imports (`DictionaryPayload`, `Locale` in `app.d.ts` and the
   `api/local-text`/`api/locale` `+server.ts` files) still work unchanged.
 - `import { messageBus } from '@sveltebuilder/coreui'` no longer resolves — replaced by
   `createMessageBus`/`setMessageBus`/`getMessageBus`. Affected: `src/routes/+layout.svelte` and
@@ -122,11 +156,11 @@ executed and tested (see below), but nothing has run against real Supabase or Po
 Specifically unverified:
 
 - `getClaims()` end to end against a real Supabase-issued JWT, and its behaviour on a project that
-  has *not* yet migrated to asymmetric signing keys.
+  has _not_ yet migrated to asymmetric signing keys.
 - PostgREST response shapes the loaders assume: that the embedded `local_text_link(...)` resource
   comes back as a single object rather than an array (it should, given the FK), that `.rpc()` binds
   `bigint[]` / `text[]` array arguments as written, and that `.upsert(..., { onConflict:
-  'link,locale' })` targets `uq_local_text_entry` correctly.
+'link,locale' })` targets `uq_local_text_entry` correctly.
 - The whole scaffold flow: `npm create sveltebuilder` → `sync:supabase` → `db:reset` → `dev`, with
   a real sign-in.
 - That the admin area's new 403 for a signed-in non-admin renders sensibly rather than as a raw
