@@ -224,7 +224,7 @@ export function buildArticleMetaTags(
     'og:url': articleUrl,
     'og:title': headline,
     'og:description': dek,
-    'og:site_name': dictionary.localText('name', 'publisher_profile', publisher.id),
+    'og:site_name': publisherName,
     ...(options.locale ? { 'og:locale': options.locale.replace('-', '_') } : {}),
     ...(leadImage?.storageKey
       ? { 'og:image': `${storageBase}/${leadImage.storageKey}`, 'og:image:alt': leadImage.altText }

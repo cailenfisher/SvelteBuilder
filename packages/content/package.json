@@ -24,7 +24,7 @@
     "build": "svelte-package -i src/lib",
     "dev": "svelte-package -i src/lib --watch",
     "lint": "eslint src",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "exports": {
     ".": {
