@@ -1,9 +1,15 @@
 import type { DictionaryInstance } from 'diglossia';
-import type { ArticleWithCopy } from '../schema/index.js';
+import type { ArticleWithRelations } from '../schema/index.js';
 
 // headline/dek are resolved through the dictionary passed to generateRssFeed, not
 // read as bare fields — see structured-data.ts's ArticleForStructuredData.
-export type RssFeedArticle = Omit<ArticleWithCopy, 'headline' | 'dek'>;
+/**
+ * Structure only. This used to be an Omit<> of the enriched type, which demanded resolved copy
+ * on every nested relation while reading a byline's name and a section's name as baked strings —
+ * strings a query had resolved once, so they could not follow a locale switch. Both resolve
+ * through the dictionary this function already takes.
+ */
+export type RssFeedArticle = ArticleWithRelations;
 
 // XML escape — handles all five predefined XML entities correctly.
 function xmlEscape(str: string): string {
@@ -30,14 +36,15 @@ export function generateRssFeed(
     feedTitle: string;
     feedDescription: string;
     feedPath?: string;
-  },
+  }
 ): string {
   const { siteUrl, locale, feedTitle, feedDescription } = options;
   const base = siteUrl.replace(/\/$/, '');
   const feedPath = options.feedPath ?? '/rss.xml';
-  const lastBuild = articles.length > 0
-    ? toRfc822(articles[0].publishedAt ?? articles[0].createdAt)
-    : toRfc822(new Date().toISOString());
+  const lastBuild =
+    articles.length > 0
+      ? toRfc822(articles[0].publishedAt ?? articles[0].createdAt)
+      : toRfc822(new Date().toISOString());
 
   const items = articles
     .filter((a) => a.publishedAt)
@@ -45,7 +52,9 @@ export function generateRssFeed(
       // Use canonical_slug (URL-safe) — NOT title (which may contain unsafe characters).
       const link = `${base}/article/${a.canonicalSlug}`;
       const pubDate = toRfc822(a.publishedAt!);
-      const bylineText = a.bylines.map((b) => b.name).join(', ');
+      const bylineText = a.bylines
+        .map((b) => dictionary.localText('name', 'author_profile', b.id))
+        .join(', ');
       const headline = dictionary.localText('headline', 'article', a.id);
       const dek = dictionary.localText('dek', 'article', a.id);
 
@@ -54,7 +63,7 @@ export function generateRssFeed(
     <link>${xmlEscape(link)}</link>
     <description>${xmlEscape(dek)}</description>
     <pubDate>${pubDate}</pubDate>
-    <guid isPermaLink="true">${xmlEscape(link)}</guid>${bylineText ? `\n    <author>${xmlEscape(bylineText)}</author>` : ''}${a.sections[0] ? `\n    <category>${xmlEscape(a.sections[0].name)}</category>` : ''}
+    <guid isPermaLink="true">${xmlEscape(link)}</guid>${bylineText ? `\n    <author>${xmlEscape(bylineText)}</author>` : ''}${a.sections[0] ? `\n    <category>${xmlEscape(dictionary.localText('name', 'section', a.sections[0].id))}</category>` : ''}
   </item>`;
     })
     .join('\n');

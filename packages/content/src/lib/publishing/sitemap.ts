@@ -1,9 +1,10 @@
 import type { DictionaryInstance } from 'diglossia';
-import type { ArticleWithCopy } from '../schema/index.js';
+import type { ArticleWithRelations } from '../schema/index.js';
 
 // headline is resolved through the dictionary passed to generateNewsSitemap, not
 // read as a bare field — see structured-data.ts's ArticleForStructuredData.
-export type NewsSitemapArticle = Omit<ArticleWithCopy, 'headline'>;
+/** Structure only — see RssFeedArticle for why. */
+export type NewsSitemapArticle = ArticleWithRelations;
 
 function xmlEscape(str: string): string {
   return str
@@ -27,8 +28,8 @@ export type SitemapEntry = {
 
 // Standard sitemap — all published articles.
 export function getArticleSitemapEntries(
-  articles: ArticleWithCopy[],
-  options: { siteUrl: string },
+  articles: ArticleWithRelations[],
+  options: { siteUrl: string }
 ): SitemapEntry[] {
   const base = options.siteUrl.replace(/\/$/, '');
   return articles.map((a) => ({
@@ -49,7 +50,7 @@ export function generateNewsSitemap(
     siteUrl: string;
     locale: string;
     publicationName: string;
-  },
+  }
 ): string {
   const base = options.siteUrl.replace(/\/$/, '');
   const now = Date.now();
@@ -94,7 +95,7 @@ export function generateStandardSitemap(entries: SitemapEntry[]): string {
     <lastmod>${xmlEscape(e.lastmod)}</lastmod>
     <changefreq>${xmlEscape(e.changefreq)}</changefreq>
     <priority>${xmlEscape(e.priority)}</priority>
-  </url>`,
+  </url>`
     )
     .join('\n');
 

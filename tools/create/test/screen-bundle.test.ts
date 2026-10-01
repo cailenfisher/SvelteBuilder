@@ -34,6 +34,13 @@ type Manifest = {
   label: string;
   hint: string;
   routes: string[];
+  /**
+   * Routes that are `+server.ts` endpoints rather than pages — a feed, a sitemap. They have no
+   * `ui/` half at all, so they are declared separately: `routes` means "has a page", and
+   * conflating the two would make the page assertions below unenforceable for every bundle that
+   * happens to ship an endpoint.
+   */
+  endpoints?: string[];
   requires?: string[];
   views?: string[];
   actions?: Record<string, Record<string, string[]>>;
@@ -250,9 +257,13 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
     expect(manifest.hint?.length ?? 0).toBeGreaterThan(0);
   });
 
+  it('declares at least one route or endpoint', () => {
+    // A bundle that ships neither is not selectable in any meaningful sense.
+    expect(manifest.routes.length + (manifest.endpoints ?? []).length).toBeGreaterThan(0);
+  });
+
   it('ships a page for every route it declares', () => {
     const uiFiles = walk(path.join(dir, 'ui'));
-    expect(manifest.routes.length).toBeGreaterThan(0);
 
     for (const route of manifest.routes) {
       // `/admin/logistic/supplier/[id]` is authored under a layout group, so the
@@ -266,10 +277,13 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
   });
 
   it('ships a loader for every page that has one', () => {
-    // Not every page needs a server half — a static shell legitimately has none — but
-    // a loader with no page is always a mistake, and so is a loader under a path the
-    // ui half does not also cover: the two trees merge into one route directory, and
-    // a server file whose page is missing would 500 a route nothing renders.
+    // Not every page needs a server half — a static shell legitimately has none — but a loader
+    // with no page is always a mistake, and so is a loader under a path the ui half does not
+    // also cover: the two trees merge into one route directory, and a server file whose page is
+    // missing would 500 a route nothing renders.
+    //
+    // `+server.ts` is deliberately not included: an endpoint is the whole route, and has no
+    // page by design.
     const uiPages = new Set(
       walk(path.join(dir, 'ui'))
         .filter((f) => f.endsWith('+page.svelte'))
@@ -282,6 +296,38 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
     for (const file of serverPages) {
       expect(uiPages.has(path.dirname(file)), `${file} has no +page.svelte beside it`).toBe(true);
     }
+  });
+
+  it('ships a handler for every endpoint it declares', () => {
+    const serverFiles = walk(path.join(dir, 'server.superprototype'));
+
+    for (const endpoint of manifest.endpoints ?? []) {
+      const segments = endpoint.replace(/^\//, '');
+      const match = serverFiles.find(
+        (file) => file.endsWith('+server.ts') && path.dirname(file).endsWith(segments)
+      );
+      expect(match, `no +server.ts for endpoint ${endpoint}`).toBeDefined();
+    }
+  });
+
+  it('declares every endpoint it ships', () => {
+    // The reverse direction, which matters more than it looks: an endpoint nobody declared is a
+    // route that appears in a scaffolded project without appearing in the manifest, so neither
+    // the CLI's screen prompt nor a reader of the tree knows it is there.
+    const declared = new Set(manifest.endpoints ?? []);
+    const shipped = walk(path.join(dir, 'server.superprototype'))
+      .filter((file) => file.endsWith('+server.ts'))
+      .map(
+        (file) =>
+          `/${path
+            .dirname(file)
+            .split(path.sep)
+            .filter((s) => !s.startsWith('('))
+            .join('/')}`
+      );
+
+    const undeclared = shipped.filter((route) => !declared.has(route));
+    expect(undeclared, `endpoints shipped but not declared: ${undeclared.join(', ')}`).toEqual([]);
   });
 
   it('requires only bundles that exist', () => {

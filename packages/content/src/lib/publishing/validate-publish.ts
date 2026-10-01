@@ -16,7 +16,7 @@ function hasTimezoneOffset(iso: string): boolean {
 // Call this in the transition-to-published action before calling transitionArticleStatus.
 export function validateArticleForPublish(
   article: ArticleWithCopy,
-  publisher: PublisherProfileWithCopy | null,
+  publisher: PublisherProfileWithCopy | null
 ): void {
   const errors: PublishValidationError[] = [];
 
@@ -24,7 +24,10 @@ export function validateArticleForPublish(
   if (!article.headline?.trim()) {
     errors.push({ field: 'headline', message: 'Headline is required before publishing.' });
   } else if (article.headline.length > 110) {
-    errors.push({ field: 'headline', message: 'Headline exceeds 110 characters (Google News limit).' });
+    errors.push({
+      field: 'headline',
+      message: 'Headline exceeds 110 characters (Google News limit).',
+    });
   }
 
   // Required dek / standfirst
@@ -34,12 +37,18 @@ export function validateArticleForPublish(
 
   // At least one byline
   if (article.bylines.length === 0) {
-    errors.push({ field: 'bylines', message: 'At least one byline must be assigned before publishing.' });
+    errors.push({
+      field: 'bylines',
+      message: 'At least one byline must be assigned before publishing.',
+    });
   }
 
   // At least one section
   if (article.sections.length === 0) {
-    errors.push({ field: 'sections', message: 'At least one section must be assigned before publishing.' });
+    errors.push({
+      field: 'sections',
+      message: 'At least one section must be assigned before publishing.',
+    });
   }
 
   // At least one body block
@@ -74,14 +83,21 @@ export function validateArticleForPublish(
   if (!publisher) {
     errors.push({
       field: 'publisher',
-      message: 'A publisher profile must be configured before publishing (required for NewsArticle structured data).',
+      message:
+        'A publisher profile must be configured before publishing (required for NewsArticle structured data).',
     });
   } else {
     if (!publisher.name?.trim()) {
-      errors.push({ field: 'publisher.name', message: 'Publisher name is required for structured data.' });
+      errors.push({
+        field: 'publisher.name',
+        message: 'Publisher name is required for structured data.',
+      });
     }
     if (!publisher.url?.trim()) {
-      errors.push({ field: 'publisher.url', message: 'Publisher URL is required for structured data.' });
+      errors.push({
+        field: 'publisher.url',
+        message: 'Publisher URL is required for structured data.',
+      });
     }
   }
 
@@ -99,7 +115,8 @@ export function validateArticleForPublish(
     if (embargoDate < new Date()) {
       errors.push({
         field: 'embargoUntil',
-        message: 'Embargo date has already passed. Remove the embargo or extend it before publishing.',
+        message:
+          'Embargo date has already passed. Remove the embargo or extend it before publishing.',
       });
     }
   }

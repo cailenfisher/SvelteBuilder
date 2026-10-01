@@ -323,6 +323,16 @@ export type ArticleBlockWithCopy = ArticleBlock & {
 };
 
 /**
+ * An article plus the relations that identify it — enough for a feed entry, a sitemap row or a
+ * card. No copy: a byline's name and a section's name are resolved from the dictionary by
+ * entity id, the same as a headline.
+ */
+export type ArticleWithRelations = Article & {
+  bylines: AuthorProfile[];
+  sections: Section[];
+};
+
+/**
  * The least an article has to be for `ArticleView` to render it.
  *
  * Narrower than ArticleWithCopy on purpose. ArticleView is a Camp 2 component: it resolves
@@ -334,10 +344,8 @@ export type ArticleBlockWithCopy = ArticleBlock & {
  *
  * Any ArticleWithCopy still satisfies this, so narrowing breaks no existing caller.
  */
-export type ArticleRenderable = Article & {
+export type ArticleRenderable = ArticleWithRelations & {
   blocks: ArticleBlock[];
-  bylines: AuthorProfile[];
-  sections: Section[];
 };
 
 export type ArticleWithCopy = Article & {
