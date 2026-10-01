@@ -280,6 +280,75 @@ $$;
 
 grant execute on function public.content_subscribe(text, text, text) to anon, authenticated;
 
+-- ── Moving an article through the workflow ────────────────────────────────────
+--
+-- Three statements: resolve the target status, enforce the publish gate, and update the
+-- article — stamping published_at the first time it goes live, and only the first time, so a
+-- republish does not rewrite the date the story broke.
+--
+-- The checklist gate lives here rather than only in the route because it is the one rule that
+-- must not be bypassable: an editor posting the form directly, a script, or a future second
+-- screen all go through this. The editorial checks that need resolved copy — a headline within
+-- Google's length limit, a dek, a byline, alt text on every image — stay in
+-- validateArticleForPublish, because SQL has no dictionary and the answer depends on which
+-- locale is being published.
+--
+-- SECURITY INVOKER, so the update is still checked against the article admin policy.
+create or replace function public.content_transition_article_status(
+  p_article_id  bigint,
+  p_status_slug text
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_status_id   bigint;
+  v_unsatisfied text;
+  v_updated     integer;
+begin
+  select id into v_status_id from public.article_status where slug = p_status_slug;
+  if not found then
+    raise exception 'no article_status with slug %', p_status_slug;
+  end if;
+
+  if p_status_slug = 'published' then
+    -- An item with no state row is unsatisfied, which is why this is a left join from the
+    -- required items rather than a filter over the state table: never having ticked a box is
+    -- the common case, not a missing record.
+    select string_agg(i.slug, ', ' order by i.ordinal) into v_unsatisfied
+    from public.publish_checklist_item i
+    left join public.article_checklist_state s
+      on s.publish_checklist_item_id = i.id and s.article_id = p_article_id
+    where i.required and coalesce(s.satisfied, false) = false;
+
+    if v_unsatisfied is not null then
+      raise exception 'publish checklist incomplete: %', v_unsatisfied;
+    end if;
+  end if;
+
+  update public.article
+  set article_status_id = v_status_id,
+      published_at = case
+        when p_status_slug = 'published' and published_at is null then now()
+        else published_at
+      end
+  where id = p_article_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    -- Zero rows is RLS refusing, not a missing article: a caller who cannot see it got a
+    -- different error above.
+    raise exception insufficient_privilege
+      using message = 'not permitted to change this article''s status';
+  end if;
+end;
+$$;
+
+grant execute on function
+  public.content_transition_article_status(bigint, text) to authenticated;
+
 -- ── Preview by token ──────────────────────────────────────────────────────────
 --
 -- A preview link has to show an article RLS otherwise hides, to someone who may not be

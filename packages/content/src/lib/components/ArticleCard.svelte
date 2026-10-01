@@ -41,26 +41,31 @@
 
   const headline = $derived(dictionary.localText('headline', 'article', article.id));
   const headlineLocale = $derived(dictionary.localeOf('headline', 'article', article.id));
-  const dek      = $derived(dictionary.localText('dek',      'article', article.id));
+  const dek = $derived(dictionary.localText('dek', 'article', article.id));
   const dekLocale = $derived(dictionary.localeOf('dek', 'article', article.id));
 
   const publishedDate = $derived(
     article.publishedAt
-      ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(article.publishedAt))
-      : null,
+      ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+          new Date(article.publishedAt)
+        )
+      : null
   );
 
   const statusVariant = $derived(
-    status.slug === 'published' ? 'success'
-    : status.slug === 'ready_to_publish' ? 'warning'
-    : status.slug === 'archived' ? 'default'
-    : 'default',
+    status.slug === 'published'
+      ? 'success'
+      : status.slug === 'ready_to_publish'
+        ? 'warning'
+        : status.slug === 'archived'
+          ? 'default'
+          : 'default'
   ) as 'success' | 'warning' | 'default';
 
   const cardHref = $derived(href ?? `/article/${article.canonicalSlug}`);
 
   const classes = $derived(
-    ['article-card', `article-card--${variant}`, extraClass ?? ''].filter(Boolean).join(' '),
+    ['article-card', `article-card--${variant}`, extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 
@@ -74,15 +79,17 @@
   <div class="article-card__body">
     <header class="article-card__header">
       {#if showStatus}
-        <Badge variant={statusVariant} size="sm">{dictionary.localText(`label`, 'article_status', status.id)}</Badge>
+        <Badge variant={statusVariant} size="sm"
+          >{dictionary.localText(`label`, 'article_status', status.id)}</Badge
+        >
       {/if}
 
       <h2 class="article-card__headline">
         <a
           class="article-card__link"
           href={cardHref}
-          lang={headlineLocale !== locale ? headlineLocale : undefined}
-        >{headline}</a>
+          lang={headlineLocale !== locale ? headlineLocale : undefined}>{headline}</a
+        >
       </h2>
     </header>
 
@@ -119,7 +126,9 @@
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-xs);
     overflow: hidden;
-    transition: box-shadow var(--duration) var(--ease), border-color var(--duration) var(--ease);
+    transition:
+      box-shadow var(--duration) var(--ease),
+      border-color var(--duration) var(--ease);
   }
 
   .article-card:hover {
@@ -152,15 +161,24 @@
     margin: 0;
   }
 
-  .article-card--lead .article-card__headline { font-size: var(--text-3xl); }
-  .article-card--secondary .article-card__headline { font-size: var(--text-2xl); }
-  .article-card--brief .article-card__headline { font-size: var(--text-base); font-weight: var(--weight-medium); }
+  .article-card--lead .article-card__headline {
+    font-size: var(--text-3xl);
+  }
+  .article-card--secondary .article-card__headline {
+    font-size: var(--text-2xl);
+  }
+  .article-card--brief .article-card__headline {
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
+  }
 
   .article-card__link {
     color: inherit;
     text-decoration: none;
   }
-  .article-card__link:hover { color: var(--link-text); }
+  .article-card__link:hover {
+    color: var(--link-text);
+  }
 
   .article-card__dek {
     font-size: var(--text-base);
@@ -173,7 +191,9 @@
     overflow: hidden;
   }
 
-  .article-card--lead .article-card__dek { -webkit-line-clamp: 4; }
+  .article-card--lead .article-card__dek {
+    -webkit-line-clamp: 4;
+  }
 
   .article-card__meta {
     display: flex;

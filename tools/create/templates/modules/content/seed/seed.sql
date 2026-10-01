@@ -525,3 +525,88 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — admin-article bundle
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('content.admin.articles',            'content', null),
+  ('content.admin.new',                 'content', null),
+  ('content.admin.create',              'content', null),
+  ('content.admin.empty',               'content', null),
+  ('content.admin.headline',            'content', null),
+  ('content.admin.slug',                'content', null),
+  ('content.admin.status',              'content', null),
+  ('content.admin.created',             'content', null),
+  ('content.admin.filter_all',          'content', null),
+  ('content.admin.filter_status',       'content', null),
+  ('content.admin.body',                'content', null),
+  ('content.admin.body_empty',          'content', null),
+  ('content.admin.block_type',          'content', null),
+  ('content.admin.block_text',          'content', null),
+  ('content.admin.filing',              'content', null),
+  ('content.admin.sections',            'content', null),
+  ('content.admin.bylines',             'content', null),
+  ('content.admin.workflow',            'content', null),
+  ('content.admin.checklist',           'content', null),
+  ('content.admin.required',            'content', null),
+  ('content.admin.publish_blocked',     'content', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('content.admin.articles',            'Articles'),
+  ('content.admin.new',                 'New article'),
+  ('content.admin.create',              'Create article'),
+  ('content.admin.empty',               'No articles yet.'),
+  ('content.admin.headline',            'Headline'),
+  ('content.admin.slug',                'URL slug'),
+  ('content.admin.status',              'Status'),
+  ('content.admin.created',             'Created'),
+  ('content.admin.filter_all',          'All'),
+  ('content.admin.filter_status',       'Filter articles by status'),
+  ('content.admin.body',                'Body'),
+  ('content.admin.body_empty',          'No blocks yet.'),
+  ('content.admin.block_type',          'Type'),
+  ('content.admin.block_text',          'Text'),
+  ('content.admin.filing',              'Filing'),
+  ('content.admin.sections',            'Sections'),
+  ('content.admin.bylines',             'Bylines'),
+  ('content.admin.workflow',            'Workflow'),
+  ('content.admin.checklist',           'Publish checklist'),
+  ('content.admin.required',            'Required'),
+  ('content.admin.publish_blocked',     'Publishing is blocked until every required item is ticked.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('content.admin.articles',            'Articles'),
+  ('content.admin.new',                 'Nouvel article'),
+  ('content.admin.create',              'Créer l''article'),
+  ('content.admin.empty',               'Aucun article.'),
+  ('content.admin.headline',            'Titre'),
+  ('content.admin.slug',                'Identifiant d''URL'),
+  ('content.admin.status',              'Statut'),
+  ('content.admin.created',             'Créé'),
+  ('content.admin.filter_all',          'Tous'),
+  ('content.admin.filter_status',       'Filtrer les articles par statut'),
+  ('content.admin.body',                'Corps'),
+  ('content.admin.body_empty',          'Aucun bloc.'),
+  ('content.admin.block_type',          'Type'),
+  ('content.admin.block_text',          'Texte'),
+  ('content.admin.filing',              'Classement'),
+  ('content.admin.sections',            'Rubriques'),
+  ('content.admin.bylines',             'Signatures'),
+  ('content.admin.workflow',            'Flux de publication'),
+  ('content.admin.checklist',           'Liste de contrôle'),
+  ('content.admin.required',            'Obligatoire'),
+  ('content.admin.publish_blocked',     'La publication est bloquée tant que tous les éléments obligatoires ne sont pas cochés.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;

@@ -15,15 +15,7 @@
     locale: string;
   };
 
-  let {
-    subscribers,
-    newsletter,
-    total,
-    page,
-    perPage,
-    onPageChange,
-    locale,
-  }: Props = $props();
+  let { subscribers, newsletter, total, page, perPage, onPageChange, locale }: Props = $props();
 
   const columns: DataTableColumn[] = [
     { key: 'emailAddress', label: 'Email' },
@@ -56,7 +48,7 @@
   </header>
 
   <DataTable
-    columns={columns}
+    {columns}
     rows={subscribers}
     rowKey={(subscriber) => subscriber.id}
     cell={subscriberCell}

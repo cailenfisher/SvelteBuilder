@@ -50,6 +50,7 @@ const SYNC_CLI = path.join(REPO, 'tools', 'cli', 'dist', 'index.js');
 const CASES = [
   { name: 'bare', modules: 'none', screens: 'none' },
   { name: 'content', modules: 'content', screens: 'all' },
+  { name: 'content-no-screens', modules: 'content', screens: 'none' },
   { name: 'logistic', modules: 'logistic', screens: 'all' },
   { name: 'logistic-no-screens', modules: 'logistic', screens: 'none' },
 ];

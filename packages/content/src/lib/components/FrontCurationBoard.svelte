@@ -61,10 +61,10 @@
   }
 
   const VARIANT_LABEL: Record<string, string> = {
-    lead:      'Lead',
+    lead: 'Lead',
     secondary: 'Secondary',
-    river:     'River',
-    brief:     'Brief',
+    river: 'River',
+    brief: 'Brief',
   };
 </script>
 
@@ -167,7 +167,9 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     cursor: grab;
-    transition: background var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+    transition:
+      background var(--duration) var(--ease),
+      box-shadow var(--duration) var(--ease);
   }
 
   .front-curation-board__slot:active {
@@ -219,7 +221,9 @@
     color: var(--text-soft);
     border-radius: var(--radius-sm);
     line-height: 1;
-    transition: background var(--duration) var(--ease), color var(--duration) var(--ease);
+    transition:
+      background var(--duration) var(--ease),
+      color var(--duration) var(--ease);
   }
 
   .front-curation-board__move:hover,

@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        case: [bare, content, logistic, logistic-no-screens]
+        case: [bare, content, content-no-screens, logistic, logistic-no-screens]
 
     steps:
       - name: Checkout repo

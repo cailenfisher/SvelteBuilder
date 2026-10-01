@@ -12,6 +12,15 @@
     disabled?: boolean;
     name?: string;
     value?: string;
+    /**
+     * Called when the box is toggled, with its new state.
+     *
+     * `bind:checked` covers the case where the parent owns the value and nothing else needs to
+     * happen. This covers the case where something does — persisting the change, submitting the
+     * form it sits in — which a bind alone cannot express without an effect watching the value,
+     * and an effect would also fire for changes the parent made itself.
+     */
+    onCheckedChange?: (checked: boolean) => void;
     class?: string | undefined;
   };
 
@@ -23,6 +32,7 @@
     disabled,
     name,
     value,
+    onCheckedChange,
     class: extraClass,
   }: Props = $props();
 
@@ -30,9 +40,7 @@
 
   const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
 
-  const wrapClasses = $derived(
-    ['checkbox-wrap', extraClass ?? ''].filter(Boolean).join(' ')
-  );
+  const wrapClasses = $derived(['checkbox-wrap', extraClass ?? ''].filter(Boolean).join(' '));
 
   const boxClasses = $derived(['checkbox', size].join(' '));
 </script>
@@ -40,6 +48,7 @@
 <label class={wrapClasses} data-disabled={resolvedDisabled || undefined}>
   <Checkbox.Root
     bind:checked
+    {onCheckedChange}
     {indeterminate}
     disabled={resolvedDisabled}
     {name}
@@ -50,11 +59,17 @@
       <span class="checkbox-indicator">
         {#if isIndeterminate}
           <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false" class="icon">
-            <path d="M2.5 6h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M2.5 6h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
           </svg>
         {:else if isChecked}
           <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false" class="icon">
-            <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path
+              d="M2 6l3 3 5-5"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         {/if}
       </span>

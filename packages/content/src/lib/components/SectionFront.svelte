@@ -16,18 +16,26 @@
     class?: string | undefined;
   };
 
-  let { front, mediaAssets, storageBaseUrl, locale, dictionary: dictionaryProp, class: extraClass }: Props = $props();
+  let {
+    front,
+    mediaAssets,
+    storageBaseUrl,
+    locale,
+    dictionary: dictionaryProp,
+    class: extraClass,
+  }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
   const title = $derived(dictionary.localText('title', 'front', front.id));
 
-  const leadSlots      = $derived((front.slots ?? []).filter((s) => s.layoutVariant === 'lead'));
-  const secondarySlots = $derived((front.slots ?? []).filter((s) => s.layoutVariant === 'secondary'));
-  const riverSlots     = $derived((front.slots ?? []).filter((s) => s.layoutVariant === 'river'));
-  const briefSlots     = $derived((front.slots ?? []).filter((s) => s.layoutVariant === 'brief'));
-
+  const leadSlots = $derived((front.slots ?? []).filter((s) => s.layoutVariant === 'lead'));
+  const secondarySlots = $derived(
+    (front.slots ?? []).filter((s) => s.layoutVariant === 'secondary')
+  );
+  const riverSlots = $derived((front.slots ?? []).filter((s) => s.layoutVariant === 'river'));
+  const briefSlots = $derived((front.slots ?? []).filter((s) => s.layoutVariant === 'brief'));
 </script>
 
 <div class={['section-front', extraClass ?? ''].filter(Boolean).join(' ')}>

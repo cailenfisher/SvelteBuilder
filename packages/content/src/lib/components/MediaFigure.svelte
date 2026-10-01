@@ -30,10 +30,12 @@
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
-  const altText  = $derived(decorative ? '' : dictionary.localText('alt_text', 'media_asset', asset.id));
-  const caption  = $derived(dictionary.localText('caption', 'media_asset', asset.id));
-  const credit   = $derived(dictionary.localText('credit',  'media_asset', asset.id));
-  const src      = $derived(`${storageBaseUrl}/${asset.storageKey}`);
+  const altText = $derived(
+    decorative ? '' : dictionary.localText('alt_text', 'media_asset', asset.id)
+  );
+  const caption = $derived(dictionary.localText('caption', 'media_asset', asset.id));
+  const credit = $derived(dictionary.localText('credit', 'media_asset', asset.id));
+  const src = $derived(`${storageBaseUrl}/${asset.storageKey}`);
 </script>
 
 <figure class={['media-figure', extraClass ?? ''].filter(Boolean).join(' ')}>
