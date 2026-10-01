@@ -33,7 +33,6 @@ SvelteBuilder/
 │   ├── create/             → create-sveltebuilder
 │   └── cli/                → @sveltebuilder/cli
 └── apps/
-    ├── dev-kitchen/
     └── docs/
 ```
 
@@ -178,7 +177,6 @@ Consistent naming is a first-class concern — the connective tissue between the
 ### Phase 2 — Beta (in progress)
 
 - `@sveltebuilder/coreui` — design tokens, CSS reset, universal component set
-- `apps/dev-kitchen` — full working SvelteKit app + `/dev` component explorer
 - `@sveltebuilder/content` — first domain module, full production scope
 - `create-sveltebuilder` — complete prompt/copy/install flow
 - Auth UI — sign in, sign up, sign out routes

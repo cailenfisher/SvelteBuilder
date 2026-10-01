@@ -46,10 +46,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # The harness links the workspace packages into each scaffolded project, so their
-      # dist output has to exist. Apps are excluded: dev-kitchen is stagnant by decision
-      # and its build is expected to fail.
+      # dist output has to exist.
       - name: Build packages
-        run: pnpm turbo run build --filter='!./apps/*'
+        run: pnpm turbo run build
 
       - name: Scaffold and check
         run: node scripts/scaffold-check.mjs ${{ matrix.case }}

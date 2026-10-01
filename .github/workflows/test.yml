@@ -37,6 +37,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Apps are excluded: dev-kitchen is stagnant by decision and its build fails.
       - name: Test
-        run: pnpm turbo run test --filter='!./apps/*'
+        run: pnpm turbo run test

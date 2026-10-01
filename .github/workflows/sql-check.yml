@@ -47,9 +47,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # The scaffolded project links this repo's packages, so their dist has to exist.
-      # Apps are excluded: dev-kitchen is stagnant by decision and its build fails.
       - name: Build packages
-        run: pnpm turbo run build --filter='!./apps/*'
+        run: pnpm turbo run build
 
       - name: Apply and assert
         run: node scripts/sql-check.mjs --modules ${{ matrix.modules }}
