@@ -39,6 +39,10 @@
     "./publishing": {
       "types": "./dist/publishing/index.d.ts",
       "default": "./dist/publishing/index.js"
+    },
+    "./views": {
+      "types": "./dist/views.d.ts",
+      "default": "./dist/views.js"
     }
   },
   "svelte": "./dist/index.js",

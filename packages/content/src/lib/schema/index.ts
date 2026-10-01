@@ -322,6 +322,24 @@ export type ArticleBlockWithCopy = ArticleBlock & {
   mediaAsset: MediaAssetWithCopy | null;
 };
 
+/**
+ * The least an article has to be for `ArticleView` to render it.
+ *
+ * Narrower than ArticleWithCopy on purpose. ArticleView is a Camp 2 component: it resolves
+ * the headline, the dek and every block's text from the dictionary itself, by entity id, so
+ * the resolved strings on ArticleWithCopy are fields it never reads. Typing the prop as the
+ * enriched shape demanded them anyway, which made the component unusable from a loader that
+ * ships a copy payload instead of baking strings into rows — the direction every module moved
+ * when the query layers were removed.
+ *
+ * Any ArticleWithCopy still satisfies this, so narrowing breaks no existing caller.
+ */
+export type ArticleRenderable = Article & {
+  blocks: ArticleBlock[];
+  bylines: AuthorProfile[];
+  sections: Section[];
+};
+
 export type ArticleWithCopy = Article & {
   headline: string;
   dek: string;

@@ -1,5 +1,6 @@
-<!-- Camp 2: full article renderer. Resolves headline, dek, lede, and all block text via diglossia.
-     Accepts ArticleWithCopy (enriched) from the server load function. -->
+<!-- Camp 2: full article renderer. Resolves headline, dek, lede and all block text via
+     diglossia, by entity id — so it needs the article's structure, not its copy. The prop is
+     ArticleRenderable rather than ArticleWithCopy for that reason; see the type. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
@@ -8,10 +9,10 @@
   import MediaFigure from './MediaFigure.svelte';
   import BylineList from './BylineList.svelte';
   import SectionLabel from './SectionLabel.svelte';
-  import type { ArticleWithCopy, MediaAsset, Section } from '../schema/index.js';
+  import type { ArticleRenderable, MediaAsset } from '../schema/index.js';
 
   type Props = {
-    article: ArticleWithCopy;
+    article: ArticleRenderable;
     mediaAssets: Map<number, MediaAsset>;
     storageBaseUrl: string;
     locale: string;

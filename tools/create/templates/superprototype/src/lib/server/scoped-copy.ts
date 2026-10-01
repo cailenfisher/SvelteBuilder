@@ -1,6 +1,53 @@
 import type { DictionaryPayload } from 'diglossia';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+type CopyRow = {
+  content: string;
+  locale: { code: string } | { code: string }[] | null;
+  local_text_link:
+    | { id: number; slug: string; scope: string | null; entity_id: number | null }
+    | { id: number; slug: string; scope: string | null; entity_id: number | null }[]
+    | null;
+};
+
+/** supabase-js types every embed as an array, having no way to know the cardinality. */
+const one = <T>(value: T | T[] | null): T | null =>
+  value === null ? null : Array.isArray(value) ? (value[0] ?? null) : value;
+
+/**
+ * One entry per `(slug, scope, entityId)` key, the user's locale winning over the fallback.
+ *
+ * Rows arrive in no guaranteed order, so this cannot rely on ordering: it overwrites an
+ * existing entry only when the incoming row is the user's locale. That pass is what
+ * guarantees the one-entry-per-key rule diglossia relies on — it only ever flattens a
+ * payload, it does not resolve locale priority.
+ */
+function resolveOneEntryPerKey(data: unknown, userCode: string): DictionaryPayload {
+  const resolved = new Map<string, DictionaryPayload[number]>();
+
+  for (const row of (data ?? []) as CopyRow[]) {
+    const link = one(row.local_text_link);
+    const localeCode = one(row.locale)?.code;
+    if (!link || !localeCode) continue;
+
+    const key = `${link.slug}|${link.scope ?? ''}|${link.entity_id ?? ''}`;
+    if (resolved.get(key)?.localeCode === userCode) continue;
+
+    resolved.set(key, {
+      link: {
+        id: Number(link.id),
+        slug: link.slug,
+        scope: link.scope,
+        entityId: link.entity_id === null ? null : Number(link.entity_id),
+      },
+      content: row.content,
+      localeCode,
+    });
+  }
+
+  return [...resolved.values()];
+}
+
 /**
  * Loads every copy row for one or more scopes — a scope's UI copy (entity_id null)
  * and all of its entity-bound copy — resolved to one entry per key and ready for
@@ -25,7 +72,7 @@ export async function loadScopedCopy(
   supabase: SupabaseClient,
   scopes: string | string[],
   userCode: string,
-  fallbackCode: string,
+  fallbackCode: string
 ): Promise<DictionaryPayload> {
   const scopeList = Array.isArray(scopes) ? scopes : [scopes];
   if (scopeList.length === 0) return [];
@@ -38,42 +85,42 @@ export async function loadScopedCopy(
 
   if (error) throw error;
 
-  type Row = {
-    content: string;
-    locale: { code: string } | { code: string }[] | null;
-    local_text_link:
-      | { id: number; slug: string; scope: string | null; entity_id: number | null }
-      | { id: number; slug: string; scope: string | null; entity_id: number | null }[]
-      | null;
-  };
+  return resolveOneEntryPerKey(data, userCode);
+}
 
-  const one = <T>(value: T | T[] | null): T | null =>
-    value === null ? null : Array.isArray(value) ? (value[0] ?? null) : value;
+/**
+ * Loads copy for a known set of entities — the rows for `(scope, entityId)` pairs — resolved
+ * to one entry per key.
+ *
+ * `loadScopedCopy` is the wrong tool whenever a scope is unbounded. It fetches a whole
+ * scope, which is right for suppliers or storage locations and wrong for articles: a
+ * publisher with ten thousand of them would ship ten thousand headlines to render one page.
+ * This takes the ids the screen is actually going to show.
+ *
+ * The filter is `scope in (…) and entity_id in (…)` rather than a precise list of pairs,
+ * because PostgREST cannot express a tuple-IN. That over-fetches the cross product — a
+ * block id that happens to equal an article id brings both rows — which is harmless, since
+ * keys are `(slug, scope, entityId)` and the extra rows simply never get looked up. What
+ * matters is that the result is bounded by the ids passed in rather than by the table size.
+ */
+export async function loadEntityCopy(
+  supabase: SupabaseClient,
+  entities: Array<{ scope: string; ids: number[] }>,
+  userCode: string,
+  fallbackCode: string
+): Promise<DictionaryPayload> {
+  const scopes = [...new Set(entities.map((e) => e.scope))];
+  const ids = [...new Set(entities.flatMap((e) => e.ids))];
+  if (scopes.length === 0 || ids.length === 0) return [];
 
-  // One entry per key, the user's locale winning over the fallback. Rows arrive in no
-  // guaranteed order, so this cannot rely on ordering: it overwrites only when the
-  // incoming row is the user's locale.
-  const resolved = new Map<string, DictionaryPayload[number]>();
+  const { data, error } = await supabase
+    .from('local_text')
+    .select('content, locale!inner(code), local_text_link!inner(id, slug, scope, entity_id)')
+    .in('local_text_link.scope', scopes)
+    .in('local_text_link.entity_id', ids)
+    .in('locale.code', [userCode, fallbackCode]);
 
-  for (const row of (data ?? []) as unknown as Row[]) {
-    const link = one(row.local_text_link);
-    const localeCode = one(row.locale)?.code;
-    if (!link || !localeCode) continue;
+  if (error) throw error;
 
-    const key = `${link.slug}|${link.scope ?? ''}|${link.entity_id ?? ''}`;
-    if (resolved.get(key)?.localeCode === userCode) continue;
-
-    resolved.set(key, {
-      link: {
-        id: Number(link.id),
-        slug: link.slug,
-        scope: link.scope,
-        entityId: link.entity_id === null ? null : Number(link.entity_id),
-      },
-      content: row.content,
-      localeCode,
-    });
-  }
-
-  return [...resolved.values()];
+  return resolveOneEntryPerKey(data, userCode);
 }

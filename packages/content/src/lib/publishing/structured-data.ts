@@ -1,10 +1,45 @@
 import type { DictionaryInstance } from 'diglossia';
-import type { ArticleWithCopy, LiveCoverageWithUpdates, PublisherProfileWithCopy } from '../schema/index.js';
+import type {
+  ArticleRenderable,
+  LiveCoverageWithUpdates,
+  PublisherProfile,
+  Tag,
+  Topic,
+} from '../schema/index.js';
 
 // headline/dek are resolved through the dictionary passed to each builder below,
 // not read as bare fields — closes the second resolution path these helpers used
 // to need since they run in +server.ts / +page.svelte outside component context.
-export type ArticleForStructuredData = Omit<ArticleWithCopy, 'headline' | 'dek'>;
+/**
+ * What the builders below need from an article: its structure, not its copy.
+ *
+ * They already take a DictionaryInstance and resolve the headline and dek through it. They
+ * used to read byline, section and tag names as baked strings on the enriched types instead,
+ * which was the same job done two ways — and the baked half could not follow a locale switch,
+ * because those strings were resolved once by whatever query produced the row. Everything is
+ * resolved through the dictionary now, so this input is narrow enough for a loader that ships
+ * a copy payload. Any ArticleWithCopy still satisfies it.
+ */
+export type ArticleForStructuredData = ArticleRenderable & {
+  topics: Topic[];
+  tags: Tag[];
+};
+
+/**
+ * Likewise the publisher: `url` is structural, the name and logo are resolved by id.
+ */
+export type PublisherForStructuredData = PublisherProfile & {
+  logo?: { storageKey: string } | null;
+};
+
+/**
+ * Media assets the article's blocks refer to, keyed by id.
+ *
+ * Passed alongside rather than embedded on each block, the same way ArticleView takes them: a
+ * block row carries only mediaAssetId, and which assets were actually fetched is the loader's
+ * decision, not something these pure functions should imply.
+ */
+export type MediaAssetLookup = Map<number, { storageKey: string }>;
 
 // Converts an ISO timestamp to RFC 3339 with explicit timezone offset.
 // Google requires timezone-offset dates (not naive UTC) in structured data.
@@ -52,13 +87,14 @@ export type LiveBlogPostingJsonLd = {
 
 export function buildNewsArticleJsonLd(
   article: ArticleForStructuredData,
-  publisher: PublisherProfileWithCopy,
+  publisher: PublisherForStructuredData,
   dictionary: DictionaryInstance,
   options: {
     siteUrl: string;
     locale?: string;
     storageBaseUrl?: string;
-  },
+    mediaAssets?: MediaAssetLookup;
+  }
 ): NewsArticleJsonLd {
   const base = options.siteUrl.replace(/\/$/, '');
   const storageBase = options.storageBaseUrl ?? '';
@@ -66,14 +102,17 @@ export function buildNewsArticleJsonLd(
   const headline = dictionary.localText('headline', 'article', article.id);
   const dek = dictionary.localText('dek', 'article', article.id);
 
-  // Lead image: first image block, or first media_asset in any block
+  // Lead image: the first image block that has an asset we were given.
+  const mediaAssets = options.mediaAssets ?? new Map();
   const images: string[] = [];
   for (const block of article.blocks) {
-    if (block.blockType === 'image' && block.mediaAsset?.storageKey) {
-      images.push(`${storageBase}/${block.mediaAsset.storageKey}`);
+    const asset = block.mediaAssetId === null ? null : mediaAssets.get(block.mediaAssetId);
+    if (block.blockType === 'image' && asset?.storageKey) {
+      images.push(`${storageBase}/${asset.storageKey}`);
       break;
     }
   }
+  const publisherName = dictionary.localText('name', 'publisher_profile', publisher.id);
   if (publisher.logo?.storageKey && images.length === 0) {
     images.push(`${storageBase}/${publisher.logo.storageKey}`);
   }
@@ -86,12 +125,12 @@ export function buildNewsArticleJsonLd(
     dateModified: toOffsetIso(article.updatedAt),
     author: article.bylines.map((b) => ({
       '@type': 'Person' as const,
-      name: b.name,
+      name: dictionary.localText('name', 'author_profile', b.id),
       url: `${base}/author/${b.slug}`,
     })),
     publisher: {
       '@type': 'NewsMediaOrganization',
-      name: publisher.name,
+      name: publisherName,
       url: publisher.url,
       ...(publisher.logo?.storageKey
         ? { logo: { '@type': 'ImageObject', url: `${storageBase}/${publisher.logo.storageKey}` } }
@@ -109,27 +148,37 @@ export function buildNewsArticleJsonLd(
 export function buildLiveBlogPostingJsonLd(
   article: ArticleForStructuredData,
   coverage: LiveCoverageWithUpdates,
-  publisher: PublisherProfileWithCopy,
+  publisher: PublisherForStructuredData,
   dictionary: DictionaryInstance,
   options: {
     siteUrl: string;
     locale?: string;
     storageBaseUrl?: string;
-  },
+  }
 ): LiveBlogPostingJsonLd {
+  const publisherName = dictionary.localText('name', 'publisher_profile', publisher.id);
+
   return {
     '@context': 'https://schema.org',
     '@type': 'LiveBlogPosting',
     headline: dictionary.localText('headline', 'article', article.id),
     datePublished: toOffsetIso(article.publishedAt ?? article.createdAt),
     dateModified: toOffsetIso(article.updatedAt),
-    author: article.bylines.map((b) => ({ '@type': 'Person' as const, name: b.name })),
+    author: article.bylines.map((b) => ({
+      '@type': 'Person' as const,
+      name: dictionary.localText('name', 'author_profile', b.id),
+    })),
     publisher: {
       '@type': 'NewsMediaOrganization',
-      name: publisher.name,
+      name: publisherName,
       url: publisher.url,
       ...(publisher.logo?.storageKey && options.storageBaseUrl
-        ? { logo: { '@type': 'ImageObject', url: `${options.storageBaseUrl}/${publisher.logo.storageKey}` } }
+        ? {
+            logo: {
+              '@type': 'ImageObject',
+              url: `${options.storageBaseUrl}/${publisher.logo.storageKey}`,
+            },
+          }
         : {}),
     },
     coverageStartTime: toOffsetIso(coverage.startedAt),
@@ -145,7 +194,7 @@ export function buildLiveBlogPostingJsonLd(
 // Open Graph / Twitter card meta tags as a key-value record.
 export function buildArticleMetaTags(
   article: ArticleForStructuredData,
-  publisher: PublisherProfileWithCopy,
+  publisher: PublisherForStructuredData,
   dictionary: DictionaryInstance,
   options: {
     siteUrl: string;
@@ -153,7 +202,8 @@ export function buildArticleMetaTags(
     availableLocales?: string[];
     storageBaseUrl?: string;
     twitterSite?: string;
-  },
+    mediaAssets?: MediaAssetLookup;
+  }
 ): Record<string, string> {
   const base = options.siteUrl.replace(/\/$/, '');
   const storageBase = options.storageBaseUrl ?? '';
@@ -161,9 +211,12 @@ export function buildArticleMetaTags(
   const headline = dictionary.localText('headline', 'article', article.id);
   const dek = dictionary.localText('dek', 'article', article.id);
 
-  const leadImage = article.blocks.find(
-    (b) => b.blockType === 'image' && b.mediaAsset?.storageKey,
-  )?.mediaAsset;
+  const publisherName = dictionary.localText('name', 'publisher_profile', publisher.id);
+  const mediaAssets = options.mediaAssets ?? new Map();
+  const leadImage = article.blocks
+    .filter((b) => b.blockType === 'image' && b.mediaAssetId !== null)
+    .map((b) => mediaAssets.get(b.mediaAssetId as number))
+    .find((asset) => asset?.storageKey);
 
   return {
     // Open Graph
@@ -171,7 +224,7 @@ export function buildArticleMetaTags(
     'og:url': articleUrl,
     'og:title': headline,
     'og:description': dek,
-    'og:site_name': publisher.name,
+    'og:site_name': dictionary.localText('name', 'publisher_profile', publisher.id),
     ...(options.locale ? { 'og:locale': options.locale.replace('-', '_') } : {}),
     ...(leadImage?.storageKey
       ? { 'og:image': `${storageBase}/${leadImage.storageKey}`, 'og:image:alt': leadImage.altText }
@@ -182,15 +235,22 @@ export function buildArticleMetaTags(
     'twitter:description': dek,
     ...(options.twitterSite ? { 'twitter:site': options.twitterSite } : {}),
     ...(leadImage?.storageKey
-      ? { 'twitter:image': `${storageBase}/${leadImage.storageKey}`, 'twitter:image:alt': leadImage.altText }
+      ? {
+          'twitter:image': `${storageBase}/${leadImage.storageKey}`,
+          'twitter:image:alt': leadImage.altText,
+        }
       : {}),
     // Canonical
-    'canonical': articleUrl,
+    canonical: articleUrl,
     // Article meta
     'article:published_time': toOffsetIso(article.publishedAt ?? article.createdAt),
     'article:modified_time': toOffsetIso(article.updatedAt),
-    ...(article.sections[0] ? { 'article:section': article.sections[0].name } : {}),
-    ...Object.fromEntries(article.tags.map((t, i) => [`article:tag:${i}`, t.name])),
+    ...(article.sections[0]
+      ? { 'article:section': dictionary.localText('name', 'section', article.sections[0].id) }
+      : {}),
+    ...Object.fromEntries(
+      article.tags.map((t, i) => [`article:tag:${i}`, dictionary.localText('name', 'tag', t.id)])
+    ),
   };
 }
 
@@ -198,7 +258,7 @@ export function buildArticleMetaTags(
 export function buildHreflangAlternates(
   canonicalSlug: string,
   siteUrl: string,
-  availableLocales: string[],
+  availableLocales: string[]
 ): Array<{ hreflang: string; href: string }> {
   const base = siteUrl.replace(/\/$/, '');
   const result = availableLocales.map((locale) => ({

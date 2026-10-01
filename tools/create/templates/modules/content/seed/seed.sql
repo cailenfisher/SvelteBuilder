@@ -162,13 +162,20 @@ select 'name', 'publisher_profile', p.id from publisher_profile p
 on conflict do nothing;
 
 insert into local_text_link (slug, scope, entity_id)
-select 'display_name', 'author_profile', p.id from author_profile p
+select 'name', 'author_profile', p.id from author_profile p
 on conflict do nothing;
 
--- An article's headline, standfirst and the body of each block.
+-- An article's headline, its dek and the body of each block. The slugs are what ArticleView
+-- reads — 'headline' and 'dek' — so they are spelled out one statement each rather than
+-- generated from a values list: a literal slug beside its literal scope is the form the
+-- screen-bundle suite can read back, and a seed it cannot parse is a seed nothing checks.
 insert into local_text_link (slug, scope, entity_id)
-select v.slug, 'article', a.id
-from article a, (values ('headline'), ('standfirst')) as v(slug)
+select 'headline', 'article', a.id from article a
+where a.canonical_slug = 'welcome-to-sveltebuilder-content'
+on conflict do nothing;
+
+insert into local_text_link (slug, scope, entity_id)
+select 'dek', 'article', a.id from article a
 where a.canonical_slug = 'welcome-to-sveltebuilder-content'
 on conflict do nothing;
 
@@ -254,15 +261,15 @@ insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'en'), 'Sample Author'
 from author_profile p
 join local_text_link l
-  on l.slug = 'display_name' and l.scope = 'author_profile' and l.entity_id = p.id
+  on l.slug = 'name' and l.scope = 'author_profile' and l.entity_id = p.id
 where p.slug = 'sample-author'
 on conflict (link, locale) do nothing;
 
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'en'), v.content
 from (values
-  ('headline',   'Welcome to SvelteBuilder Content'),
-  ('standfirst', 'A sample article, seeded so a fresh scaffold has a real page to render.')
+  ('headline', 'Welcome to SvelteBuilder Content'),
+  ('dek',      'A sample article, seeded so a fresh scaffold has a real page to render.')
 ) as v(slug, content)
 join article a on a.canonical_slug = 'welcome-to-sveltebuilder-content'
 join local_text_link l on l.slug = v.slug and l.scope = 'article' and l.entity_id = a.id
@@ -355,15 +362,15 @@ insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'fr'), 'Auteur exemple'
 from author_profile p
 join local_text_link l
-  on l.slug = 'display_name' and l.scope = 'author_profile' and l.entity_id = p.id
+  on l.slug = 'name' and l.scope = 'author_profile' and l.entity_id = p.id
 where p.slug = 'sample-author'
 on conflict (link, locale) do nothing;
 
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'fr'), v.content
 from (values
-  ('headline',   'Bienvenue dans SvelteBuilder Content'),
-  ('standfirst', 'Un article d''exemple, pour qu''un projet neuf ait une vraie page à afficher.')
+  ('headline', 'Bienvenue dans SvelteBuilder Content'),
+  ('dek',      'Un article d''exemple, pour qu''un projet neuf ait une vraie page à afficher.')
 ) as v(slug, content)
 join article a on a.canonical_slug = 'welcome-to-sveltebuilder-content'
 join local_text_link l on l.slug = v.slug and l.scope = 'article' and l.entity_id = a.id
@@ -379,4 +386,52 @@ from (values
 join article a on a.canonical_slug = 'welcome-to-sveltebuilder-content'
 join article_block b on b.article_id = a.id and b.position = v.position
 join local_text_link l on l.slug = 'text' and l.scope = 'article_block' and l.entity_id = b.id
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — article bundle
+--
+-- Application-level copy for this module lives under scope 'content' with a null entity_id,
+-- which is what the screens load through loadScopedCopy. Entity-bound copy — a headline, a
+-- block's text — is keyed by entity id instead and loaded by id, because the 'article' scope
+-- is unbounded.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('content.comments.heading',        'content', null),
+  ('content.comments.leave',          'content', null),
+  ('content.comments.name',           'content', null),
+  ('content.comments.email',          'content', null),
+  ('content.comments.body',           'content', null),
+  ('content.comments.submit',         'content', null),
+  ('content.comments.pending',        'content', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('content.comments.heading',        'Comments'),
+  ('content.comments.leave',          'Leave a comment'),
+  ('content.comments.name',           'Name'),
+  ('content.comments.email',          'Email'),
+  ('content.comments.body',           'Comment'),
+  ('content.comments.submit',         'Submit comment'),
+  ('content.comments.pending',        'Your comment has been submitted and is awaiting moderation.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('content.comments.heading',        'Commentaires'),
+  ('content.comments.leave',          'Laisser un commentaire'),
+  ('content.comments.name',           'Nom'),
+  ('content.comments.email',          'Courriel'),
+  ('content.comments.body',           'Commentaire'),
+  ('content.comments.submit',         'Envoyer'),
+  ('content.comments.pending',        'Votre commentaire a été envoyé et attend la modération.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
