@@ -1,0 +1,51 @@
+{
+  "id": "stock",
+  "module": "logistic",
+  "label": "Stock levels",
+  "hint": "On-hand and reserved stock per bin, with manual adjustments and reorder points",
+  "routes": ["/admin/logistic/stock"],
+  "requires": [],
+  "views": ["StockListView", "StockLevelRow"],
+  "actions": {
+    "/admin/logistic/stock": {
+      "adjust": ["stock_level_id", "delta", "reason", "note"],
+      "setReorderPoint": ["stock_level_id", "reorder_point"]
+    }
+  },
+  "copySlugs": [
+    "logistic.stock.title",
+    "logistic.stock.filters",
+    "logistic.stock.filter_all",
+    "logistic.stock.filter_low",
+    "logistic.stock.empty",
+    "logistic.stock.empty_low",
+    "logistic.stock.history",
+    "logistic.stock.history_after",
+    "logistic.stock.history_empty",
+    "logistic.stock.adjust",
+    "logistic.stock.adjust_title",
+    "logistic.stock.adjust_delta",
+    "logistic.stock.adjust_apply",
+    "logistic.stock.reorder_point_hint",
+    "logistic.field.sku",
+    "logistic.field.location",
+    "logistic.field.on_hand",
+    "logistic.field.reserved",
+    "logistic.field.available",
+    "logistic.field.reorder_point",
+    "logistic.field.reason",
+    "logistic.field.note",
+    "logistic.adjustment_reason.damage",
+    "logistic.adjustment_reason.theft",
+    "logistic.adjustment_reason.receiving_error",
+    "logistic.adjustment_reason.cycle_count_variance",
+    "logistic.adjustment_reason.system_correction",
+    "logistic.adjustment_reason.other",
+    "logistic.adjustment_reason.inbound_receipt",
+    "logistic.adjustment_reason.pick",
+    "logistic.adjustment_reason.return_restock",
+    "action.save",
+    "action.cancel",
+    "action.close"
+  ]
+}

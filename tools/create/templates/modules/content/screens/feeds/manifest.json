@@ -1,0 +1,12 @@
+{
+  "id": "feeds",
+  "module": "content",
+  "label": "Feeds and sitemaps",
+  "hint": "RSS, a standard sitemap and a Google News sitemap \u2014 endpoints, no pages",
+  "routes": [],
+  "endpoints": ["/rss.xml", "/sitemap.xml", "/sitemap-news.xml"],
+  "requires": [],
+  "views": ["ArticleRow"],
+  "actions": {},
+  "copySlugs": ["content.feed.title", "content.feed.description"]
+}

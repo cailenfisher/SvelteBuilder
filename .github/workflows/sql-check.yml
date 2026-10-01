@@ -1,0 +1,54 @@
+name: SQL check
+
+# Applies a scaffolded project's generated SQL to a real Postgres and asserts the
+# database behaves the way the route code assumes.
+#
+# Scaffold check proves a project typechecks and builds, and neither step runs a line of
+# SQL — so a malformed seed, a policy admitting nobody, or an RPC whose body does not
+# compile all ship green past it. The assertions here impersonate an admin, a non-admin
+# and an anonymous visitor through `set role` plus a JWT subject, which is the only way
+# RLS is exercised at all: as a table-owning role Postgres skips policies entirely.
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sql:
+    name: ${{ matrix.modules }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each module has its own assertion file, and the bare case is the one that catches
+        # a base-template regression a module would mask.
+        modules: [none, logistic, content]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The scaffolded project links this repo's packages, so their dist has to exist.
+      - name: Build packages
+        run: pnpm turbo run build
+
+      - name: Apply and assert
+        run: node scripts/sql-check.mjs --modules ${{ matrix.modules }}

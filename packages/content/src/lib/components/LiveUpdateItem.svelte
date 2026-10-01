@@ -19,12 +19,16 @@
 
   const text = $derived(dictionary.localText('text', 'live_update', update.id));
   const publishedTime = $derived(
-    new Intl.DateTimeFormat(locale, { timeStyle: 'short', dateStyle: 'medium' }).format(new Date(update.publishedAt)),
+    new Intl.DateTimeFormat(locale, { timeStyle: 'short', dateStyle: 'medium' }).format(
+      new Date(update.publishedAt)
+    )
   );
 </script>
 
 <article
-  class={['live-update-item', update.pinned ? 'live-update-item--pinned' : '', extraClass ?? ''].filter(Boolean).join(' ')}
+  class={['live-update-item', update.pinned ? 'live-update-item--pinned' : '', extraClass ?? '']
+    .filter(Boolean)
+    .join(' ')}
   aria-label={update.pinned ? 'Pinned live update' : 'Live update'}
 >
   <header class="live-update-item__header">

@@ -87,15 +87,32 @@ export async function syncSupabase(root?: string): Promise<void> {
     const latestMigration = migrationFiles.at(-1);
 
     if (latestMigration) {
-      const existingContent = await readFile(path.join(cwd, latestMigration), 'utf-8');
+      // Every migration, not just the newest. Checking only the newest meant a
+      // freshly generated migration never contained any marker, so all of the
+      // project's supplemental SQL was re-appended to each new migration — the
+      // whole set duplicated on every schema change.
+      //
+      // The test is the file's own content rather than its marker, which keeps the
+      // edit case working: an unchanged file is found verbatim in an earlier
+      // migration and skipped, while an edited one is not found and so gets
+      // appended to the latest migration, where `db reset` will apply it. A
+      // marker-only check across all migrations would instead mean an edited
+      // supplemental file could never reach the database again. Comparing content
+      // also recognises blocks appended by older versions of this command, which
+      // wrote the same marker without one.
+      const priorMigrations = await Promise.all(
+        migrationFiles.map((f) => readFile(path.join(cwd, f), 'utf-8')),
+      );
+      const appliedSql = priorMigrations.join('\n');
+
       const supplementalBlocks = await Promise.all(
         supplementalFiles.map(async (f) => {
           const marker = `-- supplemental: ${path.basename(f)}`;
-          if (existingContent.includes(marker)) {
+          const content = await readFile(path.join(cwd, f), 'utf-8');
+          if (appliedSql.includes(content.trim())) {
             console.log(`[sveltebuilder] skipping already-appended supplemental: ${path.basename(f)}`);
             return null;
           }
-          const content = await readFile(path.join(cwd, f), 'utf-8');
           return `\n${marker}\n${content}`;
         }),
       );

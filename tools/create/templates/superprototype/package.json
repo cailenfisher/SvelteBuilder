@@ -7,13 +7,12 @@
   },
   "dependencies": {
     "@sveltebuilder/local-text-schema": "latest",
-    "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest",
-    "drizzle-orm": "^0.38.0",
-    "postgres": "^3.4.0"
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.2"
   },
   "devDependencies": {
     "drizzle-kit": "^0.29.0",
+    "drizzle-orm": "^0.38.0",
     "supabase": "^2.0.0"
   }
 }

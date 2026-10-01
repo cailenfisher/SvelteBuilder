@@ -20,3 +20,7 @@ supabase/.branches/
 # OS
 .DS_Store
 Thumbs.db
+
+# tsup writes a bundled copy of its own config beside it when the config has imports,
+# and does not always clean it up.
+tsup.config.bundled_*.mjs

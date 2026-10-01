@@ -7,7 +7,7 @@
   import type { DictionaryInstance } from 'diglossia';
   import { BlockEditor } from '@sveltebuilder/coreui';
   import type { EditorBlock } from '@sveltebuilder/coreui';
-  import type { ArticleBlock, ArticleBlockType } from '../schema/index.js';
+  import type { ArticleBlock } from '../schema/index.js';
 
   type Props = {
     blocks: ArticleBlock[];
@@ -18,7 +18,13 @@
     dictionary?: DictionaryInstance;
   };
 
-  let { blocks, articleId: _articleId, onBlocksChange, locale: _locale, dictionary: dictionaryProp }: Props = $props();
+  let {
+    blocks,
+    articleId: _articleId,
+    onBlocksChange,
+    locale: _locale,
+    dictionary: dictionaryProp,
+  }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
@@ -49,10 +55,7 @@
 </script>
 
 <div class="block-editor-host">
-  <BlockEditor
-    blocks={editorBlocks}
-    onChange={handleChange}
-  />
+  <BlockEditor blocks={editorBlocks} onChange={handleChange} />
 </div>
 
 <style>

@@ -1,21 +1,21 @@
-import { fail } from '@sveltejs/kit';
-import { asc, eq } from 'drizzle-orm';
+import { error, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { locale } from '@sveltebuilder/local-text-schema/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const locales = await locals.db.withUser(async (tx) => {
-    return tx
-      .select({
-        id: locale.id,
-        code: locale.code,
-        name: locale.name,
-        nativeName: locale.nativeName,
-        dir: locale.dir,
-      })
-      .from(locale)
-      .orderBy(asc(locale.code));
-  });
+  const { data, error: queryError } = await locals.supabase
+    .from('locale')
+    .select('id, code, name, native_name, dir')
+    .order('code');
+
+  if (queryError) throw error(500, 'Failed to load locales.');
+
+  const locales = (data ?? []).map((row) => ({
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    nativeName: row.native_name,
+    dir: row.dir,
+  }));
 
   return { locales };
 };
@@ -33,9 +33,11 @@ export const actions: Actions = {
       return fail(422, { error: 'Code, name, and native name are required.' });
     }
 
-    await locals.db.withUser(async (tx) => {
-      await tx.insert(locale).values({ code, name, nativeName, dir });
-    });
+    const { error: insertError } = await locals.supabase
+      .from('locale')
+      .insert({ code, name, native_name: nativeName, dir });
+
+    if (insertError) return fail(500, { error: 'Failed to create locale.' });
 
     return { success: true };
   },
@@ -46,9 +48,12 @@ export const actions: Actions = {
 
     if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    await locals.db.withUser(async (tx) => {
-      await tx.delete(locale).where(eq(locale.id, id));
-    });
+    const { error: deleteError } = await locals.supabase
+      .from('locale')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) return fail(500, { error: 'Failed to delete locale.' });
 
     return { success: true };
   },

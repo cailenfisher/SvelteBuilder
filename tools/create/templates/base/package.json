@@ -17,13 +17,13 @@
   },
   "devDependencies": {
     "@sveltebuilder/cli": "latest",
-    "@sveltejs/adapter-auto": "latest",
-    "@sveltejs/kit": "latest",
-    "@sveltejs/vite-plugin-svelte": "latest",
-    "svelte": "latest",
-    "svelte-check": "latest",
-    "typescript": "latest",
-    "vite": "latest",
-    "@types/node": "latest"
+    "@sveltejs/adapter-auto": "^7.0.1",
+    "@sveltejs/kit": "^2.70.3",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "svelte": "^5.57.1",
+    "svelte-check": "^4.7.6",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.1",
+    "@types/node": "^22.20.4"
   }
 }

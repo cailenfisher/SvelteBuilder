@@ -1,0 +1,11 @@
+{
+  "id": "preview",
+  "module": "content",
+  "label": "Preview by link",
+  "hint": "An unpublished article behind a shareable, expiring token — resolved through SECURITY DEFINER functions, not a read policy",
+  "routes": ["/preview/[token]"],
+  "requires": [],
+  "views": ["PreviewPageView", "ArticleWithBlocks"],
+  "actions": {},
+  "copySlugs": ["content.preview.title_prefix", "content.preview.banner"]
+}

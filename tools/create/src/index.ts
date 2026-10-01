@@ -14,10 +14,124 @@ const TEMPLATES_DIR = path.resolve(__dirname, '..', 'templates');
 type PackageManager = 'pnpm' | 'npm' | 'yarn';
 type ScaffoldTemplate = 'superprototype' | 'native';
 
+/**
+ * The modules offered at the prompt. A module is always installable: it ships a
+ * schema, components and supplemental SQL, none of which depend on any of its screens
+ * being scaffolded. What varies is how many screen bundles it has been ported to, and
+ * the prompt reports that from the template tree rather than from a hardcoded flag —
+ * so a module becomes more capable as bundles land, with nothing here to update.
+ */
+const MODULE_CATALOG: Array<{ id: string; label: string; blurb: string }> = [
+  {
+    id: 'content',
+    label: 'Content',
+    blurb: 'Publisher/news: articles, sections, taxonomy, live coverage, newsletter, RSS, sitemap',
+  },
+  {
+    id: 'logistic',
+    label: 'Logistic',
+    blurb: 'Warehouse: receiving, pick tasks, shipments, returns, cycle counts',
+  },
+];
+
 const MODULE_DEPS: Record<string, string[]> = {
   content: ['@sveltebuilder/content', '@sveltebuilder/coreui'],
   logistic: ['@sveltebuilder/logistic', '@sveltebuilder/coreui'],
 };
+
+/**
+ * One selectable screen bundle, as declared by
+ * templates/modules/<module>/screens/<id>/manifest.json.
+ *
+ * A bundle is a coherent feature — its list, its detail, and any layout they share —
+ * not a single route file. Selecting individual routes would leave the cross-links
+ * screens make between each other pointing at pages that were never scaffolded, which
+ * is what `requires` exists to prevent.
+ */
+type ScreenManifest = {
+  id: string;
+  module: string;
+  label: string;
+  hint?: string;
+  routes?: string[];
+  requires?: string[];
+};
+
+/** A bundle's key in the prompt. Screen ids only have to be unique per module. */
+const screenKey = (screen: ScreenManifest) => `${screen.module}:${screen.id}`;
+
+/**
+ * Reads the screen bundles available for the chosen modules. Directories starting
+ * with `_` are holding areas for route code that has not been ported into a bundle
+ * yet — they are deliberately not selectable and never copied.
+ */
+async function discoverScreens(modules: string[]): Promise<ScreenManifest[]> {
+  const found: ScreenManifest[] = [];
+
+  for (const mod of modules) {
+    const screensDir = path.join(TEMPLATES_DIR, 'modules', mod, 'screens');
+    if (!(await fs.pathExists(screensDir))) continue;
+
+    for (const entry of (await fs.readdir(screensDir)).sort()) {
+      if (entry.startsWith('_')) continue;
+      const manifestPath = path.join(screensDir, entry, 'manifest.json');
+      if (!(await fs.pathExists(manifestPath))) continue;
+      found.push((await fs.readJson(manifestPath)) as ScreenManifest);
+    }
+  }
+
+  return found;
+}
+
+/**
+ * Expands a selection to include everything the chosen bundles declare in `requires`,
+ * so a screen never ships without the siblings it links to.
+ */
+function resolveScreenRequires(
+  selected: string[],
+  available: ScreenManifest[],
+): ScreenManifest[] {
+  const byKey = new Map(available.map((screen) => [screenKey(screen), screen]));
+  const chosen = new Map<string, ScreenManifest>();
+
+  const visit = (key: string) => {
+    if (chosen.has(key)) return;
+    const screen = byKey.get(key);
+    if (!screen) return;
+    chosen.set(key, screen);
+    for (const requiredId of screen.requires ?? []) {
+      visit(requiredId.includes(':') ? requiredId : `${screen.module}:${requiredId}`);
+    }
+  };
+
+  for (const key of selected) visit(key);
+  return [...chosen.values()];
+}
+
+/**
+ * How much of a module's route surface has been ported to screen bundles. Anything
+ * still sitting in a `_` directory is not selectable and never copied, so reporting it
+ * is the honest way to say "partially ported" without a flag that has to be maintained
+ * by hand.
+ */
+async function moduleCoverage(mod: string): Promise<{ bundles: number; pending: boolean }> {
+  const screensDir = path.join(TEMPLATES_DIR, 'modules', mod, 'screens');
+  if (!(await fs.pathExists(screensDir))) return { bundles: 0, pending: false };
+
+  const entries = await fs.readdir(screensDir);
+  let bundles = 0;
+  let pending = false;
+
+  for (const entry of entries) {
+    if (entry.startsWith('_')) {
+      pending = true;
+      continue;
+    }
+    if (await fs.pathExists(path.join(screensDir, entry, 'manifest.json'))) bundles += 1;
+  }
+
+  return { bundles, pending };
+}
 
 function validateProjectName(value: string): string | undefined {
   if (!value.trim()) return 'Project name is required.';
@@ -57,6 +171,33 @@ async function main() {
   const argName = args.find((a) => !a.startsWith('-'));
   const validArg = argName ? argName : undefined;
 
+  // Any prompt whose answer arrives as a flag is skipped, so supplying all of them
+  // makes a run non-interactive. That is what CI drives: scripting a scaffolder by
+  // feeding keystrokes to its prompts over a pseudo-terminal is a maintenance
+  // liability, and these are useful to anyone automating a project's creation.
+  //
+  //   --template <superprototype|native>
+  //   --pm <pnpm|npm|yarn>
+  //   --modules <none|content,logistic>
+  //   --screens <all|none|logistic:supplier,...>
+  const flag = (name: string): string | undefined => {
+    const inline = args.find((a) => a.startsWith(`--${name}=`));
+    if (inline) return inline.slice(name.length + 3);
+    const index = args.indexOf(`--${name}`);
+    return index >= 0 ? args[index + 1] : undefined;
+  };
+
+  const csv = (value: string | undefined): string[] | undefined => {
+    if (value === undefined) return undefined;
+    if (value === 'none') return [];
+    return value.split(',').map((part) => part.trim()).filter(Boolean);
+  };
+
+  const templateFlag = flag('template');
+  const pmFlag = flag('pm');
+  const modulesFlag = csv(flag('modules'));
+  const screensFlag = flag('screens');
+
   console.log('');
   p.intro(pc.bgCyan(pc.black(' create-sveltebuilder ')));
 
@@ -84,7 +225,7 @@ async function main() {
   }
 
   // ── Scaffold template ─────────────────────────────────────────────────────
-  const templateChoice = await p.select({
+  const templateChoice = templateFlag ?? (await p.select({
     message: 'Scaffold template',
     options: [
       {
@@ -95,57 +236,121 @@ async function main() {
       {
         value: 'native' as ScaffoldTemplate,
         label: 'Native',
-        hint: 'coming soon',
+        hint: 'on hold — not available',
       },
     ],
-  });
+  }));
   if (p.isCancel(templateChoice)) {
     p.cancel('Cancelled.');
     process.exit(0);
   }
   if (templateChoice === 'native') {
-    p.cancel('The Native template is not yet available. Select SuperPrototype to continue.');
+    p.cancel('The Native template is on hold and not available. Select SuperPrototype to continue.');
     process.exit(0);
   }
   const scaffoldTemplate = templateChoice as ScaffoldTemplate;
 
   // ── Package manager ───────────────────────────────────────────────────────
-  const pm = await p.select({
+  const pm = pmFlag ?? (await p.select({
     message: 'Package manager',
     options: [
       { value: 'pnpm' as PackageManager, label: 'pnpm' },
       { value: 'npm' as PackageManager, label: 'npm' },
       { value: 'yarn' as PackageManager, label: 'yarn' },
     ],
-  });
+  }));
   if (p.isCancel(pm)) {
     p.cancel('Cancelled.');
     process.exit(0);
   }
 
   // ── Module selection ──────────────────────────────────────────────────────
-  const selectedModules = await p.multiselect({
-    message: 'Select domain modules to include',
-    options: [
-      {
-        value: 'content',
-        label: 'Content',
-        hint: 'Publisher/news: articles, sections, taxonomy, live coverage, newsletter, RSS, sitemap',
-      },
-      {
-        value: 'logistic',
-        label: 'Logistic',
-        hint: 'Warehouse: receiving, pick tasks, shipments, returns, cycle counts',
-      },
-    ],
-    required: false,
-  });
+  //
+  // Each option's hint reports its screen coverage, read from the template tree. This
+  // replaces the hardcoded "on hold" gate Logistic carried: that gate existed because
+  // its route templates called a data layer SuperPrototype had dropped, and moving the
+  // unported ones into screens/_unported/ — where nothing copies them — is what
+  // actually fixed it. A module with no bundles is still perfectly installable; it just
+  // brings schema, components and SQL rather than pages.
+  const moduleOptions = await Promise.all(
+    MODULE_CATALOG.map(async (mod) => {
+      const { bundles, pending } = await moduleCoverage(mod.id);
+      const coverage =
+        bundles === 0
+          ? pending
+            ? 'no screens yet — schema, components and SQL only'
+            : 'schema, components and SQL'
+          : `${bundles} screen bundle${bundles === 1 ? '' : 's'}${pending ? ', more in progress' : ''}`;
+
+      return { value: mod.id, label: mod.label, hint: `${mod.blurb} · ${coverage}` };
+    }),
+  );
+
+  const selectedModules =
+    modulesFlag ??
+    (await p.multiselect({
+      message: 'Select domain modules to include',
+      options: moduleOptions,
+      required: false,
+    }));
   if (p.isCancel(selectedModules)) {
     p.cancel('Cancelled.');
     process.exit(0);
   }
 
   const modules = selectedModules as string[];
+
+  const unknownModules = modules.filter((mod) => !MODULE_CATALOG.some((m) => m.id === mod));
+  if (unknownModules.length > 0) {
+    p.cancel(`Unknown module(s): ${unknownModules.join(', ')}`);
+    process.exit(1);
+  }
+
+  // ── Screen selection ──────────────────────────────────────────────────────
+  //
+  // Modules ship schema, components and SQL; the screens that use them are scaffolded
+  // from the template tree and owned by this project afterwards. Not every app wants
+  // every screen a module offers, so they are chosen here rather than assumed.
+  const availableScreens = await discoverScreens(modules);
+  let chosenScreens: ScreenManifest[] = [];
+
+  if (availableScreens.length > 0) {
+    const multipleModules = new Set(availableScreens.map((s) => s.module)).size > 1;
+
+    const screenChoice =
+      screensFlag === 'all'
+        ? availableScreens.map(screenKey)
+        : screensFlag !== undefined
+          ? (csv(screensFlag) as string[])
+          : await p.multiselect({
+              message: 'Select screens to scaffold',
+              options: availableScreens.map((screen) => ({
+                value: screenKey(screen),
+                label: multipleModules ? `${screen.module}: ${screen.label}` : screen.label,
+                hint: screen.hint,
+              })),
+              initialValues: availableScreens.map(screenKey),
+              required: false,
+            });
+    if (p.isCancel(screenChoice)) {
+      p.cancel('Cancelled.');
+      process.exit(0);
+    }
+
+    chosenScreens = resolveScreenRequires(screenChoice as string[], availableScreens);
+
+    const pulledIn = chosenScreens.length - (screenChoice as string[]).length;
+    if (pulledIn > 0) {
+      p.log.info(
+        `Added ${pulledIn} screen(s) required by your selection: ` +
+          chosenScreens
+            .filter((s) => !(screenChoice as string[]).includes(screenKey(s)))
+            .map((s) => s.label)
+            .join(', '),
+      );
+    }
+  }
+
   const targetDir = path.resolve(process.cwd(), projectName);
 
   // ── Overwrite check ───────────────────────────────────────────────────────
@@ -201,16 +406,23 @@ async function main() {
       };
       await deepMergePackageJson(pkg, templatePkg);
     }
+
+    // Stamp the project name into supabase/config.toml. project_id namespaces the
+    // local Docker containers (supabase_db_<project_id>); left at the template's
+    // placeholder, every scaffolded project would fight over the same container names.
+    const configPath = path.join(targetDir, 'supabase', 'config.toml');
+    if (await fs.pathExists(configPath)) {
+      const config = await fs.readFile(configPath, 'utf8');
+      await fs.writeFile(
+        configPath,
+        config.replace(/^project_id = ".*"$/m, `project_id = "${projectName}"`)
+      );
+    }
   }
 
   // ── Step 3: Copy module templates ─────────────────────────────────────────
   for (const mod of modules) {
     const modDir = path.join(TEMPLATES_DIR, 'modules', mod);
-
-    const routesDir = path.join(modDir, 'routes');
-    if (await fs.pathExists(routesDir)) {
-      await fs.copy(routesDir, path.join(targetDir, 'src', 'routes'), { overwrite: true });
-    }
 
     // Copy module supplemental SQL (RLS, triggers, cross-FK constraints) to supabase/supplemental/
     const supplementalDir = path.join(modDir, 'supplemental');
@@ -239,6 +451,24 @@ async function main() {
       const seedDestDir = path.join(targetDir, 'supabase', 'seeds');
       await fs.ensureDir(seedDestDir);
       await fs.copy(modSeedPath, path.join(seedDestDir, `${mod}.sql`), { overwrite: true });
+    }
+  }
+
+  // ── Step 3b: Copy selected screen bundles ─────────────────────────────────
+  //
+  // Each bundle is two halves: `ui/` is provider-neutral (the +page.svelte files, which
+  // import their view-model types from the module) and `server.<template>/` holds the
+  // loaders and form actions for the chosen scaffold flavour. They merge into the same
+  // route directories, which is how a screen and its loader end up side by side in the
+  // generated project despite being authored apart.
+  for (const screen of chosenScreens) {
+    const screenDir = path.join(TEMPLATES_DIR, 'modules', screen.module, 'screens', screen.id);
+
+    for (const half of ['ui', `server.${scaffoldTemplate}`]) {
+      const from = path.join(screenDir, half);
+      if (await fs.pathExists(from)) {
+        await fs.copy(from, path.join(targetDir, 'src', 'routes'), { overwrite: true });
+      }
     }
   }
 

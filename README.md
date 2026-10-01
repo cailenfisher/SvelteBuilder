@@ -12,7 +12,7 @@ SvelteBuilder is an opinionated scaffold and toolkit ecosystem for SvelteKit pro
 - **Enterprise-ready defaults.** Semantic markup, accessibility, and structured error handling are baked in from the first commit — not retrofitted later.
 - **Deployable on day one.** Configuration is driven by `.env` so any consumer of the scaffold can deploy to Vercel (or similar) and get a correctly customized application with minimal setup.
 - **Localization from the ground up.** Multilingual content is a core concern, not an afterthought. The same patterns handle both UI strings and long-form, database-backed entity content — one component, one admin UI, one mental model.
-- **Clear upgrade paths.** Start with the batteries-included SuperPrototype (Supabase), or go with the Native scaffold (Drizzle, bring your own auth). Both are permanent, supported offerings — not a stepping stone and a destination.
+- **Clear upgrade paths.** Start with the batteries-included SuperPrototype (Supabase). A second scaffold, Native (bring your own auth and data layer), is planned but currently **on hold** — SuperPrototype is the only template the CLI offers today.
 - **Extractable libraries.** Every layer of the ecosystem is designed to live as a standalone NPM package, usable in projects that aren't based on SvelteBuilder.
 
 ## Ecosystem Overview
@@ -33,7 +33,6 @@ SvelteBuilder/
 │   ├── create/             → create-sveltebuilder
 │   └── cli/                → @sveltebuilder/cli
 └── apps/
-    ├── dev-kitchen/
     └── docs/
 ```
 
@@ -118,14 +117,17 @@ The batteries-included starting point. Everything is pre-wired to the Supabase e
 - **Auth:** Supabase Auth with `@supabase/ssr`
 - **Schema management:** `sveltebuilder sync` rewrites `supabase/config.toml` `schema_paths` in dependency order
 
-### SvelteBuilder Native
+### SvelteBuilder Native — on hold
 
-For teams that want full control over their data layer and auth. Brings the same SvelteBuilder base and module ecosystem, wired to Drizzle and your choice of auth provider.
+> **Status: on hold as of 2026-09-29.** Native is not selectable in `npm create sveltebuilder` and
+> is not currently being developed. SuperPrototype is the only active template. Native remains a
+> planned offering, so shared layers (base template, coreui, domain modules, i18n schema) stay
+> free of hard Supabase dependencies — but the Native scaffold itself is frozen.
 
-- **Database:** Drizzle ORM (database-agnostic; bring your own driver)
+The intent: for teams that want full control over their data layer and auth, bringing the same SvelteBuilder base and module ecosystem with a provider-agnostic data layer.
+
+- **Database:** Postgres (the supported target; SvelteBuilder is Postgres-only by decision)
 - **Auth:** Provider-agnostic — configure your own
-
-> Both scaffold templates produce **identical database schemas**. The schema is scaffold-agnostic; only the application code that talks to it differs. A project can be started on SuperPrototype and migrated to Native without touching a single migration file.
 
 ---
 
@@ -175,7 +177,6 @@ Consistent naming is a first-class concern — the connective tissue between the
 ### Phase 2 — Beta (in progress)
 
 - `@sveltebuilder/coreui` — design tokens, CSS reset, universal component set
-- `apps/dev-kitchen` — full working SvelteKit app + `/dev` component explorer
 - `@sveltebuilder/content` — first domain module, full production scope
 - `create-sveltebuilder` — complete prompt/copy/install flow
 - Auth UI — sign in, sign up, sign out routes

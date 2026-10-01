@@ -16,15 +16,7 @@
     locale: string;
   };
 
-  let {
-    articles,
-    total,
-    page,
-    perPage,
-    onPageChange,
-    onRowClick,
-    locale,
-  }: Props = $props();
+  let { articles, total, page, perPage, onPageChange, onRowClick, locale }: Props = $props();
 
   const columns: DataTableColumn[] = [
     { key: 'headline', label: 'Headline' },
@@ -60,7 +52,7 @@
 {/snippet}
 
 <DataTable
-  columns={columns}
+  {columns}
   rows={articles}
   rowKey={(article) => article.id}
   cell={articleCell}

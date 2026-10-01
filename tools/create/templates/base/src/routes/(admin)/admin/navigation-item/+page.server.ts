@@ -1,12 +1,14 @@
 import type { PageServerLoad } from './$types'
 
+// camelCase, per the snake_case → camelCase conversion happening once at the
+// serialization boundary: the loader maps, nothing downstream sees snake_case.
 type NavItem = {
   id: number
   href: string
   scope: string
-  sort_order: number
+  sortOrder: number
   active: boolean
-  local_text_link: { id: number; slug: string; scope: string | null } | null
+  localTextLink: { id: number; slug: string; scope: string | null } | null
 }
 
 export const load: PageServerLoad = async () => {

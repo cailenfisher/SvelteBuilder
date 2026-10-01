@@ -62,5 +62,7 @@
     font-weight: var(--weight-medium);
   }
 
-  .byline-list__link:hover { color: var(--link-text); }
+  .byline-list__link:hover {
+    color: var(--link-text);
+  }
 </style>

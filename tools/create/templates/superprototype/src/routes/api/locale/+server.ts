@@ -1,31 +1,27 @@
 import { json, redirect } from '@sveltejs/kit';
-import { asc, eq } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 import type { Locale } from 'diglossia';
-import { db } from '$lib/server/db/client';
-import { locale as localeTable } from '@sveltebuilder/local-text-schema/schema';
 
-// Locale data is world-readable — no RLS restriction — so the raw db client is
-// used directly (a deliberate exception; see db/client.ts for the rule).
+// public.locale is world-readable (locale_public_read), so these run fine with no
+// session on the publishable key.
 
-export const GET: RequestHandler = async () => {
-  const rows = await db
-    .select({
-      id: localeTable.id,
-      code: localeTable.code,
-      name: localeTable.name,
-      nativeName: localeTable.nativeName,
-      dir: localeTable.dir,
-    })
-    .from(localeTable)
-    .orderBy(asc(localeTable.name));
+export const GET: RequestHandler = async ({ locals }) => {
+  const { data, error } = await locals.supabase
+    .from('locale')
+    .select('id, code, name, native_name, dir')
+    .order('name');
 
-  const locales: Locale[] = rows.map((r) => ({
-    id: r.id,
-    code: r.code,
-    name: r.name,
-    nativeName: r.nativeName,
-    dir: r.dir as 'ltr' | 'rtl',
+  if (error) {
+    console.error('[locale] query error:', error);
+    return json([] satisfies Locale[], { status: 200 });
+  }
+
+  const locales: Locale[] = (data ?? []).map((row) => ({
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    nativeName: row.native_name,
+    dir: row.dir as 'ltr' | 'rtl',
   }));
 
   return json(locales);
@@ -39,13 +35,13 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
     return json({ error: 'Invalid locale code' }, { status: 400 });
   }
 
-  const rows = await db
-    .select({ code: localeTable.code })
-    .from(localeTable)
-    .where(eq(localeTable.code, code))
-    .limit(1);
+  const { data } = await locals.supabase
+    .from('locale')
+    .select('code')
+    .eq('code', code)
+    .maybeSingle();
 
-  const resolvedCode = rows[0]?.code ?? locals.defaultLocale.code;
+  const resolvedCode = data?.code ?? locals.defaultLocale.code;
 
   cookies.set('locale', resolvedCode, {
     path: '/',

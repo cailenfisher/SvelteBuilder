@@ -1,40 +1,36 @@
-import { fail } from '@sveltejs/kit';
-import { asc, eq } from 'drizzle-orm';
+import { error, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { locale, localTextLink, localText } from '@sveltebuilder/local-text-schema/schema';
+import { LOCALE_COLUMNS, toLocale } from '$lib/server/postgrest';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const [entries, translations, locales] = await locals.db.withUser(async (tx) => {
-    return Promise.all([
-      tx
-        .select({
-          id: localTextLink.id,
-          slug: localTextLink.slug,
-          scope: localTextLink.scope,
-          entityId: localTextLink.entityId,
-        })
-        .from(localTextLink)
-        .orderBy(asc(localTextLink.slug)),
-      tx
-        .select({
-          id: localText.id,
-          link: localText.link,
-          locale: localText.locale,
-          content: localText.content,
-        })
-        .from(localText),
-      tx
-        .select({
-          id: locale.id,
-          code: locale.code,
-          nativeName: locale.nativeName,
-        })
-        .from(locale)
-        .orderBy(asc(locale.code)),
-    ]);
-  });
+  const [entryResult, translationResult, localeResult] = await Promise.all([
+    locals.supabase
+      .from('local_text_link')
+      .select('id, slug, scope, entity_id')
+      .order('slug'),
+    locals.supabase
+      .from('local_text')
+      .select('id, link, locale, content'),
+    locals.supabase
+      .from('locale')
+      .select(LOCALE_COLUMNS)
+      .order('code'),
+  ]);
 
-  return { entries, translations, locales };
+  if (entryResult.error || translationResult.error || localeResult.error) {
+    throw error(500, 'Failed to load copy entries.');
+  }
+
+  return {
+    entries: (entryResult.data ?? []).map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      scope: row.scope,
+      entityId: row.entity_id,
+    })),
+    translations: translationResult.data ?? [],
+    locales: (localeResult.data ?? []).map(toLocale),
+  };
 };
 
 export const actions: Actions = {
@@ -46,29 +42,21 @@ export const actions: Actions = {
 
     if (!slug) return fail(422, { error: 'Slug is required.' });
 
-    const localeIds = form.getAll('locale_id') as string[];
+    const localeIds = (form.getAll('locale_id') as string[]).map((v) => parseInt(v));
     const contents = form.getAll('content') as string[];
 
-    await locals.db.withUser(async (tx) => {
-      const [link] = await tx
-        .insert(localTextLink)
-        .values({ slug, scope, entityId: null })
-        .returning({ id: localTextLink.id });
+    if (localeIds.some(isNaN)) return fail(422, { error: 'Invalid locale.' });
 
-      if (!link) throw new Error('Failed to create copy link.');
-
-      const translations = localeIds
-        .map((localeId, i) => ({
-          link: link.id,
-          locale: parseInt(localeId),
-          content: contents[i],
-        }))
-        .filter((t) => t.content?.trim());
-
-      if (translations.length > 0) {
-        await tx.insert(localText).values(translations);
-      }
+    // One RPC, not an insert followed by a second insert: the link and its copy
+    // have to land in the same transaction or a failure leaves an orphaned slug.
+    const { error: rpcError } = await locals.supabase.rpc('create_local_text_entry', {
+      p_slug: slug,
+      p_scope: scope,
+      p_locale_ids: localeIds,
+      p_contents: contents,
     });
+
+    if (rpcError) return fail(500, { error: 'Failed to create copy entry.' });
 
     return { success: true };
   },
@@ -79,11 +67,11 @@ export const actions: Actions = {
 
     if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    // Delete texts first (FK constraint), then the link — one atomic transaction.
-    await locals.db.withUser(async (tx) => {
-      await tx.delete(localText).where(eq(localText.link, id));
-      await tx.delete(localTextLink).where(eq(localTextLink.id, id));
+    const { error: rpcError } = await locals.supabase.rpc('delete_local_text_entry', {
+      p_link_id: id,
     });
+
+    if (rpcError) return fail(500, { error: 'Failed to delete copy entry.' });
 
     return { success: true };
   },

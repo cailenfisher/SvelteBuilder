@@ -18,15 +18,15 @@
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
-  const title       = $derived(dictionary.localText('title',       'live_coverage', coverage.id));
+  const title = $derived(dictionary.localText('title', 'live_coverage', coverage.id));
   const description = $derived(dictionary.localText('description', 'live_coverage', coverage.id));
 
   const sortedUpdates = $derived(
     [...(coverage.updates ?? [])].sort(
-      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
-    ),
+      (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    )
   );
-  const pinnedUpdates  = $derived(sortedUpdates.filter((u) => u.pinned));
+  const pinnedUpdates = $derived(sortedUpdates.filter((u) => u.pinned));
   const regularUpdates = $derived(sortedUpdates.filter((u) => !u.pinned));
 </script>
 
@@ -97,8 +97,13 @@
   }
 
   @keyframes live-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
   }
 
   .live-coverage-view__live-label {

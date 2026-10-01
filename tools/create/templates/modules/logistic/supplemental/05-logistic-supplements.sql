@@ -55,51 +55,65 @@ end $$;
 
 -- ── updated_at triggers ───────────────────────────────────────────────────────
 
-create or replace function set_updated_at()
-returns trigger language plpgsql as $$
+-- pg_catalog is always on the search_path regardless, so now() resolves with no
+-- qualifying; this is fixed anyway so the trigger cannot be redirected either.
+create or replace function public.set_updated_at()
+returns trigger language plpgsql
+set search_path = ''
+as $$
 begin new.updated_at = now(); return new; end; $$;
 
 create or replace trigger stock_level_set_updated_at
   before update on public.stock_level
-  for each row execute function set_updated_at();
+  for each row execute function public.set_updated_at();
 
 create or replace trigger inbound_receipt_set_updated_at
   before update on public.inbound_receipt
-  for each row execute function set_updated_at();
+  for each row execute function public.set_updated_at();
 
 create or replace trigger pick_task_set_updated_at
   before update on public.pick_task
-  for each row execute function set_updated_at();
+  for each row execute function public.set_updated_at();
 
 create or replace trigger shipment_set_updated_at
   before update on public.shipment
-  for each row execute function set_updated_at();
+  for each row execute function public.set_updated_at();
 
 create or replace trigger return_authorization_set_updated_at
   before update on public.return_authorization
-  for each row execute function set_updated_at();
+  for each row execute function public.set_updated_at();
 
 create or replace trigger cycle_count_set_updated_at
   before update on public.cycle_count
-  for each row execute function set_updated_at();
+  for each row execute function public.set_updated_at();
 
 -- ── Atomic stock RPC functions ────────────────────────────────────────────────
 -- p_user_account_id is bigint (was uuid) to align with user_account.id bigint PK.
+--
+-- All five are SECURITY DEFINER because stock_level writes are admin-only under RLS while
+-- receiving, picking and counting are warehouse tasks. That makes `set search_path = ''`
+-- mandatory, not optional: a definer function without it inherits the caller's
+-- search_path and can be made to run a shadowed table or operator with the owner's
+-- privileges. Every reference inside is therefore schema-qualified, types and enum casts
+-- included — an unqualified `stock_adjustment` in a DECLARE does not resolve under an
+-- empty search_path, which is how the omission first showed up: it broke composition from
+-- a function that had been hardened.
 
-create or replace function logistic_adjust_stock(
+create or replace function public.logistic_adjust_stock(
   p_stock_level_id  bigint,
   p_delta           integer,
-  p_reason          adjustment_reason,
+  p_reason          public.adjustment_reason,
   p_user_account_id bigint,
   p_note            text default null
 )
-returns setof stock_adjustment
+returns setof public.stock_adjustment
 language plpgsql security definer
+set search_path = ''
 as $$
 declare
   v_on_hand_before integer;
   v_on_hand_after  integer;
-  v_adjustment     stock_adjustment;
+  v_adjustment     public.stock_adjustment;
 begin
   select on_hand into v_on_hand_before from public.stock_level
   where id = p_stock_level_id for update;
@@ -121,11 +135,12 @@ begin
   return next v_adjustment;
 end; $$;
 
-create or replace function logistic_reserve_stock(
+create or replace function public.logistic_reserve_stock(
   p_stock_level_id bigint,
   p_quantity       integer
 )
 returns void language plpgsql security definer
+set search_path = ''
 as $$
 declare v_on_hand integer; v_reserved integer;
 begin
@@ -138,11 +153,12 @@ begin
   update public.stock_level set reserved = reserved + p_quantity where id = p_stock_level_id;
 end; $$;
 
-create or replace function logistic_release_stock_reservation(
+create or replace function public.logistic_release_stock_reservation(
   p_stock_level_id bigint,
   p_quantity       integer
 )
 returns void language plpgsql security definer
+set search_path = ''
 as $$
 begin
   update public.stock_level
@@ -153,14 +169,15 @@ end; $$;
 -- Physical pick of reserved stock: decrements on_hand AND reserved together so
 -- the reserved <= on_hand invariant holds under concurrent tasks, and appends
 -- the audit row. Negative p_quantity reverses a pick (both counters restored).
-create or replace function logistic_consume_stock(
+create or replace function public.logistic_consume_stock(
   p_stock_level_id  bigint,
   p_quantity        integer,
-  p_reason          adjustment_reason,
+  p_reason          public.adjustment_reason,
   p_user_account_id bigint,
   p_note            text default null
 )
 returns void language plpgsql security definer
+set search_path = ''
 as $$
 declare
   v_on_hand  integer;
@@ -186,11 +203,12 @@ end; $$;
 
 -- Finds or creates the stock_level row for a location + sku. SECURITY DEFINER
 -- because stock_level inserts are admin-only under RLS but workers receive goods.
-create or replace function logistic_ensure_stock_level(
+create or replace function public.logistic_ensure_stock_level(
   p_storage_location_id bigint,
   p_sku                 text
 )
 returns bigint language plpgsql security definer
+set search_path = ''
 as $$
 declare v_id bigint;
 begin
@@ -202,6 +220,542 @@ begin
   where storage_location_id = p_storage_location_id and sku = p_sku;
   return v_id;
 end; $$;
+
+-- These had no explicit grant and were relying on Postgres defaulting EXECUTE to PUBLIC.
+-- Stated rather than inherited, and never to anon: every one of them writes stock.
+grant execute on function
+  public.logistic_adjust_stock(bigint, integer, public.adjustment_reason, bigint, text)
+  to authenticated;
+grant execute on function public.logistic_reserve_stock(bigint, integer) to authenticated;
+grant execute on function
+  public.logistic_release_stock_reservation(bigint, integer) to authenticated;
+grant execute on function
+  public.logistic_consume_stock(bigint, integer, public.adjustment_reason, bigint, text)
+  to authenticated;
+grant execute on function
+  public.logistic_ensure_stock_level(bigint, text) to authenticated;
+
+-- ── Compound admin writes ─────────────────────────────────────────────────────
+--
+-- SECURITY INVOKER, unlike the stock functions above: the body runs as the caller, so
+-- every statement inside is still checked against this module's admin-write policies.
+-- These buy atomicity, not privilege.
+--
+-- They exist because PostgREST has no client-side transactions and these entities carry
+-- their name in the i18n tables rather than a column. Creating one is three statements —
+-- the row, its local_text_link, its local_text — and any partial result is garbage: a
+-- supplier with no name row renders the [missing: name] sentinel in every list that
+-- shows it, and a link with no copy is invisible until something reads it.
+
+create or replace function public.logistic_create_supplier(
+  p_slug          text,
+  p_name          text,
+  p_locale_id     bigint,
+  p_lead_time_day integer default null
+)
+returns bigint
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_supplier_id bigint;
+  v_link_id     bigint;
+begin
+  if p_slug is null or btrim(p_slug) = '' then
+    raise exception 'slug is required';
+  end if;
+  if p_name is null or btrim(p_name) = '' then
+    raise exception 'name is required';
+  end if;
+
+  insert into public.supplier (slug, lead_time_day)
+  values (btrim(p_slug), p_lead_time_day)
+  returning id into v_supplier_id;
+
+  -- Scope is the table name and entity_id the new row's id, per the i18n convention.
+  insert into public.local_text_link (slug, scope, entity_id)
+  values ('name', 'supplier', v_supplier_id)
+  returning id into v_link_id;
+
+  insert into public.local_text (link, locale, content)
+  values (v_link_id, p_locale_id, btrim(p_name));
+
+  return v_supplier_id;
+end;
+$$;
+
+create or replace function public.logistic_create_shipment(
+  p_user_account_id bigint,
+  p_skus            text[],
+  p_quantities      integer[],
+  p_carrier         text default null,
+  p_service_level   text default null
+)
+returns bigint
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_shipment_id bigint;
+begin
+  if coalesce(array_length(p_skus, 1), 0) = 0 then
+    raise exception 'a shipment needs at least one line';
+  end if;
+  if coalesce(array_length(p_skus, 1), 0) <> coalesce(array_length(p_quantities, 1), 0) then
+    raise exception 'skus and quantities must have the same length';
+  end if;
+
+  insert into public.shipment (user_account_id, carrier, service_level, status)
+  values (
+    p_user_account_id,
+    nullif(btrim(coalesce(p_carrier, '')), ''),
+    nullif(btrim(coalesce(p_service_level, '')), ''),
+    'created'
+  )
+  returning id into v_shipment_id;
+
+  insert into public.shipment_line (shipment_id, sku, quantity)
+  select v_shipment_id, btrim(p_skus[i]), p_quantities[i]
+  from generate_subscripts(p_skus, 1) as i;
+
+  return v_shipment_id;
+end;
+$$;
+
+-- Arrays rather than one sku, following create_local_text_entry: the schema allows many
+-- lines even though the create form offers one, and a signature shaped by today's form
+-- would have to change the moment a shipment is built from a pick task.
+grant execute on function
+  public.logistic_create_shipment(bigint, text[], integer[], text, text) to authenticated;
+
+create or replace function public.logistic_create_return_authorization(
+  p_user_account_id bigint,
+  p_skus            text[],
+  p_quantities      integer[],
+  p_shipment_id     bigint default null,
+  p_reason          text default null,
+  p_note            text default null
+)
+returns bigint
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_return_id bigint;
+begin
+  if coalesce(array_length(p_skus, 1), 0) = 0 then
+    raise exception 'a return authorization needs at least one line';
+  end if;
+  if coalesce(array_length(p_skus, 1), 0) <> coalesce(array_length(p_quantities, 1), 0) then
+    raise exception 'skus and quantities must have the same length';
+  end if;
+
+  insert into public.return_authorization (shipment_id, user_account_id, reason, note, status)
+  values (
+    p_shipment_id,
+    p_user_account_id,
+    nullif(btrim(coalesce(p_reason, '')), ''),
+    nullif(btrim(coalesce(p_note, '')), ''),
+    'pending'
+  )
+  returning id into v_return_id;
+
+  insert into public.return_authorization_line (return_authorization_id, sku, expected_quantity)
+  select v_return_id, btrim(p_skus[i]), p_quantities[i]
+  from generate_subscripts(p_skus, 1) as i;
+
+  return v_return_id;
+end;
+$$;
+
+grant execute on function
+  public.logistic_create_return_authorization(bigint, text[], integer[], bigint, text, text)
+  to authenticated;
+
+-- Grading one returned line: record what came back and, when it is salable enough to
+-- restock, put it away. Two or four statements depending on the disposition, and a partial
+-- result is stock added with no record of which line it came from.
+--
+-- SECURITY INVOKER for the same reason as receiving: the line update is what RLS governs,
+-- while the stock movement goes through the SECURITY DEFINER helpers. And the same
+-- ordering rule — the RLS-governed update first, its row count checked, so a refusal
+-- aborts before anything is restocked.
+create or replace function public.logistic_grade_return_line(
+  p_line_id             bigint,
+  p_received_quantity   integer,
+  p_condition           public.return_condition,
+  p_disposition         public.return_disposition,
+  p_user_account_id     bigint,
+  p_storage_location_id bigint default null
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_sku            text;
+  v_stock_level_id bigint;
+  v_updated        integer;
+begin
+  if p_received_quantity < 0 then
+    raise exception 'received quantity cannot be negative';
+  end if;
+  -- Restocking without somewhere to put it would silently drop the goods, so this is a
+  -- hard error rather than a skipped branch.
+  if p_disposition = 'restock' and p_storage_location_id is null then
+    raise exception 'a restock disposition needs a storage location';
+  end if;
+
+  select sku into v_sku from public.return_authorization_line where id = p_line_id;
+  if not found then
+    raise exception 'return_authorization_line % not found', p_line_id;
+  end if;
+
+  update public.return_authorization_line
+  set received_quantity = p_received_quantity,
+      condition = p_condition,
+      disposition = p_disposition
+  where id = p_line_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    raise exception insufficient_privilege
+      using message = 'not permitted to grade this return line';
+  end if;
+
+  -- Only a restock moves stock. Quarantine, scrap and refurbish are all recorded
+  -- dispositions that deliberately leave sellable stock untouched.
+  if p_disposition = 'restock' and p_received_quantity > 0 then
+    v_stock_level_id := public.logistic_ensure_stock_level(p_storage_location_id, v_sku);
+    perform public.logistic_adjust_stock(
+      v_stock_level_id,
+      p_received_quantity,
+      'return_restock',
+      p_user_account_id,
+      'Return authorization line ' || p_line_id || ' — restocked'
+    );
+  end if;
+end;
+$$;
+
+grant execute on function
+  public.logistic_grade_return_line(
+    bigint, integer, public.return_condition, public.return_disposition, bigint, bigint
+  ) to authenticated;
+
+-- Opening a cycle count snapshots what the system currently believes is in each chosen
+-- bin, so the count has something to be compared against. Two statements, and a count with
+-- no lines is a count of nothing — there would be no way to add them afterwards.
+--
+-- The snapshot is the point: expected_quantity is on_hand *at the moment the count opens*,
+-- so a later movement does not retroactively change what the counter was asked to verify.
+create or replace function public.logistic_create_cycle_count(
+  p_user_account_id     bigint,
+  p_storage_location_ids bigint[]
+)
+returns bigint
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_count_id bigint;
+  v_lines    integer;
+begin
+  if coalesce(array_length(p_storage_location_ids, 1), 0) = 0 then
+    raise exception 'a cycle count needs at least one storage location';
+  end if;
+
+  insert into public.cycle_count (user_account_id, status)
+  values (p_user_account_id, 'open')
+  returning id into v_count_id;
+
+  insert into public.cycle_count_line (
+    cycle_count_id, stock_level_id, storage_location_id, sku, expected_quantity, counted_quantity
+  )
+  select v_count_id, sl.id, sl.storage_location_id, sl.sku, sl.on_hand, null
+  from public.stock_level sl
+  where sl.storage_location_id = any(p_storage_location_ids);
+
+  get diagnostics v_lines = row_count;
+  if v_lines = 0 then
+    raise exception 'those locations hold no stock, so there is nothing to count';
+  end if;
+
+  return v_count_id;
+end;
+$$;
+
+grant execute on function
+  public.logistic_create_cycle_count(bigint, bigint[]) to authenticated;
+
+-- Approving a count applies every variance it found and closes it. One adjustment per
+-- line that differs, plus the status update — and a partly applied count is the worst
+-- possible outcome, because the remaining variances are then invisible: the count reads
+-- as closed while the stock it was meant to correct is still wrong.
+create or replace function public.logistic_approve_cycle_count(
+  p_cycle_count_id  bigint,
+  p_user_account_id bigint
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_line    record;
+  v_updated integer;
+begin
+  -- The status update goes first so RLS decides before any stock moves, the same ordering
+  -- rule as receiving and grading.
+  update public.cycle_count set status = 'complete' where id = p_cycle_count_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    raise exception insufficient_privilege
+      using message = 'not permitted to approve this cycle count';
+  end if;
+
+  -- An uncounted line is skipped rather than treated as zero: nobody counted it, which is
+  -- not the same as finding none there.
+  for v_line in
+    select id, stock_level_id, counted_quantity - expected_quantity as delta
+    from public.cycle_count_line
+    where cycle_count_id = p_cycle_count_id
+      and counted_quantity is not null
+      and counted_quantity <> expected_quantity
+  loop
+    perform public.logistic_adjust_stock(
+      v_line.stock_level_id,
+      v_line.delta,
+      'cycle_count_variance',
+      p_user_account_id,
+      'Cycle count ' || p_cycle_count_id || ' — line ' || v_line.id
+    );
+  end loop;
+end;
+$$;
+
+grant execute on function
+  public.logistic_approve_cycle_count(bigint, bigint) to authenticated;
+
+-- Recording a picked quantity: update the line and consume the stock physically taken.
+-- Two statements plus the consume's own two, and a partial result means goods left the
+-- shelf with no record of it.
+--
+-- Consuming rather than adjusting is the distinction that matters: picking reserved stock
+-- decrements on_hand AND reserved together, so the reserved <= on_hand invariant survives
+-- concurrent tasks. A plain adjustment would drop on_hand and leave the reservation
+-- standing, which then double-counts against the next picker.
+create or replace function public.logistic_record_picked_quantity(
+  p_line_id          bigint,
+  p_picked_quantity  integer,
+  p_user_account_id  bigint
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_stock_level_id bigint;
+  v_requested      integer;
+  v_previous       integer;
+  v_delta          integer;
+  v_updated        integer;
+begin
+  select stock_level_id, requested_quantity, picked_quantity
+    into v_stock_level_id, v_requested, v_previous
+  from public.pick_task_line
+  where id = p_line_id;
+
+  if not found then
+    raise exception 'pick_task_line % not found', p_line_id;
+  end if;
+
+  -- More than requested is not an over-pick to be recorded, it is a mistake: the
+  -- reservation only covers the requested quantity.
+  if p_picked_quantity < 0 or p_picked_quantity > v_requested then
+    raise exception 'picked quantity % is outside [0, %]', p_picked_quantity, v_requested;
+  end if;
+
+  update public.pick_task_line
+  set picked_quantity = p_picked_quantity
+  where id = p_line_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    -- Zero rows is RLS refusing — the task is not this worker's. The select above found
+    -- the row, so it is not a missing-row case.
+    raise exception insufficient_privilege
+      using message = 'not permitted to pick against this task';
+  end if;
+
+  v_delta := p_picked_quantity - v_previous;
+  if v_delta <> 0 then
+    perform public.logistic_consume_stock(
+      v_stock_level_id,
+      v_delta,
+      'pick',
+      p_user_account_id,
+      'Pick task line ' || p_line_id
+    );
+  end if;
+end;
+$$;
+
+grant execute on function
+  public.logistic_record_picked_quantity(bigint, integer, bigint) to authenticated;
+
+-- Completing a pick task releases whatever was reserved but not picked, then closes the
+-- task. Without the release, a short pick leaves stock reserved forever — invisible to
+-- every other task, and impossible to reconcile after the fact.
+create or replace function public.logistic_complete_pick_task(
+  p_pick_task_id    bigint,
+  p_user_account_id bigint
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_line    record;
+  v_updated integer;
+begin
+  update public.pick_task
+  set status = 'completed'
+  where id = p_pick_task_id
+    and status = 'in_progress'
+    and user_account_id = p_user_account_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    raise exception insufficient_privilege
+      using message = 'not permitted to complete this task, or it is not in progress';
+  end if;
+
+  for v_line in
+    select stock_level_id, requested_quantity - picked_quantity as unpicked
+    from public.pick_task_line
+    where pick_task_id = p_pick_task_id
+      and requested_quantity > picked_quantity
+  loop
+    perform public.logistic_release_stock_reservation(v_line.stock_level_id, v_line.unpicked);
+  end loop;
+end;
+$$;
+
+grant execute on function
+  public.logistic_complete_pick_task(bigint, bigint) to authenticated;
+
+-- Receiving one line of an inbound receipt: five statements across three tables, and
+-- every partial result is a real operational problem. Stock moved with the line not
+-- updated means the next attempt receives it twice; the line updated with the receipt
+-- status stale means a complete receipt still reads as pending.
+--
+-- SECURITY INVOKER, so whether this caller may touch this receipt at all is decided by
+-- the RLS policies on inbound_receipt_line and inbound_receipt — including the worker
+-- policy that permits only receipts still pending or partial. The stock movement inside
+-- goes through the SECURITY DEFINER helpers above, which is the split that matters:
+-- stock_level writes are admin-only under RLS but receiving is a warehouse task.
+--
+-- Statement order is load-bearing. Under RLS a forbidden UPDATE affects zero rows rather
+-- than raising, so the line update comes first and its row count is checked: a refusal
+-- then aborts before any stock has moved. Doing it the other way round would move stock
+-- and silently fail to record it.
+create or replace function public.logistic_receive_receipt_line(
+  p_line_id           bigint,
+  p_received_quantity integer,
+  p_user_account_id   bigint
+)
+returns void
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_receipt_id     bigint;
+  v_location_id    bigint;
+  v_sku            text;
+  v_previous       integer;
+  v_delta          integer;
+  v_stock_level_id bigint;
+  v_updated        integer;
+  v_all_complete   boolean;
+  v_any_received   boolean;
+begin
+  if p_received_quantity < 0 then
+    raise exception 'received quantity cannot be negative';
+  end if;
+
+  select inbound_receipt_id, storage_location_id, sku, received_quantity
+    into v_receipt_id, v_location_id, v_sku, v_previous
+  from public.inbound_receipt_line
+  where id = p_line_id;
+
+  if not found then
+    raise exception 'inbound_receipt_line % not found', p_line_id;
+  end if;
+
+  update public.inbound_receipt_line
+  set received_quantity = p_received_quantity
+  where id = p_line_id;
+
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    -- Zero rows here is RLS refusing, not a missing row: the select above found it.
+    raise exception insufficient_privilege
+      using message = 'not permitted to receive against this receipt';
+  end if;
+
+  v_delta := p_received_quantity - v_previous;
+  if v_delta <> 0 then
+    v_stock_level_id := public.logistic_ensure_stock_level(v_location_id, v_sku);
+    perform public.logistic_adjust_stock(
+      v_stock_level_id,
+      v_delta,
+      'inbound_receipt',
+      p_user_account_id,
+      'Inbound receipt line ' || p_line_id
+    );
+  end if;
+
+  -- The receipt's status is derived from its lines, so it is recomputed rather than
+  -- advanced: receiving less than expected moves a complete receipt back to partial,
+  -- which a one-way transition would get wrong.
+  select
+    count(*) > 0 and bool_and(received_quantity >= expected_quantity),
+    bool_or(received_quantity > 0)
+  into v_all_complete, v_any_received
+  from public.inbound_receipt_line
+  where inbound_receipt_id = v_receipt_id;
+
+  update public.inbound_receipt
+  set status = case
+        when v_all_complete then 'complete'
+        when v_any_received then 'partial'
+        else 'pending'
+      end::public.inbound_receipt_status,
+      received_at = case when v_all_complete then now() else null end
+  where id = v_receipt_id;
+end;
+$$;
+
+-- Receiving is a warehouse task, so this one goes to authenticated and RLS decides the
+-- rest. anon gets nothing.
+grant execute on function
+  public.logistic_receive_receipt_line(bigint, integer, bigint) to authenticated;
+
+-- Matches the convention in superprototype's 04-admin-write-rpc.sql: an admin-write
+-- RPC is granted to authenticated and never to anon. RLS still decides whether the
+-- caller may actually touch the rows.
+grant execute on function
+  public.logistic_create_supplier(text, text, bigint, integer) to authenticated;
 
 -- ── RLS policies ─────────────────────────────────────────────────────────────
 

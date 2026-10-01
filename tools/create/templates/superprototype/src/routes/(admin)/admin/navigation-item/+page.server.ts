@@ -1,28 +1,24 @@
-import { fail } from '@sveltejs/kit';
-import { asc, eq } from 'drizzle-orm';
+import { error, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { navigationItem } from '$lib/server/schema';
-import { localTextLink, localText } from '@sveltebuilder/local-text-schema/schema';
+import { toOne } from '$lib/server/postgrest';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const navItems = await locals.db.withUser(async (tx) => {
-    return tx
-      .select({
-        id: navigationItem.id,
-        href: navigationItem.href,
-        scope: navigationItem.scope,
-        sortOrder: navigationItem.sortOrder,
-        active: navigationItem.active,
-        localTextLink: {
-          id: localTextLink.id,
-          slug: localTextLink.slug,
-          scope: localTextLink.scope,
-        },
-      })
-      .from(navigationItem)
-      .leftJoin(localTextLink, eq(navigationItem.localTextLinkId, localTextLink.id))
-      .orderBy(asc(navigationItem.scope), asc(navigationItem.sortOrder));
-  });
+  const { data, error: queryError } = await locals.supabase
+    .from('navigation_item')
+    .select('id, href, scope, sort_order, active, local_text_link(id, slug, scope)')
+    .order('scope')
+    .order('sort_order');
+
+  if (queryError) throw error(500, 'Failed to load navigation items.');
+
+  const navItems = (data ?? []).map((row) => ({
+    id: row.id,
+    href: row.href,
+    scope: row.scope,
+    sortOrder: row.sort_order,
+    active: row.active,
+    localTextLink: toOne(row.local_text_link),
+  }));
 
   return { navItems };
 };
@@ -40,19 +36,16 @@ export const actions: Actions = {
       return fail(422, { error: 'Slug, URL, and scope are required.' });
     }
 
-    // Insert link + nav item atomically — both must succeed or neither.
-    await locals.db.withUser(async (tx) => {
-      const [link] = await tx
-        .insert(localTextLink)
-        .values({ slug, scope: null, entityId: null })
-        .returning({ id: localTextLink.id });
-
-      if (!link) throw new Error('Failed to create copy link.');
-
-      await tx
-        .insert(navigationItem)
-        .values({ localTextLinkId: link.id, href, scope: navScope, sortOrder });
+    // One RPC: the copy link and the nav item have to land together or a failure
+    // leaves an orphaned link behind.
+    const { error: rpcError } = await locals.supabase.rpc('create_navigation_item', {
+      p_slug: slug,
+      p_href: href,
+      p_scope: navScope,
+      p_sort_order: sortOrder,
     });
+
+    if (rpcError) return fail(500, { error: 'Failed to create navigation item.' });
 
     return { success: true };
   },
@@ -63,21 +56,11 @@ export const actions: Actions = {
 
     if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    // Fetch the link ID, then delete nav item + its copy — all in one transaction.
-    await locals.db.withUser(async (tx) => {
-      const [item] = await tx
-        .select({ localTextLinkId: navigationItem.localTextLinkId })
-        .from(navigationItem)
-        .where(eq(navigationItem.id, id))
-        .limit(1);
-
-      await tx.delete(navigationItem).where(eq(navigationItem.id, id));
-
-      if (item?.localTextLinkId) {
-        await tx.delete(localText).where(eq(localText.link, item.localTextLinkId));
-        await tx.delete(localTextLink).where(eq(localTextLink.id, item.localTextLinkId));
-      }
+    const { error: rpcError } = await locals.supabase.rpc('delete_navigation_item', {
+      p_id: id,
     });
+
+    if (rpcError) return fail(500, { error: 'Failed to delete navigation item.' });
 
     return { success: true };
   },

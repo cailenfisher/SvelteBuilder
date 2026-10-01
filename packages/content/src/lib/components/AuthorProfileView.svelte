@@ -16,14 +16,22 @@
     class?: string | undefined;
   };
 
-  let { author, articles, mediaAssets, storageBaseUrl, locale, avatarSrc, dictionary: dictionaryProp, class: extraClass }: Props =
-    $props();
+  let {
+    author,
+    articles,
+    mediaAssets,
+    storageBaseUrl,
+    locale,
+    avatarSrc,
+    dictionary: dictionaryProp,
+    class: extraClass,
+  }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
-  const name      = $derived(dictionary.localText('name',      'author_profile', author.id));
-  const bio       = $derived(dictionary.localText('bio',       'author_profile', author.id));
+  const name = $derived(dictionary.localText('name', 'author_profile', author.id));
+  const bio = $derived(dictionary.localText('bio', 'author_profile', author.id));
   const expertise = $derived(dictionary.localText('expertise', 'author_profile', author.id));
 </script>
 

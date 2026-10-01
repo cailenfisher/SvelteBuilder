@@ -39,7 +39,10 @@
     font-weight: var(--weight-medium);
     color: var(--text-soft);
     text-decoration: none;
-    transition: background var(--duration) var(--ease), color var(--duration) var(--ease), border-color var(--duration) var(--ease);
+    transition:
+      background var(--duration) var(--ease),
+      color var(--duration) var(--ease),
+      border-color var(--duration) var(--ease);
     white-space: nowrap;
   }
 

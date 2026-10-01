@@ -1,0 +1,61 @@
+{
+  "id": "return",
+  "module": "logistic",
+  "label": "Returns",
+  "hint": "Return authorizations, per-line grading by condition and disposition, restocking what is salable",
+  "routes": ["/admin/logistic/return", "/admin/logistic/return/[id]"],
+  "requires": [],
+  "views": ["ReturnListView", "ReturnDetailView", "ReturnAuthorizationRow"],
+  "actions": {
+    "/admin/logistic/return": {
+      "create": ["sku", "expected_quantity", "reason", "note"]
+    },
+    "/admin/logistic/return/[id]": {
+      "gradeLine": [
+        "line_id",
+        "received_quantity",
+        "condition",
+        "disposition",
+        "storage_location_id"
+      ],
+      "process": []
+    }
+  },
+  "copySlugs": [
+    "logistic.return.title",
+    "logistic.return.one",
+    "logistic.return.new",
+    "logistic.return.create",
+    "logistic.return.empty",
+    "logistic.return.filter_all",
+    "logistic.return.filter_status",
+    "logistic.return.status_label",
+    "logistic.return.reason",
+    "logistic.return.lines",
+    "logistic.return.lines_empty",
+    "logistic.return.created_at",
+    "logistic.return.expected_quantity",
+    "logistic.return.received_quantity",
+    "logistic.return.grade",
+    "logistic.return.no_location",
+    "logistic.return.process",
+    "logistic.return.process_confirm",
+    "logistic.return.condition",
+    "logistic.return.disposition",
+    "logistic.return.condition.salable",
+    "logistic.return.condition.damaged",
+    "logistic.return.condition.defective",
+    "logistic.return.condition.wrong_item",
+    "logistic.return.disposition.restock",
+    "logistic.return.disposition.quarantine",
+    "logistic.return.disposition.scrap",
+    "logistic.return.disposition.refurbish",
+    "logistic.return_authorization.status.pending",
+    "logistic.return_authorization.status.received",
+    "logistic.return_authorization.status.processed",
+    "logistic.return_authorization.status.cancelled",
+    "logistic.field.sku",
+    "logistic.field.note",
+    "action.cancel"
+  ]
+}

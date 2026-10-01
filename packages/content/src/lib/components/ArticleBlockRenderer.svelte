@@ -16,23 +16,35 @@
     class?: string | undefined;
   };
 
-  let { block, mediaAssets, storageBaseUrl, locale, dictionary: dictionaryProp, class: extraClass }: Props = $props();
+  let {
+    block,
+    mediaAssets,
+    storageBaseUrl,
+    locale,
+    dictionary: dictionaryProp,
+    class: extraClass,
+  }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
-  const text   = $derived(dictionary.localText('text', 'article_block', block.id));
-  const asset  = $derived(block.mediaAssetId != null ? (mediaAssets.get(block.mediaAssetId) ?? null) : null);
-  const level  = $derived((block.content as { level?: number } | null)?.level ?? 2);
+  const text = $derived(dictionary.localText('text', 'article_block', block.id));
+  const asset = $derived(
+    block.mediaAssetId != null ? (mediaAssets.get(block.mediaAssetId) ?? null) : null
+  );
+  const level = $derived((block.content as { level?: number } | null)?.level ?? 2);
   const provider = $derived((block.content as { provider?: string } | null)?.provider ?? '');
   const embedSrc = $derived((block.content as { src?: string } | null)?.src ?? '');
 </script>
 
-<div class={['article-block', `article-block--${block.blockType}`, extraClass ?? ''].filter(Boolean).join(' ')}>
+<div
+  class={['article-block', `article-block--${block.blockType}`, extraClass ?? '']
+    .filter(Boolean)
+    .join(' ')}
+>
   {#if block.blockType === 'paragraph'}
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     <p class="article-block__paragraph">{@html text}</p>
-
   {:else if block.blockType === 'heading'}
     {#if level === 2}
       <h2 class="article-block__heading">{text}</h2>
@@ -43,15 +55,12 @@
     {:else}
       <h2 class="article-block__heading">{text}</h2>
     {/if}
-
   {:else if block.blockType === 'pullquote'}
     <blockquote class="article-block__pullquote">
       <p>{text}</p>
     </blockquote>
-
   {:else if block.blockType === 'image' && asset}
     <MediaFigure {asset} {storageBaseUrl} {locale} />
-
   {:else if block.blockType === 'gallery'}
     <div class="article-block__gallery" role="region" aria-label="Photo gallery">
       {#if asset}
@@ -61,20 +70,13 @@
         <p class="article-block__gallery-caption">{text}</p>
       {/if}
     </div>
-
   {:else if block.blockType === 'video' && asset}
     <MediaFigure {asset} {storageBaseUrl} {locale} />
-
   {:else if block.blockType === 'embed' && embedSrc}
     <div class="article-block__embed" data-provider={provider || undefined}>
-      <iframe
-        src={embedSrc}
-        title={text || `${provider} embed`}
-        loading="lazy"
-        allowfullscreen
+      <iframe src={embedSrc} title={text || `${provider} embed`} loading="lazy" allowfullscreen
       ></iframe>
     </div>
-
   {:else if block.blockType === 'live_update'}
     <aside class="article-block__live-update" aria-label="Live update">
       <p>{text}</p>
