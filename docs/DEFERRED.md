@@ -71,8 +71,87 @@ and consistency question rather than a correctness one, and it is a single mecha
 Also outstanding for the package: a vitest suite, and showcase coverage for the 3 components
 no screen bundle renders (see `docs/DEV-KITCHEN.md`).
 
-`@sveltebuilder/content` is one step behind: its 13 route templates are in `screens/_unsorted/`
-awaiting bundling, and it exports no view-model types yet.
+---
+
+## Content module — route port complete, and RLS written (2026-10-01)
+
+`@sveltebuilder/content` ships its route code as 5 screen bundles: article, section, feeds, preview,
+admin-article. `screens/_unsorted/` is gone, and `@sveltebuilder/content/views` exports the screen
+contracts. Its query layer was already PostgREST rather than Drizzle, so the loaders were a
+translation rather than a rewrite — the work was elsewhere.
+
+### The security finding
+
+**All 27 of the module's tables shipped with row level security disabled.** Supabase's bootstrap
+grants give anon and authenticated full privileges on everything in `public`, so anyone holding the
+publishable key could read and write every one of them — `subscriber`, `comment`,
+`newsletter_subscription` included. Verified rather than inferred: as the anon role, inserting a row
+into `subscriber` and then deleting every row both succeeded.
+
+Worth dwelling on why nothing caught it. A table with no policies is valid SQL; it typechecks
+nowhere; and it behaves perfectly in any test that connects as an owner, because owners skip RLS.
+`pnpm sql:check` now asserts that every table in `public` has RLS enabled and that every RLS-enabled
+table has at least one policy — the second because a policy-less table denies everything, which is
+safe but almost always a mistake rather than an intention.
+
+`02-content-rls.sql` holds the access model. Two seams needed functions rather than policies:
+
+- **Newsletter signup.** `subscriber` is PII, and a table anon can insert into is a table anon can
+  probe — a unique violation on the email column answers "is this person subscribed?" for anyone who
+  asks. `content_subscribe` is SECURITY DEFINER, idempotent, and returns void, so a caller learns
+  nothing either way.
+- **Preview by link.** A policy cannot see which token a request presented, so admitting "any article
+  with a live token" would make every draft with an outstanding link world-readable.
+  `content_preview_article` and `content_preview_blocks` take the token as the credential.
+
+### The module shipped no seed at all
+
+Which made it inert rather than empty: every public query resolves the slug `'published'` through
+`article_status`, and with no rows there is no such status, so nothing could ever be published and
+every page rendered nothing. The seed now provides the six workflow statuses, the publish checklist,
+a publisher identity for the feeds, sections, topics, tags, a newsletter, and one sample article with
+blocks and a byline — EN and FR throughout.
+
+### Types narrowed, and why it kept happening
+
+Five types in the package demanded resolved copy that the code reading them never used:
+`ArticleView`'s prop, `ArticleForStructuredData`, `RssFeedArticle`, `NewsSitemapArticle` and
+`validateArticleForPublish`. Each was an `ArticleWithCopy` or an `Omit<>` of one, while the function
+or component already took a `DictionaryInstance` and resolved the headline through it — then read
+byline names, section names and block text as baked strings off the row.
+
+That was not merely redundant. A baked string is resolved once, by whatever query produced the row,
+so it cannot follow a locale switch; and `validateArticleForPublish` was therefore validating
+whichever locale the query happened to resolve. It now resolves through the dictionary and treats a
+`[missing: …]` sentinel as absent, which means publishing a half-translated article is caught instead
+of waved through. All five narrowed onto two named shapes, `ArticleWithRelations` and
+`ArticleRenderable`; any `ArticleWithCopy` still satisfies them, so no caller broke.
+
+### Structural additions
+
+- **`loadEntityCopy`**, beside `loadScopedCopy` in the scaffold. Loading a whole scope is right for
+  suppliers and wrong for articles: a publisher with ten thousand of them would ship ten thousand
+  headlines to render one page.
+- **`ScreenStorage` on the view types.** `storageBaseUrl` was referenced by the old article screen
+  and returned by no loader, so every media URL was built against `undefined`.
+- **`endpoints` in the manifest**, for bundles that ship `+server.ts` rather than pages. `routes`
+  means "has a page", and conflating the two would have made the page assertions unenforceable.
+- **`create_local_text_entry` takes an entity id.** It hardcoded `entity_id` to null, so no caller
+  could create an article's headline.
+- **coreui `Checkbox` gained `onCheckedChange`.** `bind:checked` covers a parent that owns the value,
+  not one that needs to persist the change.
+
+### Still open
+
+No unit tests for the package. The live-coverage, front-curation, author-profile, newsletter and
+media screens were never written — only the thirteen route files that existed were ported, and
+`SectionFront`, `FrontCurationBoard`, `AssignmentQueue`, `SubscriberList`, `LiveCoverageView` and
+`AuthorProfileView` are components with no screen rendering them. That is the next content gap, and
+it is feature work rather than a port.
+
+The section page is a lead-plus-river listing. The screen it replaced rendered a curated front and
+nothing else, which was blank for any section without curation — every section a fresh scaffold has.
+Fronts deserve their own screen; they do not belong bolted to a section listing.
 
 ---
 
