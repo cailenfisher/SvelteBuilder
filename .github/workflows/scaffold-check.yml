@@ -1,0 +1,54 @@
+name: Scaffold check
+
+# Scaffolds real projects from the template tree and checks each typechecks and builds.
+#
+# The templates are the one part of this repo no package test can reach: they are inert
+# text until the create CLI copies them into a project. That gap is why the Logistic
+# module shipped a scaffold that could not typecheck, from the day SuperPrototype moved
+# to PostgREST until someone tried it by hand.
+#
+# Cases run as a matrix so a failure names the combination that broke rather than the
+# whole job, and so they run in parallel.
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scaffold:
+    name: ${{ matrix.case }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [bare, content, content-no-screens, logistic, logistic-no-screens]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The harness links the workspace packages into each scaffolded project, so their
+      # dist output has to exist.
+      - name: Build packages
+        run: pnpm turbo run build
+
+      - name: Scaffold and check
+        run: node scripts/scaffold-check.mjs ${{ matrix.case }}

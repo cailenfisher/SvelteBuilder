@@ -1,5 +1,6 @@
-<!-- Camp 2: full article renderer. Resolves headline, dek, lede, and all block text via diglossia.
-     Accepts ArticleWithCopy (enriched) from the server load function. -->
+<!-- Camp 2: full article renderer. Resolves headline, dek, lede and all block text via
+     diglossia, by entity id — so it needs the article's structure, not its copy. The prop is
+     ArticleRenderable rather than ArticleWithCopy for that reason; see the type. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
@@ -8,10 +9,10 @@
   import MediaFigure from './MediaFigure.svelte';
   import BylineList from './BylineList.svelte';
   import SectionLabel from './SectionLabel.svelte';
-  import type { ArticleWithCopy, MediaAsset, Section } from '../schema/index.js';
+  import type { ArticleRenderable, MediaAsset } from '../schema/index.js';
 
   type Props = {
-    article: ArticleWithCopy;
+    article: ArticleRenderable;
     mediaAssets: Map<number, MediaAsset>;
     storageBaseUrl: string;
     locale: string;
@@ -34,28 +35,32 @@
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
-  const headline    = $derived(dictionary.localText('headline',  'article', article.id));
+  const headline = $derived(dictionary.localText('headline', 'article', article.id));
   const headlineLocale = $derived(dictionary.localeOf('headline', 'article', article.id));
-  const dek         = $derived(dictionary.localText('dek',       'article', article.id));
-  const dekLocale   = $derived(dictionary.localeOf('dek', 'article', article.id));
+  const dek = $derived(dictionary.localText('dek', 'article', article.id));
+  const dekLocale = $derived(dictionary.localeOf('dek', 'article', article.id));
   const primarySection: Section | undefined = $derived(article.sections?.[0]);
 
-  const heroBlock  = $derived(article.blocks?.find((b) => b.blockType === 'image' && b.mediaAssetId != null) ?? null);
-  const heroAsset  = $derived(heroBlock?.mediaAssetId != null ? (mediaAssets.get(heroBlock.mediaAssetId) ?? null) : null);
+  const heroBlock = $derived(
+    article.blocks?.find((b) => b.blockType === 'image' && b.mediaAssetId != null) ?? null
+  );
+  const heroAsset = $derived(
+    heroBlock?.mediaAssetId != null ? (mediaAssets.get(heroBlock.mediaAssetId) ?? null) : null
+  );
 
   const publishedFormatted = $derived(
     article.publishedAt
       ? new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short' }).format(
-          new Date(article.publishedAt),
+          new Date(article.publishedAt)
         )
-      : null,
+      : null
   );
   const updatedFormatted = $derived(
     article.updatedAt
       ? new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short' }).format(
-          new Date(article.updatedAt),
+          new Date(article.updatedAt)
         )
-      : null,
+      : null
   );
 </script>
 
@@ -68,7 +73,9 @@
     <h1
       class="article-view__headline"
       lang={headlineLocale !== locale ? headlineLocale : undefined}
-    >{headline}</h1>
+    >
+      {headline}
+    </h1>
 
     {#if dek}
       <p class="article-view__dek" lang={dekLocale !== locale ? dekLocale : undefined}>{dek}</p>
@@ -103,7 +110,13 @@
   {#if article.blocks && article.blocks.length > 0}
     <div class="article-view__body">
       {#each article.blocks as block (block.id)}
-        <ArticleBlockRenderer {block} {mediaAssets} {storageBaseUrl} {locale} class="article-view__block" />
+        <ArticleBlockRenderer
+          {block}
+          {mediaAssets}
+          {storageBaseUrl}
+          {locale}
+          class="article-view__block"
+        />
       {/each}
     </div>
   {/if}

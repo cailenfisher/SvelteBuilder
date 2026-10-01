@@ -27,13 +27,15 @@
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
-  const heading     = $derived(dictionary.localText('newsletter.signup_heading',     'content'));
+  const heading = $derived(dictionary.localText('newsletter.signup_heading', 'content'));
   const description = $derived(dictionary.localText('newsletter.signup_description', 'content'));
-  const emailLabel  = $derived(dictionary.localText('newsletter.email_label',        'content'));
-  const emailPlaceholder = $derived(dictionary.localText('newsletter.email_placeholder', 'content'));
-  const submitLabel = $derived(dictionary.localText('newsletter.submit_label',       'content'));
+  const emailLabel = $derived(dictionary.localText('newsletter.email_label', 'content'));
+  const emailPlaceholder = $derived(
+    dictionary.localText('newsletter.email_placeholder', 'content')
+  );
+  const submitLabel = $derived(dictionary.localText('newsletter.submit_label', 'content'));
   const successMessage = $derived(dictionary.localText('newsletter.success_message', 'content'));
-  const errorMessage   = $derived(dictionary.localText('newsletter.error_message',   'content'));
+  const errorMessage = $derived(dictionary.localText('newsletter.error_message', 'content'));
 </script>
 
 <div class={['newsletter-signup', extraClass ?? ''].filter(Boolean).join(' ')}>

@@ -1,0 +1,43 @@
+{
+  "id": "admin-article",
+  "module": "content",
+  "label": "Article admin",
+  "hint": "The newsroom side: every article at every status, the publish checklist, and workflow transitions",
+  "routes": ["/admin/content/article", "/admin/content/article/[id]"],
+  "requires": [],
+  "views": ["AdminArticleListView", "AdminArticleDetailView", "ChecklistEntry", "ArticleRow"],
+  "actions": {
+    "/admin/content/article": {
+      "create": ["headline", "canonical_slug"]
+    },
+    "/admin/content/article/[id]": {
+      "transition": ["status_slug"],
+      "checklist": ["item_id", "satisfied"]
+    }
+  },
+  "copySlugs": [
+    "content.admin.articles",
+    "content.admin.new",
+    "content.admin.create",
+    "content.admin.empty",
+    "content.admin.headline",
+    "content.admin.slug",
+    "content.admin.status",
+    "content.admin.created",
+    "content.admin.filter_all",
+    "content.admin.filter_status",
+    "content.admin.body",
+    "content.admin.body_empty",
+    "content.admin.block_type",
+    "content.admin.block_text",
+    "content.admin.filing",
+    "content.admin.sections",
+    "content.admin.bylines",
+    "content.admin.workflow",
+    "content.admin.checklist",
+    "content.admin.required",
+    "content.admin.publish_blocked",
+    "action.cancel",
+    "action.save"
+  ]
+}

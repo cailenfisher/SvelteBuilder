@@ -5,33 +5,153 @@ SvelteBuilder integration work order. Read alongside `CLAUDE.md`'s Known Open Is
 
 ---
 
-## Logistic module — GATED (2026-09-30)
+## Logistic module — route port complete (2026-09-30)
 
-`@sveltebuilder/logistic` is no longer selectable in `npm create sveltebuilder`. The CLI names the
-reason and stops rather than scaffolding without a module the user asked for.
+`@sveltebuilder/logistic` ships all of its route code as 8 screen bundles: supplier, stock, receipt,
+shipment, return, cycle-count, warehouse, and dashboard. `screens/_unported/` is gone. Every loader
+queries `event.locals.supabase`, every screen is internationalised (the originals were hardcoded
+English throughout), and what a module offers is read from the template tree, so the create CLI's
+hint now reports "8 screen bundles" with nothing left pending.
 
-Its 18 route templates under `tools/create/templates/modules/logistic/routes/` query through
-`locals.db.withUser()`. Phase 1 removed that handle from SuperPrototype, so every one of those files
-references something the generated project no longer has — the scaffold did not typecheck, and
-nothing caught it until a smoke test, because no route template is exercised by CI.
+The warehouse app is one bundle rather than four. Its shell nav and home screen link to all three
+flows, so any subset renders dead links, and a warehouse app without picking is not a configuration
+anyone wants. `MODULE-ROUTES.md` already defines the selectable unit as a coherent feature carrying
+its shared layout, so this applies that rule rather than bending it.
 
-The module's `./server` export has the same problem one layer down: its queries import `drizzle-orm`
-at runtime, which guardrail 8 in `CLAUDE.md` forbids precisely because a direct connection runs as a
-table-owning role and bypasses RLS. So porting the route templates alone would strand the query layer
-they call. `@sveltebuilder/content` exports a Drizzle `./server` too; it escaped the break only
-because it ships no route templates.
+**Seven operations became RPCs**, all in `supabase/supplemental/05-logistic-supplements.sql` and all
+SECURITY INVOKER so RLS still checks each statement inside:
 
-What to decide before ungating — the full exploration is in `docs/MODULE-ROUTES.md`:
+| Function                                                          | Why it cannot be two calls                                                                                                                                            |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `logistic_create_supplier`                                        | The name is a `local_text_link` plus a `local_text`, not a column, so a partial result renders `[missing: name]` in every list.                                       |
+| `logistic_create_shipment`                                        | Shipment plus lines, and no screen can add a line afterwards.                                                                                                         |
+| `logistic_create_return_authorization`                            | Same, and a return with no lines has nothing to grade.                                                                                                                |
+| `logistic_create_cycle_count`                                     | The lines _are_ the snapshot of what the system believed was there; a later movement must not change what the counter was asked to verify.                            |
+| `logistic_receive_receipt_line`                                   | Move stock, update the line, recompute the receipt's derived status. Stock moved without the line recording it double-receives on retry.                              |
+| `logistic_grade_return_line`                                      | Update the line and, for a restock, put the goods away.                                                                                                               |
+| `logistic_record_picked_quantity` / `logistic_complete_pick_task` | Picking must decrement on_hand and reserved together or the reservation double-counts; completing short must release the remainder or that stock is reserved forever. |
 
-- whether Native is cancelled, which collapses most of the question;
-- what happens to the modules' `./server` export (deleted, moved into Postgres as views and
-  `SECURITY INVOKER` functions, or made Native-only);
-- whether modules should ship route code by copying at all, given that a copied route is a fork at
-  scaffold time and can never receive a fix.
+One rule runs through all of them: **the RLS-governed update goes first, and its row count is
+checked.** Under RLS a forbidden UPDATE affects zero rows rather than raising, so ordering it first
+means a refusal aborts before any stock has moved. The other order moves stock and then silently
+fails to record it.
 
-Do not simply rewrite the 18 files against `locals.supabase`. That restores the option while
-re-committing to the pattern that broke, and leaves both the `./server` question and the
-upgradeability question untouched.
+### Found and fixed along the way
+
+- **All five SECURITY DEFINER stock functions had no `set search_path`**, which CLAUDE.md makes
+  mandatory precisely because a definer function without one inherits the caller's search_path and
+  can be made to run a shadowed object with the owner's privileges. It surfaced as a composition
+  failure, not a security report: an unqualified type name in a DECLARE stops resolving once a
+  hardened caller sets search_path to empty. All are schema-qualified now, with explicit grants
+  rather than relying on Postgres defaulting EXECUTE to PUBLIC, and `sql:check` asserts the property
+  for every definer function in `public`.
+- **Props that could never have typechecked**, because these templates had never been typechecked:
+  `Tabs`/`TabsTrigger` given `aria-label` and `href`, `Select` given `required`, `SelectItem` given
+  children, `StatusBadge` given `status`, `PickTaskStatusBadge` imported from coreui.
+- **The supplier bundle's "Add supplier" button 404'd** — it linked to `/supplier/new`, which no
+  route serves. Carried over faithfully from the original.
+- **Two i18n violations**: a location select rendered a raw database slug to the user, and all eight
+  return condition/disposition values were literal English markup.
+- **A silently dropped write**: grading a return as restocked with no location recorded the
+  disposition and moved no stock.
+- **A filter missing a value**: the shipment status row omitted `packed`, so packed shipments could
+  not be filtered for.
+- **A list capped by a fetch**: the receiving queue fetched fifty receipts and split them in JS, so
+  both of its lists were bounded by whatever those fifty happened to contain.
+
+### Still open
+
+The 40 RLS policies work — `pnpm sql:check` exercises them as an admin, a non-admin and an anonymous
+caller — but they predate the current conventions: `public.current_user_id()` is called bare rather
+than as `(select …)`, so it evaluates once per row instead of once per statement, and the admin check
+is an inline `exists (select 1 from public.user_account …)` rather than a call to
+`public.current_user_admin()`. On warehouse-scale tables that is a real cost. It is now a performance
+and consistency question rather than a correctness one, and it is a single mechanical pass.
+
+Also outstanding for the package: a vitest suite, and showcase coverage for the 3 components
+no screen bundle renders (see `docs/DEV-KITCHEN.md`).
+
+---
+
+## Content module — route port complete, and RLS written (2026-10-01)
+
+`@sveltebuilder/content` ships its route code as 5 screen bundles: article, section, feeds, preview,
+admin-article. `screens/_unsorted/` is gone, and `@sveltebuilder/content/views` exports the screen
+contracts. Its query layer was already PostgREST rather than Drizzle, so the loaders were a
+translation rather than a rewrite — the work was elsewhere.
+
+### The security finding
+
+**All 27 of the module's tables shipped with row level security disabled.** Supabase's bootstrap
+grants give anon and authenticated full privileges on everything in `public`, so anyone holding the
+publishable key could read and write every one of them — `subscriber`, `comment`,
+`newsletter_subscription` included. Verified rather than inferred: as the anon role, inserting a row
+into `subscriber` and then deleting every row both succeeded.
+
+Worth dwelling on why nothing caught it. A table with no policies is valid SQL; it typechecks
+nowhere; and it behaves perfectly in any test that connects as an owner, because owners skip RLS.
+`pnpm sql:check` now asserts that every table in `public` has RLS enabled and that every RLS-enabled
+table has at least one policy — the second because a policy-less table denies everything, which is
+safe but almost always a mistake rather than an intention.
+
+`02-content-rls.sql` holds the access model. Two seams needed functions rather than policies:
+
+- **Newsletter signup.** `subscriber` is PII, and a table anon can insert into is a table anon can
+  probe — a unique violation on the email column answers "is this person subscribed?" for anyone who
+  asks. `content_subscribe` is SECURITY DEFINER, idempotent, and returns void, so a caller learns
+  nothing either way.
+- **Preview by link.** A policy cannot see which token a request presented, so admitting "any article
+  with a live token" would make every draft with an outstanding link world-readable.
+  `content_preview_article` and `content_preview_blocks` take the token as the credential.
+
+### The module shipped no seed at all
+
+Which made it inert rather than empty: every public query resolves the slug `'published'` through
+`article_status`, and with no rows there is no such status, so nothing could ever be published and
+every page rendered nothing. The seed now provides the six workflow statuses, the publish checklist,
+a publisher identity for the feeds, sections, topics, tags, a newsletter, and one sample article with
+blocks and a byline — EN and FR throughout.
+
+### Types narrowed, and why it kept happening
+
+Five types in the package demanded resolved copy that the code reading them never used:
+`ArticleView`'s prop, `ArticleForStructuredData`, `RssFeedArticle`, `NewsSitemapArticle` and
+`validateArticleForPublish`. Each was an `ArticleWithCopy` or an `Omit<>` of one, while the function
+or component already took a `DictionaryInstance` and resolved the headline through it — then read
+byline names, section names and block text as baked strings off the row.
+
+That was not merely redundant. A baked string is resolved once, by whatever query produced the row,
+so it cannot follow a locale switch; and `validateArticleForPublish` was therefore validating
+whichever locale the query happened to resolve. It now resolves through the dictionary and treats a
+`[missing: …]` sentinel as absent, which means publishing a half-translated article is caught instead
+of waved through. All five narrowed onto two named shapes, `ArticleWithRelations` and
+`ArticleRenderable`; any `ArticleWithCopy` still satisfies them, so no caller broke.
+
+### Structural additions
+
+- **`loadEntityCopy`**, beside `loadScopedCopy` in the scaffold. Loading a whole scope is right for
+  suppliers and wrong for articles: a publisher with ten thousand of them would ship ten thousand
+  headlines to render one page.
+- **`ScreenStorage` on the view types.** `storageBaseUrl` was referenced by the old article screen
+  and returned by no loader, so every media URL was built against `undefined`.
+- **`endpoints` in the manifest**, for bundles that ship `+server.ts` rather than pages. `routes`
+  means "has a page", and conflating the two would have made the page assertions unenforceable.
+- **`create_local_text_entry` takes an entity id.** It hardcoded `entity_id` to null, so no caller
+  could create an article's headline.
+- **coreui `Checkbox` gained `onCheckedChange`.** `bind:checked` covers a parent that owns the value,
+  not one that needs to persist the change.
+
+### Still open
+
+No unit tests for the package. The live-coverage, front-curation, author-profile, newsletter and
+media screens were never written — only the thirteen route files that existed were ported, and
+`SectionFront`, `FrontCurationBoard`, `AssignmentQueue`, `SubscriberList`, `LiveCoverageView` and
+`AuthorProfileView` are components with no screen rendering them. That is the next content gap, and
+it is feature work rather than a port.
+
+The section page is a lead-plus-river listing. The screen it replaced rendered a curated front and
+nothing else, which was blank for any section without curation — every section a fresh scaffold has.
+Fronts deserve their own screen; they do not belong bolted to a section listing.
 
 ---
 
@@ -79,25 +199,30 @@ What Native will need whenever it resumes (record additions here rather than fix
 
 ---
 
-## dev-kitchen
+## dev-kitchen — removed (2026-09-30)
 
-`apps/dev-kitchen` is stagnant per this work order's standing rules — not fixed, not migrated.
-The following are now broken there as a direct, expected consequence of diglossia 0.1.0 and the
-coreui message bus rewrite (both consumed via `link:../../../diglossia`, so dev-kitchen picks up
-the new API immediately rather than at some future upgrade):
+`apps/dev-kitchen` was deleted in commit 4988ae6, which removed all 82 of its tracked files and
+dropped the `--filter='!./apps/*'` exemption the three CI workflows carried to route around its
+expected build failure. The notes that stood here — a catalogue of which diglossia 0.1.0 and
+message-bus imports had stopped resolving inside it — described an app that no longer exists, and
+are gone with it.
 
-- Every bare `import { load, merge, localText, LocalText } from 'diglossia'` in dev-kitchen no
-  longer resolves — those exports don't exist anymore. Affected: `src/routes/+layout.svelte`,
-  `src/routes/+error.svelte`, `src/routes/+page.svelte`,
-  `src/lib/components/LocaleSwitcher.svelte`, `src/routes/dev/hermes/+page.svelte`, and the 7
-  `src/routes/dev/content/*/+page.svelte` showcase routes (`import { load as hermesLoad } from
-  'diglossia'`). Type-only imports (`DictionaryPayload`, `Locale` in `app.d.ts` and the
-  `api/local-text`/`api/locale` `+server.ts` files) still work unchanged.
-- `import { messageBus } from '@sveltebuilder/coreui'` no longer resolves — replaced by
-  `createMessageBus`/`setMessageBus`/`getMessageBus`. Affected: `src/routes/+layout.svelte` and
-  the 4 `src/routes/dev/coreui/{+page,toast,confirm-dialog,banner}/+page.svelte` showcase routes.
-- Auth UI still uses the old Supabase hook shape and has not been migrated to the `withUser`
-  pattern (pre-existing gap, carried forward from `CLAUDE.md`'s prior Known Open Issues entry).
+**`docs/DEV-KITCHEN.md` is the design document for its replacement.** It records the three jobs the
+app actually did — in-repo component development with no scaffolded project, exercising components
+that no template screen renders, and a rendered surface for the WCAG 2.2 AA audit — the measured
+coverage gap behind the second of those, the structural reason it rotted (it hand-maintained a
+second copy of the scaffold's wiring that nothing ever compared against the template tree), and
+four requirements the replacement has to satisfy.
+
+Standing rules until that work is picked up:
+
+- **Do not restore the old app.** `git show 4988ae6^:apps/dev-kitchen/<path>` recovers any file from
+  it, and the 33 coreui showcase routes are a reasonable starting point for a rebuild — but the
+  chrome around them is the part that failed, and must not come back as a hand-maintained copy.
+- **Nothing under `apps/` is exempt from CI any more.** Whatever lands there next is built and
+  tested by default. Keep it that way instead of reintroducing a filter.
+- The component-verification gap itself is tracked in `CLAUDE.md`'s Known Open Issues under
+  "In-repo component harness", not here.
 
 ---
 
@@ -116,11 +241,11 @@ executed and tested (see below), but nothing has run against real Supabase or Po
 Specifically unverified:
 
 - `getClaims()` end to end against a real Supabase-issued JWT, and its behaviour on a project that
-  has *not* yet migrated to asymmetric signing keys.
+  has _not_ yet migrated to asymmetric signing keys.
 - PostgREST response shapes the loaders assume: that the embedded `local_text_link(...)` resource
   comes back as a single object rather than an array (it should, given the FK), that `.rpc()` binds
   `bigint[]` / `text[]` array arguments as written, and that `.upsert(..., { onConflict:
-  'link,locale' })` targets `uq_local_text_entry` correctly.
+'link,locale' })` targets `uq_local_text_entry` correctly.
 - The whole scaffold flow: `npm create sveltebuilder` → `sync:supabase` → `db:reset` → `dev`, with
   a real sign-in.
 - That the admin area's new 403 for a signed-in non-admin renders sensibly rather than as a raw
@@ -182,14 +307,14 @@ correctly. `@sveltebuilder/content` has no seed file at all yet ("content module
 thing to append to), and `@sveltebuilder/local-text-schema`'s `BASE_SLUGS` are global-only by
 design (no `entityId`), so neither was a natural home for a redundant example.
 
-**dev-kitchen's hand-written unique constraint is the wrong shape.** Confirmed by reading it
-directly: `apps/dev-kitchen/supabase/schemas/local_text_link.sql`'s `uq_local_text_link_global
-unique nulls not distinct (slug, scope)` is a full-table constraint on two columns with no `where
-entity_id is null` clause, so it would incorrectly reject two legitimate entity-scoped rows
-sharing a slug and scope. Out of scope per the work order (dev-kitchen is stagnant); the correct
-shape is the partial index in `packages/local-text-schema/src/tables/local-text-link.ts` /
-`tools/create/templates/base/supabase/supplemental/00-local-text-rls.sql`'s Drizzle-generated
-equivalent.
+**dev-kitchen's divergent unique constraint is gone with the app.** Its
+`supabase/schemas/local_text_link.sql` carried a hand-written `uq_local_text_link_global unique
+nulls not distinct (slug, scope)` — a full-table constraint on two columns with no `where entity_id
+is null` clause, so it would have rejected two legitimate entity-scoped rows sharing a slug and
+scope. It was never fixed, and commit 4988ae6 deleted it, leaving the correct shape as the only
+definition in the repo: the partial index in
+`packages/local-text-schema/src/tables/local-text-link.ts` and its Drizzle-generated equivalent in
+`tools/create/templates/base/supabase/supplemental/00-local-text-rls.sql`.
 
 **Historical documents were not rewritten.** `packages/content/CONTENT_AUDIT.md` and
 `CONTENT_BUILD_LOG.md` still say "hermes" in sections describing what was actually true when they
@@ -200,7 +325,7 @@ Roadmap section has staleness unrelated to hermes (phases further along than its
 that wasn't addressed — out of scope for a hermes-reference cleanup.
 
 **Pre-existing, unrelated defects surfaced by svelte-check.** Running svelte-check against
-`packages/content` (via `apps/dev-kitchen`'s installed binary, read-only, since the package has no
+`packages/content` (run read-only with a workspace `svelte-check` binary, since the package has no
 `check` script and `src/lib/templates/**` is excluded from its own tsconfig — this module has
 apparently never been typechecked with Svelte awareness) turned up defects with no connection to
 diglossia, confirmed unrelated by checking they sit outside anything this work order touched:

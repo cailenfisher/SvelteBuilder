@@ -1,0 +1,23 @@
+{
+  "id": "article",
+  "module": "content",
+  "label": "Article page",
+  "hint": "The public article page: body blocks, bylines, comments, OG/Twitter meta and NewsArticle JSON-LD",
+  "routes": ["/article/[slug]"],
+  "requires": [],
+  "views": ["ArticlePageView", "ArticleWithBlocks", "ArticleRow"],
+  "actions": {
+    "/article/[slug]": {
+      "comment": ["author_name", "author_email", "body"]
+    }
+  },
+  "copySlugs": [
+    "content.comments.heading",
+    "content.comments.leave",
+    "content.comments.name",
+    "content.comments.email",
+    "content.comments.body",
+    "content.comments.submit",
+    "content.comments.pending"
+  ]
+}

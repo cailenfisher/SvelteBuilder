@@ -47,12 +47,12 @@
   const ASSIGNMENT_ROLE_LABEL: Record<string, string> = {
     author: 'Author',
     editor: 'Editor',
-    photo:  'Photo',
-    copy:   'Copy',
+    photo: 'Photo',
+    copy: 'Copy',
   };
 </script>
 
-<Drawer {open} side="right" onClose={onClose}>
+<Drawer {open} side="right" {onClose}>
   {#snippet title()}
     Article Workflow
   {/snippet}
@@ -116,7 +116,7 @@
           {@const checked = getChecklistState(item.id)}
           <div class="workflow-panel__checklist-item">
             <Checkbox
-              checked={checked}
+              {checked}
               onCheckedChange={(value) => onChecklistToggle?.(item.id, value)}
               label={dictionary.localText('label', 'publish_checklist_item', item.id)}
               id={`checklist-${item.id}`}
@@ -145,7 +145,9 @@
                 </span>
                 {#if assignment.dueAt}
                   <time class="workflow-panel__due" datetime={assignment.dueAt}>
-                    Due {new Intl.DateTimeFormat(_locale, { dateStyle: 'medium' }).format(new Date(assignment.dueAt))}
+                    Due {new Intl.DateTimeFormat(_locale, { dateStyle: 'medium' }).format(
+                      new Date(assignment.dueAt)
+                    )}
                   </time>
                 {/if}
               </li>

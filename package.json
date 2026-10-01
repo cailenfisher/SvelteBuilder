@@ -10,7 +10,9 @@
     "test": "turbo test",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "turbo run build --filter='!./apps/*' && changeset publish"
+    "release": "turbo run build --filter='!./apps/*' && changeset publish",
+    "scaffold:check": "node scripts/scaffold-check.mjs",
+    "sql:check": "node scripts/sql-check.mjs"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",

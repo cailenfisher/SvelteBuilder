@@ -1,0 +1,45 @@
+{
+  "id": "cycle-count",
+  "module": "logistic",
+  "label": "Cycle counts",
+  "hint": "Opening counts against chosen bins, reviewing variances, and approving to correct stock",
+  "routes": ["/admin/logistic/cycle-count", "/admin/logistic/cycle-count/[id]"],
+  "requires": [],
+  "views": ["CycleCountListView", "CycleCountDetailView", "CycleCountRow", "CycleCountLineRow"],
+  "actions": {
+    "/admin/logistic/cycle-count": {
+      "create": ["location_ids"]
+    },
+    "/admin/logistic/cycle-count/[id]": {
+      "approve": []
+    }
+  },
+  "copySlugs": [
+    "logistic.cycle_count.title",
+    "logistic.cycle_count.one",
+    "logistic.cycle_count.new",
+    "logistic.cycle_count.create",
+    "logistic.cycle_count.empty",
+    "logistic.cycle_count.filter_all",
+    "logistic.cycle_count.filter_status",
+    "logistic.cycle_count.status_label",
+    "logistic.cycle_count.created_at",
+    "logistic.cycle_count.progress",
+    "logistic.cycle_count.progress_value",
+    "logistic.cycle_count.choose_locations",
+    "logistic.cycle_count.expected",
+    "logistic.cycle_count.counted",
+    "logistic.cycle_count.variance",
+    "logistic.cycle_count.variance_count",
+    "logistic.cycle_count.matched",
+    "logistic.cycle_count.approve",
+    "logistic.cycle_count.approve_confirm",
+    "logistic.cycle_count.status.open",
+    "logistic.cycle_count.status.in_progress",
+    "logistic.cycle_count.status.complete",
+    "logistic.cycle_count.status.cancelled",
+    "logistic.field.location",
+    "logistic.field.sku",
+    "action.cancel"
+  ]
+}

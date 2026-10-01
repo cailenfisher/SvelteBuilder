@@ -15,11 +15,20 @@
 
 -- ── local_text_link + local_text ──────────────────────────────────────────────
 
+-- Dropped and recreated rather than `create or replace`d, because adding a parameter makes a
+-- new signature: the four-argument version would survive alongside it and a four-argument call
+-- would then be ambiguous between the two. Existing callers that pass four arguments still work
+-- through p_entity_id's default.
+drop function if exists public.create_local_text_entry(text, text, bigint[], text[]);
+
 create or replace function public.create_local_text_entry(
   p_slug       text,
   p_scope      text,
   p_locale_ids bigint[],
-  p_contents   text[]
+  p_contents   text[],
+  -- Entity-bound copy: an article's headline, a supplier's name. Null is global or scoped UI
+  -- copy, which is what the local-text admin screen creates.
+  p_entity_id  bigint default null
 )
 returns bigint
 language plpgsql
@@ -39,7 +48,7 @@ begin
   end if;
 
   insert into public.local_text_link (slug, scope, entity_id)
-  values (btrim(p_slug), nullif(btrim(coalesce(p_scope, '')), ''), null)
+  values (btrim(p_slug), nullif(btrim(coalesce(p_scope, '')), ''), p_entity_id)
   returning id into v_link_id;
 
   -- Blank translations are skipped rather than stored as empty copy.
@@ -128,7 +137,7 @@ $$;
 -- actually allowed to touch the rows.
 
 grant execute on function
-  public.create_local_text_entry(text, text, bigint[], text[]) to authenticated;
+  public.create_local_text_entry(text, text, bigint[], text[], bigint) to authenticated;
 grant execute on function public.delete_local_text_entry(bigint) to authenticated;
 grant execute on function
   public.create_navigation_item(text, text, text, integer) to authenticated;

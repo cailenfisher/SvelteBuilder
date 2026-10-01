@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import { LOCALE_COLUMNS, toLocale } from '$lib/server/postgrest';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
@@ -17,7 +18,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       .eq('link', id),
     locals.supabase
       .from('locale')
-      .select('id, code, native_name')
+      .select(LOCALE_COLUMNS)
       .order('code'),
   ]);
 
@@ -34,11 +35,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       entityId: entryResult.data.entity_id,
     },
     translations: translationResult.data ?? [],
-    locales: (localeResult.data ?? []).map((row) => ({
-      id: row.id,
-      code: row.code,
-      nativeName: row.native_name,
-    })),
+    locales: (localeResult.data ?? []).map(toLocale),
   };
 };
 

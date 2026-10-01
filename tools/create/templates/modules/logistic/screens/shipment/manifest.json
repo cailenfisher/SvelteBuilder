@@ -1,0 +1,53 @@
+{
+  "id": "shipment",
+  "module": "logistic",
+  "label": "Shipments",
+  "hint": "Outbound shipments with carrier details, status transitions and a tracking event log",
+  "routes": ["/admin/logistic/shipment", "/admin/logistic/shipment/[id]"],
+  "requires": [],
+  "views": ["ShipmentListView", "ShipmentDetailView", "ShipmentRow"],
+  "actions": {
+    "/admin/logistic/shipment": {
+      "create": ["carrier", "service_level", "sku", "quantity"]
+    },
+    "/admin/logistic/shipment/[id]": {
+      "updateStatus": ["status"],
+      "updateTracking": ["carrier", "service_level", "tracking_number"],
+      "addEvent": ["status", "event_location", "description"]
+    }
+  },
+  "copySlugs": [
+    "logistic.shipment.title",
+    "logistic.shipment.one",
+    "logistic.shipment.new",
+    "logistic.shipment.create",
+    "logistic.shipment.empty",
+    "logistic.shipment.filter_all",
+    "logistic.shipment.filter_status",
+    "logistic.shipment.lines",
+    "logistic.shipment.lines_empty",
+    "logistic.shipment.quantity",
+    "logistic.shipment.service_level",
+    "logistic.shipment.created_at",
+    "logistic.shipment.status_label",
+    "logistic.shipment.status_update",
+    "logistic.shipment.carrier_tracking",
+    "logistic.shipment.tracking_events",
+    "logistic.shipment.event",
+    "logistic.shipment.event_add",
+    "logistic.shipment.event_description",
+    "logistic.shipment.status.created",
+    "logistic.shipment.status.packed",
+    "logistic.shipment.status.dispatched",
+    "logistic.shipment.status.in_transit",
+    "logistic.shipment.status.delivered",
+    "logistic.shipment.status.exception",
+    "logistic.field.sku",
+    "logistic.field.carrier",
+    "logistic.field.tracking_number",
+    "logistic.field.location",
+    "action.save",
+    "action.add",
+    "action.cancel"
+  ]
+}

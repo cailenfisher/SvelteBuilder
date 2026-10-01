@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import { LOCALE_COLUMNS, toLocale, toOne } from '$lib/server/postgrest';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
@@ -13,7 +14,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       .maybeSingle(),
     locals.supabase
       .from('locale')
-      .select('id, code, native_name')
+      .select(LOCALE_COLUMNS)
       .order('code'),
   ]);
 
@@ -22,7 +23,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
   if (!navResult.data) throw error(404, 'Navigation item not found');
 
-  const linkId = navResult.data.local_text_link?.id ?? null;
+  const linkId = toOne(navResult.data.local_text_link)?.id ?? null;
 
   const { data: translations, error: translationError } = linkId
     ? await locals.supabase
@@ -40,14 +41,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       scope: navResult.data.scope,
       sortOrder: navResult.data.sort_order,
       active: navResult.data.active,
-      localTextLink: navResult.data.local_text_link,
+      localTextLink: toOne(navResult.data.local_text_link),
     },
     translations: translations ?? [],
-    locales: (localeResult.data ?? []).map((row) => ({
-      id: row.id,
-      code: row.code,
-      nativeName: row.native_name,
-    })),
+    locales: (localeResult.data ?? []).map(toLocale),
   };
 };
 

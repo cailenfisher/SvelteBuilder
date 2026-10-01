@@ -54,10 +54,71 @@ SvelteBuilder/
 │   ├── create/         create-sveltebuilder      CLI installer (npm create)
 │   └── cli/            @sveltebuilder/cli        sveltebuilder sync:supabase, etc.
 ├── apps/
-│   ├── dev-kitchen/    internal SvelteKit test app
 │   └── docs/
+├── scripts/            repo tooling — scaffold-check.mjs (see Template Verification)
 └── [root config: pnpm workspaces, Turborepo, Changesets, ESLint, Prettier]
 ```
+
+### Template Verification
+
+`pnpm scaffold:check` scaffolds real projects from `tools/create/templates/` and checks that each
+one typechecks and builds. Run it after touching anything under `templates/`, and note that
+`svelte-check` is the step that matters — Vite does not typecheck, so a build can pass over a
+loader referencing a field that no longer exists.
+
+Templates are the one part of this repo that no package test can reach: they are inert text until
+the create CLI copies them into a project. That gap is how the Logistic module came to ship a
+scaffold that could not typecheck, from the day SuperPrototype moved to PostgREST until someone
+tried it by hand.
+
+Two things the harness does deliberately. It **packs the workspace packages and installs the
+tarballs** instead of taking them from npm, because templates are written against the packages in
+this repo and those are usually ahead of what is published — verifying against the registry would
+mean the gate can never check an unreleased change. (Packing rather than `link:`, because a linked
+package brings its own `node_modules/svelte`, and two copies of svelte make every cross-package
+`Snippet` prop a type error with no bug behind it. Packing also checks that the `files` array and
+`exports` map ship what the templates import.) And it drives the CLI **by flags** (`--template`,
+`--pm`, `--modules`, `--screens`), never by feeding keystrokes to its prompts.
+
+`pnpm sql:check` is the companion gate: it applies a scaffolded project's migration and seed to
+Postgres in Docker, applies the seed twice to prove it is re-runnable, then asserts the database
+behaves as the routes assume — impersonating an admin, a non-admin and an anonymous visitor via
+`set role` plus a JWT subject, which is the only way RLS is exercised at all. Assertions live in
+`scripts/sql-check/`. Neither `scaffold:check` nor `svelte-check` runs a line of SQL, so a
+malformed seed or a policy admitting nobody ships green past them.
+
+`pnpm test` runs the unit suites. `tools/create/test/screen-bundle.test.ts` checks the half of a
+screen bundle's contract that types cannot express — that a manifest matches its files, that every
+slug a screen renders is seeded, and that each has both required locales.
+
+### Screen bundles
+
+A module's route code lives in the create CLI's template tree, never in the package — see
+guardrail 10. Each selectable bundle is:
+
+```
+tools/create/templates/modules/<module>/screens/<screen-id>/
+├── manifest.json            id, label, hint, routes, requires, actions, copySlugs
+├── ui/                      +page.svelte — provider-neutral, imports its view types
+└── server.superprototype/   +page.server.ts — loaders and form actions for that flavour
+```
+
+Both halves merge into `src/routes/` at scaffold time. The contract between them is the module's
+exported view-model types (`@sveltebuilder/<module>/views`), because nothing typechecks across that
+boundary until a project exists. A directory starting with `_` is a holding area for route code not
+yet ported into a bundle: never selectable, never copied. Full rationale in `docs/MODULE-ROUTES.md`.
+
+A bundle is a **coherent feature**, not a route file — its list, its detail, and any layout they
+share. `requires` names sibling bundles it links to, and selection expands through it, because a
+screen that hardcodes an href to a sibling renders a dead link without it. Where the links are dense
+enough that no subset makes sense, the feature is one bundle: logistic's warehouse app ships its
+shell, pick, receive and count together for exactly that reason.
+
+`routes` means "has a page". A bundle shipping `+server.ts` endpoints declares them separately under
+`endpoints` — content's feeds bundle is three of them and no pages. Code that several routes in one
+bundle share goes in an ordinary module beside them in the routes tree (SvelteKit treats only `+page`,
+`+layout`, `+server` and `+error` as special), not in `$lib`, which a scaffold without that module
+would also receive.
 
 Package manager: **pnpm**. Task orchestration: **Turborepo**. Publishing: **Changesets**.
 
@@ -70,15 +131,15 @@ is consumed here as an external dependency rather than a workspace package. See
 
 ## Tech Stack
 
-| Concern         | Implementation                                                                                                          |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Framework       | SvelteKit + TypeScript                                                                                                  |
-| Svelte API      | Svelte 5 runes only                                                                                                     |
+| Concern         | Implementation                                                                                                                                                                                                                                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework       | SvelteKit + TypeScript                                                                                                                                                                                                                                                                                                          |
+| Svelte API      | Svelte 5 runes only                                                                                                                                                                                                                                                                                                             |
 | Database        | PostgreSQL (Supabase-hosted), reached through the Supabase Data API (PostgREST) via `@supabase/ssr` — never a direct connection. Drizzle is the **build-time** schema source of truth for every package; `sveltebuilder sync:supabase` generates SQL migrations from it. Whether to keep Drizzle in that role is an open topic. |
-| Auth            | SuperPrototype template: Supabase Auth. Native template (ON HOLD): Auth.js (`@auth/sveltekit`). See [Auth Architecture](#auth-architecture). |
-| i18n formatting | `messageformat` (Unicode MessageFormat 2), via `diglossia`'s `formatText()`                                              |
-| i18n layer      | `diglossia` (external dependency, schema: `@sveltebuilder/local-text-schema`)                                            |
-| UI components   | `@sveltebuilder/coreui` (on Bits UI primitives)                                                                         |
+| Auth            | SuperPrototype template: Supabase Auth. Native template (ON HOLD): Auth.js (`@auth/sveltekit`). See [Auth Architecture](#auth-architecture).                                                                                                                                                                                    |
+| i18n formatting | `messageformat` (Unicode MessageFormat 2), via `diglossia`'s `formatText()`                                                                                                                                                                                                                                                     |
+| i18n layer      | `diglossia` (external dependency, schema: `@sveltebuilder/local-text-schema`)                                                                                                                                                                                                                                                   |
+| UI components   | `@sveltebuilder/coreui` (on Bits UI primitives)                                                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -116,9 +177,9 @@ instance each call — call it in the component's `<script>` body, not inside an
 
 **Feature module packages split internally (Camp 1 / Camp 2):**
 
-| Component kind                                          | i18n dependency                         | Receives                                                             |
-| ------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------- |
-| Application-level UI (`Button`, `Input`, layout chrome) | None — no diglossia import              | `label: string`, child snippets                                      |
+| Component kind                                          | i18n dependency                                 | Receives                                                                                      |
+| ------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Application-level UI (`Button`, `Input`, layout chrome) | None — no diglossia import                      | `label: string`, child snippets                                                               |
 | Entity/domain (`ProductCard`, `TaskItem`)               | Imports `getDictionary` from `diglossia/svelte` | The domain entity, plus an optional `dictionary?: DictionaryInstance` prop overriding context |
 
 Entity/domain components resolve context by default (`const dictionary = dictionaryProp ??
@@ -327,6 +388,7 @@ project-root-relative path (`./src/lib/server/schema.ts`) for the scaffold's own
 `after` controls topological ordering across modules; `@sveltebuilder/local-text-schema` sorts first.
 
 `sveltebuilder sync:supabase` (in `@sveltebuilder/cli`):
+
 1. Discovers manifests from `.sveltebuilder/registry/*.json` and resolves `after`-order.
 2. Writes a barrel file (`.sveltebuilder/schema.ts`) re-exporting every module's Drizzle schema.
 3. Runs `drizzle-kit generate` against that barrel to produce `supabase/migrations/*.sql`.
@@ -466,6 +528,18 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
    `[data-state='open']`, `[data-highlighted]`, `[data-disabled]`, etc. in CSS. Use a CSS custom
    property bridge when the data attribute on a parent must affect a non-Bits child element.
 
+10. **Once it is a full screen, view, or page, it does not belong in a library package.** Components
+    may compose other components freely — that is what they are for. But a `+page.svelte`, or a
+    composed view whose reason to exist is _being_ a page, lives in the template tree under
+    `tools/create/templates/`, never in `packages/*`. Screens are scaffolded once and owned by the
+    generated app thereafter; they are not a dependency it tracks. See `docs/MODULE-ROUTES.md`.
+
+11. **Module packages ship no data-access layer.** A module exports its Drizzle schema (build-time),
+    its components, and its view-model types — never queries. Route loaders live in the scaffold and
+    reach the database through `event.locals.supabase`, so the module never needs to know how a row
+    was fetched. A module's `./server` export reintroducing a query layer is a bug; this is what
+    guardrail 8 forbids, stated at the package boundary.
+
 ---
 
 ## CSS Style System
@@ -500,7 +574,7 @@ The scaffold `app.css` wires everything together:
 ```css
 @layer reset, tokens, base, chrome, components, utilities;
 
-@import '@sveltebuilder/coreui/styles/tokens.css';          /* not layered — tokens are a base */
+@import '@sveltebuilder/coreui/styles/tokens.css'; /* not layered — tokens are a base */
 @import '@sveltebuilder/coreui/styles/base.css' layer(base);
 @import './chrome.css' layer(chrome);
 @import '@sveltebuilder/coreui/styles/components.css' layer(components);
@@ -512,13 +586,13 @@ The scaffold `app.css` wires everything together:
 
 ### What each layer owns
 
-| Layer        | File(s)                                          | Owns                                                                                                           |
-| ------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| *(none)*     | `packages/coreui/styles/tokens.css`              | CSS custom properties (design tokens) — not layered                                                            |
-| `base`       | `packages/coreui/styles/base.css`                | Box-sizing reset, `html` typography defaults, global `:focus-visible` ring, `prefers-reduced-motion`           |
-| `chrome`     | `src/chrome.css` (scaffold)                      | Structural base for element classes (`.input`, `.btn`, `.card`, etc.) plus all interactive field states        |
-| `components` | `packages/coreui/styles/components.css`          | All coreui component visual styles                                                                             |
-| *(none)*     | developer CSS / app-specific files               | Theme overrides and project-specific styles                                                                     |
+| Layer        | File(s)                                 | Owns                                                                                                    |
+| ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| _(none)_     | `packages/coreui/styles/tokens.css`     | CSS custom properties (design tokens) — not layered                                                     |
+| `base`       | `packages/coreui/styles/base.css`       | Box-sizing reset, `html` typography defaults, global `:focus-visible` ring, `prefers-reduced-motion`    |
+| `chrome`     | `src/chrome.css` (scaffold)             | Structural base for element classes (`.input`, `.btn`, `.card`, etc.) plus all interactive field states |
+| `components` | `packages/coreui/styles/components.css` | All coreui component visual styles                                                                      |
+| _(none)_     | developer CSS / app-specific files      | Theme overrides and project-specific styles                                                             |
 
 **Why `chrome` owns field interaction states:** focus, error, disabled, and read-only rules
 modify the same `.input`/`.textarea` classes that `chrome` establishes. Keeping them together
@@ -549,11 +623,17 @@ element needs to affect a non-Bits child element, use a CSS custom property as t
 
 ```css
 /* declare on the state-carrying parent — --_ prefix marks it private */
-.accordion-trigger              { --_icon-rotate: 0deg; }
-.accordion-trigger[data-state='open'] { --_icon-rotate: 180deg; }
+.accordion-trigger {
+  --_icon-rotate: 0deg;
+}
+.accordion-trigger[data-state='open'] {
+  --_icon-rotate: 180deg;
+}
 
 /* consume via inheritance in the child */
-.accordion-trigger .chevron { transform: rotate(var(--_icon-rotate, 0deg)); }
+.accordion-trigger .chevron {
+  transform: rotate(var(--_icon-rotate, 0deg));
+}
 ```
 
 This avoids mixed `:global(parent) .svelte-scoped-child` selectors that cannot be moved to a
@@ -565,9 +645,15 @@ one component's ruleset in `components.css` — name it with a `--_` prefix:
 
 ```css
 /* private: consumers must not reference this */
-.accordion-trigger { --_icon-rotate: 0deg; }
-.accordion-trigger[data-state='open'] { --_icon-rotate: 180deg; }
-.accordion-trigger .chevron { transform: rotate(var(--_icon-rotate, 0deg)); }
+.accordion-trigger {
+  --_icon-rotate: 0deg;
+}
+.accordion-trigger[data-state='open'] {
+  --_icon-rotate: 180deg;
+}
+.accordion-trigger .chevron {
+  transform: rotate(var(--_icon-rotate, 0deg));
+}
 ```
 
 The `--_` prefix signals "internal implementation detail." Do not advertise these in docs or
@@ -580,11 +666,11 @@ Dark mode and theme variants are driven by `data-*` attributes on ancestor eleme
 CSS class toggles. The token overrides in `@sveltebuilder/coreui/styles/_internal.css` respond
 to these attributes:
 
-| Attribute                        | Effect                                          |
-| -------------------------------- | ----------------------------------------------- |
-| `data-color-scheme="dark"`       | Force dark mode regardless of system preference |
-| `data-color-scheme="light"`      | Force light mode regardless of system preference|
-| *(attribute absent)*             | Follow `prefers-color-scheme` system preference |
+| Attribute                   | Effect                                           |
+| --------------------------- | ------------------------------------------------ |
+| `data-color-scheme="dark"`  | Force dark mode regardless of system preference  |
+| `data-color-scheme="light"` | Force light mode regardless of system preference |
+| _(attribute absent)_        | Follow `prefers-color-scheme` system preference  |
 
 Set `data-color-scheme` on `<html>` or the root layout element. Read and persist the user's
 preference with JavaScript, then toggle the attribute.
@@ -656,34 +742,34 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 
 ## Known Open Issues
 
-| Issue                              | Notes                                                                                                                                                                                                          |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Native template (ON HOLD)          | Frozen 2026-09-29 — not accessible from `npm create sveltebuilder`, not being maintained. Its `withUser`/Drizzle data layer is the pattern SuperPrototype is moving away from, so expect it to fall further behind. Keep shared surfaces provider-neutral in shape; do not spend effort on Native itself. |
-| `apps/dev-kitchen`                 | Stagnant — not migrated to the diglossia 0.1.0 core/svelte split, the `withUser` auth pattern, or any other change made since. Do not fix or update it; it will keep diverging from scaffold templates over time. Known defects tracked in `docs/DEFERRED.md`. |
-| `@sveltebuilder/commerce`          | Not started — single placeholder `index.ts`. The product's remaining domain differentiator gap.                                                                                                                |
-| `@sveltebuilder/logistic` (GATED)  | **Not selectable in `npm create sveltebuilder` as of 2026-09-30.** Its 18 route templates call `locals.db.withUser()`, the Drizzle handle SuperPrototype dropped in Phase 1, so scaffolding it produced a project that did not typecheck. The module's own `./server` export is Drizzle-at-runtime too, which guardrail 8 forbids. The design question behind both — how modules deliver route code across templates — is explored in `docs/MODULE-ROUTES.md` and is undecided. Also still missing: vitest suite, dev-kitchen showcase routes. |
-| WCAG 2.2 AA audit                  | Bits UI provides accessible primitives but no accessibility audit has been run. Required before any module is marked production-ready.                                                                          |
-| `apps/docs`                        | Placeholder only — no content, no structure.                                                                                                                                                                   |
+| Issue                                     | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Native template (ON HOLD)                 | Frozen 2026-09-29 — not accessible from `npm create sveltebuilder`, not being maintained. Its `withUser`/Drizzle data layer is the pattern SuperPrototype is moving away from, so expect it to fall further behind. Keep shared surfaces provider-neutral in shape; do not spend effort on Native itself.                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| In-repo component harness                 | None. `apps/dev-kitchen` was removed 2026-09-30; the design for its replacement is `docs/DEV-KITCHEN.md`. 33 of coreui's 65 exports, all 18 content components and 3 logistic components are rendered by no template screen and covered by no unit test, and nothing in the repo renders a component for visual or WCAG review. Rebuild per the design doc; do not restore the old app.                                                                                                                                                                                                                                                                                                                                              |
+| `@sveltebuilder/commerce`                 | Not started — single placeholder `index.ts`. The product's remaining domain differentiator gap.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `@sveltebuilder/content` RLS was absent   | Fixed 2026-10-01, recorded because the shape of the mistake is worth remembering: all 27 of the module's tables shipped with row level security **disabled**, and Supabase's bootstrap grants give anon and authenticated full privileges on everything in `public` — so the publishable key could read and write `subscriber`, `comment` and the rest. Verified exploitable before the fix. Nothing could have caught it: a table with no policies is valid SQL, typechecks nowhere, and behaves correctly in any test that runs as an owner. `pnpm sql:check` now asserts that every table in `public` has RLS and that every RLS-enabled table has at least one policy.                                                           |
+| `@sveltebuilder/logistic` policy patterns | The route port is complete (8 screen bundles, `screens/_unported/` is gone). What remains is the policies themselves: the 40 of them call `public.current_user_id()` bare rather than as `(select …)`, so it evaluates once per row instead of once per statement, and they re-implement the admin check as an inline `exists (select 1 from public.user_account …)` instead of calling `public.current_user_admin()`. They are now genuinely enforced — `pnpm sql:check` exercises them as real principals — so this is a cost and consistency problem, not a correctness one. Also still missing: a vitest suite for the package, and showcase coverage for the 3 components no screen bundle renders (see `docs/DEV-KITCHEN.md`). |
+| WCAG 2.2 AA audit                         | Bits UI provides accessible primitives but no accessibility audit has been run. Required before any module is marked production-ready.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `apps/docs`                               | Placeholder only — no content, no structure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ---
 
 ## Completed Foundation
 
-| Item                        | Status                                                                                                                                                                                              |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `diglossia` 0.1.0            | Complete and tested — split into a framework-agnostic core (`createDictionary`, per-request `DictionaryInstance`, `formatText` MF2 interpolation/pluralization) and a Svelte adapter (`diglossia/svelte`: `setDictionary`/`getDictionary`/`<LocalText />`); full test suite; extracted from this repo (formerly `@sveltebuilder/hermes`) into its own repo/npm package, consumed here as an external dependency |
-| `@sveltebuilder/local-text-schema` | Complete — pure TS + Drizzle package (no Svelte), renamed from `@sveltebuilder/hermes-schema`; exports `./schema` (locale/local_text_link/local_text Drizzle tables) and `./seed` (canonical `LOCALES`/`BASE_SLUGS` data consumed by `sveltebuilder sync:supabase`)                       |
-| `@sveltebuilder/coreui`     | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocaleSwitcher, Menu, MessageAriaLive, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `BlockEditor`/`DateTimePicker` added for content, `BarcodeInput`/`MetricCard`/`StatusBadge`/`Timeline` added for logistic); all visual styles extracted to `styles/components.css` under `@layer components`; Bits UI data-attribute wiring throughout; builds cleanly |
-| `@sveltebuilder/content`    | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data, scaffold template routes; Camp 1/2 diglossia boundary respected. No unit tests yet. |
-| `@sveltebuilder/logistic`   | Schema, components and SQL complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; SECURITY DEFINER SQL for concurrency-sensitive stock mutations; README with v1-scope statement. **Its Drizzle + `withUser` query layer and route templates are stranded by the Supabase realignment and the module is gated in the create CLI** — see Known Open Issues and `docs/MODULE-ROUTES.md`. |
-| `@sveltebuilder/cli`        | Complete — `sveltebuilder sync:supabase` working (`.sveltebuilder/registry/` manifest discovery, topological sort, Drizzle schema barrel + `drizzle-kit generate`, supplemental SQL append, seed.sql generation); bare `sync` kept as a deprecated alias; the dead `sync:drizzle` stub was removed |
-| `create-sveltebuilder`      | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync:supabase`, installs dependencies                |
-| Local-text DB schema        | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function (`security invoker`, explicit predicate parens); schema of record is the Drizzle defs in `@sveltebuilder/local-text-schema`, SQL is generated; RLS + `get_dictionary` now ship from `tools/create/templates/base/supabase/supplemental/`, applying to every scaffold flavor |
-| Auth architecture           | Principal–identity split; `current_user_id()` + `current_user_admin()` SECURITY DEFINER helpers resolving `auth.uid()` → `user_account.id`; `ensure_user_account()` JIT provisioning in SQL; all policies call the helpers as `(select fn())` and name their role with `to`                               |
-| SuperPrototype template     | Supabase-native — all admin + API routes query through `event.locals.supabase` (PostgREST), so RLS applies to every request with no session variable or transaction wrapper. `getClaims()` for guards, publishable key, SECURITY INVOKER RPCs for compound writes. No direct Postgres connection; no `DATABASE_URL`. Sign-in/out remain Supabase OAuth. |
-| Native template             | **ON HOLD 2026-09-29** — built but frozen and unreachable from the create CLI. Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern. Will diverge from SuperPrototype from here; see `docs/DEFERRED.md`. |
-| Base scaffold template      | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) generated via `sync:supabase`; CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`) |
-| Messaging system            | Universal message surface in coreui — `createMessageBus`/`setMessageBus`/`getMessageBus` (context-provided, same shape as diglossia's dictionary, replacing a module-level `$state` singleton), `Toast`/`ToastRegion`, `Banner`, `InlineNotification`, `ConfirmDialog`, `MessageAriaLive`; wired into the base scaffold template's root layout. |
-| Publishing pipeline         | `.changeset/` configured (GitHub changelog, public npm access) — packages are versioned independently (e.g. `coreui@0.0.15`, `logistic@0.0.9`) via Changesets                                       |
-| `apps/dev-kitchen`          | Working SvelteKit app — component showcase routes for coreui and content, diglossia i18n integration, live Supabase connection. No logistic or commerce showcase yet.                                  |
-| Monorepo structure          | Clean — pnpm workspaces, Turborepo task graph, all workspace references correct                                                                                                                     |
+| Item                               | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `diglossia` 0.1.0                  | Complete and tested — split into a framework-agnostic core (`createDictionary`, per-request `DictionaryInstance`, `formatText` MF2 interpolation/pluralization) and a Svelte adapter (`diglossia/svelte`: `setDictionary`/`getDictionary`/`<LocalText />`); full test suite; extracted from this repo (formerly `@sveltebuilder/hermes`) into its own repo/npm package, consumed here as an external dependency                                                                                                                                                                                                                                     |
+| `@sveltebuilder/local-text-schema` | Complete — pure TS + Drizzle package (no Svelte), renamed from `@sveltebuilder/hermes-schema`; exports `./schema` (locale/local_text_link/local_text Drizzle tables) and `./seed` (canonical `LOCALES`/`BASE_SLUGS` data consumed by `sveltebuilder sync:supabase`)                                                                                                                                                                                                                                                                                                                                                                                 |
+| `@sveltebuilder/coreui`            | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocaleSwitcher, Menu, MessageAriaLive, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `BlockEditor`/`DateTimePicker` added for content, `BarcodeInput`/`MetricCard`/`StatusBadge`/`Timeline` added for logistic); all visual styles extracted to `styles/components.css` under `@layer components`; Bits UI data-attribute wiring throughout; builds cleanly |
+| `@sveltebuilder/content`           | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data; Camp 1/2 diglossia boundary respected. Its 13 route templates lived inside the package, were never copied by the create CLI, and shipped compiled as dead weight — they are being moved into the template tree as screen bundles (see `docs/MODULE-ROUTES.md`). No unit tests yet.                  |
+| `@sveltebuilder/logistic`          | Schema, components and SQL complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; SECURITY DEFINER SQL for concurrency-sensitive stock mutations; README with v1-scope statement. Its Drizzle query layer is removed (guardrail 11) and its route templates are being ported to screen bundles one at a time — **supplier** is done, ten remain in `screens/_unported/`. See Known Open Issues and `docs/MODULE-ROUTES.md`.                                                                                                                                                        |
+| `@sveltebuilder/cli`               | Complete — `sveltebuilder sync:supabase` working (`.sveltebuilder/registry/` manifest discovery, topological sort, Drizzle schema barrel + `drizzle-kit generate`, supplemental SQL append, seed.sql generation); bare `sync` kept as a deprecated alias; the dead `sync:drizzle` stub was removed                                                                                                                                                                                                                                                                                                                                                  |
+| `create-sveltebuilder`             | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync:supabase`, installs dependencies                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Local-text DB schema               | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function (`security invoker`, explicit predicate parens); schema of record is the Drizzle defs in `@sveltebuilder/local-text-schema`, SQL is generated; RLS + `get_dictionary` now ship from `tools/create/templates/base/supabase/supplemental/`, applying to every scaffold flavor                                                                                                                                                                                                                                                                           |
+| Auth architecture                  | Principal–identity split; `current_user_id()` + `current_user_admin()` SECURITY DEFINER helpers resolving `auth.uid()` → `user_account.id`; `ensure_user_account()` JIT provisioning in SQL; all policies call the helpers as `(select fn())` and name their role with `to`                                                                                                                                                                                                                                                                                                                                                                         |
+| SuperPrototype template            | Supabase-native — all admin + API routes query through `event.locals.supabase` (PostgREST), so RLS applies to every request with no session variable or transaction wrapper. `getClaims()` for guards, publishable key, SECURITY INVOKER RPCs for compound writes. No direct Postgres connection; no `DATABASE_URL`. Sign-in/out remain Supabase OAuth.                                                                                                                                                                                                                                                                                             |
+| Native template                    | **ON HOLD 2026-09-29** — built but frozen and unreachable from the create CLI. Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern. Will diverge from SuperPrototype from here; see `docs/DEFERRED.md`.                                                                                                                                                                                                                                                                        |
+| Base scaffold template             | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) generated via `sync:supabase`; CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`)                                                                                                                                                                                                                                                                     |
+| Messaging system                   | Universal message surface in coreui — `createMessageBus`/`setMessageBus`/`getMessageBus` (context-provided, same shape as diglossia's dictionary, replacing a module-level `$state` singleton), `Toast`/`ToastRegion`, `Banner`, `InlineNotification`, `ConfirmDialog`, `MessageAriaLive`; wired into the base scaffold template's root layout.                                                                                                                                                                                                                                                                                                     |
+| Publishing pipeline                | `.changeset/` configured (GitHub changelog, public npm access) — packages are versioned independently (e.g. `coreui@0.0.15`, `logistic@0.0.9`) via Changesets                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Monorepo structure                 | Clean — pnpm workspaces, Turborepo task graph, all workspace references correct                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |

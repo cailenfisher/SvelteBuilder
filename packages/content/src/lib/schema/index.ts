@@ -322,6 +322,32 @@ export type ArticleBlockWithCopy = ArticleBlock & {
   mediaAsset: MediaAssetWithCopy | null;
 };
 
+/**
+ * An article plus the relations that identify it — enough for a feed entry, a sitemap row or a
+ * card. No copy: a byline's name and a section's name are resolved from the dictionary by
+ * entity id, the same as a headline.
+ */
+export type ArticleWithRelations = Article & {
+  bylines: AuthorProfile[];
+  sections: Section[];
+};
+
+/**
+ * The least an article has to be for `ArticleView` to render it.
+ *
+ * Narrower than ArticleWithCopy on purpose. ArticleView is a Camp 2 component: it resolves
+ * the headline, the dek and every block's text from the dictionary itself, by entity id, so
+ * the resolved strings on ArticleWithCopy are fields it never reads. Typing the prop as the
+ * enriched shape demanded them anyway, which made the component unusable from a loader that
+ * ships a copy payload instead of baking strings into rows — the direction every module moved
+ * when the query layers were removed.
+ *
+ * Any ArticleWithCopy still satisfies this, so narrowing breaks no existing caller.
+ */
+export type ArticleRenderable = ArticleWithRelations & {
+  blocks: ArticleBlock[];
+};
+
 export type ArticleWithCopy = Article & {
   headline: string;
   dek: string;

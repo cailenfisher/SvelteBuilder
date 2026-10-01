@@ -1,0 +1,53 @@
+{
+  "id": "receipt",
+  "module": "logistic",
+  "label": "Inbound receipts",
+  "hint": "Receiving against a supplier or blind, line by line, with stock moved as goods land",
+  "routes": ["/admin/logistic/receipt", "/admin/logistic/receipt/[id]"],
+  "requires": [],
+  "views": [
+    "InboundReceiptListView",
+    "InboundReceiptDetailView",
+    "InboundReceiptRow",
+    "InboundReceiptLineRow"
+  ],
+  "actions": {
+    "/admin/logistic/receipt": {
+      "create": ["supplier_id", "expected_at", "note"]
+    },
+    "/admin/logistic/receipt/[id]": {
+      "addLine": ["storage_location_id", "sku", "expected_quantity"],
+      "receiveLine": ["line_id", "received_quantity"]
+    }
+  },
+  "copySlugs": [
+    "logistic.receipt.title",
+    "logistic.receipt.one",
+    "logistic.receipt.new",
+    "logistic.receipt.create",
+    "logistic.receipt.empty",
+    "logistic.receipt.filter_all",
+    "logistic.receipt.filter_status",
+    "logistic.receipt.pagination",
+    "logistic.receipt.supplier",
+    "logistic.receipt.expected_at",
+    "logistic.receipt.received_at",
+    "logistic.receipt.lines",
+    "logistic.receipt.lines_empty",
+    "logistic.receipt.line_add",
+    "logistic.receipt.expected_quantity",
+    "logistic.receipt.received_quantity",
+    "logistic.receipt.discrepancy",
+    "logistic.receipt.receive",
+    "logistic.inbound_receipt.blind",
+    "logistic.inbound_receipt.status.pending",
+    "logistic.inbound_receipt.status.partial",
+    "logistic.inbound_receipt.status.complete",
+    "logistic.inbound_receipt.status.cancelled",
+    "logistic.field.sku",
+    "logistic.field.location",
+    "logistic.field.note",
+    "action.add",
+    "action.cancel"
+  ]
+}

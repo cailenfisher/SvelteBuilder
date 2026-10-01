@@ -1,7 +1,0 @@
-.env
-.svelte-kit/
-node_modules/
-build/
-dist/
-supabase/.branches
-supabase/.temp

@@ -40,5 +40,7 @@
     text-decoration: none;
   }
 
-  .section-label:hover { color: color-mix(in srgb, var(--brand), black 20%); }
+  .section-label:hover {
+    color: color-mix(in srgb, var(--brand), black 20%);
+  }
 </style>

@@ -1,7 +1,7 @@
 {
   "name": "@sveltebuilder/content",
   "version": "0.0.6",
-  "description": "Publisher/news domain module for SvelteBuilder — articles, sections, taxonomy, live coverage, newsletters, comments, RSS, sitemaps, and JSON-LD, with a Drizzle schema and i18n built in.",
+  "description": "Publisher/news domain module for SvelteBuilder \u2014 articles, sections, taxonomy, live coverage, newsletters, comments, RSS, sitemaps, and JSON-LD, with a Drizzle schema and i18n built in.",
   "keywords": [
     "svelte",
     "svelte5",
@@ -24,7 +24,7 @@
     "build": "svelte-package -i src/lib",
     "dev": "svelte-package -i src/lib --watch",
     "lint": "eslint src",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "exports": {
     ".": {
@@ -32,13 +32,17 @@
       "svelte": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./server": {
-      "types": "./dist/server/index.d.ts",
-      "default": "./dist/server/index.js"
-    },
     "./schema": {
       "types": "./dist/schema.d.ts",
       "default": "./dist/schema.js"
+    },
+    "./publishing": {
+      "types": "./dist/publishing/index.d.ts",
+      "default": "./dist/publishing/index.js"
+    },
+    "./views": {
+      "types": "./dist/views.d.ts",
+      "default": "./dist/views.js"
     }
   },
   "svelte": "./dist/index.js",
@@ -50,7 +54,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "diglossia": "^0.0.1",
+    "diglossia": "^0.1.0",
     "@sveltebuilder/coreui": "workspace:^",
     "@supabase/supabase-js": ">=2.0.0",
     "svelte": ">=5.0.0"

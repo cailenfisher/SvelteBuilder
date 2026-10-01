@@ -9,18 +9,29 @@
 --   3. Cross-package FKs to user_account (cannot be expressed in the module schema)
 
 -- ── updated_at trigger function ───────────────────────────────────────────────
-
-create or replace function set_updated_at()
-returns trigger language plpgsql as $$
+--
+-- Both this module and @sveltebuilder/logistic define public.set_updated_at(), and
+-- `create or replace` on the same signature means whichever supplemental file is appended
+-- last wins. The two definitions must therefore stay identical, or installing both modules
+-- would silently change which one a project gets: logistic sorts after content, so its
+-- version is the one that survives today. Keeping them the same removes the question.
+--
+-- `set search_path = ''` because now() resolves from pg_catalog, which is always in scope,
+-- so pinning it costs nothing and stops the trigger being redirected through a shadowed
+-- object.
+create or replace function public.set_updated_at()
+returns trigger language plpgsql
+set search_path = ''
+as $$
 begin new.updated_at = now(); return new; end; $$;
 
 create or replace trigger article_set_updated_at
   before update on public.article
-  for each row execute function set_updated_at();
+  for each row execute function public.set_updated_at();
 
 create or replace trigger comment_set_updated_at
   before update on public.comment
-  for each row execute function set_updated_at();
+  for each row execute function public.set_updated_at();
 
 -- ── Cross-package foreign keys ────────────────────────────────────────────────
 -- Wrapped in DO blocks so re-running sync:supabase doesn't fail on duplicate constraints.

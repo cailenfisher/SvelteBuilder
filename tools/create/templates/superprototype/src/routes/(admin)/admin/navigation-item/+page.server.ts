@@ -1,5 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import { toOne } from '$lib/server/postgrest';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const { data, error: queryError } = await locals.supabase
@@ -16,7 +17,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     scope: row.scope,
     sortOrder: row.sort_order,
     active: row.active,
-    localTextLink: row.local_text_link,
+    localTextLink: toOne(row.local_text_link),
   }));
 
   return { navItems };

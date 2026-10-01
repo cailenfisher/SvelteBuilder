@@ -426,3 +426,656 @@ from (values
 ) as v(slug, scope, content)
 join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — supplier bundle
+--
+-- Added with the supplier screen bundle. Seeds stay module-granular (an unselected
+-- screen's copy is harmless, a missing row is not), so this lives here rather than
+-- beside the screen. Global labels the screen also uses — action.save, action.cancel,
+-- action.back, action.remove — come from the base seed under scope null.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.supplier.title',        'logistic', null),
+  ('logistic.supplier.add',          'logistic', null),
+  ('logistic.supplier.empty',        'logistic', null),
+  ('logistic.supplier.contacts',     'logistic', null),
+  ('logistic.supplier.contact_add',  'logistic', null),
+  ('logistic.supplier.contact_none', 'logistic', null),
+  ('logistic.field.slug',            'logistic', null),
+  ('logistic.field.active',          'logistic', null),
+  ('logistic.field.role',            'logistic', null),
+  ('logistic.field.name',            'logistic', null),
+  ('logistic.field.email',           'logistic', null),
+  ('logistic.field.phone',           'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.supplier.title',        'Suppliers'),
+  ('logistic.supplier.add',          'Add supplier'),
+  ('logistic.supplier.empty',        'No suppliers yet. Add one to start recording inbound receipts.'),
+  ('logistic.supplier.contacts',     'Contacts'),
+  ('logistic.supplier.contact_add',  'Add contact'),
+  ('logistic.supplier.contact_none', 'No contacts recorded for this supplier.'),
+  ('logistic.field.slug',            'Slug'),
+  ('logistic.field.active',          'Active'),
+  ('logistic.field.role',            'Role'),
+  ('logistic.field.name',            'Name'),
+  ('logistic.field.email',           'Email'),
+  ('logistic.field.phone',           'Phone')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.supplier.title',        'Fournisseurs'),
+  ('logistic.supplier.add',          'Ajouter un fournisseur'),
+  ('logistic.supplier.empty',        'Aucun fournisseur. Ajoutez-en un pour enregistrer des réceptions.'),
+  ('logistic.supplier.contacts',     'Contacts'),
+  ('logistic.supplier.contact_add',  'Ajouter un contact'),
+  ('logistic.supplier.contact_none', 'Aucun contact enregistré pour ce fournisseur.'),
+  ('logistic.field.slug',            'Identifiant'),
+  ('logistic.field.active',          'Actif'),
+  ('logistic.field.role',            'Rôle'),
+  ('logistic.field.name',            'Nom'),
+  ('logistic.field.email',           'Courriel'),
+  ('logistic.field.phone',           'Téléphone')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — stock bundle
+--
+-- The field and adjustment_reason slugs this screen also renders are seeded above with
+-- the module's base copy; only what is new to the bundle is added here. Global labels
+-- (action.save, action.cancel, action.close) come from the base seed under scope null.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.stock.title',                'logistic', null),
+  ('logistic.stock.filters',              'logistic', null),
+  ('logistic.stock.filter_all',           'logistic', null),
+  ('logistic.stock.filter_low',           'logistic', null),
+  ('logistic.stock.empty',                'logistic', null),
+  ('logistic.stock.empty_low',            'logistic', null),
+  ('logistic.stock.history',              'logistic', null),
+  ('logistic.stock.history_empty',        'logistic', null),
+  ('logistic.stock.adjust',               'logistic', null),
+  ('logistic.stock.adjust_title',         'logistic', null),
+  ('logistic.stock.adjust_delta',         'logistic', null),
+  ('logistic.stock.adjust_apply',         'logistic', null),
+  ('logistic.stock.reorder_point_hint',   'logistic', null),
+  ('logistic.field.location',             'logistic', null),
+  ('logistic.field.reason',               'logistic', null),
+  ('logistic.field.note',                 'logistic', null),
+  ('logistic.stock.history_after',        'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.stock.title',                'Stock'),
+  ('logistic.stock.filters',              'Stock filters'),
+  ('logistic.stock.filter_all',           'All'),
+  ('logistic.stock.filter_low',           'Low stock'),
+  ('logistic.stock.empty',                'No stock levels yet.'),
+  ('logistic.stock.empty_low',            'No items below their reorder point.'),
+  ('logistic.stock.history',              'History'),
+  ('logistic.stock.history_empty',        'No adjustments recorded for this stock level.'),
+  ('logistic.stock.adjust',               'Adjust'),
+  ('logistic.stock.adjust_title',         'Adjust stock'),
+  ('logistic.stock.adjust_delta',         'Change (negative to remove)'),
+  ('logistic.stock.adjust_apply',         'Apply adjustment'),
+  ('logistic.stock.reorder_point_hint',   'Reorder point (blank to disable alerts)'),
+  ('logistic.field.location',             'Location'),
+  ('logistic.field.reason',               'Reason'),
+  ('logistic.field.note',                 'Note'),
+  ('logistic.stock.history_after',        '→ {$count} on hand')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.stock.title',                'Stock'),
+  ('logistic.stock.filters',              'Filtres de stock'),
+  ('logistic.stock.filter_all',           'Tout'),
+  ('logistic.stock.filter_low',           'Stock faible'),
+  ('logistic.stock.empty',                'Aucun niveau de stock.'),
+  ('logistic.stock.empty_low',            'Aucun article sous son point de commande.'),
+  ('logistic.stock.history',              'Historique'),
+  ('logistic.stock.history_empty',        'Aucun ajustement enregistré pour ce niveau de stock.'),
+  ('logistic.stock.adjust',               'Ajuster'),
+  ('logistic.stock.adjust_title',         'Ajuster le stock'),
+  ('logistic.stock.adjust_delta',         'Variation (négative pour retirer)'),
+  ('logistic.stock.adjust_apply',         'Appliquer l''ajustement'),
+  ('logistic.stock.reorder_point_hint',   'Point de commande (vide pour désactiver les alertes)'),
+  ('logistic.field.location',             'Emplacement'),
+  ('logistic.field.reason',               'Motif'),
+  ('logistic.field.note',                 'Note'),
+  ('logistic.stock.history_after',        '→ {$count} en stock')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — receipt bundle
+--
+-- The status labels and logistic.inbound_receipt.blind this screen renders are seeded
+-- above with the module's base copy; only what is new to the bundle is added here.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.receipt.title',                'logistic', null),
+  ('logistic.receipt.one',                  'logistic', null),
+  ('logistic.receipt.new',                  'logistic', null),
+  ('logistic.receipt.create',               'logistic', null),
+  ('logistic.receipt.empty',                'logistic', null),
+  ('logistic.receipt.filter_all',           'logistic', null),
+  ('logistic.receipt.filter_status',        'logistic', null),
+  ('logistic.receipt.pagination',           'logistic', null),
+  ('logistic.receipt.supplier',             'logistic', null),
+  ('logistic.receipt.expected_at',          'logistic', null),
+  ('logistic.receipt.received_at',          'logistic', null),
+  ('logistic.receipt.lines',                'logistic', null),
+  ('logistic.receipt.lines_empty',          'logistic', null),
+  ('logistic.receipt.line_add',             'logistic', null),
+  ('logistic.receipt.expected_quantity',    'logistic', null),
+  ('logistic.receipt.received_quantity',    'logistic', null),
+  ('logistic.receipt.discrepancy',          'logistic', null),
+  ('logistic.receipt.receive',              'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.receipt.title',                'Inbound receipts'),
+  ('logistic.receipt.one',                  'Receipt'),
+  ('logistic.receipt.new',                  'New receipt'),
+  ('logistic.receipt.create',               'Create receipt'),
+  ('logistic.receipt.empty',                'No receipts found.'),
+  ('logistic.receipt.filter_all',           'All'),
+  ('logistic.receipt.filter_status',        'Filter receipts by status'),
+  ('logistic.receipt.pagination',           'Receipt pages'),
+  ('logistic.receipt.supplier',             'Supplier'),
+  ('logistic.receipt.expected_at',          'Expected'),
+  ('logistic.receipt.received_at',          'Received'),
+  ('logistic.receipt.lines',                'Lines'),
+  ('logistic.receipt.lines_empty',          'No lines yet. Add lines to begin receiving.'),
+  ('logistic.receipt.line_add',             'Add line'),
+  ('logistic.receipt.expected_quantity',    'Expected quantity'),
+  ('logistic.receipt.received_quantity',    'Received quantity'),
+  ('logistic.receipt.discrepancy',          'Discrepancy'),
+  ('logistic.receipt.receive',              'Receive')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.receipt.title',                'Réceptions'),
+  ('logistic.receipt.one',                  'Réception'),
+  ('logistic.receipt.new',                  'Nouvelle réception'),
+  ('logistic.receipt.create',               'Créer la réception'),
+  ('logistic.receipt.empty',                'Aucune réception trouvée.'),
+  ('logistic.receipt.filter_all',           'Toutes'),
+  ('logistic.receipt.filter_status',        'Filtrer les réceptions par statut'),
+  ('logistic.receipt.pagination',           'Pages de réceptions'),
+  ('logistic.receipt.supplier',             'Fournisseur'),
+  ('logistic.receipt.expected_at',          'Prévue'),
+  ('logistic.receipt.received_at',          'Reçue'),
+  ('logistic.receipt.lines',                'Lignes'),
+  ('logistic.receipt.lines_empty',          'Aucune ligne. Ajoutez des lignes pour commencer la réception.'),
+  ('logistic.receipt.line_add',             'Ajouter une ligne'),
+  ('logistic.receipt.expected_quantity',    'Quantité prévue'),
+  ('logistic.receipt.received_quantity',    'Quantité reçue'),
+  ('logistic.receipt.discrepancy',          'Écart'),
+  ('logistic.receipt.receive',              'Réceptionner')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — shipment bundle
+--
+-- The six logistic.shipment.status.* labels this screen renders are seeded above with the
+-- module's base copy; only what is new to the bundle is added here.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.shipment.title',                 'logistic', null),
+  ('logistic.shipment.one',                   'logistic', null),
+  ('logistic.shipment.new',                   'logistic', null),
+  ('logistic.shipment.create',                'logistic', null),
+  ('logistic.shipment.empty',                 'logistic', null),
+  ('logistic.shipment.filter_all',            'logistic', null),
+  ('logistic.shipment.filter_status',         'logistic', null),
+  ('logistic.shipment.lines',                 'logistic', null),
+  ('logistic.shipment.lines_empty',           'logistic', null),
+  ('logistic.shipment.quantity',              'logistic', null),
+  ('logistic.shipment.service_level',         'logistic', null),
+  ('logistic.shipment.created_at',            'logistic', null),
+  ('logistic.shipment.status_label',          'logistic', null),
+  ('logistic.shipment.status_update',         'logistic', null),
+  ('logistic.shipment.carrier_tracking',      'logistic', null),
+  ('logistic.shipment.tracking_events',       'logistic', null),
+  ('logistic.shipment.event',                 'logistic', null),
+  ('logistic.shipment.event_add',             'logistic', null),
+  ('logistic.shipment.event_description',     'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.shipment.title',                 'Shipments'),
+  ('logistic.shipment.one',                   'Shipment'),
+  ('logistic.shipment.new',                   'New shipment'),
+  ('logistic.shipment.create',                'Create shipment'),
+  ('logistic.shipment.empty',                 'No shipments found.'),
+  ('logistic.shipment.filter_all',            'All'),
+  ('logistic.shipment.filter_status',         'Filter shipments by status'),
+  ('logistic.shipment.lines',                 'Lines'),
+  ('logistic.shipment.lines_empty',           'No lines on this shipment.'),
+  ('logistic.shipment.quantity',              'Quantity'),
+  ('logistic.shipment.service_level',         'Service level'),
+  ('logistic.shipment.created_at',            'Created'),
+  ('logistic.shipment.status_label',          'Status'),
+  ('logistic.shipment.status_update',         'Update status'),
+  ('logistic.shipment.carrier_tracking',      'Carrier and tracking'),
+  ('logistic.shipment.tracking_events',       'Tracking events'),
+  ('logistic.shipment.event',                 'Event'),
+  ('logistic.shipment.event_add',             'Add tracking event'),
+  ('logistic.shipment.event_description',     'Description')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.shipment.title',                 'Expéditions'),
+  ('logistic.shipment.one',                   'Expédition'),
+  ('logistic.shipment.new',                   'Nouvelle expédition'),
+  ('logistic.shipment.create',                'Créer l''expédition'),
+  ('logistic.shipment.empty',                 'Aucune expédition trouvée.'),
+  ('logistic.shipment.filter_all',            'Toutes'),
+  ('logistic.shipment.filter_status',         'Filtrer les expéditions par statut'),
+  ('logistic.shipment.lines',                 'Lignes'),
+  ('logistic.shipment.lines_empty',           'Aucune ligne sur cette expédition.'),
+  ('logistic.shipment.quantity',              'Quantité'),
+  ('logistic.shipment.service_level',         'Niveau de service'),
+  ('logistic.shipment.created_at',            'Créée'),
+  ('logistic.shipment.status_label',          'Statut'),
+  ('logistic.shipment.status_update',         'Mettre à jour le statut'),
+  ('logistic.shipment.carrier_tracking',      'Transporteur et suivi'),
+  ('logistic.shipment.tracking_events',       'Événements de suivi'),
+  ('logistic.shipment.event',                 'Événement'),
+  ('logistic.shipment.event_add',             'Ajouter un événement'),
+  ('logistic.shipment.event_description',     'Description')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — return bundle
+--
+-- The condition, disposition and return_authorization.status labels this screen renders
+-- are seeded above with the module's base copy; only what is new is added here.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.return.title',                   'logistic', null),
+  ('logistic.return.one',                     'logistic', null),
+  ('logistic.return.new',                     'logistic', null),
+  ('logistic.return.create',                  'logistic', null),
+  ('logistic.return.empty',                   'logistic', null),
+  ('logistic.return.filter_all',              'logistic', null),
+  ('logistic.return.filter_status',           'logistic', null),
+  ('logistic.return.status_label',            'logistic', null),
+  ('logistic.return.reason',                  'logistic', null),
+  ('logistic.return.lines',                   'logistic', null),
+  ('logistic.return.lines_empty',             'logistic', null),
+  ('logistic.return.created_at',              'logistic', null),
+  ('logistic.return.expected_quantity',       'logistic', null),
+  ('logistic.return.received_quantity',       'logistic', null),
+  ('logistic.return.grade',                   'logistic', null),
+  ('logistic.return.no_location',             'logistic', null),
+  ('logistic.return.process',                 'logistic', null),
+  ('logistic.return.process_confirm',         'logistic', null),
+  ('logistic.return.condition',               'logistic', null),
+  ('logistic.return.disposition',             'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.return.title',                   'Returns'),
+  ('logistic.return.one',                     'RMA'),
+  ('logistic.return.new',                     'New return'),
+  ('logistic.return.create',                  'Create return'),
+  ('logistic.return.empty',                   'No returns found.'),
+  ('logistic.return.filter_all',              'All'),
+  ('logistic.return.filter_status',           'Filter returns by status'),
+  ('logistic.return.status_label',            'Status'),
+  ('logistic.return.reason',                  'Reason'),
+  ('logistic.return.lines',                   'Lines'),
+  ('logistic.return.lines_empty',             'No lines on this return.'),
+  ('logistic.return.created_at',              'Created'),
+  ('logistic.return.expected_quantity',       'Expected'),
+  ('logistic.return.received_quantity',       'Received'),
+  ('logistic.return.grade',                   'Grade'),
+  ('logistic.return.no_location',             'No location'),
+  ('logistic.return.process',                 'Mark processed'),
+  ('logistic.return.process_confirm',         'Every line has been graded. Marking this return processed cannot be undone.'),
+  ('logistic.return.condition',               'Condition'),
+  ('logistic.return.disposition',             'Disposition')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.return.title',                   'Retours'),
+  ('logistic.return.one',                     'RMA'),
+  ('logistic.return.new',                     'Nouveau retour'),
+  ('logistic.return.create',                  'Créer le retour'),
+  ('logistic.return.empty',                   'Aucun retour trouvé.'),
+  ('logistic.return.filter_all',              'Tous'),
+  ('logistic.return.filter_status',           'Filtrer les retours par statut'),
+  ('logistic.return.status_label',            'Statut'),
+  ('logistic.return.reason',                  'Motif'),
+  ('logistic.return.lines',                   'Lignes'),
+  ('logistic.return.lines_empty',             'Aucune ligne sur ce retour.'),
+  ('logistic.return.created_at',              'Créé'),
+  ('logistic.return.expected_quantity',       'Attendue'),
+  ('logistic.return.received_quantity',       'Reçue'),
+  ('logistic.return.grade',                   'Évaluer'),
+  ('logistic.return.no_location',             'Aucun emplacement'),
+  ('logistic.return.process',                 'Marquer traité'),
+  ('logistic.return.process_confirm',         'Toutes les lignes sont évaluées. Marquer ce retour comme traité est irréversible.'),
+  ('logistic.return.condition',               'État'),
+  ('logistic.return.disposition',             'Traitement')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — cycle-count bundle
+--
+-- The four logistic.cycle_count.status.* labels are seeded above with the module's base
+-- copy; only what is new to the bundle is added here. progress_value and variance_count are
+-- MF2 patterns so a locale can place their numbers where its grammar needs them.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.cycle_count.title',                'logistic', null),
+  ('logistic.cycle_count.one',                  'logistic', null),
+  ('logistic.cycle_count.new',                  'logistic', null),
+  ('logistic.cycle_count.create',               'logistic', null),
+  ('logistic.cycle_count.empty',                'logistic', null),
+  ('logistic.cycle_count.filter_all',           'logistic', null),
+  ('logistic.cycle_count.filter_status',        'logistic', null),
+  ('logistic.cycle_count.status_label',         'logistic', null),
+  ('logistic.cycle_count.created_at',           'logistic', null),
+  ('logistic.cycle_count.progress',             'logistic', null),
+  ('logistic.cycle_count.progress_value',       'logistic', null),
+  ('logistic.cycle_count.choose_locations',     'logistic', null),
+  ('logistic.cycle_count.expected',             'logistic', null),
+  ('logistic.cycle_count.counted',              'logistic', null),
+  ('logistic.cycle_count.variance',             'logistic', null),
+  ('logistic.cycle_count.variance_count',       'logistic', null),
+  ('logistic.cycle_count.matched',              'logistic', null),
+  ('logistic.cycle_count.approve',              'logistic', null),
+  ('logistic.cycle_count.approve_confirm',      'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.cycle_count.title',                'Cycle counts'),
+  ('logistic.cycle_count.one',                  'Cycle count'),
+  ('logistic.cycle_count.new',                  'New cycle count'),
+  ('logistic.cycle_count.create',               'Open count'),
+  ('logistic.cycle_count.empty',                'No cycle counts found.'),
+  ('logistic.cycle_count.filter_all',           'All'),
+  ('logistic.cycle_count.filter_status',        'Filter counts by status'),
+  ('logistic.cycle_count.status_label',         'Status'),
+  ('logistic.cycle_count.created_at',           'Opened'),
+  ('logistic.cycle_count.progress',             'Counted'),
+  ('logistic.cycle_count.progress_value',       '{$counted} of {$total} counted'),
+  ('logistic.cycle_count.choose_locations',     'Locations to count'),
+  ('logistic.cycle_count.expected',             'Expected'),
+  ('logistic.cycle_count.counted',              'Counted'),
+  ('logistic.cycle_count.variance',             'Variance'),
+  ('logistic.cycle_count.variance_count',       '{$count} with variance'),
+  ('logistic.cycle_count.matched',              'Matched'),
+  ('logistic.cycle_count.approve',              'Approve count'),
+  ('logistic.cycle_count.approve_confirm',      'Approving writes a stock adjustment for every counted line with a variance. This cannot be undone.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.cycle_count.title',                'Inventaires tournants'),
+  ('logistic.cycle_count.one',                  'Inventaire tournant'),
+  ('logistic.cycle_count.new',                  'Nouvel inventaire'),
+  ('logistic.cycle_count.create',               'Ouvrir l''inventaire'),
+  ('logistic.cycle_count.empty',                'Aucun inventaire trouvé.'),
+  ('logistic.cycle_count.filter_all',           'Tous'),
+  ('logistic.cycle_count.filter_status',        'Filtrer les inventaires par statut'),
+  ('logistic.cycle_count.status_label',         'Statut'),
+  ('logistic.cycle_count.created_at',           'Ouvert'),
+  ('logistic.cycle_count.progress',             'Comptées'),
+  ('logistic.cycle_count.progress_value',       '{$counted} sur {$total} comptées'),
+  ('logistic.cycle_count.choose_locations',     'Emplacements à compter'),
+  ('logistic.cycle_count.expected',             'Attendu'),
+  ('logistic.cycle_count.counted',              'Compté'),
+  ('logistic.cycle_count.variance',             'Écart'),
+  ('logistic.cycle_count.variance_count',       '{$count} avec écart'),
+  ('logistic.cycle_count.matched',              'Conforme'),
+  ('logistic.cycle_count.approve',              'Approuver'),
+  ('logistic.cycle_count.approve_confirm',      'Approuver enregistre un ajustement de stock pour chaque ligne comptée présentant un écart. Cette action est irréversible.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — warehouse bundle
+--
+-- The shell's own labels are module copy under scope 'logistic' rather than global copy in
+-- the base seed: a scaffold without this module has no warehouse to navigate, so its nav
+-- strings are not application chrome every project carries.
+--
+-- The status labels these screens render are seeded above with the module's base copy.
+-- Several of these are MF2 patterns, so a locale can place their numbers where its grammar
+-- needs them rather than the screen concatenating around a fixed word order.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.warehouse.title',                  'logistic', null),
+  ('logistic.warehouse.nav',                    'logistic', null),
+  ('logistic.warehouse.pick',                   'logistic', null),
+  ('logistic.warehouse.pick.hint',              'logistic', null),
+  ('logistic.warehouse.receive',                'logistic', null),
+  ('logistic.warehouse.receive.hint',           'logistic', null),
+  ('logistic.warehouse.count',                  'logistic', null),
+  ('logistic.warehouse.count.hint',             'logistic', null),
+  ('logistic.pick.task',                        'logistic', null),
+  ('logistic.pick.mine',                        'logistic', null),
+  ('logistic.pick.open',                        'logistic', null),
+  ('logistic.pick.empty',                       'logistic', null),
+  ('logistic.pick.take',                        'logistic', null),
+  ('logistic.pick.showing',                     'logistic', null),
+  ('logistic.pick.remaining',                   'logistic', null),
+  ('logistic.pick.picked_of',                   'logistic', null),
+  ('logistic.pick.quantity',                    'logistic', null),
+  ('logistic.pick.record',                      'logistic', null),
+  ('logistic.pick.complete',                    'logistic', null),
+  ('logistic.pick.complete_confirm',            'logistic', null),
+  ('logistic.pick.complete_short',              'logistic', null),
+  ('logistic.receive.active',                   'logistic', null),
+  ('logistic.receive.recent',                   'logistic', null),
+  ('logistic.receive.empty',                    'logistic', null),
+  ('logistic.receive.outstanding',              'logistic', null),
+  ('logistic.receive.received_of',              'logistic', null),
+  ('logistic.receive.discrepancy_note',         'logistic', null),
+  ('logistic.count.mine',                       'logistic', null),
+  ('logistic.count.open',                       'logistic', null),
+  ('logistic.count.empty',                      'logistic', null),
+  ('logistic.count.take',                       'logistic', null),
+  ('logistic.count.lines',                      'logistic', null),
+  ('logistic.count.record',                     'logistic', null),
+  ('logistic.count.counted_quantity',           'logistic', null),
+  ('logistic.count.approval_note',              'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.warehouse.title',                  'Warehouse'),
+  ('logistic.warehouse.nav',                    'Warehouse navigation'),
+  ('logistic.warehouse.pick',                   'Pick queue'),
+  ('logistic.warehouse.pick.hint',              'View and work open pick tasks'),
+  ('logistic.warehouse.receive',                'Receiving'),
+  ('logistic.warehouse.receive.hint',           'Process inbound receipts'),
+  ('logistic.warehouse.count',                  'Counting'),
+  ('logistic.warehouse.count.hint',             'Work assigned cycle counts'),
+  ('logistic.pick.task',                        'Task'),
+  ('logistic.pick.mine',                        'Your tasks'),
+  ('logistic.pick.open',                        'Open queue'),
+  ('logistic.pick.empty',                       'Nothing waiting to be picked.'),
+  ('logistic.pick.take',                        'Take'),
+  ('logistic.pick.showing',                     'showing {$showing} of {$total}'),
+  ('logistic.pick.remaining',                   '{$remaining} of {$total} lines still to pick'),
+  ('logistic.pick.picked_of',                   '{$picked} of {$requested} picked'),
+  ('logistic.pick.quantity',                    'Picked quantity'),
+  ('logistic.pick.record',                      'Record'),
+  ('logistic.pick.complete',                    'Complete task'),
+  ('logistic.pick.complete_confirm',            'Everything has been picked. Completing the task closes it.'),
+  ('logistic.pick.complete_short',              'Some lines are short. Completing the task releases the stock still reserved for them.'),
+  ('logistic.receive.active',                   'To receive'),
+  ('logistic.receive.recent',                   'Recently completed'),
+  ('logistic.receive.empty',                    'Nothing waiting to be received.'),
+  ('logistic.receive.outstanding',              '{$outstanding} of {$total} lines outstanding'),
+  ('logistic.receive.received_of',              '{$received} of {$expected} received'),
+  ('logistic.receive.discrepancy_note',         'Discrepancy of {$discrepancy} against what was expected'),
+  ('logistic.count.mine',                       'Your counts'),
+  ('logistic.count.open',                       'Open counts'),
+  ('logistic.count.empty',                      'Nothing waiting to be counted.'),
+  ('logistic.count.take',                       'Take'),
+  ('logistic.count.lines',                      '{$total} lines'),
+  ('logistic.count.record',                     'Record'),
+  ('logistic.count.counted_quantity',           'Counted quantity'),
+  ('logistic.count.approval_note',              'What you record here corrects nothing on its own. An administrator reviews the variances and approves the count.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.warehouse.title',                  'Entrepôt'),
+  ('logistic.warehouse.nav',                    'Navigation entrepôt'),
+  ('logistic.warehouse.pick',                   'File de prélèvement'),
+  ('logistic.warehouse.pick.hint',              'Consulter et traiter les tâches de prélèvement'),
+  ('logistic.warehouse.receive',                'Réception'),
+  ('logistic.warehouse.receive.hint',           'Traiter les réceptions entrantes'),
+  ('logistic.warehouse.count',                  'Comptage'),
+  ('logistic.warehouse.count.hint',             'Traiter les inventaires assignés'),
+  ('logistic.pick.task',                        'Tâche'),
+  ('logistic.pick.mine',                        'Vos tâches'),
+  ('logistic.pick.open',                        'File ouverte'),
+  ('logistic.pick.empty',                       'Rien à prélever.'),
+  ('logistic.pick.take',                        'Prendre'),
+  ('logistic.pick.showing',                     '{$showing} sur {$total} affichées'),
+  ('logistic.pick.remaining',                   '{$remaining} lignes sur {$total} à prélever'),
+  ('logistic.pick.picked_of',                   '{$picked} sur {$requested} prélevés'),
+  ('logistic.pick.quantity',                    'Quantité prélevée'),
+  ('logistic.pick.record',                      'Enregistrer'),
+  ('logistic.pick.complete',                    'Terminer la tâche'),
+  ('logistic.pick.complete_confirm',            'Tout a été prélevé. Terminer la tâche la clôture.'),
+  ('logistic.pick.complete_short',              'Certaines lignes sont incomplètes. Terminer la tâche libère le stock encore réservé.'),
+  ('logistic.receive.active',                   'À réceptionner'),
+  ('logistic.receive.recent',                   'Récemment terminées'),
+  ('logistic.receive.empty',                    'Rien à réceptionner.'),
+  ('logistic.receive.outstanding',              '{$outstanding} lignes sur {$total} en attente'),
+  ('logistic.receive.received_of',              '{$received} sur {$expected} reçus'),
+  ('logistic.receive.discrepancy_note',         'Écart de {$discrepancy} par rapport au prévu'),
+  ('logistic.count.mine',                       'Vos inventaires'),
+  ('logistic.count.open',                       'Inventaires ouverts'),
+  ('logistic.count.empty',                      'Rien à compter.'),
+  ('logistic.count.take',                       'Prendre'),
+  ('logistic.count.lines',                      '{$total} lignes'),
+  ('logistic.count.record',                     'Enregistrer'),
+  ('logistic.count.counted_quantity',           'Quantité comptée'),
+  ('logistic.count.approval_note',              'Ce que vous enregistrez ici ne corrige rien en soi. Un administrateur examine les écarts et approuve l''inventaire.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — dashboard bundle
+--
+-- The nav labels and dashboard title are seeded above with the module's base copy; only the
+-- dashboard's own section headings and metric descriptions are new.
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.dashboard.open',                 'logistic', null),
+  ('logistic.dashboard.pending',              'logistic', null),
+  ('logistic.dashboard.low_stock',            'logistic', null),
+  ('logistic.dashboard.below_reorder',        'logistic', null),
+  ('logistic.dashboard.pending_receipts',     'logistic', null),
+  ('logistic.dashboard.open_picks',           'logistic', null),
+  ('logistic.dashboard.open_returns',         'logistic', null),
+  ('logistic.dashboard.sections',             'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.dashboard.open',                 'Open'),
+  ('logistic.dashboard.pending',              'Pending'),
+  ('logistic.dashboard.low_stock',            'Low stock'),
+  ('logistic.dashboard.below_reorder',        'Below reorder point'),
+  ('logistic.dashboard.pending_receipts',     'Pending receipts'),
+  ('logistic.dashboard.open_picks',           'Open pick tasks'),
+  ('logistic.dashboard.open_returns',         'Open returns'),
+  ('logistic.dashboard.sections',             'Logistics sections')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.dashboard.open',                 'Ouverts'),
+  ('logistic.dashboard.pending',              'En attente'),
+  ('logistic.dashboard.low_stock',            'Stock faible'),
+  ('logistic.dashboard.below_reorder',        'Sous le point de commande'),
+  ('logistic.dashboard.pending_receipts',     'Réceptions en attente'),
+  ('logistic.dashboard.open_picks',           'Tâches de prélèvement ouvertes'),
+  ('logistic.dashboard.open_returns',         'Retours ouverts'),
+  ('logistic.dashboard.sections',             'Sections logistique')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;

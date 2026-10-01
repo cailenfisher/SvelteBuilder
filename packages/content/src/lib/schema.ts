@@ -16,27 +16,45 @@ import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 // ── Enums ────────────────────────────────────────────────────────────────────
 
 export const articleBlockType = pgEnum('article_block_type', [
-  'paragraph', 'heading', 'image', 'gallery', 'video', 'embed', 'pullquote', 'live_update',
+  'paragraph',
+  'heading',
+  'image',
+  'gallery',
+  'video',
+  'embed',
+  'pullquote',
+  'live_update',
 ]);
 
 export const articleAssignmentRole = pgEnum('article_assignment_role', [
-  'author', 'editor', 'photo', 'copy',
+  'author',
+  'editor',
+  'photo',
+  'copy',
 ]);
 
-export const mediaType = pgEnum('media_type', [
-  'image', 'video', 'audio', 'document',
-]);
+export const mediaType = pgEnum('media_type', ['image', 'video', 'audio', 'document']);
 
 export const mediaLicense = pgEnum('media_license', [
-  'all_rights_reserved', 'rights_managed', 'royalty_free', 'creative_commons', 'public_domain',
+  'all_rights_reserved',
+  'rights_managed',
+  'royalty_free',
+  'creative_commons',
+  'public_domain',
 ]);
 
 export const frontLayoutVariant = pgEnum('front_layout_variant', [
-  'lead', 'secondary', 'river', 'brief',
+  'lead',
+  'secondary',
+  'river',
+  'brief',
 ]);
 
 export const commentStatus = pgEnum('comment_status', [
-  'pending', 'approved', 'rejected', 'flagged',
+  'pending',
+  'approved',
+  'rejected',
+  'flagged',
 ]);
 
 // ── Tables ───────────────────────────────────────────────────────────────────
@@ -48,9 +66,7 @@ export const articleStatus = pgTable(
     slug: text('slug').notNull().unique(),
     ordinal: integer('ordinal').notNull().default(0),
   },
-  (table) => [
-    index('idx_article_status_ordinal').on(table.ordinal),
-  ],
+  (table) => [index('idx_article_status_ordinal').on(table.ordinal)]
 );
 
 export const article = pgTable(
@@ -72,7 +88,7 @@ export const article = pgTable(
     index('idx_article_status').on(table.articleStatusId),
     index('idx_article_canonical_slug').on(table.canonicalSlug),
     index('idx_article_embargo').on(table.embargoUntil),
-  ],
+  ]
 );
 
 // mediaAsset declared before publisherProfile and articleBlock so direct refs work
@@ -92,7 +108,7 @@ export const mediaAsset = pgTable(
   (table) => [
     index('idx_media_asset_uploader').on(table.uploadedBy),
     index('idx_media_asset_type').on(table.mediaType),
-  ],
+  ]
 );
 
 export const mediaAssetRights = pgTable(
@@ -107,23 +123,21 @@ export const mediaAssetRights = pgTable(
     expiresAt: timestamp('expires_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('idx_media_asset_rights_asset').on(table.mediaAssetId),
-  ],
+  (table) => [index('idx_media_asset_rights_asset').on(table.mediaAssetId)]
 );
 
 export const publisherProfile = pgTable(
   'publisher_profile',
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
-    logoMediaAssetId: bigint('logo_media_asset_id', { mode: 'number' })
-      .references(() => mediaAsset.id, { onDelete: 'set null' }),
+    logoMediaAssetId: bigint('logo_media_asset_id', { mode: 'number' }).references(
+      () => mediaAsset.id,
+      { onDelete: 'set null' }
+    ),
     url: text('url').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('idx_publisher_profile_logo').on(table.logoMediaAssetId),
-  ],
+  (table) => [index('idx_publisher_profile_logo').on(table.logoMediaAssetId)]
 );
 
 export const articleBlock = pgTable(
@@ -136,14 +150,15 @@ export const articleBlock = pgTable(
     blockType: articleBlockType('block_type').notNull(),
     position: integer('position').notNull(),
     content: jsonb('content').notNull().default('{}'),
-    mediaAssetId: bigint('media_asset_id', { mode: 'number' })
-      .references(() => mediaAsset.id, { onDelete: 'set null' }),
+    mediaAssetId: bigint('media_asset_id', { mode: 'number' }).references(() => mediaAsset.id, {
+      onDelete: 'set null',
+    }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_article_block_article').on(table.articleId, table.position),
     index('idx_article_block_media').on(table.mediaAssetId),
-  ],
+  ]
 );
 
 export const articleAssignment = pgTable(
@@ -163,7 +178,7 @@ export const articleAssignment = pgTable(
     uniqueIndex('uq_article_assignment').on(table.articleId, table.userAccountId, table.role),
     index('idx_article_assignment_article').on(table.articleId),
     index('idx_article_assignment_user').on(table.userAccountId),
-  ],
+  ]
 );
 
 export const articleRevision = pgTable(
@@ -177,9 +192,7 @@ export const articleRevision = pgTable(
     userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('idx_article_revision_article').on(table.articleId, table.createdAt),
-  ],
+  (table) => [index('idx_article_revision_article').on(table.articleId, table.createdAt)]
 );
 
 export const publishChecklistItem = pgTable(
@@ -190,9 +203,7 @@ export const publishChecklistItem = pgTable(
     ordinal: integer('ordinal').notNull().default(0),
     required: boolean('required').notNull().default(true),
   },
-  (table) => [
-    index('idx_publish_checklist_item_ordinal').on(table.ordinal),
-  ],
+  (table) => [index('idx_publish_checklist_item_ordinal').on(table.ordinal)]
 );
 
 export const articleChecklistState = pgTable(
@@ -211,7 +222,7 @@ export const articleChecklistState = pgTable(
   (table) => [
     uniqueIndex('uq_article_checklist_state').on(table.articleId, table.publishChecklistItemId),
     index('idx_article_checklist_state_article').on(table.articleId),
-  ],
+  ]
 );
 
 export const section = pgTable(
@@ -220,7 +231,7 @@ export const section = pgTable(
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     parentSectionId: bigint('parent_section_id', { mode: 'number' }).references(
       (): AnyPgColumn => section.id,
-      { onDelete: 'set null' },
+      { onDelete: 'set null' }
     ),
     slug: text('slug').notNull().unique(),
     ordinal: integer('ordinal').notNull().default(0),
@@ -230,7 +241,7 @@ export const section = pgTable(
   (table) => [
     index('idx_section_parent').on(table.parentSectionId),
     index('idx_section_ordinal').on(table.ordinal),
-  ],
+  ]
 );
 
 export const topic = pgTable('topic', {
@@ -260,7 +271,7 @@ export const articleSection = pgTable(
   (table) => [
     primaryKey({ columns: [table.articleId, table.sectionId] }),
     index('idx_article_section_section').on(table.sectionId),
-  ],
+  ]
 );
 
 export const articleTopic = pgTable(
@@ -276,7 +287,7 @@ export const articleTopic = pgTable(
   (table) => [
     primaryKey({ columns: [table.articleId, table.topicId] }),
     index('idx_article_topic_topic').on(table.topicId),
-  ],
+  ]
 );
 
 export const articleTag = pgTable(
@@ -292,7 +303,7 @@ export const articleTag = pgTable(
   (table) => [
     primaryKey({ columns: [table.articleId, table.tagId] }),
     index('idx_article_tag_tag').on(table.tagId),
-  ],
+  ]
 );
 
 export const authorProfile = pgTable(
@@ -308,7 +319,7 @@ export const authorProfile = pgTable(
   (table) => [
     index('idx_author_profile_user').on(table.userAccountId),
     index('idx_author_profile_slug').on(table.slug),
-  ],
+  ]
 );
 
 export const articleByline = pgTable(
@@ -327,15 +338,16 @@ export const articleByline = pgTable(
     uniqueIndex('uq_article_byline').on(table.articleId, table.authorProfileId),
     index('idx_article_byline_article').on(table.articleId, table.position),
     index('idx_article_byline_author').on(table.authorProfileId),
-  ],
+  ]
 );
 
 export const front = pgTable(
   'front',
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
-    sectionId: bigint('section_id', { mode: 'number' })
-      .references(() => section.id, { onDelete: 'cascade' }),
+    sectionId: bigint('section_id', { mode: 'number' }).references(() => section.id, {
+      onDelete: 'cascade',
+    }),
     slug: text('slug').notNull().unique(),
     active: boolean('active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -343,7 +355,7 @@ export const front = pgTable(
   (table) => [
     uniqueIndex('uq_front_section_id').on(table.sectionId),
     index('idx_front_section').on(table.sectionId),
-  ],
+  ]
 );
 
 export const frontSlot = pgTable(
@@ -365,7 +377,7 @@ export const frontSlot = pgTable(
     index('idx_front_slot_front').on(table.frontId, table.position),
     index('idx_front_slot_article').on(table.articleId),
     index('idx_front_slot_pinned').on(table.pinnedUntil),
-  ],
+  ]
 );
 
 export const liveCoverage = pgTable(
@@ -383,7 +395,7 @@ export const liveCoverage = pgTable(
     uniqueIndex('uq_live_coverage_article').on(table.articleId),
     index('idx_live_coverage_article').on(table.articleId),
     index('idx_live_coverage_active').on(table.active),
-  ],
+  ]
 );
 
 export const liveUpdate = pgTable(
@@ -402,7 +414,7 @@ export const liveUpdate = pgTable(
     index('idx_live_update_coverage').on(table.liveCoverageId, table.position),
     index('idx_live_update_published').on(table.publishedAt),
     index('idx_live_update_pinned').on(table.liveCoverageId, table.pinned),
-  ],
+  ]
 );
 
 export const newsletter = pgTable('newsletter', {
@@ -425,7 +437,7 @@ export const subscriber = pgTable(
   (table) => [
     index('idx_subscriber_email').on(table.emailAddress),
     index('idx_subscriber_confirmed').on(table.confirmedAt),
-  ],
+  ]
 );
 
 export const newsletterSubscription = pgTable(
@@ -445,7 +457,7 @@ export const newsletterSubscription = pgTable(
     uniqueIndex('uq_newsletter_subscription').on(table.newsletterId, table.subscriberId),
     index('idx_newsletter_subscription_newsletter').on(table.newsletterId),
     index('idx_newsletter_subscription_subscriber').on(table.subscriberId),
-  ],
+  ]
 );
 
 export const articlePreviewToken = pgTable(
@@ -463,7 +475,7 @@ export const articlePreviewToken = pgTable(
     index('idx_article_preview_token_article').on(table.articleId),
     index('idx_article_preview_token_token').on(table.token),
     index('idx_article_preview_token_expiry').on(table.expiresAt),
-  ],
+  ]
 );
 
 export const comment = pgTable(
@@ -477,7 +489,7 @@ export const comment = pgTable(
     userAccountId: bigint('user_account_id', { mode: 'number' }),
     parentCommentId: bigint('parent_comment_id', { mode: 'number' }).references(
       (): AnyPgColumn => comment.id,
-      { onDelete: 'cascade' },
+      { onDelete: 'cascade' }
     ),
     // SCOPE DEVIATION: user-generated runtime data, not dictionary copy
     authorName: text('author_name').notNull(),
@@ -492,5 +504,5 @@ export const comment = pgTable(
     index('idx_comment_parent').on(table.parentCommentId),
     index('idx_comment_status').on(table.articleId, table.status),
     index('idx_comment_user').on(table.userAccountId),
-  ],
+  ]
 );

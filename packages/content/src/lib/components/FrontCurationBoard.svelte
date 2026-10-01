@@ -3,7 +3,7 @@
      Emits onSlotsReorder with the new slot order for the parent to persist via form action. -->
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { Button, Badge } from '@sveltebuilder/coreui';
+  import { Badge } from '@sveltebuilder/coreui';
   import type { FrontSlotWithArticle } from '../schema/index.js';
 
   type Props = {
@@ -61,10 +61,10 @@
   }
 
   const VARIANT_LABEL: Record<string, string> = {
-    lead:      'Lead',
+    lead: 'Lead',
     secondary: 'Secondary',
-    river:     'River',
-    brief:     'Brief',
+    river: 'River',
+    brief: 'Brief',
   };
 </script>
 
@@ -167,7 +167,9 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     cursor: grab;
-    transition: background var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+    transition:
+      background var(--duration) var(--ease),
+      box-shadow var(--duration) var(--ease);
   }
 
   .front-curation-board__slot:active {
@@ -219,7 +221,9 @@
     color: var(--text-soft);
     border-radius: var(--radius-sm);
     line-height: 1;
-    transition: background var(--duration) var(--ease), color var(--duration) var(--ease);
+    transition:
+      background var(--duration) var(--ease),
+      color var(--duration) var(--ease);
   }
 
   .front-curation-board__move:hover,

@@ -20,15 +20,7 @@
     locale: string;
   };
 
-  let {
-    assignments,
-    total,
-    page,
-    perPage,
-    onPageChange,
-    onRowClick,
-    locale,
-  }: Props = $props();
+  let { assignments, total, page, perPage, onPageChange, onRowClick, locale }: Props = $props();
 
   const ROLE_LABEL: Record<string, string> = {
     author: 'Author',
@@ -75,7 +67,7 @@
 {/snippet}
 
 <DataTable
-  columns={columns}
+  {columns}
   rows={assignments}
   rowKey={(assignment) => assignment.id}
   cell={assignmentCell}
