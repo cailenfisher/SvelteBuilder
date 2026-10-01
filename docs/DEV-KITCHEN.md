@@ -191,13 +191,32 @@ the tarballs**, for a reason recorded in `CLAUDE.md`: a linked package brings it
 error with no bug behind it. Packing also verifies the `files` array and `exports` map.
 
 The harness wants the opposite — source, aliased, HMR — and must therefore accept that it is _not_
-checking what `scaffold:check` checks. Two consequences follow, and both should be written into
-whatever README the harness ships with:
+checking what `scaffold:check` checks. Three consequences follow, and all three should be written
+into whatever README the harness ships with:
 
 - The harness can render a component that a published consumer could not import, because aliases
   bypass the `exports` map. Only `scaffold:check` catches that class of bug.
 - A `Snippet`-prop type error seen in the harness may be a duplicate-Svelte artifact rather than a
   real defect. Pin Svelte at the workspace root and keep the alias list exhaustive.
+- **Aliasing to source broke SSR, and the old harness gave up on it.** Both showcase trees shipped
+  a `+layout.ts` containing `export const ssr = false`, the coreui one with the reason attached:
+  "bits-ui uses `.svelte.js` rune files that Vite's SSR module runner cannot execute without the
+  Svelte compiler." That is the cost of source resolution — the aliased package is inside the Vite
+  pipeline for the browser build but the SSR module runner reaches the rune files on its own terms.
+
+That last one matters more than it looks, and the replacement must decide it deliberately. A
+client-only harness never executes a loader, never server-renders a component, and therefore cannot
+observe the entire class of bug this repo has been most bitten by: dictionary construction that
+works in the browser and yields `[missing: …]` under SSR, a message bus that leaks across
+concurrent requests, a `getContext` call that throws only on the server. dev-kitchen's own root
+layout had the `$effect` form of exactly that bug, and its showcase routes were structurally
+incapable of showing it.
+
+So either the harness solves SSR with aliased sources — worth one real attempt, since `noExternal`
+exists precisely to pull a dependency into the Vite pipeline for SSR too, and the comment may
+predate a Vite or bits-ui version that fixed it — or it is honest that it covers browser rendering
+only, and the SSR path stays the business of `scaffold:check` and `sql:check`. What it must not do
+is set `ssr = false` quietly and let the gap be rediscovered.
 
 Neither gate subsumes the other. Say so in the doc rather than letting someone rediscover it.
 
