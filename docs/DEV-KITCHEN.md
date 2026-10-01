@@ -72,6 +72,21 @@ The content row reads 0 rather than 5 because every content-component reference 
 is inside `tools/create/templates/modules/content/screens/_unsorted/`, and a `_`-prefixed directory
 is never copied by the create CLI and therefore never type-checked by anything.
 
+Content is in fact worse off than "unverified." `docs/DEFERRED.md` records a list of real type
+defects found the one time `svelte-check` was pointed at the package by hand — `DataTable`
+column-snippet typing in `ArticleList`/`AssignmentQueue`/`SubscriberList`, a `Badge`
+`variant="neutral"` that does not exist in `FrontCurationBoard`, an `EditorBlock` mismatch and a
+stray `onChange` in `BlockEditorHost`, several coreui prop-shape mismatches in
+`ArticleWorkflowPanel`, and a `Button` `label` prop in `NewsletterSignup`. None has been fixed.
+
+Which points at something cheaper than any harness, and worth doing first: **no package in this repo
+has a `check` script.** `coreui` and `content` both run `build` (`svelte-package`, which compiles
+without type-checking cross-component prop usage), `lint` (ESLint only), and `test`
+(`vitest run --passWithNoTests`, which passes vacuously). Adding `"check": "svelte-check"` per
+package plus a `check` task in `turbo.json` would recover most of Job 2's regression value for an
+afternoon's work, with no app to maintain. It renders nothing, so it does not touch Jobs 1 and 3 —
+but it changes how much the harness has to carry.
+
 Which leaves 33 coreui components, all 18 content components, and 3 logistic components with no
 verification of any kind — not a test, not a scaffold type-check, and (once dev-kitchen broke) not a
 render either. Among them: every `Menu*` component, `Popover`, `Tooltip`, `Drawer`, `BlockEditor`,
@@ -256,8 +271,9 @@ not yet true.
 
 ## 6. Removal record
 
-The 82 tracked files of `apps/dev-kitchen` were removed in the commit recorded in
-`docs/DEFERRED.md` under "dev-kitchen — removed." Recover any of it with
-`git show <sha>^:apps/dev-kitchen/<path>`; the 33 coreui showcase routes in particular are a
+The 82 tracked files of `apps/dev-kitchen` were removed in commit 4988ae6, together with the
+`--filter='!./apps/*'` exemption that `.github/workflows/test.yml`, `scaffold-check.yml` and
+`sql-check.yml` each carried. Recover any file from it with
+`git show 4988ae6^:apps/dev-kitchen/<path>`; the 33 coreui showcase routes in particular are a
 reasonable starting point for the rebuild, once their imports are migrated to
 `diglossia/svelte` and `createMessageBus`.

@@ -68,7 +68,8 @@ is an inline `exists (select 1 from public.user_account …)` rather than a call
 `public.current_user_admin()`. On warehouse-scale tables that is a real cost. It is now a performance
 and consistency question rather than a correctness one, and it is a single mechanical pass.
 
-Also outstanding for the package: a vitest suite, and dev-kitchen showcase routes.
+Also outstanding for the package: a vitest suite, and showcase coverage for the 3 components
+no screen bundle renders (see `docs/DEV-KITCHEN.md`).
 
 `@sveltebuilder/content` is one step behind: its 13 route templates are in `screens/_unsorted/`
 awaiting bundling, and it exports no view-model types yet.
@@ -119,25 +120,30 @@ What Native will need whenever it resumes (record additions here rather than fix
 
 ---
 
-## dev-kitchen
+## dev-kitchen — removed (2026-09-30)
 
-`apps/dev-kitchen` is stagnant per this work order's standing rules — not fixed, not migrated.
-The following are now broken there as a direct, expected consequence of diglossia 0.1.0 and the
-coreui message bus rewrite (both consumed via `link:../../../diglossia`, so dev-kitchen picks up
-the new API immediately rather than at some future upgrade):
+`apps/dev-kitchen` was deleted in commit 4988ae6, which removed all 82 of its tracked files and
+dropped the `--filter='!./apps/*'` exemption the three CI workflows carried to route around its
+expected build failure. The notes that stood here — a catalogue of which diglossia 0.1.0 and
+message-bus imports had stopped resolving inside it — described an app that no longer exists, and
+are gone with it.
 
-- Every bare `import { load, merge, localText, LocalText } from 'diglossia'` in dev-kitchen no
-  longer resolves — those exports don't exist anymore. Affected: `src/routes/+layout.svelte`,
-  `src/routes/+error.svelte`, `src/routes/+page.svelte`,
-  `src/lib/components/LocaleSwitcher.svelte`, `src/routes/dev/hermes/+page.svelte`, and the 7
-  `src/routes/dev/content/*/+page.svelte` showcase routes (`import { load as hermesLoad } from
-'diglossia'`). Type-only imports (`DictionaryPayload`, `Locale` in `app.d.ts` and the
-  `api/local-text`/`api/locale` `+server.ts` files) still work unchanged.
-- `import { messageBus } from '@sveltebuilder/coreui'` no longer resolves — replaced by
-  `createMessageBus`/`setMessageBus`/`getMessageBus`. Affected: `src/routes/+layout.svelte` and
-  the 4 `src/routes/dev/coreui/{+page,toast,confirm-dialog,banner}/+page.svelte` showcase routes.
-- Auth UI still uses the old Supabase hook shape and has not been migrated to the `withUser`
-  pattern (pre-existing gap, carried forward from `CLAUDE.md`'s prior Known Open Issues entry).
+**`docs/DEV-KITCHEN.md` is the design document for its replacement.** It records the three jobs the
+app actually did — in-repo component development with no scaffolded project, exercising components
+that no template screen renders, and a rendered surface for the WCAG 2.2 AA audit — the measured
+coverage gap behind the second of those, the structural reason it rotted (it hand-maintained a
+second copy of the scaffold's wiring that nothing ever compared against the template tree), and
+four requirements the replacement has to satisfy.
+
+Standing rules until that work is picked up:
+
+- **Do not restore the old app.** `git show 4988ae6^:apps/dev-kitchen/<path>` recovers any file from
+  it, and the 33 coreui showcase routes are a reasonable starting point for a rebuild — but the
+  chrome around them is the part that failed, and must not come back as a hand-maintained copy.
+- **Nothing under `apps/` is exempt from CI any more.** Whatever lands there next is built and
+  tested by default. Keep it that way instead of reintroducing a filter.
+- The component-verification gap itself is tracked in `CLAUDE.md`'s Known Open Issues under
+  "In-repo component harness", not here.
 
 ---
 
@@ -222,14 +228,14 @@ correctly. `@sveltebuilder/content` has no seed file at all yet ("content module
 thing to append to), and `@sveltebuilder/local-text-schema`'s `BASE_SLUGS` are global-only by
 design (no `entityId`), so neither was a natural home for a redundant example.
 
-**dev-kitchen's hand-written unique constraint is the wrong shape.** Confirmed by reading it
-directly: `apps/dev-kitchen/supabase/schemas/local_text_link.sql`'s `uq_local_text_link_global
-unique nulls not distinct (slug, scope)` is a full-table constraint on two columns with no `where
-entity_id is null` clause, so it would incorrectly reject two legitimate entity-scoped rows
-sharing a slug and scope. Out of scope per the work order (dev-kitchen is stagnant); the correct
-shape is the partial index in `packages/local-text-schema/src/tables/local-text-link.ts` /
-`tools/create/templates/base/supabase/supplemental/00-local-text-rls.sql`'s Drizzle-generated
-equivalent.
+**dev-kitchen's divergent unique constraint is gone with the app.** Its
+`supabase/schemas/local_text_link.sql` carried a hand-written `uq_local_text_link_global unique
+nulls not distinct (slug, scope)` — a full-table constraint on two columns with no `where entity_id
+is null` clause, so it would have rejected two legitimate entity-scoped rows sharing a slug and
+scope. It was never fixed, and commit 4988ae6 deleted it, leaving the correct shape as the only
+definition in the repo: the partial index in
+`packages/local-text-schema/src/tables/local-text-link.ts` and its Drizzle-generated equivalent in
+`tools/create/templates/base/supabase/supplemental/00-local-text-rls.sql`.
 
 **Historical documents were not rewritten.** `packages/content/CONTENT_AUDIT.md` and
 `CONTENT_BUILD_LOG.md` still say "hermes" in sections describing what was actually true when they
@@ -240,7 +246,7 @@ Roadmap section has staleness unrelated to hermes (phases further along than its
 that wasn't addressed — out of scope for a hermes-reference cleanup.
 
 **Pre-existing, unrelated defects surfaced by svelte-check.** Running svelte-check against
-`packages/content` (via `apps/dev-kitchen`'s installed binary, read-only, since the package has no
+`packages/content` (run read-only with a workspace `svelte-check` binary, since the package has no
 `check` script and `src/lib/templates/**` is excluded from its own tsconfig — this module has
 apparently never been typechecked with Svelte awareness) turned up defects with no connection to
 diglossia, confirmed unrelated by checking they sit outside anything this work order touched:
