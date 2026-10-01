@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
   });
 
   const dictionary = createDictionary(
-    buildArticleListDictionaryPayload(articles.items, locale.code),
+    buildArticleListDictionaryPayload(articles.items, locale.code)
   );
 
   const xml = generateRssFeed(articles.items, dictionary, {

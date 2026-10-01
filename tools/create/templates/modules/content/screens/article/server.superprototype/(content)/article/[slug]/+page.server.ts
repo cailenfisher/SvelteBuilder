@@ -10,7 +10,7 @@ import type { Actions, PageServerLoad } from './$types';
 // supabase/supplemental/02-content-rls.sql.
 
 const ARTICLE_COLUMNS =
-  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, created_at, article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
+  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, created_at, article_status!inner(id, slug, ordinal), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
 
 const toOne = <T>(embed: T | T[] | null): T | null =>
   embed === null ? null : Array.isArray(embed) ? (embed[0] ?? null) : embed;
@@ -90,6 +90,11 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
     .filter((tag): tag is NonNullable<typeof tag> => tag !== null)
     .map((tag) => ({ id: tag.id, slug: tag.slug, active: tag.active, createdAt: tag.created_at }));
 
+  // !inner, so an article whose status row is unreadable does not come back at all rather than
+  // arriving with a null status the mapping would have to invent a value for.
+  const status = toOne(row.article_status);
+  if (status === null) throw error(500, 'Article has no status.');
+
   const article: ArticleWithBlocks = {
     id: row.id,
     articleStatusId: row.article_status_id,
@@ -100,6 +105,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
     embargoUntil: row.embargo_until,
     allowComment: row.allow_comment,
     createdAt: row.created_at,
+    status: { id: status.id, slug: status.slug, ordinal: status.ordinal },
     blocks,
     bylines,
     sections,
@@ -150,6 +156,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
       locals.supabase,
       [
         { scope: 'article', ids: [article.id] },
+        { scope: 'article_status', ids: [status.id] },
         { scope: 'article_block', ids: blocks.map((block) => block.id) },
         { scope: 'author_profile', ids: bylines.map((author) => author.id) },
         { scope: 'section', ids: sections.map((section) => section.id) },

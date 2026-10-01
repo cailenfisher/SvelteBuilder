@@ -11,8 +11,8 @@
     new Map(
       (data.article.blocks ?? [])
         .filter((b) => b.mediaAsset != null)
-        .map((b) => [b.mediaAssetId!, b.mediaAsset!]),
-    ),
+        .map((b) => [b.mediaAssetId!, b.mediaAsset!])
+    )
   );
 </script>
 

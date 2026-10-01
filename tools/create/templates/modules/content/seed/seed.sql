@@ -435,3 +435,34 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Screen copy — section bundle
+-- ──────────────────────────────────────────────────────────────────────────────
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('content.section.subsections',     'content', null),
+  ('content.section.pagination',      'content', null),
+  ('content.section.empty',           'content', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('content.section.subsections',     'Subsections'),
+  ('content.section.pagination',      'Article pages'),
+  ('content.section.empty',           'Nothing published here yet.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('content.section.subsections',     'Sous-rubriques'),
+  ('content.section.pagination',      'Pages d''articles'),
+  ('content.section.empty',           'Rien de publié pour le moment.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;

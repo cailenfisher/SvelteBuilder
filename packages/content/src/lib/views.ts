@@ -2,6 +2,7 @@ import type { DictionaryPayload } from 'diglossia';
 import type {
   Article,
   ArticleBlock,
+  ArticleStatus,
   AuthorProfile,
   Comment,
   MediaAsset,
@@ -90,6 +91,11 @@ export type ScreenPage = {
  * becomes slow.
  */
 export type ArticleRow = Article & {
+  /**
+   * The workflow status as a row, not a slug, because ArticleCard takes it that way and its
+   * display name is entity-bound copy keyed by the status id.
+   */
+  status: ArticleStatus;
   sections: Section[];
   topics: Topic[];
   tags: Tag[];
@@ -157,23 +163,16 @@ export type AdminArticleListView = ScreenCopy &
   ScreenPage & {
     articles: ArticleRow[];
     /** Every workflow status, in ordinal order, for the filter and the create form. */
-    statuses: ArticleStatusRow[];
+    statuses: ArticleStatus[];
     /** Null means unfiltered, which is not the same as any particular status. */
     statusSlug: string | null;
   };
-
-/** A workflow status. Its name is entity-bound copy, so it is not on the row. */
-export type ArticleStatusRow = {
-  id: number;
-  slug: string;
-  ordinal: number;
-};
 
 /** `/admin/content/article/[id]` */
 export type AdminArticleDetailView = ScreenCopy &
   ScreenLocale & {
     article: ArticleWithBlocks;
-    statuses: ArticleStatusRow[];
+    statuses: ArticleStatus[];
     /** The publish gate: every checklist item, and whether this article has ticked it. */
     checklist: ChecklistEntry[];
     /** Sections, topics and tags the editor can file this article under. */

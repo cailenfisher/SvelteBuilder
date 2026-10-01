@@ -13,11 +13,12 @@ async function getAdminArticleById(
   supabase: App.Locals['supabase'],
   id: number,
   localeCode: string,
-  defaultLocaleCode: string,
+  defaultLocaleCode: string
 ) {
   const { data } = await supabase
     .from('article')
-    .select(`
+    .select(
+      `
       *,
       article_status(*),
       article_block(* order by position),
@@ -27,7 +28,8 @@ async function getAdminArticleById(
       article_tag(tag(*)),
       article_assignment(*),
       article_checklist_state(*, publish_checklist_item(*))
-    `)
+    `
+    )
     .eq('id', id)
     .is('deleted_at', null)
     .maybeSingle();
@@ -36,10 +38,7 @@ async function getAdminArticleById(
 }
 
 async function getPublishChecklist(supabase: App.Locals['supabase']) {
-  const { data } = await supabase
-    .from('publish_checklist_item')
-    .select('*')
-    .order('ordinal');
+  const { data } = await supabase.from('publish_checklist_item').select('*').order('ordinal');
   return data ?? [];
 }
 
@@ -70,12 +69,12 @@ export const actions: Actions = {
   transition: async ({ locals, params, request }) => {
     if (!locals.userAccountId) error(401, 'Unauthorized.');
 
-    const data     = await request.formData();
+    const data = await request.formData();
     const statusSlug = String(data.get('status_slug') ?? '');
-    const id       = Number(params.id);
+    const id = Number(params.id);
 
     await locals.db.withUser((tx) =>
-      transitionArticleStatus(tx, id, statusSlug, locals.userAccountId!),
+      transitionArticleStatus(tx, id, statusSlug, locals.userAccountId!)
     );
 
     return { success: true };
@@ -84,14 +83,12 @@ export const actions: Actions = {
   checklist: async ({ locals, params, request }) => {
     if (!locals.userAccountId) error(401, 'Unauthorized.');
 
-    const data      = await request.formData();
-    const itemId    = Number(data.get('item_id'));
+    const data = await request.formData();
+    const itemId = Number(data.get('item_id'));
     const satisfied = data.get('satisfied') === 'true';
     const articleId = Number(params.id);
 
-    await locals.db.withUser((tx) =>
-      setChecklistState(tx, articleId, itemId, satisfied),
-    );
+    await locals.db.withUser((tx) => setChecklistState(tx, articleId, itemId, satisfied));
 
     return { success: true };
   },

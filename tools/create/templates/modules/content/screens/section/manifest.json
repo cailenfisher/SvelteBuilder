@@ -1,0 +1,15 @@
+{
+  "id": "section",
+  "module": "content",
+  "label": "Section page",
+  "hint": "A section's published articles as a lead plus river, with child sections and server paging",
+  "routes": ["/section/[slug]"],
+  "requires": ["article"],
+  "views": ["SectionPageView", "ArticleRow"],
+  "actions": {},
+  "copySlugs": [
+    "content.section.subsections",
+    "content.section.pagination",
+    "content.section.empty"
+  ]
+}

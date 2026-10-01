@@ -11,14 +11,18 @@
     new Map(
       (data.article.blocks ?? [])
         .filter((b: any) => b.mediaAsset != null)
-        .map((b: any) => [b.mediaAssetId!, b.mediaAsset!]),
-    ),
+        .map((b: any) => [b.mediaAssetId!, b.mediaAsset!])
+    )
   );
 
   let workflowOpen = $state(false);
 
-  function openWorkflow() { workflowOpen = true; }
-  function closeWorkflow() { workflowOpen = false; }
+  function openWorkflow() {
+    workflowOpen = true;
+  }
+  function closeWorkflow() {
+    workflowOpen = false;
+  }
 
   async function transitionStatus(statusSlug: string) {
     const fd = new FormData();
@@ -42,10 +46,10 @@
 <div class="admin-article-detail">
   <header class="admin-article-detail__bar">
     <a href="/admin/content/article" class="admin-article-detail__back">← Articles</a>
-    <span class="admin-article-detail__status">{data.article.status?.label ?? data.article.article_status?.slug}</span>
-    <button class="admin-article-detail__workflow-btn" onclick={openWorkflow}>
-      Workflow
-    </button>
+    <span class="admin-article-detail__status"
+      >{data.article.status?.label ?? data.article.article_status?.slug}</span
+    >
+    <button class="admin-article-detail__workflow-btn" onclick={openWorkflow}> Workflow </button>
   </header>
 
   <ArticleView
@@ -90,7 +94,9 @@
     text-decoration: none;
   }
 
-  .admin-article-detail__back:hover { color: var(--text); }
+  .admin-article-detail__back:hover {
+    color: var(--text);
+  }
 
   .admin-article-detail__status {
     font-size: var(--text-sm);
