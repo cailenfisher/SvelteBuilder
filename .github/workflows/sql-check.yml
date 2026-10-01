@@ -26,9 +26,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # A bare scaffold and a module one exercise different assertion files, and the
-        # bare case is the one that catches a base-template regression a module masks.
-        modules: [none, logistic]
+        # Each module has its own assertion file, and the bare case is the one that catches
+        # a base-template regression a module would mask.
+        modules: [none, logistic, content]
 
     steps:
       - name: Checkout repo

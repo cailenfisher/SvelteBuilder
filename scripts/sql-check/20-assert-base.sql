@@ -130,6 +130,59 @@ begin
   end if;
 end $$;
 
+-- ── Every table has RLS, full stop ───────────────────────────────────────────
+--
+-- The check above only catches a table someone wrote policies for and then left unprotected.
+-- It says nothing about a table with no policies at all, which is the worse case and the one
+-- that actually shipped: all 27 of the content module's tables had RLS disabled, and with
+-- Supabase's bootstrap grants — all privileges on public tables to anon and authenticated —
+-- that made every one of them readable AND writable by anyone holding the publishable key.
+-- `subscriber` and `comment` included. It was verified exploitable, not theorised: as anon,
+-- inserting and then deleting every row of `subscriber` both succeeded.
+--
+-- Nothing else can catch this. A table with no policies is valid SQL, typechecks nowhere,
+-- and behaves perfectly in every test that runs as an owner. This is the gate.
+
+do $$
+declare v_unprotected text;
+begin
+  select string_agg(c.relname, ', ' order by c.relname) into v_unprotected
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public'
+    and c.relkind = 'r'
+    -- Drizzle's own bookkeeping, which the application never reaches through PostgREST.
+    and c.relname not like '\_\_drizzle%'
+    and not c.relrowsecurity;
+
+  if v_unprotected is not null then
+    raise exception
+      'table(s) in public have no row level security, so anon can read and write them: %',
+      v_unprotected;
+  end if;
+end $$;
+
+-- A table with RLS enabled and no policy at all denies everything, which is safe but is
+-- almost always a mistake rather than an intention — it means a screen reading it returns
+-- nothing, silently.
+do $$
+declare v_policyless text;
+begin
+  select string_agg(c.relname, ', ' order by c.relname) into v_policyless
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public'
+    and c.relkind = 'r'
+    and c.relrowsecurity
+    and c.relname not like '\_\_drizzle%'
+    and not exists (select 1 from pg_policy p where p.polrelid = c.oid);
+
+  if v_policyless is not null then
+    raise exception 'table(s) have RLS enabled but no policies, so they deny everything: %',
+      v_policyless;
+  end if;
+end $$;
+
 -- ── Provisioning, as a request performs it ───────────────────────────────────
 
 insert into auth.users (id, email)
