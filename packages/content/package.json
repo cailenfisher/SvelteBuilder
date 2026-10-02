@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/content",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Publisher/news domain module for SvelteBuilder — articles, sections, taxonomy, live coverage, newsletters, comments, RSS, sitemaps, and JSON-LD, with a Drizzle schema and i18n built in.",
   "keywords": [
     "svelte",
