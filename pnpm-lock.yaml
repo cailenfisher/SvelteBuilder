@@ -81,8 +81,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.4(svelte@5.56.4(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.6.3)(lightningcss@1.32.0))
       diglossia:
-        specifier: link:../../../diglossia
-        version: link:../../../diglossia
+        specifier: ^0.1.1
+        version: 0.1.1(svelte@5.56.4(@typescript-eslint/types@8.59.4))
       svelte:
         specifier: ^5.0.0
         version: 5.56.4(@typescript-eslint/types@8.59.4)
@@ -109,8 +109,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.4(svelte@5.55.9(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.6.3)(lightningcss@1.32.0))
       diglossia:
-        specifier: link:../../../diglossia
-        version: link:../../../diglossia
+        specifier: ^0.1.1
+        version: 0.1.1(svelte@5.55.9(@typescript-eslint/types@8.59.4))
       svelte:
         specifier: ^5.0.0
         version: 5.55.9(@typescript-eslint/types@8.59.4)
@@ -156,8 +156,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.4(svelte@5.55.9(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.6.3)(lightningcss@1.32.0))
       diglossia:
-        specifier: link:../../../diglossia
-        version: link:../../../diglossia
+        specifier: ^0.1.1
+        version: 0.1.1(svelte@5.55.9(@typescript-eslint/types@8.59.4))
       svelte:
         specifier: ^5.0.0
         version: 5.55.9(@typescript-eslint/types@8.59.4)
@@ -1562,6 +1562,15 @@ packages:
   devalue@5.9.4:
     resolution: {integrity: sha512-sPAT4pztbu6586/hrhOnMKS17IJrvg12mXiSPSS3W5qDeN2RGgvZ0diZCm31dBbnevfVmujNO3IM2wrS4Y2Rhg==}
 
+  diglossia@0.1.1:
+    resolution: {integrity: sha512-yIMuz//9o4kZCa5YAgOpCS01QhdRsjGyOhXC73Y3wGpd4uIpMHo3w/FVXUzvdsiUNlmSGoQozCXvh6LQWmFr+g==}
+    engines: {node: '>=20', pnpm: '>=9'}
+    peerDependencies:
+      svelte: ^5.0.0
+    peerDependenciesMeta:
+      svelte:
+        optional: true
+
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
@@ -2132,6 +2141,10 @@ packages:
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
+
+  messageformat@4.0.0:
+    resolution: {integrity: sha512-XKmJ/ffTWToWOlHJzt85ZChQgVGC0LHzNWuNK8zuYpNySsB0nIEmytOdSAOW9ETKtkajAUJf520m5gFHHnrTYg==}
+    engines: {node: ^20.19 || ^22.12 || >=24}
 
   micromatch@4.0.8:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
@@ -3923,6 +3936,18 @@ snapshots:
   devalue@5.9.4:
     optional: true
 
+  diglossia@0.1.1(svelte@5.55.9(@typescript-eslint/types@8.59.4)):
+    dependencies:
+      messageformat: 4.0.0
+    optionalDependencies:
+      svelte: 5.55.9(@typescript-eslint/types@8.59.4)
+
+  diglossia@0.1.1(svelte@5.56.4(@typescript-eslint/types@8.59.4)):
+    dependencies:
+      messageformat: 4.0.0
+    optionalDependencies:
+      svelte: 5.56.4(@typescript-eslint/types@8.59.4)
+
   dir-glob@3.0.1:
     dependencies:
       path-type: 4.0.0
@@ -4472,6 +4497,8 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   merge2@1.4.1: {}
+
+  messageformat@4.0.0: {}
 
   micromatch@4.0.8:
     dependencies:
