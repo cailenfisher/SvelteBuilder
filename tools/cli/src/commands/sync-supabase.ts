@@ -17,13 +17,20 @@ const SEEDS_DIR = path.join('supabase', 'seeds');
 const SEED_OUT = path.join('supabase', 'seed.sql');
 
 export async function syncSupabase(root?: string): Promise<void> {
-  const cwd = root ?? process.env.INIT_CWD ?? process.cwd();
+  const cwd = root ?? process.cwd();
 
   console.log('[sveltebuilder] sync:supabase — discovering schema manifests...');
   const manifests = await discover(root);
   if (manifests.length === 0) {
-    console.warn('[sveltebuilder] no manifests found in .sveltebuilder/registry/ — nothing to do');
-    return;
+    // Not a no-op worth tolerating. Every scaffold registers at least
+    // @sveltebuilder/local-text-schema, so an empty registry means this is running
+    // somewhere that is not a project root — and returning 0 here let a caller report
+    // success while generating nothing.
+    throw new Error(
+      `no schema manifests in ${path.join(cwd, SVELTEBUILDER_DIR, 'registry')} — every ` +
+        'scaffold registers at least @sveltebuilder/local-text-schema, so this is probably ' +
+        'not a project root',
+    );
   }
   console.log(`[sveltebuilder] found ${manifests.length} manifest(s): ${manifests.map((m) => m.package).join(', ')}`);
 
