@@ -278,3 +278,59 @@ begin
     raise exception 'SECURITY DEFINER function(s) with no fixed search_path: %', v_bad;
   end if;
 end $$;
+
+-- ── Policies call the identity helpers in the sanctioned shape ───────────────
+--
+-- Two anti-patterns, both of which typecheck nowhere, pass every other assertion in
+-- this file, and behave correctly in any test that runs as one principal.
+--
+-- 1. A bare `public.current_user_id()` in a predicate is re-evaluated per row; wrapped
+--    as `(select …)` the planner hoists it into an InitPlan run once per statement. The
+--    catalog makes the two distinguishable: Postgres deparses the wrapped form as
+--    `( SELECT current_user_id() AS current_user_id)` and the bare form as
+--    `current_user_id()`, so a bare call is any occurrence the wrapped count cannot
+--    account for.
+--
+-- 2. Testing `user_account.admin` inline, via `exists (select 1 from
+--    public.user_account …)`, instead of calling public.current_user_admin(). The
+--    inline form runs as the caller, so it re-enters user_account's own policies and
+--    silently depends on user_account_owner_read continuing to admit exactly the row it
+--    asks for. Narrow that policy and every inline check starts denying admins. The
+--    helper is SECURITY DEFINER and does not have the problem. Policies on
+--    user_account itself are exempt — that is where the admin column legitimately lives.
+--
+-- All 40 of the logistic module's policies carried both patterns until 2026-10-01.
+
+do $$
+declare
+  v_bare   text;
+  v_inline text;
+begin
+  select string_agg(format('%s.%s', tablename, policyname), ', ' order by tablename, policyname)
+    into v_bare
+  from pg_policies
+  cross join lateral (select coalesce(qual, '') || ' ' || coalesce(with_check, '') as expr) e
+  where schemaname = 'public'
+    and (
+      regexp_count(e.expr, 'current_user_id\(\)')
+        > regexp_count(e.expr, 'SELECT current_user_id\(\)')
+      or regexp_count(e.expr, 'current_user_admin\(\)')
+        > regexp_count(e.expr, 'SELECT current_user_admin\(\)')
+    );
+
+  if v_bare is not null then
+    raise exception 'policy/policies call an identity helper bare instead of (select fn()): %', v_bare;
+  end if;
+
+  select string_agg(format('%s.%s', tablename, policyname), ', ' order by tablename, policyname)
+    into v_inline
+  from pg_policies
+  cross join lateral (select coalesce(qual, '') || ' ' || coalesce(with_check, '') as expr) e
+  where schemaname = 'public'
+    and tablename <> 'user_account'
+    and e.expr like '%user_account.admin%';
+
+  if v_inline is not null then
+    raise exception 'policy/policies test user_account.admin inline instead of calling public.current_user_admin(): %', v_inline;
+  end if;
+end $$;
