@@ -52,15 +52,15 @@
       : null
   );
 
-  const statusVariant = $derived(
-    status.slug === 'published'
-      ? 'success'
-      : status.slug === 'ready_to_publish'
-        ? 'warning'
-        : status.slug === 'archived'
-          ? 'default'
-          : 'default'
-  ) as 'success' | 'warning' | 'default';
+  // Keyed by the status slugs the module's seed creates. A project that adds its own
+  // statuses falls through to 'default' rather than rendering an invalid Badge variant.
+  const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'info' | 'default'> = {
+    published: 'success',
+    ready: 'warning',
+    in_review: 'info',
+  };
+
+  const statusVariant = $derived(STATUS_VARIANT[status.slug] ?? 'default');
 
   const cardHref = $derived(href ?? `/article/${article.canonicalSlug}`);
 
@@ -72,7 +72,7 @@
 <article class={classes}>
   {#if sections.length > 0}
     <div class="article-card__kicker" aria-label="Section">
-      <SectionLabel section={sections[0]} {locale} />
+      <SectionLabel section={sections[0]} {locale} {dictionary} />
     </div>
   {/if}
 
@@ -80,7 +80,7 @@
     <header class="article-card__header">
       {#if showStatus}
         <Badge variant={statusVariant} size="sm"
-          >{dictionary.localText(`label`, 'article_status', status.id)}</Badge
+          >{dictionary.localText('name', 'article_status', status.id)}</Badge
         >
       {/if}
 
@@ -99,7 +99,7 @@
 
     <footer class="article-card__meta">
       {#if bylines.length > 0}
-        <BylineList {bylines} {locale} />
+        <BylineList {bylines} {locale} {dictionary} />
       {/if}
 
       {#if publishedDate}
@@ -111,7 +111,7 @@
       {#if topics.length > 0 && variant !== 'brief'}
         <ul class="article-card__topics" aria-label="Topics">
           {#each topics as topic (topic.id)}
-            <li><TopicTag {topic} {locale} href={`/?topic=${topic.slug}`} /></li>
+            <li><TopicTag {topic} {locale} href={`/?topic=${topic.slug}`} {dictionary} /></li>
           {/each}
         </ul>
       {/if}

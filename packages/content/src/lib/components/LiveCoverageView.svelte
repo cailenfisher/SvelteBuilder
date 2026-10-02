@@ -52,14 +52,14 @@
   {#if pinnedUpdates.length > 0}
     <div class="live-coverage-view__pinned" aria-label="Pinned updates">
       {#each pinnedUpdates as update (update.id)}
-        <LiveUpdateItem {update} {locale} />
+        <LiveUpdateItem {update} {locale} {dictionary} />
       {/each}
     </div>
   {/if}
 
   <div class="live-coverage-view__updates" aria-label="All updates" aria-live="polite">
     {#each regularUpdates as update (update.id)}
-      <LiveUpdateItem {update} {locale} />
+      <LiveUpdateItem {update} {locale} {dictionary} />
     {/each}
     {#if regularUpdates.length === 0 && pinnedUpdates.length === 0}
       <p class="live-coverage-view__empty">No updates yet.</p>

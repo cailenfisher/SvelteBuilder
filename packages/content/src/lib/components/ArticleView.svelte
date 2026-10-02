@@ -67,7 +67,7 @@
 <article class={['article-view', extraClass ?? ''].filter(Boolean).join(' ')}>
   <header class="article-view__header">
     {#if primarySection}
-      <SectionLabel section={primarySection} {locale} class="article-view__section" />
+      <SectionLabel section={primarySection} {locale} {dictionary} class="article-view__section" />
     {/if}
 
     <h1
@@ -83,7 +83,7 @@
 
     <div class="article-view__meta">
       {#if article.bylines && article.bylines.length > 0}
-        <BylineList bylines={article.bylines} {locale} class="article-view__bylines" />
+        <BylineList bylines={article.bylines} {locale} {dictionary} class="article-view__bylines" />
       {/if}
 
       <div class="article-view__timestamps" aria-label="Publication timestamps">
@@ -103,7 +103,7 @@
 
   {#if heroAsset}
     <div class="article-view__hero">
-      <MediaFigure asset={heroAsset} {storageBaseUrl} {locale} loading="eager" />
+      <MediaFigure asset={heroAsset} {storageBaseUrl} {locale} {dictionary} loading="eager" />
     </div>
   {/if}
 
@@ -115,6 +115,7 @@
           {mediaAssets}
           {storageBaseUrl}
           {locale}
+          {dictionary}
           class="article-view__block"
         />
       {/each}
