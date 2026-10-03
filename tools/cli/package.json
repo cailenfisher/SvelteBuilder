@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/cli",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "CLI for ongoing SvelteBuilder project management — syncs Drizzle schemas from installed modules into Supabase migrations and seed data.",
   "keywords": [
     "cli",
