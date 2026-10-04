@@ -2,10 +2,10 @@
 
 > Scaffolding + component ecosystem for building quality SvelteKit applications, fast.
 
-SvelteBuilder is an opinionated scaffold and toolkit ecosystem for SvelteKit projects that need to be production-ready quickly. It ships with first-class localization, baked in accessibility tooling, a clean set of common UI components, and strong established patterns for schema, routing, data access, auth, and error handling.
+SvelteBuilder is an opinionated scaffold and toolkit ecosystem for SvelteKit projects that need to be production-ready quickly. It ships with first-class localization, accessibility treated as a structural requirement, a clean set of common UI components, and strong established patterns for schema, routing, data access, auth, and error handling.
 
 > [!NOTE]
-> **Status: Beta in progress.** The foundational layer (`diglossia`, `@sveltebuilder/cli`, base scaffold template) is complete. The UI component library and first domain modules are actively being built. APIs are stabilizing but may still change.
+> **Status: Beta in progress.** The foundation (`diglossia`, `@sveltebuilder/cli`, the base and SuperPrototype scaffold templates) and `@sveltebuilder/coreui` are complete and published to npm. Two domain modules, `content` and `logistic`, are usable today; neither has a unit test suite yet, and no WCAG audit has been run. APIs may still change.
 
 ## Ecosystem Overview
 
@@ -53,7 +53,7 @@ The domain specific module libraries might be overly ambitious, and I am open to
 > [!NOTE]
 > **_Why a custom i18n toolkit?_** Paraglide (SvelteKit's official i18n) is build-time only, sveltekit-i18n doesn't solve the content model, and teams currently end up splitting UI strings and dynamic content across two unrelated systems — SvelteBuilder's toolkit unifies them. [Read the full rationale →](https://github.com/cailenfisher/SvelteBuilder/wiki/Why-a-Custom-i18n-Toolkit)
 
-**`@sveltebuilder/coreui`** provides universal UI elements shared across all domain-specific modules. Application-level UI components (buttons, layout chrome, forms, navigation) are i18n-agnostic — they accept a plain `label: string` and ordinary child snippets, exactly like any normal Svelte component. Entity-aware display components receive an entity `id` and resolve localized copy themselves via `diglossia`.
+**`@sveltebuilder/coreui`** provides universal UI elements shared across all domain-specific modules. Application-level UI components (buttons, layout chrome, forms, navigation) are i18n-agnostic — they accept a plain `label: string` and ordinary child snippets, exactly like any normal Svelte component. Entity-aware display components (most of which live in the domain modules) receive the entity itself and resolve its localized copy through `diglossia`, from context by default or from an explicitly passed `dictionary` prop.
 
 > [!NOTE]
 > **_Why a custom UI library?_** Off-the-shelf component libraries make assumptions about structure, styling, and accessibility that break down at the edges of real enterprise applications — especially across niche industries. SvelteBuilder's UI layer is built around the repeating problems found across years of production web development, with semantic HTML and WCAG compliance as non-negotiable defaults. [Read the full rationale →](https://github.com/cailenfisher/SvelteBuilder/wiki/Why-a-Custom-UI-Library)
@@ -62,20 +62,24 @@ The domain specific module libraries might be overly ambitious, and I am open to
 
 ### Domain-Specific Modules
 
-Domain modules provide feature-complete, production-ready implementations for specific application domains. Each is published as a standalone NPM package. Installing a module does two things: it makes its components importable like any library, and it copies schema files and starter routes into the target project via the CLI.
+Domain modules provide production-grade implementations for specific application domains. Each is a standalone npm package containing its Drizzle schema, its components, and the view-model types its screens are written against. It contains no queries: data access belongs to the scaffold.
+
+Selecting a module in `create-sveltebuilder` does the rest. The CLI registers the module's schema, copies its seed and supplemental SQL (RLS policies, functions), and offers its **screen bundles**: complete features such as a list, its detail page, and any layout they share. You choose which bundles to scaffold. Screens are copied into your routes once and belong to your app from then on; they are not a dependency you track.
 
 ```ts
-import { PostCard, PostBody } from '@sveltebuilder/blog';
+import { ArticleCard, ArticleView } from '@sveltebuilder/content';
 ```
 
 All domain modules consume `@sveltebuilder/coreui` components wherever possible. When overlap is identified across multiple modules, new additions are proposed to the core library rather than duplicated.
 
-Planned modules:
+Modules:
 
-- **`@sveltebuilder/blog`** — authoring, publishing, post/comment UI, RSS, sitemap
-- **`@sveltebuilder/commerce`** — e-commerce workflows (complex; full production scope)
-- **`@sveltebuilder/logistic`** — logistics and operations management (complex; full production scope)
-- Additional domain modules to follow
+- **`@sveltebuilder/content`** — publisher/news: structured articles, sections and taxonomy, live coverage, front curation, newsletters, editorial workflow, RSS, news sitemaps, JSON-LD. _Available — 5 screen bundles._
+- **`@sveltebuilder/logistic`** — warehouse operations: suppliers, storage locations, stock levels, receiving, pick tasks, shipments, returns, cycle counts. _Available — 8 screen bundles._
+- **`@sveltebuilder/commerce`** — e-commerce workflows. _Not started._
+- **`@sveltebuilder/analytics`** — _Planned._
+- **`@sveltebuilder/advertisement`** — _Planned._
+- **`@sveltebuilder/media`** — _Planned._
 
 ---
 
@@ -87,14 +91,15 @@ Planned modules:
 npm create sveltebuilder@latest
 ```
 
-It prompts for scaffold template and module selection, copies all relevant files, writes schema manifest files, and runs `sveltebuilder sync` as a final step.
+It prompts for project name, scaffold template, package manager, modules, and screen bundles, then copies the selected files, writes schema registry entries, runs `sveltebuilder sync:supabase`, and installs dependencies. Every prompt can be answered by a flag instead (`--template`, `--pm`, `--modules`, `--screens`), so a fully flagged run is non-interactive.
 
 **`@sveltebuilder/cli`** handles ongoing project management:
 
 ```sh
-sveltebuilder sync   # reads _registry manifests, topologically sorts schema, rewrites config.toml
-sveltebuilder add <module>  # adds a domain module to an existing SvelteBuilder project
+sveltebuilder sync:supabase   # Drizzle schemas → Supabase migration, plus RLS/functions and seed.sql
 ```
+
+Adding a module to an existing project (`sveltebuilder add <module>`) is planned but not built.
 
 `create-sveltebuilder` depends on `@sveltebuilder/cli` internally — sync logic is never duplicated.
 
@@ -102,24 +107,24 @@ sveltebuilder add <module>  # adds a domain module to an existing SvelteBuilder 
 
 ## Scaffold Templates
 
-Every SvelteBuilder project starts from the **base** — the scaffold-agnostic foundation that all templates share. Base includes:
+Every SvelteBuilder project starts from the **base** — the provider-neutral foundation that all templates share. Base includes:
 
-- Core application schema (`user_account`, `locale`, `local_text`, `local_text_link`)
-- `hooks.server.ts` with auth and locale resolution wiring
-- Root layout with dictionary loading and SSR hydration
-- `/api/local-text` and `/api/locale` endpoint layers
-- `LocaleSwitcher` component and app shell layout
-- Seed data (locales + application dictionary)
+- The local-text schema (`locale`, `local_text_link`, `local_text`) with its RLS policies and the `get_dictionary` SQL function
+- Root layout with dictionary loading, the `LocaleSwitcher`, and the message surface (toasts, banners, live region)
+- Admin screens for locales, localized copy, and navigation items (the UI half; the template supplies the loaders)
+- The CSS cascade-layer setup that integrates coreui's styles
+- Seed data (8 locales, English and French application copy), generated by `sync:supabase`
 
 On top of base, you choose a scaffold template:
 
 ### SvelteBuilder SuperPrototype
 
-The batteries-included starting point. Everything is pre-wired to the Supabase ecosystem — no data layer configuration required. Designed for teams that want to go from zero to deployed in a day, and for projects that intend to stay on Supabase long-term. SuperPrototype is a permanent, fully-supported offering.
+The batteries-included starting point, and currently the only available template. It is built the Supabase way rather than behind a portability layer, for projects that intend to stay on Supabase.
 
-- **Database:** Supabase (Postgres, managed migrations via `supabase db diff`)
-- **Auth:** Supabase Auth with `@supabase/ssr`
-- **Schema management:** `sveltebuilder sync` rewrites `supabase/config.toml` `schema_paths` in dependency order
+- **Database:** Supabase Postgres, reached only through the Data API (PostgREST) with `@supabase/ssr`. There is no direct database connection, so row level security applies to every query.
+- **Auth:** Supabase Auth: Google OAuth sign-in, sign-out, and a `user_account` principal provisioned in SQL on first sign-in. The first account becomes the administrator.
+- **Schema:** adds `user_account` and `navigation_item`, plus the auth helper functions and admin RPCs the policies rely on.
+- **Endpoints:** `/api/local-text` and `/api/locale`.
 
 ### SvelteBuilder Native — on hold
 
@@ -131,7 +136,7 @@ The batteries-included starting point. Everything is pre-wired to the Supabase e
 The intent: for teams that want full control over their data layer and auth, bringing the same SvelteBuilder base and module ecosystem with a provider-agnostic data layer.
 
 - **Database:** Postgres (the supported target; SvelteBuilder is Postgres-only by decision)
-- **Auth:** Provider-agnostic — configure your own
+- **Auth:** Auth.js (`@auth/sveltekit`), with the provider of your choice
 
 ---
 
@@ -139,11 +144,11 @@ The intent: for teams that want full control over their data layer and auth, bri
 
 Schema is organized in three tiers, applied in deterministic order:
 
-1. **Base schema** — always present, regardless of scaffold or modules. `user_account`, `locale`, `local_text`, `local_text_link`. The load-bearing infrastructure of every SvelteBuilder project.
-2. **Module schema** — each domain module's tables, which depend on base schema via foreign keys. Only present when the module is selected.
-3. **Scaffold template** — contributes no schema of its own. It determines how the schema is queried and how auth/sessions are managed, nothing more.
+1. **Local-text schema** — always present, regardless of template or modules: `locale`, `local_text_link`, `local_text`. The load-bearing i18n infrastructure of every SvelteBuilder project.
+2. **Template schema** — the scaffold template's own tables. SuperPrototype contributes `user_account` (the domain principal every RLS policy resolves to) and `navigation_item`.
+3. **Module schema** — each selected domain module's tables, which may reference the tiers above.
 
-Each package ships its own schema files and a `manifest.json` that declares ordering dependencies. `sveltebuilder sync` performs a topological sort across all installed module manifests and rewrites the schema path configuration so migrations always apply in the correct order.
+Schema is Drizzle-first, and SQL is a generated artifact. Each project lists its schema sources in `.sveltebuilder/registry/*.json`, where each entry names a Drizzle module and the entries it must follow. `sveltebuilder sync:supabase` sorts the registry topologically, runs `drizzle-kit generate` against the combined schema to produce the Supabase migration, appends the supplemental SQL Drizzle can't express (RLS policies, functions), and regenerates `supabase/seed.sql`.
 
 ---
 
@@ -152,7 +157,7 @@ Each package ships its own schema files and a `manifest.json` that declares orde
 The localization model has a deliberate split of responsibility:
 
 - **`diglossia`** owns the primitives and is the single import source for them.
-- **The scaffold (base template)** owns locale resolution and dictionary loading — it queries the database, builds the payload, and passes it to `createDictionary()`, then `setDictionary()`s the instance in the root layout's `<script>` body (never inside `$effect` — effects don't run during SSR).
+- **The scaffold (base template)** owns locale resolution and dictionary loading — it fetches a dictionary already resolved by locale priority in SQL (`get_dictionary`), passes it to `createDictionary()`, then `setDictionary()`s the instance in the root layout's `<script>` body (never inside `$effect` — effects don't run during SSR).
 - **Feature modules** split internally: application-level UI components are i18n-agnostic (plain `label: string` props); entity-aware display components resolve localized copy themselves via `getDictionary().localText(slug, scope, entityId)`.
 
 Domain schema carries no conventional copy columns (`name`, `title`, `label`, `description`, etc.). User-facing copy is linked to entities via `LocalTextLink`, keyed by scope + entity ID. Scope is implied by convention (the `product` model resolves under the `product` scope) and is never a schema field or a prop.
@@ -169,43 +174,53 @@ Consistent naming is a first-class concern — the connective tissue between the
 
 ## Roadmap
 
-### Phase 1 — POC ✓
+### Phase 1 — Foundation ✓
 
 - SvelteKit + TypeScript + Supabase + Supabase Auth baseline
-- `diglossia` — complete and tested
-- `@sveltebuilder/cli` with `sveltebuilder sync` — complete
-- Base scaffold template (SuperPrototype) — complete
-- Local-text DB schema with RLS policies — complete
-- Monorepo structure — clean and correct
+- `diglossia` — complete, tested, extracted to its own repo and published to npm
+- `@sveltebuilder/local-text-schema` — local-text schema with RLS and `get_dictionary`
+- `@sveltebuilder/cli` with `sveltebuilder sync:supabase`
+- Base scaffold template
+- Monorepo, Turborepo, and Changesets publishing pipeline
 
 ### Phase 2 — Beta (in progress)
 
-- `@sveltebuilder/coreui` — design tokens, CSS reset, universal component set
-- `@sveltebuilder/content` — first domain module, full production scope
-- `create-sveltebuilder` — complete prompt/copy/install flow
-- Auth UI — sign in, sign up, sign out routes
-- Admin UI for content management
-- SSR-safe dictionary construction — complete (`createDictionary`/`setDictionary` called in the root layout's `<script>` body, not `$effect`)
-- Accessibility audit pass on all coreui components
+Done:
+
+- `@sveltebuilder/coreui` — design tokens, cascade layers, and the universal component set, published to npm
+- `create-sveltebuilder` — prompt/copy/install flow, screen bundle selection, flag-driven non-interactive runs
+- SuperPrototype rebuilt on PostgREST, so RLS applies to every request, with no direct database connection
+- Auth — Supabase OAuth sign-in and sign-out, principal provisioning in SQL, admin role
+- Admin UI for locales, localized copy, and navigation
+- `@sveltebuilder/content` — first domain module, routes ported to screen bundles, RLS on all tables
+- `@sveltebuilder/logistic` — second domain module, routes ported to screen bundles
+- SSR-safe, request-scoped dictionary construction
+- Verification gates: `pnpm scaffold:check` (scaffolded projects typecheck and build) and `pnpm sql:check` (migrations, seeds, and RLS exercised against real Postgres as admin, user, and anonymous roles)
+
+Remaining:
+
+- Unit test suites for `content` and `logistic`
+- An in-repo component harness for visual and accessibility review
+- WCAG 2.2 AA audit of coreui and the module components
 
 ### Phase 3 — Release
 
-- `diglossia` published as standalone NPM package
-- `@sveltebuilder/coreui` published as standalone NPM package
-- `@sveltebuilder/content` stable release
-- `create-sveltebuilder` stable release with SuperPrototype and Native scaffold options
+- Stable releases of `@sveltebuilder/coreui`, `@sveltebuilder/content`, and `@sveltebuilder/logistic`
+- `create-sveltebuilder` stable release with the SuperPrototype template
 - `sveltebuilder add <module>` — post-install module addition command
 - Documentation site (`apps/docs`)
 
 ### Phase 4 — Domain Modules
 
 - `@sveltebuilder/commerce` — full production e-commerce scope
-- `@sveltebuilder/logistic` — full production logistics/operations scope
-- Additional domain modules based on community need
+- `@sveltebuilder/analytics`
+- `@sveltebuilder/advertisement`
+- `@sveltebuilder/media`
 
 ### Beyond Release
 
 - LTS and module enhancement
+- Resuming the Native template
 - A possible SvelteBuilder v2, based on SvelteKit 3 - opinionated i18n has long been on the Sveltekit roadmap, and that will likely change the priorities for this project
 
 ---
