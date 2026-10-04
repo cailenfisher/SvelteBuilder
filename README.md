@@ -4,16 +4,6 @@
 
 SvelteBuilder is an opinionated scaffold and toolkit ecosystem for SvelteKit projects that need to be production-ready quickly. It ships with first-class localization, baked in accessibility tooling, a clean set of common UI components, and strong established patterns for schema, routing, data access, auth, and error handling.
 
-The opinionated architectural patterns are arguably the biggest value proposition. If it all lands right, it solves for a massive, high level anti-pattern that is all too common: You build out a POC based on the very specific features the product calls from. This naturally leads to focusing heavily on UI, with minimal back-end tooling or even mocks. You almost certainly aren't fully solving high level concepts like well designed models and workflows, let alone building out the chore work that is so critical - real auth, permissions, data integrity rules, types, etc. 
-
-In an ideal world, once the POC hits all goals, you take a step back and start from scratch planning proper application architecture, producing artifacts and phases and then build everything correctly from the ground up, ingesting specific POC features only when the time is right for each one. In real life, what actually happens is frequently that the POC is hammered into being the real product because developers get excited or worse, stakeholders see a demo that looks "almost complete" and want delivery *immediately*. You then spend more development hours chasing bugs than you would have building it right. 
-
-Similar scenarios are common even when not building on an overly convincing POC. It's easy for teams to undersell "solved problems" like auth, UI libraries, a11y, i18n, and other common domains; only for fundamental friction against your custom code patterns to bite during the last mile. Even when you get it right, you end up with inconsistent patterns at the interface of each area - no truly unified shapes and models. Bypassing abstract tasks like well formed mental models and naming is a similar story. 
-
-Solving all of this (and more) in a scaffold is a heady task, but I believe it to be possible and worthwhile. Time (and hopefully user feedback) will tell! This necessarily requires enforcing strong opinions, firmly. These opinions are hard-earned, and generally track with what has evolved over time as best practices - but I am very open to qualified input, especially during these early stages. 
-
-The domain specific module libraries might be overly ambitious, and I am open to backing away from that portion if the scaffold proves to have value but modules are getting stuck in the mud. It's a big lift, but I have strong hands on experience in each planned domain, and I really like the idea of providing a truly valuable ecosystem of extendable components that work in real world domains. This would keep code patterns unified, and solve for the standard friction that comes from stitching together third party component libraries and your actual application. 
-
 > [!NOTE]
 > **Status: Beta in progress.** The foundational layer (`diglossia`, `@sveltebuilder/cli`, base scaffold template) is complete. The UI component library and first domain modules are actively being built. APIs are stabilizing but may still change.
 
@@ -43,6 +33,18 @@ to [its own repo](https://github.com/cailenfisher/diglossia) and is consumed her
 dependency rather than a workspace package.
 
 ---
+
+## About
+
+The opinionated architectural patterns are arguably the biggest value proposition. If it all lands right, it solves for a massive, high level anti-pattern that is all too common: You build out a POC based on the very specific features the product calls from. This naturally leads to focusing heavily on UI, with minimal back-end tooling or even mocks. You almost certainly aren't fully solving high level concepts like well designed models and workflows, let alone building out the chore work that is so critical - real auth, permissions, data integrity rules, types, etc. 
+
+In an ideal world, once the POC hits all goals, you take a step back and start from scratch planning proper application architecture, producing artifacts and phases and then build everything correctly from the ground up, ingesting specific POC features only when the time is right for each one. In real life, what actually happens is frequently that the POC is hammered into being the real product because developers get excited or worse, stakeholders see a demo that looks "almost complete" and want delivery *immediately*. You then spend more development hours chasing bugs than you would have building it right. 
+
+Similar scenarios are common even when not building on an overly convincing POC. It's easy for teams to undersell "solved problems" like auth, UI libraries, a11y, i18n, and other common domains; only for fundamental friction against your custom code patterns to bite during the last mile. Even when you get it right, you end up with inconsistent patterns at the interface of each area - no truly unified shapes and models. Bypassing abstract tasks like well formed mental models and naming is a similar story. 
+
+Solving all of this (and more) in a scaffold is a heady task, but I believe it to be possible and worthwhile. Time (and hopefully user feedback) will tell! This necessarily requires enforcing strong opinions, firmly. These opinions are hard-earned, and generally track with what has evolved over time as best practices - but I am very open to qualified input, especially during these early stages. 
+
+The domain specific module libraries might be overly ambitious, and I am open to backing away from that portion if the scaffold proves to have value but modules are getting stuck in the mud. It's a big lift, but I have strong hands on experience in each planned domain, and I really like the idea of providing a truly valuable ecosystem of extendable components that work in real world domains. This would keep code patterns unified, and solve for the standard friction that comes from stitching together third party component libraries and your actual application. 
 
 ### Foundational Layer
 
