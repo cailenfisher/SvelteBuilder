@@ -1,7 +1,7 @@
 {
   "name": "@sveltebuilder/content",
-  "version": "0.0.6",
-  "description": "Publisher/news domain module for SvelteBuilder \u2014 articles, sections, taxonomy, live coverage, newsletters, comments, RSS, sitemaps, and JSON-LD, with a Drizzle schema and i18n built in.",
+  "version": "0.1.1",
+  "description": "Publisher/news domain module for SvelteBuilder — articles, sections, taxonomy, live coverage, newsletters, comments, RSS, sitemaps, and JSON-LD, with a Drizzle schema and i18n built in.",
   "keywords": [
     "svelte",
     "svelte5",
@@ -24,7 +24,7 @@
     "build": "svelte-package -i src/lib",
     "dev": "svelte-package -i src/lib --watch",
     "lint": "eslint src",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "exports": {
     ".": {
@@ -65,7 +65,7 @@
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "diglossia": "link:../../../diglossia",
+    "diglossia": "^0.1.1",
     "svelte": "^5.0.0",
     "typescript": "^5.5.0",
     "vite": "^5.3.0",

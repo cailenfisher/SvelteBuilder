@@ -60,18 +60,18 @@
       <p>{text}</p>
     </blockquote>
   {:else if block.blockType === 'image' && asset}
-    <MediaFigure {asset} {storageBaseUrl} {locale} />
+    <MediaFigure {asset} {storageBaseUrl} {locale} {dictionary} />
   {:else if block.blockType === 'gallery'}
     <div class="article-block__gallery" role="region" aria-label="Photo gallery">
       {#if asset}
-        <MediaFigure {asset} {storageBaseUrl} {locale} />
+        <MediaFigure {asset} {storageBaseUrl} {locale} {dictionary} />
       {/if}
       {#if text}
         <p class="article-block__gallery-caption">{text}</p>
       {/if}
     </div>
   {:else if block.blockType === 'video' && asset}
-    <MediaFigure {asset} {storageBaseUrl} {locale} />
+    <MediaFigure {asset} {storageBaseUrl} {locale} {dictionary} />
   {:else if block.blockType === 'embed' && embedSrc}
     <div class="article-block__embed" data-provider={provider || undefined}>
       <iframe src={embedSrc} title={text || `${provider} embed`} loading="lazy" allowfullscreen
