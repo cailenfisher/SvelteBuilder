@@ -180,7 +180,7 @@
   }
 
   .admin-article__back {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
     text-decoration: none;
   }
@@ -196,13 +196,13 @@
   .admin-article__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
   .admin-article__slug,
   .admin-article__empty {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
     margin: var(--space-1) 0 0;
   }
@@ -223,7 +223,7 @@
   .admin-article__section-title {
     font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: var(--space-4) 0 0;
   }
 
@@ -236,12 +236,12 @@
 
   .admin-article__filing dt {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 
   .admin-article__filing dd {
     margin: 0;
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .admin-article__checklist {
@@ -262,7 +262,7 @@
 
   .admin-article__required {
     font-size: var(--text-xs);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }

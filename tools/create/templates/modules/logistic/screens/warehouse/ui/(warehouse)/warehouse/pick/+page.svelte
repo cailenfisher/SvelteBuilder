@@ -92,7 +92,7 @@
   .pick-queue__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -105,7 +105,7 @@
   .pick-queue__section-title {
     font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
     display: flex;
     align-items: baseline;
@@ -116,7 +116,7 @@
   .pick-queue__empty {
     font-size: var(--text-sm);
     font-weight: var(--weight-regular);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 
   .pick-queue__list {
@@ -136,16 +136,16 @@
     /* Generous rows: this is a touch target for someone holding a scanner. */
     min-height: 3.5rem;
     padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    background-color: var(--color-surface-default);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--surface);
   }
 
   .pick-queue__link,
   .pick-queue__label {
     font-size: var(--text-base);
     font-weight: var(--weight-medium);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .pick-queue__empty {

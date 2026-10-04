@@ -132,13 +132,13 @@
 
   .supplier-detail__back {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 
   .supplier-detail__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: var(--space-1) 0 0;
   }
 
@@ -201,6 +201,6 @@
   .supplier-detail__empty {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 </style>

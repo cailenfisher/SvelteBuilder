@@ -67,8 +67,8 @@
     flex-direction: column;
     gap: 1.5rem;
     padding: 1.25rem 0.75rem;
-    border-right: 1px solid var(--color-border-default, currentColor);
-    background-color: var(--color-surface-raised, transparent);
+    border-right: 1px solid var(--border-color, currentColor);
+    background-color: var(--surface-raised, transparent);
   }
 
   .admin-layout__logo a {
@@ -91,15 +91,15 @@
   .admin-layout__nav-link {
     display: block;
     padding: 0.5rem 0.75rem;
-    border-radius: 0.375rem;
+    border-radius: var(--radius);
     text-decoration: none;
     font-size: 0.875rem;
-    color: var(--color-text-primary, inherit);
+    color: var(--text, inherit);
     transition: background-color 0.12s;
   }
 
   .admin-layout__nav-link:hover {
-    background-color: var(--color-surface-overlay, rgba(0, 0, 0, 0.05));
+    background-color: var(--surface-overlay, rgba(0, 0, 0, 0.05));
   }
 
   .admin-layout__body {
@@ -114,7 +114,7 @@
     justify-content: flex-end;
     align-items: center;
     padding: 0.625rem 1.25rem;
-    border-bottom: 1px solid var(--color-border-default, currentColor);
+    border-bottom: 1px solid var(--border-color, currentColor);
     min-height: 3.25rem;
   }
 
@@ -126,7 +126,7 @@
 
   .admin-layout__email {
     font-size: 0.875rem;
-    color: var(--color-text-secondary, inherit);
+    color: var(--text-soft, inherit);
   }
 
   .admin-layout__main {

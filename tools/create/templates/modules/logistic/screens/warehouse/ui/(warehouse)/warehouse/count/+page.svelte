@@ -83,7 +83,7 @@
   .count-queue__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -96,7 +96,7 @@
   .count-queue__section-title {
     font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -116,16 +116,16 @@
     gap: var(--space-4);
     min-height: 3.5rem;
     padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    background-color: var(--color-surface-default);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--surface);
   }
 
   .count-queue__link,
   .count-queue__label {
     font-size: var(--text-base);
     font-weight: var(--weight-medium);
-    color: var(--color-text-primary);
+    color: var(--text);
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
@@ -135,7 +135,7 @@
   .count-queue__empty {
     font-size: var(--text-sm);
     font-weight: var(--weight-regular);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 
   .count-queue__empty {

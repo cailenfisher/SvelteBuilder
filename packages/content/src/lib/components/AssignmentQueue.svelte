@@ -84,7 +84,7 @@
     border: none;
     padding: 0;
     font: inherit;
-    color: var(--color-text-link);
+    color: var(--link-text);
     cursor: pointer;
     text-align: left;
   }

@@ -169,7 +169,7 @@
   .receipt-list__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -188,7 +188,7 @@
 
   .receipt-list__empty {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     margin: var(--space-8) 0 0;
   }
 
