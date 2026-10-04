@@ -138,14 +138,14 @@
     margin: 0;
     font-size: var(--text-xl);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .article-page__comment-form-heading {
     margin: 0;
     font-size: var(--text-base);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .article-page__comment-list {
@@ -161,12 +161,12 @@
     margin: 0;
     font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .article-page__comment-body {
     margin: var(--space-1) 0 0;
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 
   .article-page__comment-form {

@@ -195,7 +195,7 @@
   }
 
   .receipt-detail__back {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
     text-decoration: none;
   }
@@ -210,14 +210,14 @@
   .receipt-detail__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
   .receipt-detail__supplier,
   .receipt-detail__note,
   .receipt-detail__empty {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
     margin: var(--space-1) 0 0;
   }
@@ -229,13 +229,13 @@
   }
 
   .receipt-detail__meta-item dt {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
   }
 
   .receipt-detail__meta-item dd {
     margin: 0;
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .receipt-detail__lines {
@@ -254,7 +254,7 @@
   .receipt-detail__section-title {
     font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 

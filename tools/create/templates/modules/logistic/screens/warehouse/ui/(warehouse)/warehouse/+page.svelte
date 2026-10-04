@@ -63,7 +63,7 @@
   .warehouse-home__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -78,9 +78,9 @@
     flex-direction: column;
     gap: var(--space-2);
     padding: var(--space-6);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    background-color: var(--color-surface-default);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--surface);
     text-decoration: none;
     /* Deliberately large: this is a touch target for someone holding a scanner. */
     min-height: 9rem;
@@ -93,11 +93,11 @@
   .warehouse-home__flow-label {
     font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .warehouse-home__flow-desc {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 </style>

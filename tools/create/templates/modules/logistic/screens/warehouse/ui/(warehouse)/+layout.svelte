@@ -56,8 +56,8 @@
     justify-content: space-between;
     gap: var(--space-4);
     padding: var(--space-3) var(--space-4);
-    background-color: var(--color-surface-default);
-    border-block-end: 1px solid var(--color-border-default);
+    background-color: var(--surface);
+    border-block-end: 1px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -66,7 +66,7 @@
   .warehouse-layout__wordmark {
     font-size: var(--text-base);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     text-decoration: none;
   }
 
@@ -77,16 +77,16 @@
 
   .warehouse-layout__nav-link {
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     text-decoration: none;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-sm);
   }
 
   .warehouse-layout__nav-link[aria-current='page'] {
-    color: var(--color-text-primary);
+    color: var(--text);
     font-weight: var(--weight-semibold);
-    background-color: var(--color-surface-subtle);
+    background-color: var(--surface-raised);
   }
 
   .warehouse-layout__main {

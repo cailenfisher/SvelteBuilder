@@ -210,7 +210,7 @@
   .logistic-dashboard__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -236,7 +236,7 @@
   .logistic-dashboard__section-title {
     font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -258,12 +258,12 @@
   }
 
   .logistic-dashboard__link {
-    color: var(--color-text-primary);
+    color: var(--text);
     font-weight: var(--weight-medium);
   }
 
   .logistic-dashboard__muted {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
   }
 

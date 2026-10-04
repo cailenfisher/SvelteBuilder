@@ -115,7 +115,7 @@
   }
 
   .receive-task__back {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
     text-decoration: none;
   }
@@ -130,12 +130,12 @@
   .receive-task__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
   .receive-task__meta {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
     margin: var(--space-1) 0 0;
   }
@@ -154,9 +154,9 @@
     flex-direction: column;
     gap: var(--space-3);
     padding: var(--space-4);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    background-color: var(--color-surface-default);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--surface);
   }
 
   .receive-task__line.done {
@@ -172,13 +172,13 @@
   .receive-task__location {
     font-size: var(--text-lg);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .receive-task__sku {
     font-family: var(--font-mono);
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 
   .receive-task__line-what {
@@ -191,7 +191,7 @@
 
   .receive-task__quantity {
     font-size: var(--text-base);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .receive-task__form {

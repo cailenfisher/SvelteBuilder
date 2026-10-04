@@ -86,13 +86,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1.5rem;
-    border-bottom: 1px solid var(--color-border-default, currentColor);
+    border-bottom: 1px solid var(--border-color, currentColor);
   }
 
   .app__brand {
     font-weight: 600;
     text-decoration: none;
-    color: var(--color-text-primary, inherit);
+    color: var(--text, inherit);
   }
 
   .app__nav {
@@ -107,12 +107,12 @@
 
   .app__footer {
     padding: 0.75rem 1.5rem;
-    border-top: 1px solid var(--color-border-default, currentColor);
+    border-top: 1px solid var(--border-color, currentColor);
   }
 
   .app__footer-copy {
     margin: 0;
     font-size: var(--text-xs, 0.75rem);
-    color: var(--color-text-secondary, inherit);
+    color: var(--text-soft, inherit);
   }
 </style>

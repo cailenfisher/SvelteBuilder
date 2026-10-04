@@ -79,7 +79,7 @@
   }
 
   .count-task__back {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
     text-decoration: none;
   }
@@ -87,13 +87,13 @@
   .count-task__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: var(--space-2) 0 0;
   }
 
   .count-task__meta,
   .count-task__note {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
     margin: var(--space-1) 0 0;
   }
@@ -114,9 +114,9 @@
     gap: var(--space-4);
     flex-wrap: wrap;
     padding: var(--space-4);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    background-color: var(--color-surface-default);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--surface);
   }
 
   .count-task__line.done {
@@ -132,13 +132,13 @@
   .count-task__location {
     font-size: var(--text-lg);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
   }
 
   .count-task__sku {
     font-family: var(--font-mono);
     font-size: var(--text-sm);
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
   }
 
   .count-task__form {

@@ -174,7 +174,7 @@
   .cycle-count-list__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -185,7 +185,7 @@
   }
 
   .cycle-count-list__link {
-    color: var(--color-text-primary);
+    color: var(--text);
     font-weight: var(--weight-medium);
   }
 

@@ -95,7 +95,7 @@
   .supplier-list__title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
+    color: var(--text);
     margin: 0;
   }
 
@@ -120,7 +120,7 @@
   }
 
   .supplier-list__empty {
-    color: var(--color-text-secondary);
+    color: var(--text-soft);
     font-size: var(--text-sm);
     margin: 0;
     padding: var(--space-8) 0;
