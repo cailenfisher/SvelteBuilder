@@ -234,6 +234,110 @@ begin
   end if;
 end $$;
 
+-- ── user_account's self-promotion hole stays closed ──────────────────────────
+--
+-- Confirmed exploitable 2026-10-03: the owner-update policy that used to live here let
+-- any authenticated principal PATCH its own row's `admin` column to true, because RLS
+-- cannot restrict which columns an allowed UPDATE may touch. The fix is revoking the
+-- grant outright, not a tighter policy — checked both statically and behaviorally.
+
+do $$
+begin
+  if has_table_privilege('authenticated', 'public.user_account', 'UPDATE')
+     or has_table_privilege('authenticated', 'public.user_account', 'INSERT')
+     or has_table_privilege('authenticated', 'public.user_account', 'DELETE')
+     or has_table_privilege('anon', 'public.user_account', 'UPDATE')
+     or has_table_privilege('anon', 'public.user_account', 'INSERT')
+     or has_table_privilege('anon', 'public.user_account', 'DELETE')
+  then
+    raise exception 'anon/authenticated can still write user_account directly — the self-promotion hole is open';
+  end if;
+end $$;
+
+do $$
+declare
+  v_second_id bigint;
+  v_message   text;
+begin
+  select id into v_second_id
+  from public.user_account
+  where auth_user_id = 'aaaaaaaa-0000-4000-8000-000000000002';
+
+  set local role authenticated;
+  set local request.jwt.claim.sub = 'aaaaaaaa-0000-4000-8000-000000000002';
+
+  -- A raw UPDATE must be refused at the privilege check, before RLS is even
+  -- consulted — this is what the static check above already asserts, proven here
+  -- end to end the way PostgREST would actually see it.
+  begin
+    update public.user_account set admin = true where id = v_second_id;
+    raise exception 'a non-admin principal updated user_account directly';
+  exception when insufficient_privilege then
+    null; -- refused, as intended
+  end;
+
+  -- The RPC is the only route left, and it must refuse a non-admin promoting itself.
+  -- Caught into a variable rather than relied on as control flow, because a bare
+  -- `exception when raise_exception` here would also catch the sentinel this block
+  -- raises on its own success path — they share the same SQLSTATE.
+  v_message := null;
+  begin
+    perform public.admin_set_user_admin(v_second_id, true);
+  exception when raise_exception then
+    v_message := sqlerrm;
+  end;
+
+  if v_message is null then
+    raise exception 'a non-admin principal self-promoted via admin_set_user_admin()';
+  elsif v_message <> 'admin privileges required' then
+    raise exception 'admin_set_user_admin() refused the non-admin for the wrong reason: %', v_message;
+  end if;
+end $$;
+
+do $$
+declare
+  v_first_id  bigint;
+  v_second_id bigint;
+  v_message   text;
+begin
+  select id into v_first_id
+  from public.user_account where auth_user_id = 'aaaaaaaa-0000-4000-8000-000000000001';
+  select id into v_second_id
+  from public.user_account where auth_user_id = 'aaaaaaaa-0000-4000-8000-000000000002';
+
+  set local role authenticated;
+  set local request.jwt.claim.sub = 'aaaaaaaa-0000-4000-8000-000000000001';
+
+  -- The actual admin may promote another principal through the RPC …
+  perform public.admin_set_user_admin(v_second_id, true);
+  if not exists (select 1 from public.user_account where id = v_second_id and admin) then
+    raise exception 'admin_set_user_admin() did not promote the target principal';
+  end if;
+
+  -- … and demote them again, which is safe while two admins exist.
+  perform public.admin_set_user_admin(v_second_id, false);
+  if exists (select 1 from public.user_account where id = v_second_id and admin) then
+    raise exception 'admin_set_user_admin() did not demote the target principal';
+  end if;
+
+  -- But refuses to demote the last administrator — that would lock everyone out of
+  -- the admin area with no route back in but direct SQL. Same caught-into-a-variable
+  -- shape as above, for the same reason.
+  v_message := null;
+  begin
+    perform public.admin_set_user_admin(v_first_id, false);
+  exception when raise_exception then
+    v_message := sqlerrm;
+  end;
+
+  if v_message is null then
+    raise exception 'admin_set_user_admin() demoted the last administrator';
+  elsif v_message <> 'there has to be at least one administrator' then
+    raise exception
+      'admin_set_user_admin() refused the last-admin demotion for the wrong reason: %', v_message;
+  end if;
+end $$;
+
 -- ── An anonymous caller reads public copy and writes nothing ─────────────────
 
 do $$

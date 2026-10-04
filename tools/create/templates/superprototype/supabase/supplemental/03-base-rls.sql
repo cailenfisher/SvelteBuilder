@@ -27,12 +27,15 @@ create policy "user_account_owner_read"
   to authenticated
   using ((select public.current_user_id()) = id);
 
-drop policy if exists "user_account_owner_update" on public.user_account;
-create policy "user_account_owner_update"
-  on public.user_account for update
-  to authenticated
-  using ((select public.current_user_id()) = id)
-  with check ((select public.current_user_id()) = id);
+-- No owner-update policy, deliberately. There used to be one here —
+-- `using (current_user_id() = id) with check (current_user_id() = id)`, "update your
+-- own row" — and it was a privilege escalation: RLS cannot restrict which *columns*
+-- an allowed UPDATE may touch, so "your own row" included `admin` and `auth_user_id`.
+-- Confirmed exploitable: `PATCH /rest/v1/user_account?id=eq.<own id> {"admin": true}`
+-- returned 200 and made the caller an admin. See 05-user-account-hardening.sql, which
+-- revokes UPDATE on this table from anon/authenticated entirely and moves the one
+-- legitimate write — promoting or demoting an administrator — to a SECURITY DEFINER
+-- RPC that checks caller admin status itself. Do not re-add a self-update policy here.
 
 drop policy if exists "user_account_admin_all" on public.user_account;
 create policy "user_account_admin_all"
