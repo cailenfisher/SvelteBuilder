@@ -205,21 +205,8 @@ Consistent naming is a first-class concern — the connective tissue between the
 
 ### Beyond Release
 
-- Plain-Svelte (client-side only, non-SvelteKit) support for `diglossia`'s core. The initial release is strictly SvelteKit with SSR; broader Svelte compatibility is a deliberate follow-up once the SSR-anchored patterns have stabilized.
-
----
-
-## Tech Stack
-
-| Concern           | SuperPrototype                            | Native                                    |
-| ----------------- | ----------------------------------------- | ----------------------------------------- |
-| Framework         | SvelteKit + TypeScript                    | ← same                                    |
-| i18n primitives   | `diglossia`                               | ← same                                    |
-| i18n formatting   | `messageformat` (Unicode MessageFormat 2) | ← same                                    |
-| UI components     | `@sveltebuilder/coreui`                   | ← same                                    |
-| Database          | Supabase (Postgres)                       | Drizzle ORM (any driver)                  |
-| Auth              | Supabase Auth + `@supabase/ssr`           | Provider-agnostic                         |
-| Schema management | `supabase db diff` + `sveltebuilder sync` | Drizzle migrations + `sveltebuilder sync` |
+- LTS and module enhancement
+- A possible SvelteBuilder v2, based on SvelteKit 3 - opinionated i18n has long been on the Sveltekit roadmap, and that will likely change the priorities for this project
 
 ---
 
@@ -229,4 +216,4 @@ Not yet accepting outside contributions. Questions, comments, and feature reques
 
 ## License
 
-TBD
+MIT
