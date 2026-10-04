@@ -17,6 +17,12 @@ supabase/.branches/
 .vscode/settings.json
 .idea/
 
+# Claude Code — per-machine files. Memory belongs in ~/.claude, never the repo;
+# a shared .claude/settings.json may still be committed.
+.claude/projects/
+.claude/settings.local.json
+CLAUDE.local.md
+
 # OS
 .DS_Store
 Thumbs.db
