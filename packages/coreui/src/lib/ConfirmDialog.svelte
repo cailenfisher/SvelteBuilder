@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import Dialog from './Dialog.svelte';
+  import { AlertDialog } from 'bits-ui';
   import Button from './Button.svelte';
 
   type Props = {
@@ -22,6 +22,7 @@
     loading?: boolean;
     children?: Snippet;
     onConfirm: () => void;
+    /** Called when the dialog is dismissed by the cancel button or Escape. */
     onCancel?: () => void;
   };
 
@@ -36,33 +37,58 @@
     onConfirm,
     onCancel,
   }: Props = $props();
-
-  function handleCancel() {
-    open = false;
-    onCancel?.();
-  }
-
-  function handleConfirm() {
-    onConfirm();
-  }
 </script>
 
-<Dialog
+<!--
+  AlertDialog rather than Dialog: role="alertdialog", and an outside click does
+  not dismiss it — a stray click must never stand in for an answer to a
+  destructive confirmation. onOpenChange fires only for dismissals the dialog
+  performs itself (cancel, Escape), never when the parent closes it after
+  onConfirm, so it is exactly the cancel path.
+-->
+<AlertDialog.Root
   bind:open
-  size="sm"
-  {title}
-  {description}
+  onOpenChange={(next) => {
+    if (!next) onCancel?.();
+  }}
 >
-  {#if children}
-    {@render children()}
-  {/if}
+  <AlertDialog.Portal>
+    <AlertDialog.Overlay class="dialog-overlay" />
 
-  {#snippet footer()}
-    <Button variant="secondary" onclick={handleCancel} disabled={loading}>
-      {cancelLabel}
-    </Button>
-    <Button variant="danger" onclick={handleConfirm} {loading}>
-      {confirmLabel}
-    </Button>
-  {/snippet}
-</Dialog>
+    <AlertDialog.Content
+      class="dialog sm"
+      escapeKeydownBehavior={loading ? 'ignore' : 'close'}
+    >
+      <div class="header">
+        <AlertDialog.Title class="dialog-title" level={2}>
+          {title}
+        </AlertDialog.Title>
+      </div>
+
+      {#if description}
+        <AlertDialog.Description class="dialog-desc">
+          {description}
+        </AlertDialog.Description>
+      {/if}
+
+      {#if children}
+        <div class="body">
+          {@render children()}
+        </div>
+      {/if}
+
+      <div class="footer">
+        <AlertDialog.Cancel disabled={loading}>
+          {#snippet child({ props })}
+            <Button variant="secondary" {...props}>
+              {cancelLabel}
+            </Button>
+          {/snippet}
+        </AlertDialog.Cancel>
+        <Button variant="danger" onclick={onConfirm} {loading}>
+          {confirmLabel}
+        </Button>
+      </div>
+    </AlertDialog.Content>
+  </AlertDialog.Portal>
+</AlertDialog.Root>

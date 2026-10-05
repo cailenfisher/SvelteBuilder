@@ -123,7 +123,7 @@
   />
 </div>
 
-<Dialog bind:open={newReturnOpen} title={t('logistic.return.new')}>
+<Dialog bind:open={newReturnOpen} title={t('logistic.return.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <form method="POST" action="?/create" class="return-new-form">
       <Field label={t('logistic.field.sku')} id="return-sku" required>

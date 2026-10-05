@@ -48,6 +48,7 @@
     "logistic.field.location",
     "action.save",
     "action.add",
-    "action.cancel"
+    "action.cancel",
+    "action.close"
   ]
 }

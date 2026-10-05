@@ -12,6 +12,8 @@
     children: Snippet;
     footer?: Snippet;
     trigger?: Snippet;
+    /** Accessible name for the close button. Defaults to "Close". */
+    closeLabel?: string;
     class?: string | undefined;
   };
 
@@ -23,10 +25,9 @@
     children,
     footer,
     trigger,
+    closeLabel = 'Close',
     class: extraClass,
   }: Props = $props();
-
-  const descId = `dialog-desc-${Math.random().toString(36).slice(2, 9)}`;
 
   const contentClasses = $derived(
     ['dialog', size, extraClass ?? ''].filter(Boolean).join(' ')
@@ -43,13 +44,13 @@
   <Dialog.Portal>
     <Dialog.Overlay class="dialog-overlay" />
 
-    <Dialog.Content class={contentClasses} aria-describedby={description ? descId : undefined}>
+    <Dialog.Content class={contentClasses}>
       <div class="header">
         <Dialog.Title class="dialog-title" level={2}>
           {title}
         </Dialog.Title>
 
-        <Dialog.Close class="dialog-close" aria-label="Close dialog">
+        <Dialog.Close class="dialog-close" aria-label={closeLabel}>
           <svg viewBox="0 0 16 16" fill="none" width="16" height="16" aria-hidden="true">
             <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
@@ -57,12 +58,8 @@
       </div>
 
       {#if description}
-        <Dialog.Description id={descId} class="dialog-desc">
+        <Dialog.Description class="dialog-desc">
           {description}
-        </Dialog.Description>
-      {:else}
-        <Dialog.Description class="dialog-desc hidden">
-          {title} dialog
         </Dialog.Description>
       {/if}
 

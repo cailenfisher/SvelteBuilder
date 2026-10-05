@@ -127,7 +127,7 @@
   />
 </div>
 
-<Dialog bind:open={newCountOpen} title={t('logistic.cycle_count.new')}>
+<Dialog bind:open={newCountOpen} title={t('logistic.cycle_count.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <form method="POST" action="?/create" class="cycle-count-new-form">
       <fieldset class="cycle-count-new-form__locations">

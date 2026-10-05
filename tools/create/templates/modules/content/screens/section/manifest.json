@@ -10,6 +10,9 @@
   "copySlugs": [
     "content.section.subsections",
     "content.section.pagination",
-    "content.section.empty"
+    "content.section.empty",
+    "pagination.previous",
+    "pagination.next",
+    "nav.pagination"
   ]
 }

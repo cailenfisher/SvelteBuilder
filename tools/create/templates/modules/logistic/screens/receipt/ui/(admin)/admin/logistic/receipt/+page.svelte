@@ -104,6 +104,9 @@
                 `/admin/logistic/receipt?page=${next}` +
                   (data.status ? `&status=${data.status}` : '')
               )}
+            previousLabel={dictionary.localText('pagination.previous')}
+            nextLabel={dictionary.localText('pagination.next')}
+            label={dictionary.localText('nav.pagination')}
           />
         </nav>
       {/if}
@@ -113,7 +116,7 @@
   </div>
 </div>
 
-<Dialog bind:open={newReceiptOpen} title={t('logistic.receipt.new')}>
+<Dialog bind:open={newReceiptOpen} title={t('logistic.receipt.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <form method="POST" action="?/create" class="receipt-new-form">
       <!-- Field renders the <label for>; the control inherits its id from field context. -->

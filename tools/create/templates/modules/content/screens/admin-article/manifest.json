@@ -38,6 +38,7 @@
     "content.admin.required",
     "content.admin.publish_blocked",
     "action.cancel",
-    "action.save"
+    "action.save",
+    "action.close"
   ]
 }

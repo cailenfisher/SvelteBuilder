@@ -40,6 +40,7 @@
     "logistic.cycle_count.status.cancelled",
     "logistic.field.location",
     "logistic.field.sku",
-    "action.cancel"
+    "action.cancel",
+    "action.close"
   ]
 }

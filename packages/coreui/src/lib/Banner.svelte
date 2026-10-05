@@ -84,7 +84,7 @@
     <button
       type="button"
       class="close"
-      aria-label="Dismiss: {active.summary}"
+      aria-label={messageBus.labels.dismiss(active.summary)}
       onclick={handleDismiss}
     >
       <svg viewBox="0 0 16 16" fill="none" width="14" height="14" aria-hidden="true">

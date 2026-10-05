@@ -163,7 +163,7 @@
   />
 </div>
 
-<Dialog bind:open={adjustOpen} title={t('logistic.stock.adjust_title')}>
+<Dialog bind:open={adjustOpen} title={t('logistic.stock.adjust_title')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     {#if adjustTarget}
       <p class="stock-page__dialog-context">

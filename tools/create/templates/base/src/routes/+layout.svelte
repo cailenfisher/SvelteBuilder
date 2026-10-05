@@ -21,7 +21,20 @@
 
   // Same reasoning as the dictionary: a module-level message bus would leak
   // one visitor's toasts/banners into another's response on the server.
-  setMessageBus(createMessageBus())
+  setMessageBus(
+    createMessageBus({
+      labels: {
+        undo: dictionary.localText('message.undo'),
+        showDetails: dictionary.localText('message.show_details'),
+        hideDetails: dictionary.localText('message.hide_details'),
+        reference: (technicalId) => dictionary.formatText('message.reference', { technicalId }),
+        dismiss: (summary) => dictionary.formatText('message.dismiss', { summary }),
+        secondsRemaining: (seconds) => dictionary.formatText('message.seconds_remaining', { seconds }),
+        region: dictionary.localText('message.region'),
+        queued: (count) => dictionary.formatText('message.queued', { count }),
+      },
+    })
+  )
 
   // Admin and auth routes manage their own chrome.
   const isFullPage = $derived(
