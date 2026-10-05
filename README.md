@@ -21,7 +21,7 @@ The domain specific module libraries might be overly ambitious, and I am open to
 
 ## Ecosystem Overview
 
-SvelteBuilder is structured as a layered ecosystem. Each layer is a separate package in the monorepo, published independently to NPM.
+  ![SvelteBuilder ecosystem: CLI, scaffolded project, domain modules, foundation](docs/sveltebuilder-ecosystem.svg)
 
 ### Monorepo Structure
 
