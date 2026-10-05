@@ -1,5 +1,13 @@
 # @sveltebuilder/logistic
 
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies [[`ca21505`](https://github.com/cailenfisher/SvelteBuilder/commit/ca215055910fc83c8e509f80af791ca3e68cca5d)]:
+  - @sveltebuilder/coreui@0.2.0
+  - @sveltebuilder/local-text-schema@0.2.1
+
 ## 0.1.0
 
 ### Minor Changes
