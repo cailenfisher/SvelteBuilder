@@ -15,6 +15,8 @@
     children: Snippet;
     trigger?: Snippet;
     footer?: Snippet;
+    /** Accessible name for the close button. Defaults to "Close". */
+    closeLabel?: string;
     class?: string | undefined;
   };
 
@@ -27,6 +29,7 @@
     children,
     trigger,
     footer,
+    closeLabel = 'Close',
     class: extraClass,
   }: Props = $props();
 </script>
@@ -46,7 +49,7 @@
         {#if description}
           <Dialog.Description id="drawer-desc" class="drawer-description">{description}</Dialog.Description>
         {/if}
-        <Dialog.Close class="drawer-close" aria-label="Close">
+        <Dialog.Close class="drawer-close" aria-label={closeLabel}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>

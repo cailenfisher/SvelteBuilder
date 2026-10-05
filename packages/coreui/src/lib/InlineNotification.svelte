@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { SBMessageAction } from './message-bus.svelte.js';
+  import { getMessageLabels } from './message-bus.svelte.js';
 
   type Severity = 'success' | 'info' | 'warning' | 'error';
 
@@ -27,6 +28,8 @@
     class: extraClass,
     icon,
   }: Props = $props();
+
+  const labels = getMessageLabels();
 
   let detailOpen = $state(false);
   let visible = $state(true);
@@ -86,10 +89,10 @@
           aria-expanded={detailOpen}
           onclick={() => (detailOpen = !detailOpen)}
         >
-          {detailOpen ? 'Hide details' : 'Show details'}
+          {detailOpen ? labels.hideDetails : labels.showDetails}
         </button>
         {#if detailOpen}
-          <p class="ref">Ref: {technicalId}</p>
+          <p class="ref">{labels.reference(technicalId)}</p>
         {/if}
       {/if}
 
@@ -108,7 +111,7 @@
       <button
         type="button"
         class="close"
-        aria-label="Dismiss: {summary}"
+        aria-label={labels.dismiss(summary)}
         onclick={handleDismiss}
       >
         <svg viewBox="0 0 16 16" fill="none" width="14" height="14" aria-hidden="true">

@@ -119,7 +119,7 @@
   />
 </div>
 
-<Dialog bind:open={newShipmentOpen} title={t('logistic.shipment.new')}>
+<Dialog bind:open={newShipmentOpen} title={t('logistic.shipment.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <form method="POST" action="?/create" class="shipment-new-form">
       <!-- Field renders the <label for>; the control inherits its id from field context. -->

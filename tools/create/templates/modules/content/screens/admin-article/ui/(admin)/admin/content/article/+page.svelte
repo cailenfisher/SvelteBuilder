@@ -113,7 +113,7 @@
   />
 </div>
 
-<Dialog bind:open={newArticleOpen} title={t('content.admin.new')}>
+<Dialog bind:open={newArticleOpen} title={t('content.admin.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <form method="POST" action="?/create" class="admin-article-list__form">
       <!-- Both fields are required: an article with no headline cannot be told apart from its

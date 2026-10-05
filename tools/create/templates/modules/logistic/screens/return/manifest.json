@@ -56,6 +56,7 @@
     "logistic.return_authorization.status.cancelled",
     "logistic.field.sku",
     "logistic.field.note",
-    "action.cancel"
+    "action.cancel",
+    "action.close"
   ]
 }

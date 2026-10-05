@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { SBMessage } from './message-bus.svelte.js';
-  import { AUTO_DISMISS_MS } from './message-bus.svelte.js';
+  import { AUTO_DISMISS_MS, getMessageLabels } from './message-bus.svelte.js';
 
   type Props = {
     message: SBMessage;
@@ -8,6 +8,8 @@
   };
 
   let { message, onDismiss }: Props = $props();
+
+  const labels = getMessageLabels();
 
   const duration = $derived<number | null>(
     message.undoAction
@@ -95,17 +97,17 @@
         aria-expanded={detailOpen}
         onclick={() => (detailOpen = !detailOpen)}
       >
-        {detailOpen ? 'Hide details' : 'Show details'}
+        {detailOpen ? labels.hideDetails : labels.showDetails}
       </button>
       {#if detailOpen}
-        <p class="ref">Ref: {message.technicalId}</p>
+        <p class="ref">{labels.reference(message.technicalId)}</p>
       {/if}
     {/if}
 
     {#if message.undoAction || (message.actions && message.actions.length > 0)}
       <div class="actions">
         {#if message.undoAction}
-          <button type="button" class="action undo" onclick={handleUndo}>Undo</button>
+          <button type="button" class="action undo" onclick={handleUndo}>{labels.undo}</button>
         {/if}
         {#each message.actions ?? [] as action (action.label)}
           <button type="button" class="action" onclick={action.onAction}>{action.label}</button>
@@ -117,7 +119,7 @@
   <button
     type="button"
     class="close"
-    aria-label="Dismiss: {message.summary}"
+    aria-label={labels.dismiss(message.summary)}
     onclick={onDismiss}
   >
     <svg viewBox="0 0 16 16" fill="none" width="14" height="14" aria-hidden="true">
@@ -132,7 +134,7 @@
       aria-valuemin={0}
       aria-valuemax={duration / 1000}
       aria-valuenow={secondsRemaining}
-      aria-label="{secondsRemaining} seconds until dismissed"
+      aria-label={labels.secondsRemaining(secondsRemaining)}
     >
       <div class="fill" style="width: {progressRemaining * 100}%"></div>
     </div>

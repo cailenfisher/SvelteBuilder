@@ -48,6 +48,10 @@
     "logistic.field.location",
     "logistic.field.note",
     "action.add",
-    "action.cancel"
+    "action.cancel",
+    "pagination.previous",
+    "pagination.next",
+    "nav.pagination",
+    "action.close"
   ]
 }

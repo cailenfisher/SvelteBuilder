@@ -1,11 +1,14 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { createDictionary } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import { Pagination } from '@sveltebuilder/coreui';
   import { ArticleCard, SectionLabel } from '@sveltebuilder/content';
   import type { SectionPageView } from '@sveltebuilder/content/views';
 
   let { data }: { data: SectionPageView } = $props();
+
+  const dictionary = getDictionary();
 
   // Request-scoped, not a merge into the context instance — see the article screen.
   const scoped = $derived(createDictionary(data.copy));
@@ -68,6 +71,9 @@
           perPage={data.perPage}
           page={data.page}
           onPageChange={(next) => goto(href(next))}
+          previousLabel={dictionary.localText('pagination.previous')}
+          nextLabel={dictionary.localText('pagination.next')}
+          label={dictionary.localText('nav.pagination')}
         />
       </nav>
     {/if}
