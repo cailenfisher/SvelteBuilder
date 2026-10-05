@@ -9,7 +9,9 @@ SvelteBuilder is an opinionated scaffold and toolkit ecosystem for SvelteKit pro
 
 ## About
 
-Ultimately I am building this because I have a use for it. I wanted to package up things that I end up repeating on every new project (abstract and tangible - mental models to actual components), to use on a series of applications I want to build, [one](https://github.com/cailenfisher/David) of which is at a solid POC stage, built with the current pre-beta SvelteBuilder. I have made similar toolkits in the past, since my years in LAMP world but this time I thought it would be neat to actually publish everything as proper packages. It would be even more neat if other people found value in it, especially if that came with feedback - developing in a vacuum is hard! 
+Ultimately I am building this because I have a use for it. I wanted to package up things that I end up repeating on every new project (abstract and tangible - mental models to actual components), to use on a series of applications I want to build. The first one, a [newspaper platform](https://github.com/cailenfisher/David) is at a solid POC stage, built with the current pre-beta SvelteBuilder. I started with that one because it's near to my heart, but also because the newspaper side will be an excellent test of i18n and a11y functionality, while the newsroom side will put pressure on permissions, error handling, and component hierarchy. 
+
+I have made similar toolkits in the past, since my years in LAMP world but this time I thought it would be neat to actually publish everything as proper packages. It would be even more neat if other people found value in it, especially if that came with feedback - developing in a vacuum is hard! 
 
 The opinionated architectural patterns are arguably the biggest value proposition. If it all lands right, it solves for a critical high level anti-pattern that is all too common: You build out a POC based on the very specific features the product calls from. This naturally leads to focusing heavily on UI, with minimal back-end tooling or even mocks. You almost certainly aren't fully solving high level concepts like well designed models and workflows, let alone building out the chore work that is so critical - real auth, permissions, data integrity rules, types, etc. 
 
@@ -21,7 +23,7 @@ Solving all of this (and more) in a scaffold is a heady task, but I believe it t
 
 The domain specific module libraries might be overly ambitious, and I am open to backing away from that portion if the scaffold proves to have value but modules are getting stuck in the mud. It's a big lift, but I have hands-on experience in each planned domain, and I really like the idea of providing a truly valuable ecosystem of extendable components that work in real world domains. This would keep code patterns unified, and solve for the standard friction that comes from stitching together third party component libraries and your actual application. 
 
-If everything actually works well enough to become a community driven ecosystem, the end result could solve for what gives WordPress such a huge market share, but coming from an opposite direction: extendable but unified modular pieces, instead of plugins bolted onto a CMS.
+If everything works well enough to become a community driven ecosystem, the end result could solve for what gives WordPress such a huge market share - but coming from an opposite direction: extendable but unified modular pieces, instead of plugins bolted onto a CMS.
 
 ## Ecosystem Overview
 
