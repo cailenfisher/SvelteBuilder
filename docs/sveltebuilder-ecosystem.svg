@@ -1,0 +1,240 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 900" width="960" height="900" role="img" aria-labelledby="sb-title sb-desc">
+  <title id="sb-title">SvelteBuilder ecosystem</title>
+  <desc id="sb-desc">Layered diagram. create-sveltebuilder, which uses @sveltebuilder/cli, scaffolds your SvelteKit project: a shared base template, the SuperPrototype template (available) or Native (on hold), copied screen bundles, scaffold-owned data access, and generated Supabase SQL. The project depends on domain modules: content and logistic (available), commerce (not started), analytics, advertisement and media (planned). Modules are built on the foundation: diglossia, @sveltebuilder/coreui and @sveltebuilder/local-text-schema. Schema is applied in three tiers: local-text, template, module, then sync:supabase generates the migration.</desc>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .m { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .t { font-size: 14px; font-weight: 600; }
+    .s { font-size: 12px; }
+    .x { font-size: 11px; }
+    .h { font-size: 13px; font-weight: 600; }
+    .bg { fill: #FFFFFF; }
+    .heading { fill: #2C2C2A; }
+    .muted { fill: #5F5E5A; }
+    .frame { fill: #F7F7F5; stroke: #B4B2A9; }
+    .arr { stroke: #888780; stroke-width: 1.5; fill: none; }
+    .arrhead { fill: #888780; }
+    .amber .box { fill: #FAEEDA; stroke: #BA7517; } .amber .t { fill: #633806; } .amber .s, .amber .x { fill: #854F0B; }
+    .teal .box { fill: #E1F5EE; stroke: #1D9E75; } .teal .t { fill: #085041; } .teal .s, .teal .x { fill: #0F6E56; }
+    .blue .box { fill: #E6F1FB; stroke: #378ADD; } .blue .t { fill: #0C447C; } .blue .s, .blue .x { fill: #185FA5; }
+    .coral .box { fill: #FAECE7; stroke: #D85A30; } .coral .t { fill: #712B13; } .coral .s, .coral .x { fill: #993C1D; }
+    .purple .box { fill: #EEEDFE; stroke: #7F77DD; } .purple .t { fill: #3C3489; } .purple .s, .purple .x { fill: #534AB7; }
+    .gray .box { fill: #FFFFFF; stroke: #B4B2A9; } .gray .t { fill: #2C2C2A; } .gray .s, .gray .x { fill: #5F5E5A; }
+    .planned .box { stroke-dasharray: 5 4; }
+    .planned text { opacity: 0.72; }
+    .pill { stroke: none; }
+    .teal .pill { fill: #1D9E75; } .gray .pill, .planned .pill { fill: #888780; }
+    .pilltext { fill: #FFFFFF; font-size: 10.5px; font-weight: 600; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #1A1A19; }
+      .heading { fill: #F1EFE8; }
+      .muted { fill: #B4B2A9; }
+      .frame { fill: #232321; stroke: #5F5E5A; }
+      .amber .box { fill: #412402; } .amber .t { fill: #FAC775; } .amber .s, .amber .x { fill: #EF9F27; }
+      .teal .box { fill: #04342C; } .teal .t { fill: #9FE1CB; } .teal .s, .teal .x { fill: #5DCAA5; }
+      .blue .box { fill: #042C53; } .blue .t { fill: #B5D4F4; } .blue .s, .blue .x { fill: #85B7EB; }
+      .coral .box { fill: #4A1B0C; } .coral .t { fill: #F5C4B3; } .coral .s, .coral .x { fill: #F0997B; }
+      .purple .box { fill: #26215C; } .purple .t { fill: #CECBF6; } .purple .s, .purple .x { fill: #AFA9EC; }
+      .gray .box { fill: #2C2C2A; stroke: #5F5E5A; } .gray .t { fill: #F1EFE8; } .gray .s, .gray .x { fill: #B4B2A9; }
+      .teal .pill { fill: #0F6E56; } .gray .pill, .planned .pill { fill: #5F5E5A; }
+    }
+  </style>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1L9 5L1 9z" class="arrhead"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="960" height="900" rx="16"/>
+  <text class="heading" x="40" y="36" style="font-size:18px;font-weight:700">SvelteBuilder ecosystem</text>
+  <text class="muted s" x="920" y="36" text-anchor="end">scaffold once · own the code · build on shared modules</text>
+
+  <!-- ===== CLI tooling ===== -->
+  <g class="amber">
+    <rect class="box" x="180" y="56" width="280" height="74" rx="10" stroke-width="1"/>
+    <text class="t m" x="320" y="80" text-anchor="middle">create-sveltebuilder</text>
+    <text class="s m" x="320" y="100" text-anchor="middle">npm create sveltebuilder@latest</text>
+    <text class="x" x="320" y="118" text-anchor="middle">prompts: template · modules · screen bundles</text>
+  </g>
+  <g class="amber">
+    <rect class="box" x="500" y="56" width="280" height="74" rx="10" stroke-width="1"/>
+    <text class="t m" x="640" y="80" text-anchor="middle">@sveltebuilder/cli</text>
+    <text class="s m" x="640" y="100" text-anchor="middle">sveltebuilder sync:supabase</text>
+    <text class="x" x="640" y="118" text-anchor="middle">sveltebuilder add &lt;module&gt; — planned</text>
+  </g>
+  <line class="arr" x1="460" y1="93" x2="497" y2="93" marker-end="url(#ah)"/>
+  <text class="muted x" x="479" y="86" text-anchor="middle">uses</text>
+
+  <!-- scaffolds arrow -->
+  <line class="arr" x1="320" y1="130" x2="320" y2="167" marker-end="url(#ah)"/>
+  <text class="muted x" x="330" y="153">scaffolds</text>
+
+  <!-- generates arrow (routed around the right edge) -->
+  <path class="arr" d="M780 93 H938 V393 H899" marker-end="url(#ah)"/>
+  <text class="muted x" x="950" y="250" text-anchor="middle" transform="rotate(90 950 250)">generates</text>
+
+  <!-- ===== Your SvelteKit project ===== -->
+  <rect class="frame" x="40" y="170" width="880" height="268" rx="12" stroke-width="1"/>
+  <text class="heading h" x="60" y="193">your SvelteKit project</text>
+  <text class="muted x" x="900" y="193" text-anchor="end">copied in once — yours from then on</text>
+
+  <g class="teal">
+    <rect class="box" x="64" y="206" width="832" height="66" rx="8" stroke-width="1"/>
+    <text class="t" x="480" y="227" text-anchor="middle">base template — shared by every scaffold</text>
+    <text class="s" x="480" y="245" text-anchor="middle">local-text schema + RLS + get_dictionary · root layout dictionary loading · LocaleSwitcher · message surface</text>
+    <text class="x" x="480" y="261" text-anchor="middle">admin screens for locales, copy and navigation · coreui cascade layers · seed: 8 locales, en + fr copy</text>
+  </g>
+
+  <g class="teal">
+    <rect class="box" x="64" y="284" width="408" height="68" rx="8" stroke-width="1"/>
+    <rect class="pill" x="388" y="293" width="74" height="18" rx="9"/>
+    <text class="pilltext" x="425" y="306" text-anchor="middle">available</text>
+    <text class="t" x="268" y="306" text-anchor="middle">SuperPrototype</text>
+    <text class="s" x="268" y="325" text-anchor="middle">Supabase Postgres via PostgREST · RLS on every query</text>
+    <text class="x" x="268" y="342" text-anchor="middle">Supabase Auth (Google OAuth) · user_account · navigation_item</text>
+  </g>
+  <g class="teal planned">
+    <rect class="box" x="488" y="284" width="408" height="68" rx="8" stroke-width="1"/>
+    <rect class="pill" x="812" y="293" width="74" height="18" rx="9"/>
+    <text class="pilltext" x="849" y="306" text-anchor="middle">on hold</text>
+    <text class="t" x="692" y="306" text-anchor="middle">Native</text>
+    <text class="s" x="692" y="325" text-anchor="middle">provider-agnostic Postgres data layer</text>
+    <text class="x" x="692" y="342" text-anchor="middle">Auth.js (@auth/sveltekit) · provider of your choice</text>
+  </g>
+
+  <g class="gray">
+    <rect class="box" x="64" y="364" width="266" height="58" rx="8" stroke-width="1"/>
+    <text class="t" x="197" y="387" text-anchor="middle">screen bundles</text>
+    <text class="x" x="197" y="406" text-anchor="middle">list · detail · shared layout, copied into routes</text>
+  </g>
+  <g class="gray">
+    <rect class="box" x="347" y="364" width="266" height="58" rx="8" stroke-width="1"/>
+    <text class="t" x="480" y="387" text-anchor="middle">data access + locale resolution</text>
+    <text class="x" x="480" y="406" text-anchor="middle">loaders and queries live in the scaffold</text>
+  </g>
+  <g class="gray">
+    <rect class="box" x="630" y="364" width="266" height="58" rx="8" stroke-width="1"/>
+    <text class="t m" x="763" y="387" text-anchor="middle">supabase/</text>
+    <text class="x" x="763" y="406" text-anchor="middle">migration · RLS · functions · seed.sql</text>
+  </g>
+
+  <!-- depends arrow -->
+  <line class="arr" x1="480" y1="438" x2="480" y2="475" marker-end="url(#ah)"/>
+  <text class="muted x" x="490" y="461">npm dependencies</text>
+
+  <!-- ===== Domain modules ===== -->
+  <rect class="frame" x="40" y="478" width="880" height="142" rx="12" stroke-width="1"/>
+  <text class="heading h" x="60" y="501">domain modules</text>
+  <text class="muted x" x="900" y="501" text-anchor="end">each ships Drizzle schema · components · view-model types · screen bundles — no queries</text>
+
+  <g class="blue">
+    <rect class="box" x="64" y="514" width="128" height="90" rx="8" stroke-width="1"/>
+    <text class="x m" x="128" y="535" text-anchor="middle">@sveltebuilder/</text>
+    <text class="t" x="128" y="554" text-anchor="middle">content</text>
+    <text class="x" x="128" y="574" text-anchor="middle">publisher / news</text>
+    <text class="x" x="128" y="591" text-anchor="middle" font-weight="600">available · 5 bundles</text>
+  </g>
+  <g class="blue">
+    <rect class="box" x="205" y="514" width="128" height="90" rx="8" stroke-width="1"/>
+    <text class="x m" x="269" y="535" text-anchor="middle">@sveltebuilder/</text>
+    <text class="t" x="269" y="554" text-anchor="middle">logistic</text>
+    <text class="x" x="269" y="574" text-anchor="middle">warehouse operations</text>
+    <text class="x" x="269" y="591" text-anchor="middle" font-weight="600">available · 8 bundles</text>
+  </g>
+  <g class="blue planned">
+    <rect class="box" x="346" y="514" width="128" height="90" rx="8" stroke-width="1"/>
+    <text class="x m" x="410" y="535" text-anchor="middle">@sveltebuilder/</text>
+    <text class="t" x="410" y="554" text-anchor="middle">commerce</text>
+    <text class="x" x="410" y="574" text-anchor="middle">e-commerce</text>
+    <text class="x" x="410" y="591" text-anchor="middle" font-weight="600">not started</text>
+  </g>
+  <g class="blue planned">
+    <rect class="box" x="486" y="514" width="128" height="90" rx="8" stroke-width="1"/>
+    <text class="x m" x="550" y="535" text-anchor="middle">@sveltebuilder/</text>
+    <text class="t" x="550" y="554" text-anchor="middle">analytics</text>
+    <text class="x" x="550" y="591" text-anchor="middle" font-weight="600">planned</text>
+  </g>
+  <g class="blue planned">
+    <rect class="box" x="627" y="514" width="128" height="90" rx="8" stroke-width="1"/>
+    <text class="x m" x="691" y="535" text-anchor="middle">@sveltebuilder/</text>
+    <text class="t" x="691" y="554" text-anchor="middle">advertisement</text>
+    <text class="x" x="691" y="591" text-anchor="middle" font-weight="600">planned</text>
+  </g>
+  <g class="blue planned">
+    <rect class="box" x="768" y="514" width="128" height="90" rx="8" stroke-width="1"/>
+    <text class="x m" x="832" y="535" text-anchor="middle">@sveltebuilder/</text>
+    <text class="t" x="832" y="554" text-anchor="middle">media</text>
+    <text class="x" x="832" y="591" text-anchor="middle" font-weight="600">planned</text>
+  </g>
+
+  <!-- built on arrow -->
+  <line class="arr" x1="480" y1="620" x2="480" y2="657" marker-end="url(#ah)"/>
+  <text class="muted x" x="490" y="643">built on</text>
+
+  <!-- ===== Foundation ===== -->
+  <rect class="frame" x="40" y="660" width="880" height="132" rx="12" stroke-width="1"/>
+  <text class="heading h" x="60" y="683">foundation</text>
+  <text class="muted x" x="900" y="683" text-anchor="end">single source of the i18n primitives and the universal UI set</text>
+
+  <g class="coral">
+    <rect class="box" x="64" y="696" width="266" height="80" rx="8" stroke-width="1"/>
+    <text class="x" x="197" y="716" text-anchor="middle">external repo · npm</text>
+    <text class="t m" x="197" y="735" text-anchor="middle">diglossia</text>
+    <text class="x" x="197" y="754" text-anchor="middle">LocalText · LocalTextLink · Locale</text>
+    <text class="x" x="197" y="769" text-anchor="middle">createDictionary() · localText() · &lt;LocalText /&gt;</text>
+  </g>
+  <g class="purple">
+    <rect class="box" x="347" y="696" width="266" height="80" rx="8" stroke-width="1"/>
+    <text class="x m" x="480" y="716" text-anchor="middle">@sveltebuilder/</text>
+    <text class="t m" x="480" y="735" text-anchor="middle">coreui</text>
+    <text class="x" x="480" y="754" text-anchor="middle">tokens · cascade layers · universal components</text>
+    <text class="x" x="480" y="769" text-anchor="middle">i18n-agnostic: plain label: string props</text>
+  </g>
+  <g class="coral">
+    <rect class="box" x="630" y="696" width="266" height="80" rx="8" stroke-width="1"/>
+    <text class="x m" x="763" y="716" text-anchor="middle">@sveltebuilder/</text>
+    <text class="t m" x="763" y="735" text-anchor="middle">local-text-schema</text>
+    <text class="x" x="763" y="754" text-anchor="middle">locale · local_text_link · local_text</text>
+    <text class="x" x="763" y="769" text-anchor="middle">RLS policies · get_dictionary()</text>
+  </g>
+
+  <!-- ===== Schema tiers strip ===== -->
+  <text class="heading h" x="40" y="830">schema order</text>
+  <g class="coral">
+    <rect class="box" x="160" y="811" width="160" height="30" rx="15" stroke-width="1"/>
+    <text class="s" x="240" y="830" text-anchor="middle">1 · local-text schema</text>
+  </g>
+  <line class="arr" x1="320" y1="826" x2="342" y2="826" marker-end="url(#ah)"/>
+  <g class="teal">
+    <rect class="box" x="345" y="811" width="160" height="30" rx="15" stroke-width="1"/>
+    <text class="s" x="425" y="830" text-anchor="middle">2 · template schema</text>
+  </g>
+  <line class="arr" x1="505" y1="826" x2="527" y2="826" marker-end="url(#ah)"/>
+  <g class="blue">
+    <rect class="box" x="530" y="811" width="160" height="30" rx="15" stroke-width="1"/>
+    <text class="s" x="610" y="830" text-anchor="middle">3 · module schema</text>
+  </g>
+  <line class="arr" x1="690" y1="826" x2="712" y2="826" marker-end="url(#ah)"/>
+  <g class="amber">
+    <rect class="box" x="715" y="811" width="205" height="30" rx="15" stroke-width="1"/>
+    <text class="s m" x="817" y="830" text-anchor="middle">sync:supabase → migration</text>
+  </g>
+
+  <!-- ===== Legend ===== -->
+  <g class="amber"><rect class="box" x="40" y="866" width="12" height="12" rx="3"/></g>
+  <text class="muted x" x="58" y="876">CLI tooling</text>
+  <g class="teal"><rect class="box" x="140" y="866" width="12" height="12" rx="3"/></g>
+  <text class="muted x" x="158" y="876">scaffold templates</text>
+  <g class="blue"><rect class="box" x="272" y="866" width="12" height="12" rx="3"/></g>
+  <text class="muted x" x="290" y="876">domain modules</text>
+  <g class="coral"><rect class="box" x="392" y="866" width="12" height="12" rx="3"/></g>
+  <text class="muted x" x="410" y="876">i18n</text>
+  <g class="purple"><rect class="box" x="450" y="866" width="12" height="12" rx="3"/></g>
+  <text class="muted x" x="468" y="876">UI</text>
+  <g class="gray"><rect class="box" x="502" y="866" width="12" height="12" rx="3"/></g>
+  <text class="muted x" x="520" y="876">app-owned code</text>
+  <rect x="640" y="866" width="22" height="12" rx="3" fill="none" stroke="#888780" stroke-width="1"/>
+  <text class="muted x" x="668" y="876">available</text>
+  <rect x="740" y="866" width="22" height="12" rx="3" fill="none" stroke="#888780" stroke-width="1" stroke-dasharray="4 3"/>
+  <text class="muted x" x="768" y="876">planned · not started · on hold</text>
+</svg>
