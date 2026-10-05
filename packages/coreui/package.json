@@ -1,6 +1,6 @@
 {
   "name": "@sveltebuilder/coreui",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Accessible Svelte 5 UI component library built on Bits UI — buttons, forms, tables, dialogs, menus, and more, with a themeable CSS layer system.",
   "keywords": [
     "svelte",

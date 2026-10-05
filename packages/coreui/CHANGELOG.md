@@ -1,5 +1,16 @@
 # @sveltebuilder/coreui
 
+## 0.2.1
+
+### Patch Changes
+
+- [#27](https://github.com/cailenfisher/SvelteBuilder/pull/27) [`d36230f`](https://github.com/cailenfisher/SvelteBuilder/commit/d36230f9e3a2d7e2d4e69ae91bf671840b4477a7) Thanks [@cailenfisher](https://github.com/cailenfisher)! - `Select`: the closed trigger shows the selected item's label, not its value. Bits UI resolves the
+  trigger text from items that are mounted, and the list is portaled and unmounted until it opens, so
+  a Select with a preselected value showed `all_rights_reserved` instead of "All rights reserved"
+  until the user opened it. Select now renders its children once in a silent registration pass in
+  which each `SelectItem` reports its label, and passes the result to Bits UI as `items`. No change
+  to the `Select` / `SelectItem` API.
+
 ## 0.2.0
 
 ### Minor Changes
