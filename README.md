@@ -55,12 +55,12 @@ dependency rather than a workspace package.
 **`diglossia`** provides the i18n primitives used throughout the entire ecosystem: the `LocalText` type, `LocalTextLink`, the `Locale` type, `createDictionary()`, the `<LocalText />` Svelte component (from `diglossia/svelte`), and the `DictionaryInstance.localText(slug, scope, entityId)` method. It is the single source of these — no other package redeclares them.
 
 > [!NOTE]
-> **_Why a custom i18n toolkit?_** Paraglide (SvelteKit's official i18n) is build-time only, sveltekit-i18n doesn't solve the content model, and teams currently end up splitting UI strings and dynamic content across two unrelated systems — SvelteBuilder's toolkit unifies them. [Read the full rationale →](https://github.com/cailenfisher/SvelteBuilder/wiki/Why-a-Custom-i18n-Toolkit)
+> **_Why a custom i18n layer?_** Paraglide is built for messages known at build time, and its own FAQ sends runtime and CMS content elsewhere. Storing translated entity copy in link tables is a well-established pattern (Rails' Mobility, Vendure, Strapi), but it usually lives inside a server framework or CMS. SvelteBuilder puts UI strings and entity copy under one key scheme and one read API, using diglossia for lookups. [Read the full rationale →](https://github.com/cailenfisher/SvelteBuilder/wiki/Why-a-Custom-i18n-Toolkit)
 
 **`@sveltebuilder/coreui`** provides universal UI elements shared across all domain-specific modules. Application-level UI components (buttons, layout chrome, forms, navigation) are i18n-agnostic — they accept a plain `label: string` and ordinary child snippets, exactly like any normal Svelte component. Entity-aware display components (most of which live in the domain modules) receive the entity itself and resolve its localized copy through `diglossia`, from context by default or from an explicitly passed `dictionary` prop.
 
 > [!NOTE]
-> **_Why a custom UI library?_** Off-the-shelf component libraries make assumptions about structure, styling, and accessibility that break down at the edges of real enterprise applications — especially across niche industries. SvelteBuilder's UI layer is built around the repeating problems found across years of production web development, with semantic HTML and WCAG compliance as non-negotiable defaults. [Read the full rationale →](https://github.com/cailenfisher/SvelteBuilder/wiki/Why-a-Custom-UI-Library)
+> **_Why a custom UI library?_** Off-the-shelf component libraries make assumptions about structure, styling, and accessibility that break down at the edges of real enterprise applications — especially across niche industries. SvelteBuilder's UI layer is built around the repeating problems found across years of production web application development, with semantic HTML and WCAG compliance as non-negotiable defaults. [Read the full rationale →](https://github.com/cailenfisher/SvelteBuilder/wiki/Why-a-Custom-UI-Library)
 
 ---
 
