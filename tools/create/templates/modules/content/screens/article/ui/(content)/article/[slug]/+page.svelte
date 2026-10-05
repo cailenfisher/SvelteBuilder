@@ -19,6 +19,7 @@
   // Keyed by id for the components and the structured-data builders, which both take a lookup
   // rather than assets embedded on each block.
   const mediaAssets = $derived(new Map(data.mediaAssets.map((asset) => [asset.id, asset])));
+  const attributions = $derived(new Map(data.attributions.map((row) => [row.mediaAssetId, row])));
 
   // Both builders are pure: entities and a dictionary in, plain objects out. They live in
   // @sveltebuilder/content/publishing rather than a server entry point for that reason.
@@ -68,6 +69,7 @@
   <ArticleView
     article={data.article}
     {mediaAssets}
+    {attributions}
     storageBaseUrl={data.storageBaseUrl}
     locale={data.localeCode}
     dictionary={scoped}

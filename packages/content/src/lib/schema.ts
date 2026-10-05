@@ -82,9 +82,18 @@ export const article = pgTable(
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     embargoUntil: timestamp('embargo_until', { withTimezone: true }),
     allowComment: boolean('allow_comment').notNull().default(true),
+    // The image og:image, the JSON-LD image, the article page's hero and its cards lead with.
+    // Null means "the first image block", the rule that applied before this column existed —
+    // see selectLeadMediaAssetId in publishing/lead-image.ts. Set null on delete so removing an
+    // asset falls back to that rule rather than blocking the delete.
+    leadMediaAssetId: bigint('lead_media_asset_id', { mode: 'number' }).references(
+      (): AnyPgColumn => mediaAsset.id,
+      { onDelete: 'set null' }
+    ),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
+    index('idx_article_lead_media').on(table.leadMediaAssetId),
     index('idx_article_status').on(table.articleStatusId),
     index('idx_article_canonical_slug').on(table.canonicalSlug),
     index('idx_article_embargo').on(table.embargoUntil),
@@ -123,7 +132,28 @@ export const mediaAssetRights = pgTable(
     expiresAt: timestamp('expires_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('idx_media_asset_rights_asset').on(table.mediaAssetId)]
+  // One rights row per asset. It is a unique index rather than a plain one so a write can be a
+  // single `insert … on conflict (media_asset_id) do update` instead of update-then-insert.
+  (table) => [uniqueIndex('uq_media_asset_rights_asset').on(table.mediaAssetId)]
+);
+
+// Where an asset came from, and the licence text it was published under. `license` on
+// media_asset_rights says only the kind — creative_commons cannot tell CC BY 4.0 from
+// CC BY-SA 2.0 — and correct attribution needs both the licence's own URL and the page the
+// image was taken from. URLs and a retrieval date, not copy: nothing here is translated.
+export const mediaAssetSource = pgTable(
+  'media_asset_source',
+  {
+    id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
+    mediaAssetId: bigint('media_asset_id', { mode: 'number' })
+      .notNull()
+      .references(() => mediaAsset.id, { onDelete: 'cascade' }),
+    sourceUrl: text('source_url').notNull(),
+    licenseUrl: text('license_url'),
+    retrievedAt: timestamp('retrieved_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('uq_media_asset_source_asset').on(table.mediaAssetId)]
 );
 
 export const publisherProfile = pgTable(

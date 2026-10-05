@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import { createDictionary } from 'diglossia';
-import { validateArticleForPublish } from '@sveltebuilder/content/publishing';
+import { validateArticleForPublish, type ImageProvenance } from '@sveltebuilder/content/publishing';
 import { loadEntityCopy, loadScopedCopy } from '$lib/server/scoped-copy';
 import type { AdminArticleDetailView, ChecklistEntry } from '@sveltebuilder/content/views';
 import type { Actions, PageServerLoad } from './$types';
@@ -205,8 +205,8 @@ export const actions: Actions = {
   //
   // The required-checklist gate is in content_transition_article_status, because it must not be
   // bypassable by posting this form directly. The editorial checks — a headline inside Google's
-  // length limit, a dek, a byline, a section, text in every prose block, alt text on every image
-  // — run here, because they need a dictionary to resolve the copy and the answer depends on
+  // length limit, a dek, a byline, a section, text in every prose block, and on every image alt
+  // text, rights, a source, an unexpired license and a credit in this locale — run here, because they need a dictionary to resolve the copy and the answer depends on
   // which locale is being published. SQL has no dictionary.
   transition: async ({ locals, params, request }) => {
     const id = Number(params.id);
@@ -217,11 +217,17 @@ export const actions: Actions = {
     if (!statusSlug) return fail(422, { error: 'Choose a status.' });
 
     if (statusSlug === 'published') {
-      const { article, publisher, copy } = await loadArticleForValidation(locals, id);
+      const { article, publisher, copy, imageProvenance } = await loadArticleForValidation(
+        locals,
+        id
+      );
       if (article === null) throw error(404, 'Article not found.');
 
       try {
-        validateArticleForPublish(article, publisher, createDictionary(copy));
+        validateArticleForPublish(article, publisher, createDictionary(copy), {
+          imageProvenance,
+          locale: locals.locale.code,
+        });
       } catch (validationError) {
         return fail(422, {
           error:
@@ -299,7 +305,7 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
   ]);
 
   if (articleResult.error || !articleResult.data) {
-    return { article: null, publisher: null, copy: [] };
+    return { article: null, publisher: null, copy: [], imageProvenance: new Map() };
   }
 
   const row = articleResult.data;
@@ -372,6 +378,51 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
     .map((block) => block.mediaAssetId)
     .filter((assetId): assetId is number => assetId !== null);
 
+  // Rights and source are admin-only tables, and publishing is an admin action, so this read
+  // sees them; the public page reads the media_asset_attribution view instead.
+  const [rightsResult, sourceResult] =
+    mediaAssetIds.length > 0
+      ? await Promise.all([
+          locals.supabase
+            .from('media_asset_rights')
+            .select('media_asset_id, license, credit_required, expires_at')
+            .in('media_asset_id', mediaAssetIds),
+          locals.supabase
+            .from('media_asset_source')
+            .select('media_asset_id, source_url, license_url')
+            .in('media_asset_id', mediaAssetIds),
+        ])
+      : [
+          { data: [], error: null },
+          { data: [], error: null },
+        ];
+
+  // A failed read must not look like "no rights recorded", or an outage would block every
+  // publish with a misleading message about licensing.
+  if (rightsResult.error || sourceResult.error) {
+    return { article: null, publisher: null, copy: [], imageProvenance: new Map() };
+  }
+
+  const imageProvenance = new Map<number, ImageProvenance>(
+    mediaAssetIds.map((assetId) => {
+      const rights = (rightsResult.data ?? []).find((row) => row.media_asset_id === assetId);
+      const source = (sourceResult.data ?? []).find((row) => row.media_asset_id === assetId);
+      return [
+        assetId,
+        {
+          rights: rights
+            ? {
+                license: rights.license,
+                creditRequired: rights.credit_required,
+                expiresAt: rights.expires_at,
+              }
+            : null,
+          source: source ? { sourceUrl: source.source_url, licenseUrl: source.license_url } : null,
+        },
+      ];
+    })
+  );
+
   const copy = await loadEntityCopy(
     locals.supabase,
     [
@@ -395,5 +446,6 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
         }
       : null,
     copy,
+    imageProvenance,
   };
 }

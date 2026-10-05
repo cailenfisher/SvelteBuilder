@@ -8,3 +8,5 @@ export * from './rss.js';
 export * from './sitemap.js';
 export * from './structured-data.js';
 export * from './validate-publish.js';
+export * from './lead-image.js';
+export * from './license.js';

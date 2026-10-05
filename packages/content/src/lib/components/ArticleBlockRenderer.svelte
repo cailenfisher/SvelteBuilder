@@ -5,11 +5,13 @@
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
   import MediaFigure from './MediaFigure.svelte';
-  import type { ArticleBlock, MediaAsset } from '../schema/index.js';
+  import type { ArticleBlock, MediaAsset, MediaAssetAttribution } from '../schema/index.js';
 
   type Props = {
     block: ArticleBlock;
     mediaAssets: Map<number, MediaAsset>;
+    /** Public provenance by asset id, passed through to MediaFigure. */
+    attributions?: Map<number, MediaAssetAttribution>;
     storageBaseUrl: string;
     locale: string;
     dictionary?: DictionaryInstance;
@@ -19,6 +21,7 @@
   let {
     block,
     mediaAssets,
+    attributions,
     storageBaseUrl,
     locale,
     dictionary: dictionaryProp,
@@ -32,6 +35,7 @@
   const asset = $derived(
     block.mediaAssetId != null ? (mediaAssets.get(block.mediaAssetId) ?? null) : null
   );
+  const attribution = $derived(asset ? (attributions?.get(asset.id) ?? null) : null);
   const level = $derived((block.content as { level?: number } | null)?.level ?? 2);
   const provider = $derived((block.content as { provider?: string } | null)?.provider ?? '');
   const embedSrc = $derived((block.content as { src?: string } | null)?.src ?? '');
@@ -60,18 +64,18 @@
       <p>{text}</p>
     </blockquote>
   {:else if block.blockType === 'image' && asset}
-    <MediaFigure {asset} {storageBaseUrl} {locale} {dictionary} />
+    <MediaFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
   {:else if block.blockType === 'gallery'}
     <div class="article-block__gallery" role="region" aria-label="Photo gallery">
       {#if asset}
-        <MediaFigure {asset} {storageBaseUrl} {locale} {dictionary} />
+        <MediaFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
       {/if}
       {#if text}
         <p class="article-block__gallery-caption">{text}</p>
       {/if}
     </div>
   {:else if block.blockType === 'video' && asset}
-    <MediaFigure {asset} {storageBaseUrl} {locale} {dictionary} />
+    <MediaFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
   {:else if block.blockType === 'embed' && embedSrc}
     <div class="article-block__embed" data-provider={provider || undefined}>
       <iframe src={embedSrc} title={text || `${provider} embed`} loading="lazy" allowfullscreen

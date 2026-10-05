@@ -130,7 +130,8 @@ begin
   -- credentials that unlock them; subscriber is PII.
   foreach v_table in array array[
     'article_revision', 'article_assignment', 'publish_checklist_item',
-    'article_checklist_state', 'media_asset_rights', 'article_preview_token',
+    'article_checklist_state', 'media_asset_rights', 'media_asset_source',
+    'article_preview_token',
     'subscriber', 'newsletter_subscription'
   ] loop
     execute format('select count(*) from public.%I', v_table) into v_rows;
@@ -324,4 +325,123 @@ begin
   if exists (select 1 from public.article_preview_token) then
     raise exception 'anon can list preview tokens, making every draft with a link readable';
   end if;
+end $$;
+
+-- ── Media: one rights row per asset, the public projection, the atomic writes ─
+
+do $$
+declare
+  v_admin       bigint;
+  v_admin_sub   uuid;
+  v_member_sub  uuid;
+  v_locale      bigint;
+  v_cc          bigint;
+  v_reserved    bigint;
+  v_rows        integer;
+  v_license_url text;
+begin
+  if to_regclass('public.media_asset_source') is null then return; end if;
+
+  select ua.id, ua.auth_user_id into v_admin, v_admin_sub
+  from public.user_account ua where ua.admin order by ua.id limit 1;
+  select ua.auth_user_id into v_member_sub
+  from public.user_account ua where not ua.admin order by ua.id limit 1;
+  select id into v_locale from public.locale where code = 'en';
+
+  -- Arranged as the owner; the assertions below run as the roles under test.
+  insert into public.media_asset (media_type, storage_key, mime_type, uploaded_by)
+  values ('image', 'sqlcheck/cc.jpg', 'image/jpeg', v_admin) returning id into v_cc;
+  insert into public.media_asset (media_type, storage_key, mime_type, uploaded_by)
+  values ('image', 'sqlcheck/reserved.jpg', 'image/jpeg', v_admin) returning id into v_reserved;
+
+  insert into public.media_asset_rights (media_asset_id, license) values (v_cc, 'creative_commons');
+  insert into public.media_asset_rights (media_asset_id, license) values (v_reserved, 'all_rights_reserved');
+
+  -- One rights row per asset: this is what lets set_media_asset_rights use `on conflict`.
+  begin
+    insert into public.media_asset_rights (media_asset_id, license) values (v_cc, 'royalty_free');
+    raise exception 'a second media_asset_rights row for one asset was accepted';
+  exception when unique_violation then
+    null;
+  end;
+
+  insert into public.media_asset_source (media_asset_id, source_url, license_url)
+  values (v_cc, 'https://commons.example/cc', 'https://creativecommons.org/licenses/by/4.0/'),
+         (v_reserved, 'https://vendor.example/secret-page', null);
+
+  set local role anon;
+
+  -- The projection carries the Creative Commons asset's two URLs...
+  select license_url into v_license_url
+  from public.media_asset_attribution where media_asset_id = v_cc;
+  if v_license_url is distinct from 'https://creativecommons.org/licenses/by/4.0/' then
+    raise exception 'anon cannot read a Creative Commons asset''s attribution through the view';
+  end if;
+
+  -- ...and nothing about a license that is not meant to be attributed in public.
+  if exists (select 1 from public.media_asset_attribution where media_asset_id = v_reserved) then
+    raise exception 'the attribution view exposes an all_rights_reserved asset''s source';
+  end if;
+
+  -- The tables behind it stay closed.
+  select count(*) into v_rows from public.media_asset_source;
+  if v_rows <> 0 then raise exception 'anon can read media_asset_source directly'; end if;
+  select count(*) into v_rows from public.media_asset_rights;
+  if v_rows <> 0 then raise exception 'anon can read media_asset_rights directly'; end if;
+
+  -- The write functions are invoker-security: a non-admin is refused by RLS inside them.
+  reset role;
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', v_member_sub::text, true);
+  begin
+    perform public.create_media_asset('image', 'sqlcheck/member.jpg', 'image/jpeg', 'royalty_free');
+    raise exception 'a non-admin created a media asset through create_media_asset';
+  exception when insufficient_privilege then
+    null;
+  end;
+  begin
+    perform public.set_media_asset_rights(v_cc, 'public_domain');
+    raise exception 'a non-admin changed an asset''s rights through set_media_asset_rights';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  -- An admin writes the asset, its rights, its source and its copy in one call, and re-running
+  -- the rights write updates in place.
+  reset role;
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', v_admin_sub::text, true);
+  declare v_new bigint;
+  begin
+    v_new := public.create_media_asset(
+      'image', 'sqlcheck/created.jpg', 'image/jpeg', 'creative_commons',
+      p_source_url => 'https://commons.example/created',
+      p_license_url => 'https://creativecommons.org/licenses/by-sa/2.0/',
+      p_locale_id => v_locale,
+      p_alt_text => 'Alt', p_caption => 'Caption', p_credit => 'Credit'
+    );
+    perform public.set_media_asset_rights(v_new, 'creative_commons', true, null,
+      'https://commons.example/created-2', 'https://creativecommons.org/licenses/by-sa/2.0/');
+
+    reset role;
+    if (select count(*) from public.media_asset_rights where media_asset_id = v_new) <> 1 then
+      raise exception 'set_media_asset_rights did not update in place';
+    end if;
+    if (select source_url from public.media_asset_source where media_asset_id = v_new)
+       <> 'https://commons.example/created-2' then
+      raise exception 'set_media_asset_rights did not update the source';
+    end if;
+    if (select count(*) from public.local_text_link l
+        join public.local_text t on t.link = l.id
+        where l.scope = 'media_asset' and l.entity_id = v_new
+          and l.slug in ('alt_text', 'caption', 'credit')) <> 3 then
+      raise exception 'create_media_asset did not write all three pieces of copy';
+    end if;
+
+    -- A blank source URL removes the source row.
+    perform public.set_media_asset_rights(v_new, 'creative_commons', true, null, '');
+    if exists (select 1 from public.media_asset_source where media_asset_id = v_new) then
+      raise exception 'a blank source URL left a source row behind';
+    end if;
+  end;
 end $$;

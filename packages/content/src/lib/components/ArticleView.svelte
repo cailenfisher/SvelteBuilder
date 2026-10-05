@@ -9,11 +9,19 @@
   import MediaFigure from './MediaFigure.svelte';
   import BylineList from './BylineList.svelte';
   import SectionLabel from './SectionLabel.svelte';
-  import type { ArticleRenderable, MediaAsset, Section } from '../schema/index.js';
+  import { selectLeadMediaAssetId } from '../publishing/lead-image.js';
+  import type {
+    ArticleRenderable,
+    MediaAsset,
+    MediaAssetAttribution,
+    Section,
+  } from '../schema/index.js';
 
   type Props = {
     article: ArticleRenderable;
     mediaAssets: Map<number, MediaAsset>;
+    /** Public provenance by asset id: links each credit to its source and names its license. */
+    attributions?: Map<number, MediaAssetAttribution>;
     storageBaseUrl: string;
     locale: string;
     /**
@@ -31,6 +39,7 @@
   let {
     article,
     mediaAssets,
+    attributions,
     storageBaseUrl,
     locale,
     hero = true,
@@ -48,17 +57,11 @@
   const dekLocale = $derived(dictionary.localeOf('dek', 'article', article.id));
   const primarySection: Section | undefined = $derived(article.sections?.[0]);
 
-  // The same "first image block" rule buildArticleMetaTags and buildNewsArticleJsonLd use for
-  // og:image and the JSON-LD image, so the picture on the page is the one a share card shows.
-  // The body skips this block (by id) only when the hero actually rendered it.
-  const heroBlock = $derived(
-    hero
-      ? (article.blocks?.find((b) => b.blockType === 'image' && b.mediaAssetId != null) ?? null)
-      : null
-  );
-  const heroAsset = $derived(
-    heroBlock?.mediaAssetId != null ? (mediaAssets.get(heroBlock.mediaAssetId) ?? null) : null
-  );
+  // The same rule buildArticleMetaTags and buildNewsArticleJsonLd use for og:image and the
+  // JSON-LD image — the editor's lead image, else the first image block — so the picture on the
+  // page is the one a share card shows.
+  const lead = $derived(hero ? selectLeadMediaAssetId(article, (id) => mediaAssets.has(id)) : null);
+  const heroAsset = $derived(lead ? (mediaAssets.get(lead.mediaAssetId) ?? null) : null);
 
   const publishedFormatted = $derived(
     article.publishedAt
@@ -115,17 +118,25 @@
 
   {#if heroAsset}
     <div class="article-view__hero">
-      <MediaFigure asset={heroAsset} {storageBaseUrl} {locale} {dictionary} loading="eager" />
+      <MediaFigure
+        asset={heroAsset}
+        attribution={attributions?.get(heroAsset.id) ?? null}
+        {storageBaseUrl}
+        {locale}
+        {dictionary}
+        loading="eager"
+      />
     </div>
   {/if}
 
   {#if article.blocks && article.blocks.length > 0}
     <div class="article-view__body">
       {#each article.blocks as block (block.id)}
-        {#if !(heroAsset && block.id === heroBlock?.id)}
+        {#if !(heroAsset && block.id === lead?.blockId)}
           <ArticleBlockRenderer
             {block}
             {mediaAssets}
+            {attributions}
             {storageBaseUrl}
             {locale}
             {dictionary}
