@@ -50,6 +50,7 @@
           <ArticleCard
             article={slot.article}
             {mediaAssets}
+            blocks={slot.article.blocks}
             {storageBaseUrl}
             {locale}
             sections={slot.article.sections ?? []}
@@ -67,6 +68,7 @@
           <ArticleCard
             article={slot.article}
             {mediaAssets}
+            blocks={slot.article.blocks}
             {storageBaseUrl}
             {locale}
             sections={slot.article.sections ?? []}
@@ -84,6 +86,7 @@
           <ArticleCard
             article={slot.article}
             {mediaAssets}
+            blocks={slot.article.blocks}
             {storageBaseUrl}
             {locale}
             sections={slot.article.sections ?? []}
@@ -101,6 +104,7 @@
           <ArticleCard
             article={slot.article}
             {mediaAssets}
+            blocks={slot.article.blocks}
             {storageBaseUrl}
             {locale}
             sections={slot.article.sections ?? []}

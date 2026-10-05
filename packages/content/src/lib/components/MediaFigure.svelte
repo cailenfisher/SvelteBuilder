@@ -5,7 +5,8 @@
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
-  import type { MediaAsset } from '../schema/index.js';
+  import type { MediaAsset, MediaAssetAttribution } from '../schema/index.js';
+  import { licenseLabelFromUrl, safeHttpUrl } from '../publishing/license.js';
 
   type Props = {
     asset: MediaAsset;
@@ -13,6 +14,14 @@
     storageBaseUrl: string;
     decorative?: boolean;
     loading?: 'lazy' | 'eager';
+    /**
+     * Public provenance for this asset (see MediaAssetAttribution). When given, the credit
+     * links to the image's source page and the license is named, linked to its own URL.
+     * Optional, because the data behind it is a separate public read most pages will not make.
+     */
+    attribution?: MediaAssetAttribution | null;
+    /** Render the caption and credit. Cards pass `false` and show the picture alone. */
+    captioned?: boolean;
     dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
@@ -23,6 +32,8 @@
     storageBaseUrl,
     decorative = false,
     loading = 'lazy',
+    attribution = null,
+    captioned = true,
     dictionary: dictionaryProp,
     class: extraClass,
   }: Props = $props();
@@ -36,6 +47,13 @@
   const caption = $derived(dictionary.localText('caption', 'media_asset', asset.id));
   const credit = $derived(dictionary.localText('credit', 'media_asset', asset.id));
   const src = $derived(`${storageBaseUrl}/${asset.storageKey}`);
+
+  // Only http(s) URLs become links; both come from editor input.
+  const sourceHref = $derived(safeHttpUrl(attribution?.sourceUrl));
+  const licenseHref = $derived(safeHttpUrl(attribution?.licenseUrl));
+  const licenseLabel = $derived(
+    licenseHref ? (licenseLabelFromUrl(licenseHref) ?? new URL(licenseHref).hostname) : null
+  );
 </script>
 
 <figure class={['media-figure', extraClass ?? ''].filter(Boolean).join(' ')}>
@@ -59,10 +77,26 @@
     ></video>
   {/if}
 
-  {#if caption || credit}
+  {#if captioned && (caption || credit || licenseHref)}
     <figcaption class="media-figure__caption">
       {#if caption}<span class="media-figure__caption-text">{caption}</span>{/if}
-      {#if credit}<span class="media-figure__credit" aria-label="Image credit">{credit}</span>{/if}
+      {#if credit || licenseHref}
+        <span class="media-figure__credit" aria-label="Image credit">
+          {#if credit}
+            {#if sourceHref}
+              <a class="media-figure__link" href={sourceHref} rel="noopener">{credit}</a>
+            {:else}
+              {credit}
+            {/if}
+          {/if}
+          {#if licenseHref}
+            {#if credit}<span aria-hidden="true"> · </span>{/if}
+            <a class="media-figure__link" href={licenseHref} rel="license noopener"
+              >{licenseLabel}</a
+            >
+          {/if}
+        </span>
+      {/if}
     </figcaption>
   {/if}
 </figure>
@@ -95,6 +129,15 @@
     color: var(--text-soft);
     line-height: var(--leading-snug);
     font-style: italic;
+  }
+
+  .media-figure__link {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .media-figure__link:hover {
+    color: var(--link-text);
   }
 
   .media-figure__credit {

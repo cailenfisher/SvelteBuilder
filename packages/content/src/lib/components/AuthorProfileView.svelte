@@ -73,6 +73,7 @@
           <ArticleCard
             {article}
             {mediaAssets}
+            blocks={article.blocks}
             {storageBaseUrl}
             {locale}
             sections={article.sections ?? []}

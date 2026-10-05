@@ -28,6 +28,7 @@
     <ArticleView
       article={data.article}
       mediaAssets={new Map(data.mediaAssets.map((asset) => [asset.id, asset]))}
+      attributions={new Map(data.attributions.map((row) => [row.mediaAssetId, row]))}
       storageBaseUrl={data.storageBaseUrl}
       locale={data.localeCode}
       dictionary={scoped}

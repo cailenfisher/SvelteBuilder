@@ -6,6 +6,7 @@ import type {
   AuthorProfile,
   Comment,
   MediaAsset,
+  MediaAssetAttribution,
   PublisherProfile,
   Section,
   Tag,
@@ -72,6 +73,16 @@ export type ScreenStorage = {
 };
 
 /**
+ * Public provenance for the assets in `ScreenStorage.mediaAssets`, for credit lines that link to
+ * a source and name their license. Separate from ScreenStorage because it is a second read — the
+ * `media_asset_attribution` view — that only a screen showing full-size figures needs; a card
+ * list does not.
+ */
+export type ScreenAttribution = {
+  attributions: MediaAssetAttribution[];
+};
+
+/**
  * A server-paginated list. The loader owns the slice; the screen renders the controls.
  */
 export type ScreenPage = {
@@ -105,6 +116,11 @@ export type ArticleRow = Article & {
    * ArticleWithBlocks satisfies ArticleRenderable without reshaping.
    */
   bylines: AuthorProfile[];
+  /**
+   * Present only when a list loads image blocks so its cards can show a picture — and then only
+   * those, not the whole body, which is the classic way a listing becomes slow.
+   */
+  blocks?: ArticleBlock[];
 };
 
 export type ArticleWithBlocks = ArticleRow & {
@@ -122,7 +138,8 @@ export type ArticleWithBlocks = ArticleRow & {
  */
 export type ArticlePageView = ScreenCopy &
   ScreenLocale &
-  ScreenStorage & {
+  ScreenStorage &
+  ScreenAttribution & {
     article: ArticleWithBlocks;
     /** Approved only, and empty when the article does not accept comments. */
     comments: Comment[];
@@ -135,6 +152,7 @@ export type ArticlePageView = ScreenCopy &
 /** `/section/[slug]` — SectionView is taken by a component, hence the suffix. */
 export type SectionPageView = ScreenCopy &
   ScreenLocale &
+  ScreenStorage &
   ScreenPage & {
     section: Section;
     /** Child sections, for navigating down the taxonomy. */
@@ -151,7 +169,8 @@ export type SectionPageView = ScreenCopy &
  */
 export type PreviewPageView = ScreenCopy &
   ScreenLocale &
-  ScreenStorage & {
+  ScreenStorage &
+  ScreenAttribution & {
     article: ArticleWithBlocks;
   };
 

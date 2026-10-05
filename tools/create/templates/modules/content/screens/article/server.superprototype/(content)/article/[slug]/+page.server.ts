@@ -10,7 +10,7 @@ import type { Actions, PageServerLoad } from './$types';
 // supabase/supplemental/02-content-rls.sql.
 
 const ARTICLE_COLUMNS =
-  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, created_at, article_status!inner(id, slug, ordinal), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
+  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, lead_media_asset_id, created_at, article_status!inner(id, slug, ordinal), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
 
 const toOne = <T>(embed: T | T[] | null): T | null =>
   embed === null ? null : Array.isArray(embed) ? (embed[0] ?? null) : embed;
@@ -104,6 +104,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
     deletedAt: row.deleted_at,
     embargoUntil: row.embargo_until,
     allowComment: row.allow_comment,
+    leadMediaAssetId: row.lead_media_asset_id,
     createdAt: row.created_at,
     status: { id: status.id, slug: status.slug, ordinal: status.ordinal },
     blocks,
@@ -113,64 +114,81 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
     tags,
   };
 
+  // The blocks' assets, plus the editor's explicit lead image, which the body may not contain.
   const mediaAssetIds = [
-    ...new Set(blocks.map((block) => block.mediaAssetId).filter((id): id is number => id !== null)),
+    ...new Set(
+      [...blocks.map((block) => block.mediaAssetId), row.lead_media_asset_id].filter(
+        (id): id is number => id !== null
+      )
+    ),
   ];
 
-  const [commentsResult, publisherResult, mediaResult, uiCopy, entityCopy] = await Promise.all([
-    // RLS already restricts this to approved comments on publicly visible articles, so the
-    // only filter here is the article, and the status predicate is not repeated.
-    article.allowComment
-      ? locals.supabase
-          .from('comment')
-          .select(
-            'id, article_id, user_account_id, parent_comment_id, author_name, author_email, body, status, created_at, updated_at'
-          )
-          .eq('article_id', article.id)
-          .order('created_at')
-      : Promise.resolve({ data: [], error: null }),
-    locals.supabase
-      .from('publisher_profile')
-      .select('id, logo_media_asset_id, url, created_at')
-      .limit(1)
-      .maybeSingle(),
-    // Only the assets this article's blocks actually reference.
-    mediaAssetIds.length > 0
-      ? locals.supabase
-          .from('media_asset')
-          .select('id, media_type, storage_key, width, height, mime_type, uploaded_by, created_at')
-          .in('id', mediaAssetIds)
-      : Promise.resolve({ data: [], error: null }),
-    // 'publisher_profile' loaded by scope rather than by id: it is a singleton, so the scope
-    // is bounded, and asking for it by id would mean referencing the publisher query's own
-    // result from inside the Promise.all that defines it.
-    loadScopedCopy(
-      locals.supabase,
-      ['content', 'publisher_profile'],
-      locals.locale.code,
-      locals.defaultLocale.code
-    ),
-    // Entity copy by id rather than by scope: 'article' is unbounded, so loading the whole
-    // scope would ship every headline in the database to render one page.
-    loadEntityCopy(
-      locals.supabase,
-      [
-        { scope: 'article', ids: [article.id] },
-        { scope: 'article_status', ids: [status.id] },
-        { scope: 'article_block', ids: blocks.map((block) => block.id) },
-        { scope: 'author_profile', ids: bylines.map((author) => author.id) },
-        { scope: 'section', ids: sections.map((section) => section.id) },
-        { scope: 'topic', ids: topics.map((topic) => topic.id) },
-        { scope: 'tag', ids: tags.map((tag) => tag.id) },
-        { scope: 'media_asset', ids: mediaAssetIds },
-      ],
-      locals.locale.code,
-      locals.defaultLocale.code
-    ),
-  ]);
+  const [commentsResult, publisherResult, mediaResult, attributionResult, uiCopy, entityCopy] =
+    await Promise.all([
+      // RLS already restricts this to approved comments on publicly visible articles, so the
+      // only filter here is the article, and the status predicate is not repeated.
+      article.allowComment
+        ? locals.supabase
+            .from('comment')
+            .select(
+              'id, article_id, user_account_id, parent_comment_id, author_name, author_email, body, status, created_at, updated_at'
+            )
+            .eq('article_id', article.id)
+            .order('created_at')
+        : Promise.resolve({ data: [], error: null }),
+      locals.supabase
+        .from('publisher_profile')
+        .select('id, logo_media_asset_id, url, created_at')
+        .limit(1)
+        .maybeSingle(),
+      // Only the assets this article's blocks actually reference.
+      mediaAssetIds.length > 0
+        ? locals.supabase
+            .from('media_asset')
+            .select(
+              'id, media_type, storage_key, width, height, mime_type, uploaded_by, created_at'
+            )
+            .in('id', mediaAssetIds)
+        : Promise.resolve({ data: [], error: null }),
+      // Public provenance for the credit lines: license and source URLs, for the asset kinds that
+      // are credited in public. A view, because the rights tables behind it are admin-only.
+      mediaAssetIds.length > 0
+        ? locals.supabase
+            .from('media_asset_attribution')
+            .select('media_asset_id, license, source_url, license_url')
+            .in('media_asset_id', mediaAssetIds)
+        : Promise.resolve({ data: [], error: null }),
+      // 'publisher_profile' loaded by scope rather than by id: it is a singleton, so the scope
+      // is bounded, and asking for it by id would mean referencing the publisher query's own
+      // result from inside the Promise.all that defines it.
+      loadScopedCopy(
+        locals.supabase,
+        ['content', 'publisher_profile'],
+        locals.locale.code,
+        locals.defaultLocale.code
+      ),
+      // Entity copy by id rather than by scope: 'article' is unbounded, so loading the whole
+      // scope would ship every headline in the database to render one page.
+      loadEntityCopy(
+        locals.supabase,
+        [
+          { scope: 'article', ids: [article.id] },
+          { scope: 'article_status', ids: [status.id] },
+          { scope: 'article_block', ids: blocks.map((block) => block.id) },
+          { scope: 'author_profile', ids: bylines.map((author) => author.id) },
+          { scope: 'section', ids: sections.map((section) => section.id) },
+          { scope: 'topic', ids: topics.map((topic) => topic.id) },
+          { scope: 'tag', ids: tags.map((tag) => tag.id) },
+          { scope: 'media_asset', ids: mediaAssetIds },
+        ],
+        locals.locale.code,
+        locals.defaultLocale.code
+      ),
+    ]);
 
   if (commentsResult.error) throw error(500, 'Failed to load comments.');
   if (mediaResult.error) throw error(500, 'Failed to load media.');
+  if (attributionResult.error) throw error(500, 'Failed to load media credits.');
 
   return {
     article,
@@ -205,6 +223,12 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
       mimeType: asset.mime_type,
       uploadedBy: asset.uploaded_by,
       createdAt: asset.created_at,
+    })),
+    attributions: (attributionResult.data ?? []).map((row) => ({
+      mediaAssetId: row.media_asset_id,
+      license: row.license,
+      sourceUrl: row.source_url,
+      licenseUrl: row.license_url,
     })),
     localeCode: locals.locale.code,
     copy: [...uiCopy, ...entityCopy],

@@ -1,4 +1,5 @@
 import type { DictionaryInstance } from 'diglossia';
+import { selectLeadMediaAssetId } from './lead-image.js';
 import type {
   ArticleRenderable,
   LiveCoverageWithUpdates,
@@ -102,16 +103,12 @@ export function buildNewsArticleJsonLd(
   const headline = dictionary.localText('headline', 'article', article.id);
   const dek = dictionary.localText('dek', 'article', article.id);
 
-  // Lead image: the first image block that has an asset we were given.
+  // Lead image: the editor's choice, else the first image block, among the assets we were given.
   const mediaAssets = options.mediaAssets ?? new Map();
   const images: string[] = [];
-  for (const block of article.blocks) {
-    const asset = block.mediaAssetId === null ? null : mediaAssets.get(block.mediaAssetId);
-    if (block.blockType === 'image' && asset?.storageKey) {
-      images.push(`${storageBase}/${asset.storageKey}`);
-      break;
-    }
-  }
+  const lead = selectLeadMediaAssetId(article, (id) => Boolean(mediaAssets.get(id)?.storageKey));
+  const leadAsset = lead ? mediaAssets.get(lead.mediaAssetId) : null;
+  if (leadAsset?.storageKey) images.push(`${storageBase}/${leadAsset.storageKey}`);
   const publisherName = dictionary.localText('name', 'publisher_profile', publisher.id);
   if (publisher.logo?.storageKey && images.length === 0) {
     images.push(`${storageBase}/${publisher.logo.storageKey}`);
@@ -213,10 +210,11 @@ export function buildArticleMetaTags(
 
   const publisherName = dictionary.localText('name', 'publisher_profile', publisher.id);
   const mediaAssets = options.mediaAssets ?? new Map();
-  const leadImage = article.blocks
-    .filter((b) => b.blockType === 'image' && b.mediaAssetId !== null)
-    .map((b) => mediaAssets.get(b.mediaAssetId as number))
-    .find((asset) => asset?.storageKey);
+  const lead = selectLeadMediaAssetId(article, (id) => Boolean(mediaAssets.get(id)?.storageKey));
+  const leadImage = lead ? mediaAssets.get(lead.mediaAssetId) : undefined;
+  // The lookup carries only storage keys, so the alt text is resolved from the dictionary like
+  // every other piece of copy. It was read off the lookup entry, where it never existed.
+  const leadAlt = lead ? dictionary.localText('alt_text', 'media_asset', lead.mediaAssetId) : '';
 
   return {
     // Open Graph
@@ -227,7 +225,7 @@ export function buildArticleMetaTags(
     'og:site_name': publisherName,
     ...(options.locale ? { 'og:locale': options.locale.replace('-', '_') } : {}),
     ...(leadImage?.storageKey
-      ? { 'og:image': `${storageBase}/${leadImage.storageKey}`, 'og:image:alt': leadImage.altText }
+      ? { 'og:image': `${storageBase}/${leadImage.storageKey}`, 'og:image:alt': leadAlt }
       : {}),
     // Twitter / X card
     'twitter:card': leadImage ? 'summary_large_image' : 'summary',
@@ -237,7 +235,7 @@ export function buildArticleMetaTags(
     ...(leadImage?.storageKey
       ? {
           'twitter:image': `${storageBase}/${leadImage.storageKey}`,
-          'twitter:image:alt': leadImage.altText,
+          'twitter:image:alt': leadAlt,
         }
       : {}),
     // Canonical

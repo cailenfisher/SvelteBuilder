@@ -177,7 +177,8 @@ create policy "content_live_update_admin" on public.live_update for all to authe
 --
 -- No public read of any kind. Revisions carry unpublished drafts; assignments and
 -- checklists are internal process; media_asset_rights holds licensing terms that are
--- nobody else's business; and article_preview_token holds the credentials that let someone
+-- nobody else's business, and media_asset_source the provenance behind them (the public face
+-- of both is the media_asset_attribution view in 03-content-media.sql); and article_preview_token holds the credentials that let someone
 -- read an unpublished article, so a public read would make every draft enumerable.
 --
 -- Note what is deliberately absent: no `for select using (true)`. These tables return
@@ -190,7 +191,7 @@ declare
 begin
   foreach v_table in array array[
     'article_revision', 'article_assignment', 'publish_checklist_item',
-    'article_checklist_state', 'media_asset_rights', 'article_preview_token',
+    'article_checklist_state', 'media_asset_rights', 'media_asset_source', 'article_preview_token',
     'subscriber', 'newsletter_subscription'
   ] loop
     execute format('alter table public.%I enable row level security', v_table);

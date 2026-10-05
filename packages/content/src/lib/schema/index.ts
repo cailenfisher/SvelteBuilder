@@ -92,6 +92,12 @@ export type Article = {
   deletedAt: string | null;
   embargoUntil: string | null;
   allowComment: boolean;
+  /**
+   * The editor's choice of lead image; null means "the first image block". Optional on the type
+   * so a loader that does not render a lead need not select it — read it through
+   * selectLeadMediaAssetId rather than directly.
+   */
+  leadMediaAssetId?: number | null;
   createdAt: string;
 };
 
@@ -192,6 +198,31 @@ export type MediaAssetRights = {
   creditRequired: boolean;
   expiresAt: string | null;
   createdAt: string;
+};
+
+/** Provenance for one asset. `licenseUrl` is the licence's own page, `sourceUrl` the image's. */
+export type MediaAssetSource = {
+  id: number;
+  mediaAssetId: number;
+  sourceUrl: string;
+  licenseUrl: string | null;
+  retrievedAt: string | null;
+  createdAt: string;
+};
+
+/**
+ * The public face of an asset's rights and provenance — what a reader's page may know.
+ *
+ * media_asset_rights is admin-only, because expiry dates and credit obligations are licensing
+ * terms nobody else needs, so the page cannot read it. This is the projection a public read
+ * (the `media_asset_attribution` view) exposes: only for the licences that are meant to be
+ * attributed in public (`creative_commons`, `public_domain`), and only the URLs.
+ */
+export type MediaAssetAttribution = {
+  mediaAssetId: number;
+  license: MediaLicense;
+  sourceUrl: string;
+  licenseUrl: string | null;
 };
 
 export type Front = {
@@ -315,6 +346,7 @@ export type MediaAssetWithCopy = MediaAsset & {
   caption: string;
   credit: string;
   rights: MediaAssetRights | null;
+  source: MediaAssetSource | null;
 };
 
 export type ArticleBlockWithCopy = ArticleBlock & {

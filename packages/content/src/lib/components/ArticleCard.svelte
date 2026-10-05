@@ -6,7 +6,17 @@
   import SectionLabel from './SectionLabel.svelte';
   import TopicTag from './TopicTag.svelte';
   import BylineList from './BylineList.svelte';
-  import type { Article, ArticleStatus, AuthorProfile, Section, Topic } from '../schema/index.js';
+  import MediaFigure from './MediaFigure.svelte';
+  import { selectLeadMediaAssetId } from '../publishing/lead-image.js';
+  import type {
+    Article,
+    ArticleBlock,
+    ArticleStatus,
+    AuthorProfile,
+    MediaAsset,
+    Section,
+    Topic,
+  } from '../schema/index.js';
 
   type Props = {
     article: Article;
@@ -18,6 +28,16 @@
     href?: string;
     showStatus?: boolean;
     variant?: 'lead' | 'secondary' | 'river' | 'brief';
+    /**
+     * Where the card's picture comes from: the article's lead image (its `leadMediaAssetId`,
+     * else the first image block among `blocks`), looked up here. The same rule ArticleView's
+     * hero and the social cards use. A card with no `mediaAssets`, or whose lead asset is not
+     * in them, renders text only — as every card did before it could show a picture.
+     */
+    mediaAssets?: Map<number, MediaAsset>;
+    /** The article's blocks, when the loader has them; needed only for the first-image rule. */
+    blocks?: Pick<ArticleBlock, 'id' | 'blockType' | 'mediaAssetId'>[];
+    storageBaseUrl?: string;
     dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
@@ -32,6 +52,9 @@
     href,
     showStatus = false,
     variant = 'river',
+    mediaAssets,
+    blocks = [],
+    storageBaseUrl,
     dictionary: dictionaryProp,
     class: extraClass,
   }: Props = $props();
@@ -64,12 +87,46 @@
 
   const cardHref = $derived(href ?? `/article/${article.canonicalSlug}`);
 
+  // lead: large, secondary: small, river: thumbnail, brief: none — a brief is a headline.
+  const leadAsset = $derived.by(() => {
+    if (variant === 'brief' || !mediaAssets || storageBaseUrl === undefined) return null;
+    const lead = selectLeadMediaAssetId(
+      { leadMediaAssetId: article.leadMediaAssetId, blocks },
+      (id) => mediaAssets.has(id)
+    );
+    return lead ? (mediaAssets.get(lead.mediaAssetId) ?? null) : null;
+  });
+
   const classes = $derived(
-    ['article-card', `article-card--${variant}`, extraClass ?? ''].filter(Boolean).join(' ')
+    [
+      'article-card',
+      `article-card--${variant}`,
+      leadAsset ? 'article-card--with-media' : '',
+      extraClass ?? '',
+    ]
+      .filter(Boolean)
+      .join(' ')
   );
 </script>
 
 <article class={classes}>
+  {#if leadAsset && storageBaseUrl !== undefined}
+    <!-- Decorative at thumbnail size: the headline link beside it already says what this is, and
+         a second description of the same story would be read out twice. The large lead keeps
+         its alt text. -->
+    <div class="article-card__media">
+      <MediaFigure
+        asset={leadAsset}
+        {storageBaseUrl}
+        {locale}
+        {dictionary}
+        captioned={false}
+        decorative={variant !== 'lead'}
+        class="article-card__figure"
+      />
+    </div>
+  {/if}
+
   {#if sections.length > 0}
     <div class="article-card__kicker" aria-label="Section">
       <SectionLabel section={sections[0]} {locale} {dictionary} />
@@ -134,6 +191,38 @@
   .article-card:hover {
     box-shadow: var(--shadow);
     border-color: var(--border-strong);
+  }
+
+  .article-card__media {
+    line-height: 0;
+  }
+
+  /* The picture is cropped to a fixed ratio so a column of cards stays aligned whatever the
+     source image's shape. Large for the lead, a banner for secondary. */
+  .article-card__media :global(.media-figure__img) {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 0;
+  }
+
+  .article-card--lead .article-card__media :global(.media-figure__img) {
+    aspect-ratio: 3 / 2;
+  }
+
+  /* River cards put a thumbnail beside the text rather than above it. */
+  .article-card--river.article-card--with-media {
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .article-card--river .article-card__media {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .article-card--river .article-card__media :global(.media-figure__img) {
+    aspect-ratio: 4 / 3;
   }
 
   .article-card__kicker {
