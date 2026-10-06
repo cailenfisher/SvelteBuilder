@@ -4,6 +4,8 @@ Files in this directory are layered on top of `templates/base/` when the user
 selects the SuperPrototype scaffold. Files here overwrite their base counterparts.
 
 ## What this template adds
+- `CLAUDE.md` — replaces base's provider-neutral one with Supabase-specific rules
+  (data access, RLS, RPCs, auth) on top of the shared i18n, naming and coreui guidance
 - Supabase client setup (`src/lib/server/supabase.ts`)
 - Full Supabase Auth wiring in `src/hooks.server.ts`
 - Supabase-specific `app.d.ts` locals

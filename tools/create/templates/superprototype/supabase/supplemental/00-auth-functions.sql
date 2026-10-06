@@ -73,8 +73,9 @@ $$;
 -- seeded database has no other route into the admin area. That emptiness check
 -- MUST run as definer. Under RLS a brand-new user can see no user_account rows at
 -- all, so the same test written in application code reads "table is empty" for
--- every new user and hands admin to everybody. Promote or revoke admins with a
--- direct SQL update after the first one; there is no invite UI.
+-- every new user and hands admin to everybody. Promote or revoke admins after the
+-- first one with admin_set_user_admin() (05-user-account-hardening.sql); there is
+-- no invite UI.
 
 create or replace function public.ensure_user_account()
 returns bigint
