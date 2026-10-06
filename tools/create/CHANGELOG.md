@@ -1,5 +1,11 @@
 # create-sveltebuilder
 
+## 0.1.3
+
+### Patch Changes
+
+- [#30](https://github.com/cailenfisher/SvelteBuilder/pull/30) [`6d9a709`](https://github.com/cailenfisher/SvelteBuilder/commit/6d9a709f01a10129d70b1677cfb43f21c484356b) Thanks [@cailenfisher](https://github.com/cailenfisher)! - SuperPrototype scaffolds now ship a Supabase-specific `CLAUDE.md` (data access, RLS policies, RPCs, auth, seeds, localization, coreui and a definition of done) instead of the provider-neutral base one. The template README now documents promoting administrators through `admin_set_user_admin()`, the sign-in setup, and the schema change loop.
+
 ## 0.1.2
 
 ### Patch Changes
