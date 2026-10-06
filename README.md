@@ -1,4 +1,4 @@
-# SvelteBuilder
+![SvelteBuilder logo](docs/SvelteBuilderLogoBanner.png)
 
 > Scaffolding + component ecosystem for building quality SvelteKit applications, fast.
 
