@@ -28,61 +28,54 @@ The [W3C Design Tokens Community Group specification](https://tr.designtokens.or
 
 [Feature-Sliced Design's token guidance](https://feature-sliced.design/blog/design-tokens-architecture) frames the minimal viable semantic set as: text, surfaces, borders, primary action, and states — the 20% of tokens that drive 80% of UI. This is the scope that SvelteBuilder targets.
 
-The [semantic layer is where token architectures most commonly fail](https://productrocket.ro/articles/design-tokens-guide/). Teams get primitives right (they are just a list of values) and component tokens right (they map directly to code), but semantic tokens require articulating the *why* behind each decision. When teams skip this layer, a brand change touches hundreds of tokens instead of a handful. **SvelteBuilder owns the semantic and component layers internally. Consuming projects configure primitives only.**
+The [semantic layer is where token architectures most commonly fail](https://productrocket.ro/articles/design-tokens-guide/). Teams get primitives right (they are just a list of values) and component tokens right (they map directly to code), but semantic tokens require articulating the *why* behind each decision. When teams skip this layer, a brand change touches hundreds of tokens instead of a handful. **SvelteBuilder owns the semantic and component layers internally (in coreui's `_internal.css`). Consuming projects configure the public tokens only.**
 
 ### Accessibility makes the semantic layer mandatory, not optional
 
-Dark mode and high-contrast themes are the practical forcing function for a semantic layer even in projects that do not initially plan for them. Enterprise clients with accessibility requirements — WCAG AA compliance, high-contrast mode — get zero-extra-token support when the semantic layer is in place, and a significant rewrite when it is not. SvelteBuilder ships all default token values with verified WCAG AA contrast, and dark mode and high-contrast are first-class outcomes of the semantic layer with no changes required in component code.
+Dark mode and high-contrast themes are the practical forcing function for a semantic layer even in projects that do not initially plan for them. Enterprise clients with accessibility requirements — WCAG AA compliance, high-contrast mode — get zero-extra-token support when the semantic layer is in place, and a significant rewrite when it is not. In SvelteBuilder, dark mode is an outcome of the semantic layer with no changes in component code, and high-contrast mode is meant to work the same way once it is built. Default token values are chosen for WCAG AA contrast; automated verification waits on the planned accessibility audit.
 
 ---
 
 ## SvelteBuilder CoreUI Token Surface
 
-The following table defines the **configurable primitive token surface** — what a consuming project sets. All semantic and component tokens derived from these are internal to `sveltebuilder-coreui` and are not part of the public API.
+The following table is the **configurable token surface**: what a consuming project sets. It is
+defined in `@sveltebuilder/coreui/styles/tokens.css`. Everything derived from these lives in
+`_internal.css` and is not part of the public API.
 
-| Category | Token(s) | Purpose |
+| Category | Token | Purpose |
 |---|---|---|
-| **Brand** | `--color-brand` | Primary interactive and action color |
-| | `--color-brand-subtle` | Tint for hover states and brand-tinted backgrounds |
-| **Neutral** | `--color-neutral-50` | Near-white surface |
-| | `--color-neutral-100` | Light background, zebra rows |
-| | `--color-neutral-200` | Borders, dividers |
-| | `--color-neutral-400` | Placeholder text, disabled states |
-| | `--color-neutral-700` | Secondary text |
-| | `--color-neutral-900` | Primary text |
-| **Status** | `--color-danger` | Destructive actions, errors |
-| | `--color-danger-subtle` | Error background, inline error fields |
-| | `--color-warning` | Caution indicators |
-| | `--color-warning-subtle` | Warning background |
-| | `--color-success` | Confirmation, positive states |
-| | `--color-success-subtle` | Success background |
-| | `--color-info` | Informational, neutral alerts |
-| | `--color-info-subtle` | Info background |
-| **Typography** | `--font-family-base` | Body and UI text |
-| | `--font-family-mono` | Code, data, reference values |
-| | `--font-size-base` | Root font size (rem anchor) |
-| | `--font-scale` | Type scale ratio (e.g. 1.25 Major Third) |
-| **Shape** | `--radius-base` | Single border-radius value used across the app |
-| **Density** | `--space-unit` | Base spacing unit (default: 4px); all spacing is multiples |
-| **Accessibility** | `--color-focus-ring` | Keyboard focus indicator |
-| | `--shadow-card` | Elevation for cards and overlays |
+| **Brand** | `--brand` | Primary interactive and action color, and the focus ring. Hover, active, soft-tint and text variants are derived with `color-mix()`. |
+| **Neutral** | `--chrome` | The single neutral reference. Light-mode surfaces, borders, and every text shade are mixed from it toward white or black. |
+| **Status** | `--danger` | Destructive actions, errors |
+| | `--warning` | Caution indicators |
+| | `--success` | Confirmation, positive states |
+| | `--info` | Informational, neutral alerts |
+| **Typography** | `--font` | Body and UI text |
+| | `--font-mono` | Code, IDs, reference values |
+| | `--font-size-base` | Root font size, set on `<html>`; the rem-based type scale follows it |
+| | `--leading-base` | Root line height |
+| **Shape** | `--radius` | Single corner radius; stepped variants are computed from it |
 
-This is approximately **25 configurable primitives**. All spacing, sizing, and interactive variants are derived from these in the semantic layer.
+That is **11 configurable tokens**. This is deliberately smaller than the roughly 25 an earlier
+draft of this document proposed. A single `--brand` and a single `--chrome` replace hand-picked
+`-subtle` pairs and a six-step neutral ramp: `color-mix()` derives the tints, so a team sets one
+color per role instead of keeping several values in step with each other. Each status color gets
+`-soft`, `-text`, `-border`, `-hover` and `-fg` variants the same way.
 
 ---
 
 ## Architectural Requirements
 
-1. **The semantic and component layers are internal to `sveltebuilder-coreui` and are not part of its public API.** Consuming projects configure primitive tokens only. Direct overrides of semantic or component tokens are unsupported.
+1. **The derived layer is internal to `@sveltebuilder/coreui` and is not part of its public API.** Consuming projects configure the 11 tokens only. Assigning derived tokens (`--brand-hover`, `--surface-raised`, `--text-soft`, and so on) is unsupported; reading them in application CSS is fine.
 
 2. **No token is added without a concrete component use case.** The configurable surface grows when a component requires it, not speculatively. Every token in the public surface must be referenced by at least one component in the library.
 
-3. **All default token values must ship with verified WCAG AA contrast.** Status color pairs (e.g. `--color-danger` on white, `--color-danger-subtle` as a background with dark text) are validated at build time. Consuming teams that override defaults are responsible for their own contrast verification.
+3. **All default token values must meet WCAG AA contrast.** This applies to each status color as text, white on `--brand` and on solid status fills, and text on the derived `-soft` backgrounds. It is not yet checked automatically; verification is part of the planned WCAG 2.2 AA audit. Teams that override defaults are responsible for checking their own contrast.
 
-4. **Dark mode and high-contrast mode are driven entirely by the semantic layer.** No component-level conditional styling for themes is permitted. A theme switch is a token swap; component code does not know or care which theme is active.
+4. **Dark mode is driven entirely by the derived layer.** Under `prefers-color-scheme: dark`, or `data-color-scheme="dark"` on an ancestor, `_internal.css` swaps surfaces, borders and text to a dark palette and re-tints the brand and status variants. No component contains theme-conditional styling: a theme switch is a token swap, and component code does not know which theme is active. High-contrast mode is not built yet and should follow the same mechanism.
 
-5. **`--radius-base` is a single value.** Components may compute stepped variants (`calc(var(--radius-base) * 0.5)`, etc.) internally, but the customization surface exposes one knob. Multi-radius systems are not a goal.
+5. **`--radius` is a single value.** `_internal.css` computes stepped variants (`--radius-sm`, `--radius-lg`, `--radius-xl`, `--radius-2xl`) as multiples of it, but the customization surface exposes one knob. Multi-radius systems are not a goal.
 
-6. **`--space-unit` is the sole spacing primitive.** All internal spacing is expressed as multiples of this unit. No component hard-codes a pixel value for margin or padding.
+6. **Spacing is a fixed internal scale, not a public token.** Components use the `--space-*` steps (multiples of 4px) and never hard-code margin or padding values. Density is not configurable yet. If a real need appears, the remedy is a single public unit the scale derives from, not per-step overrides.
 
-7. **The token system is platform-agnostic in format.** Primitives are defined in a format consumable by Style Dictionary or equivalent tooling, enabling future output to non-web targets without architectural changes.
+7. **Tokens are plain CSS custom properties.** There is no build step and no token pipeline. Exporting to non-web targets (for example through Style Dictionary) is not a current goal. If it becomes one, the 11 public tokens are the surface to export.

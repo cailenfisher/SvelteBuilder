@@ -466,7 +466,7 @@ so changing one value recolors the whole app consistently.
 | `--info`           | `#0284c7`                             | Informational messages.                                                                          |
 | `--font`           | `system-ui, -apple-system, sans-serif` | All UI text.                                                                                    |
 | `--font-mono`      | `ui-monospace, monospace`             | Codes, IDs, reference values.                                                                    |
-| `--font-size-base` | `1rem`                                | Root size. The type and spacing scale is in `rem`, so this scales the whole UI's density.        |
+| `--font-size-base` | `1rem`                                | Root font size. The type scale is in `rem`, so this scales all text; spacing is fixed `px`.     |
 | `--leading-base`   | `1.5`                                 | Root line height.                                                                                |
 | `--radius`         | `6px`                                 | Corner radius for every component.                                                               |
 
@@ -576,25 +576,27 @@ answered with SvelteBuilder's rules already in mind.
 
 ### 9.1 What it already teaches Claude
 
-- **The i18n model**: no `name`/`title`/`label`/`description` columns, copy linked by slug, scope
-  and entity ID; the dictionary created once in the root layout and never inside `$effect`.
-- **The component split**: application UI (`Button`, layout chrome) takes plain strings;
-  entity components (`ProductCard`) resolve their own copy from the dictionary.
-- **Naming conventions** from SQL to CSS: singular tables, no abbreviations, no `is`/`has`
-  prefixes on booleans.
-- **Use coreui first**, before building a new component.
-- **WCAG 2.2 AA** expectations for generated markup.
-- **Ready-made prompt patterns** for adding an entity, a route, a component, or dictionary
-  entries.
-- **A review checklist** of the mistakes to flag in generated code.
+The SuperPrototype `CLAUDE.md` is written for this template specifically. It covers:
 
-### 9.2 Add your project's own section first
+- **Non-negotiable rules** up front: data access only through `locals.supabase`, RLS on every
+  table, no copy columns, RPCs for multi-statement writes, no hand-edited migrations.
+- **Data access**: the per-request client, mapping snake_case to camelCase at the boundary,
+  error handling in loads and actions, and when a write needs an RPC.
+- **Auth and authorization**: the `auth.users` / `user_account` split, route guards versus RLS,
+  the `current_user_id()` and `current_user_admin()` helpers, and how to add roles.
+- **Schema, RLS, RPCs and seeds**, each with a worked example to copy.
+- **Localization**: global versus scoped copy, `loadScopedCopy` and `loadEntityCopy`, the two
+  kinds of component, and MessageFormat plurals.
+- **coreui**: what it exports, theming through the 11 tokens, and WCAG 2.2 AA expectations.
+- **Naming conventions** from SQL to CSS.
+- **A build order for features**, a definition of done, and a review checklist.
 
-The shipped file describes SvelteBuilder in general. It does not know what you are building,
-and it says little about the Supabase specifics of this template. Spend ten minutes adding a
-section at the top. It pays for itself in the first session.
+### 9.2 Fill in "This Project"
 
-Describe the product:
+The one thing the file cannot know is what you are building. Its first section, **This
+Project**, is an empty comment for you to replace. Until you fill it in, Claude is told to ask
+you about the product, users and roles before designing any schema. Ten minutes here pays for
+itself in the first session:
 
 ```markdown
 ## This Project
@@ -609,29 +611,9 @@ driver has at most one active load.
 v1 excludes: invoicing, route optimisation, ELD integration.
 ```
 
-And state the data-access rules the generic file leaves out:
+The roles paragraph matters most. Who can see and change what becomes your RLS policies.
 
-```markdown
-## Data Access (SuperPrototype)
-
-- All database access goes through `event.locals.supabase` in `+page.server.ts`,
-  `+layout.server.ts` or `+server.ts`. Never open a direct Postgres connection, never add a
-  DATABASE_URL, never import `drizzle-orm` at runtime. Drizzle is only the schema source.
-- Tables are defined in `src/lib/server/schema.ts`. New primary keys are
-  `integer generated always as identity`, and foreign keys are `<table>_id`.
-- Every new table gets RLS enabled and explicit policies in a new
-  `supabase/supplemental/NN-<name>.sql`. Policies call `(select public.current_user_id())` and
-  `(select public.current_user_admin())`, never `auth.uid()` directly, and always name their
-  role with `to`.
-- A write that spans more than one statement goes in a SECURITY INVOKER Postgres function called
-  with `.rpc()`, so it is atomic and RLS still applies.
-- Never grant `anon` or `authenticated` UPDATE on `user_account`.
-- Every new slug is seeded in `supabase/seeds/` with `en` and `fr` copy.
-- After schema or SQL changes: `pnpm sveltebuilder sync:supabase`, then `pnpm db:reset`, then
-  `pnpm check`.
-```
-
-`CLAUDE.md` is a normal file in your repo. Edit it as your project's conventions grow, and commit
+`CLAUDE.md` is a normal file in your repo. Add your own conventions as they settle, and commit
 it so everyone on the team, and every session, gets the same context.
 
 ### 9.3 A prototyping loop that works
@@ -658,8 +640,8 @@ Habits that keep a prototype on track:
   seed apply cleanly from empty.
 - **Test as more than one person.** Sign in as a non-admin in a second browser profile. RLS
   bugs only show up as someone who is not the administrator.
-- **Use the checklist.** Ask Claude to review a change against the "What Not to Do" checklist in
-  `CLAUDE.md` before you commit.
+- **Use the checklists.** Ask Claude to check a change against the "Definition of Done" and
+  "Review Checklist" sections of `CLAUDE.md` before you commit.
 - **Use the module packages as reference.** If you selected `content` or `logistic`, their
   scaffolded screens and `supabase/supplemental/` files are working examples of every pattern
   above. Point Claude at them: "follow the pattern in `src/routes/(admin)/admin/logistic/supplier/`".
