@@ -1,33 +1,59 @@
-# SvelteBuilder
+![SvelteBuilder logo](docs/SvelteBuilderLogoBanner.png)
 
 > Scaffolding + component ecosystem for building quality SvelteKit applications, fast.
 
 SvelteBuilder is an opinionated scaffold and toolkit ecosystem for SvelteKit projects that need to be production-ready quickly. It ships with first-class localization, accessibility foundations (building on the wonderful work done by [bits-ui](https://github.com/huntabyte/bits-ui)), a clean set of common UI components, and strong established patterns for schema, routing, data access, auth, and error handling.
+
+> [!TIP]
+> **Quick start:** create a project and choose the **SuperPrototype** template when prompted:
+>
+> ```sh
+> pnpm create sveltebuilder@latest my-app
+> cd my-app && cp .env.example .env
+> ```
+>
+> Then link a hosted Supabase project, and set `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env` from its API settings:
+>
+> ```sh
+> pnpm supabase link --project-ref <project-ref>
+> pnpm supabase db push --include-seed
+> pnpm dev
+> ```
+>
+> **Or** run Supabase locally. `db:start` prints the local URL and publishable key for `.env`:
+>
+> ```sh
+> pnpm db:start
+> pnpm db:reset
+> pnpm dev
+> ```
+>
+> Local Supabase needs [Docker](https://docs.docker.com/get-docker/). See [The CLI](#the-cli) for the prompts and non-interactive flags.
 
 > [!NOTE]
 > **Status: Beta in progress.** The foundation (`diglossia`, `@sveltebuilder/cli`, the base and SuperPrototype scaffold templates) and `@sveltebuilder/coreui` are complete and published to npm. Two domain modules, `content` and `logistic`, are usable today; neither has a unit test suite yet, and no WCAG audit has been run. APIs may still change.
 
 ## About
 
-Ultimately I am building this because I have a use for it. I wanted to package up things that I end up repeating on every new project (abstract and tangible - mental models to actual components), to use on a series of applications I want to build. The first one, a [newspaper platform](https://github.com/cailenfisher/David) is at a solid POC stage, built with the current pre-beta SvelteBuilder. I started with that one because it's near to my heart, but also because the newspaper side will be an excellent test of i18n and a11y functionality, while the newsroom side will put pressure on permissions, error handling, and component hierarchy. 
+Ultimately I am building this because I have a use for it. I wanted to package up things that I end up repeating on every new project (abstract and tangible - mental models to actual components), to use on a series of applications I want to build. The first one, a [newspaper platform](https://github.com/cailenfisher/David) is at a solid POC stage, built with the current pre-beta SvelteBuilder. I started with that one because it's near to my heart, but also because the newspaper side will be an excellent test of i18n and a11y functionality, while the newsroom side will put pressure on permissions, error handling, and component hierarchy.
 
-I have made similar toolkits in the past, since my years in LAMP world but this time I thought it would be neat to actually publish everything as proper packages. It would be even more neat if other people found value in it, especially if that came with feedback - developing in a vacuum is hard! 
+I have made similar toolkits in the past, since my years in LAMP world but this time I thought it would be neat to actually publish everything as proper packages. It would be even more neat if other people found value in it, especially if that came with feedback - developing in a vacuum is hard!
 
-The opinionated architectural patterns are arguably the biggest value proposition. If it all lands right, it solves for a critical high level anti-pattern that is all too common: You build out a POC based on the very specific features the product calls from. This naturally leads to focusing heavily on UI, with minimal back-end tooling or even mocks. You almost certainly aren't fully solving high level concepts like well designed models and workflows, let alone building out the chore work that is so critical - real auth, permissions, data integrity rules, types, etc. 
+The opinionated architectural patterns are arguably the biggest value proposition. If it all lands right, it solves for a critical high level anti-pattern that is all too common: You build out a POC based on the very specific features the product calls from. This naturally leads to focusing heavily on UI, with minimal back-end tooling or even mocks. You almost certainly aren't fully solving high level concepts like well designed models and workflows, let alone building out the chore work that is so critical - real auth, permissions, data integrity rules, types, etc.
 
-In an ideal world, once the POC hits all goals, you take a step back and start from scratch planning proper application architecture, producing artifacts and phases and then build everything correctly from the ground up, ingesting specific POC features only when the time is right for each one. In real life, what actually happens is frequently that the POC is hammered into being the real product because developers get excited or worse, stakeholders see a demo that looks "almost complete" and want delivery *immediately*. You then spend more development hours chasing bugs than you would have building it right. 
+In an ideal world, once the POC hits all goals, you take a step back and start from scratch planning proper application architecture, producing artifacts and phases and then build everything correctly from the ground up, ingesting specific POC features only when the time is right for each one. In real life, what actually happens is frequently that the POC is hammered into being the real product because developers get excited or worse, stakeholders see a demo that looks "almost complete" and want delivery _immediately_. You then spend more development hours chasing bugs than you would have building it right.
 
-Similar scenarios are common even when not building on an overly convincing POC. It's easy for teams to undersell "solved problems" like auth, UI libraries, a11y, i18n, and other common domains; only for fundamental friction against your custom code patterns to bite during the last mile. Even when you get it right, you end up with inconsistent patterns at the interface of each area - no truly unified shapes and models. Teams hitting the ground running and bypassing abstract tasks like well formed mental models and naming is a similar story. 
+Similar scenarios are common even when not building on an overly convincing POC. It's easy for teams to undersell "solved problems" like auth, UI libraries, a11y, i18n, and other common domains; only for fundamental friction against your custom code patterns to bite during the last mile. Even when you get it right, you end up with inconsistent patterns at the interface of each area - no truly unified shapes and models. Teams hitting the ground running and bypassing abstract tasks like well formed mental models and naming is a similar story.
 
-Solving all of this (and more) in a scaffold is a heady task, but I believe it to be possible and worthwhile. Time (and hopefully user feedback) will tell! This necessarily requires enforcing strong opinions, firmly. These opinions are hard-earned, and generally track with what has evolved over time as best practices - but I am very open to qualified input, especially during these early stages. 
+Solving all of this (and more) in a scaffold is a heady task, but I believe it to be possible and worthwhile. Time (and hopefully user feedback) will tell! This necessarily requires enforcing strong opinions, firmly. These opinions are hard-earned, and generally track with what has evolved over time as best practices - but I am very open to qualified input, especially during these early stages.
 
-The domain specific module libraries might be overly ambitious, and I am open to backing away from that portion if the scaffold proves to have value but modules are getting stuck in the mud. It's a big lift, but I have hands-on experience in each planned domain, and I really like the idea of providing a truly valuable ecosystem of extendable components that work in real world domains. This would keep code patterns unified, and solve for the standard friction that comes from stitching together third party component libraries and your actual application. 
+The domain specific module libraries might be overly ambitious, and I am open to backing away from that portion if the scaffold proves to have value but modules are getting stuck in the mud. It's a big lift, but I have hands-on experience in each planned domain, and I really like the idea of providing a truly valuable ecosystem of extendable components that work in real world domains. This would keep code patterns unified, and solve for the standard friction that comes from stitching together third party component libraries and your actual application.
 
 If everything works well enough to become a community driven ecosystem, the end result could solve for what gives WordPress such a huge market share - but coming from an opposite direction: extendable but unified modular pieces, instead of plugins bolted onto a CMS.
 
 ## Ecosystem Overview
 
-  ![SvelteBuilder ecosystem: CLI, scaffolded project, domain modules, foundation](docs/sveltebuilder-ecosystem.svg)
+![SvelteBuilder ecosystem: CLI, scaffolded project, domain modules, foundation](docs/sveltebuilder-ecosystem.svg)
 
 ### Monorepo Structure
 
