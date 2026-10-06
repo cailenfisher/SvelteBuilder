@@ -29,6 +29,8 @@ SvelteBuilder is an opinionated scaffold and toolkit ecosystem for SvelteKit pro
 > ```
 >
 > Local Supabase needs [Docker](https://docs.docker.com/get-docker/). See [The CLI](#the-cli) for the prompts and non-interactive flags.
+>
+> Currently **_Admin Auth_** only supports Supabase + Google. You will need to configure Supabase Auth and a matching Google Client with valid URLs for your project, as you normally would. The first account to login automatically gains administrator privileges. 
 
 > [!NOTE]
 > **Status: Beta in progress.** The foundation (`diglossia`, `@sveltebuilder/cli`, the base and SuperPrototype scaffold templates) and `@sveltebuilder/coreui` are complete and published to npm. Two domain modules, `content` and `logistic`, are usable today; neither has a unit test suite yet, and no WCAG audit has been run. APIs may still change.
