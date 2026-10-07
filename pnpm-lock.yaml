@@ -81,8 +81,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.4(svelte@5.56.4(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.6.3)(lightningcss@1.32.0))
       diglossia:
-        specifier: ^0.1.1
-        version: 0.1.1(svelte@5.56.4(@typescript-eslint/types@8.59.4))
+        specifier: ^0.2.0
+        version: 0.2.0(svelte@5.56.4(@typescript-eslint/types@8.59.4))
       svelte:
         specifier: ^5.0.0
         version: 5.56.4(@typescript-eslint/types@8.59.4)
@@ -109,8 +109,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.4(svelte@5.55.9(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.6.3)(lightningcss@1.32.0))
       diglossia:
-        specifier: ^0.1.1
-        version: 0.1.1(svelte@5.55.9(@typescript-eslint/types@8.59.4))
+        specifier: ^0.2.0
+        version: 0.2.0(svelte@5.55.9(@typescript-eslint/types@8.59.4))
       svelte:
         specifier: ^5.0.0
         version: 5.55.9(@typescript-eslint/types@8.59.4)
@@ -156,8 +156,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.4(svelte@5.55.9(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.6.3)(lightningcss@1.32.0))
       diglossia:
-        specifier: ^0.1.1
-        version: 0.1.1(svelte@5.55.9(@typescript-eslint/types@8.59.4))
+        specifier: ^0.2.0
+        version: 0.2.0(svelte@5.55.9(@typescript-eslint/types@8.59.4))
       svelte:
         specifier: ^5.0.0
         version: 5.55.9(@typescript-eslint/types@8.59.4)
@@ -1562,8 +1562,8 @@ packages:
   devalue@5.9.4:
     resolution: {integrity: sha512-sPAT4pztbu6586/hrhOnMKS17IJrvg12mXiSPSS3W5qDeN2RGgvZ0diZCm31dBbnevfVmujNO3IM2wrS4Y2Rhg==}
 
-  diglossia@0.1.1:
-    resolution: {integrity: sha512-yIMuz//9o4kZCa5YAgOpCS01QhdRsjGyOhXC73Y3wGpd4uIpMHo3w/FVXUzvdsiUNlmSGoQozCXvh6LQWmFr+g==}
+  diglossia@0.2.0:
+    resolution: {integrity: sha512-MsKkS5kLguKufIKha4jLESfNqzXPvZzZUHi9monDd+Hhq91aVmce8OzsDyjfiuxyHVvqEQvWxlbkT0EU9HrNPw==}
     engines: {node: '>=20', pnpm: '>=9'}
     peerDependencies:
       svelte: ^5.0.0
@@ -3936,13 +3936,13 @@ snapshots:
   devalue@5.9.4:
     optional: true
 
-  diglossia@0.1.1(svelte@5.55.9(@typescript-eslint/types@8.59.4)):
+  diglossia@0.2.0(svelte@5.55.9(@typescript-eslint/types@8.59.4)):
     dependencies:
       messageformat: 4.0.0
     optionalDependencies:
       svelte: 5.55.9(@typescript-eslint/types@8.59.4)
 
-  diglossia@0.1.1(svelte@5.56.4(@typescript-eslint/types@8.59.4)):
+  diglossia@0.2.0(svelte@5.56.4(@typescript-eslint/types@8.59.4)):
     dependencies:
       messageformat: 4.0.0
     optionalDependencies:
