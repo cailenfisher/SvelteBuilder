@@ -61,15 +61,11 @@ fails to record it.
 
 ### Still open
 
-The 40 RLS policies work — `pnpm sql:check` exercises them as an admin, a non-admin and an anonymous
-caller — but they predate the current conventions: `public.current_user_id()` is called bare rather
-than as `(select …)`, so it evaluates once per row instead of once per statement, and the admin check
-is an inline `exists (select 1 from public.user_account …)` rather than a call to
-`public.current_user_admin()`. On warehouse-scale tables that is a real cost. It is now a performance
-and consistency question rather than a correctness one, and it is a single mechanical pass.
+The RLS policy-pattern pass is done (2026-10-01): all 40 policies call the helpers as `(select …)`
+and gate admin through `public.current_user_admin()`, and `pnpm sql:check` asserts both properties.
 
-Also outstanding for the package: a vitest suite, and showcase coverage for the 3 components
-no screen bundle renders (see `docs/DEV-KITCHEN.md`).
+Outstanding for the package: a vitest suite (it still runs `--passWithNoTests` with no test files),
+and showcase coverage for the 3 components no screen bundle renders (see `docs/DEV-KITCHEN.md`).
 
 ---
 
@@ -143,7 +139,9 @@ of waved through. All five narrowed onto two named shapes, `ArticleWithRelations
 
 ### Still open
 
-No unit tests for the package. The live-coverage, front-curation, author-profile, newsletter and
+Unit tests now exist (`packages/content/test/`, five files rendering 9 of the 18 components
+server-side, including a no-`[missing:]` gate), but the other 9 have none. The live-coverage,
+front-curation, author-profile, newsletter and
 media screens were never written — only the thirteen route files that existed were ported, and
 `SectionFront`, `FrontCurationBoard`, `AssignmentQueue`, `SubscriberList`, `LiveCoverageView` and
 `AuthorProfileView` are components with no screen rendering them. That is the next content gap, and
@@ -270,19 +268,6 @@ twelve behavioural cases passed. Worth recording because two of them were the ac
 The harness is not kept in the repo — it hand-rolls the Supabase-managed pieces and would rot
 against the real platform. Recreate it if these policies change materially.
 
-**Publish diglossia and switch off `link:`.** `packages/coreui`, `packages/content`, and
-`packages/logistic` each declare `"diglossia": "link:../../../diglossia"`, which resolves to a
-sibling checkout outside this repo and breaks on a fresh clone. Publish `diglossia@0.1.0` to npm
-(four commits are ready on `main` in the sibling `diglossia` repo, not yet pushed — see below),
-then replace the `link:` entries with `^0.1.0`, and move the local link into a root
-`pnpm.overrides` block documented in `CONTRIBUTING.md`.
-
-**diglossia's commits are local-only.** Phase 1 landed as four commits on `main` in
-`/home/cailen/code/diglossia` (the split, the instance refactor, the MF2 addition, and a docs
-commit), plus a changeset for a `0.1.0` minor release. None have been pushed — pushing to a
-remote wasn't something this work order asked for, and it's a visible action worth a deliberate
-decision rather than a default. Push (and decide whether to let the changeset bot run) when ready.
-
 **Second resolution path only closed for headline/dek.** `structured-data.ts`, `rss.ts`, and
 `sitemap.ts` now resolve `headline`/`dek` through a `DictionaryInstance` instead of reading them
 as bare fields — the two fields the work order named explicitly, and the two that
@@ -335,6 +320,12 @@ mismatch and a stray `onChange` prop, several `ArticleWorkflowPanel` coreui prop
 (`tabList`, `label`, `onCheckedChange`), `NewsletterSignup`'s `Button` `label` prop, and
 `AuthorProfileView`/`SectionFront` passing a `mediaAssets` prop to `ArticleCard`, which doesn't
 declare one. Left as found.
+
+Re-run on 2026-10-07: 22 errors in 10 files. The `onCheckedChange` mismatch went away when coreui
+`Checkbox` gained that prop, and the `mediaAssets` one when `ArticleCard` gained it for card
+pictures. That second change exposed a defect behind it: `AuthorProfileView` and `SectionFront`
+never pass `ArticleCard` its required `status` (five call sites). Everything else above is still
+present.
 
 ---
 

@@ -254,8 +254,9 @@ module; carry one vertical slice (Supplier) end to end through the new layout an
 selection; land the scaffold-and-build gate; then port the remaining bundles.
 
 **Logistic is done.** Eight bundles — supplier, stock, receipt, shipment, return, cycle-count,
-warehouse, dashboard — and `screens/_unported/` no longer exists. Content's thirteen route files, in
-`screens/_unsorted/`, are what remain.
+warehouse, dashboard — and `screens/_unported/` no longer exists. **Content followed on 2026-10-01**:
+its thirteen route files became five bundles (article, section, feeds, preview, admin-article), and
+`screens/_unsorted/` is gone too.
 
 Three things the port taught that the analysis above did not anticipate.
 
