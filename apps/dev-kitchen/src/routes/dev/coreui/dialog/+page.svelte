@@ -11,7 +11,11 @@
 
 <Example title="Dialog with its own trigger">
   {#each sizes as size (size)}
-    <Dialog {size} title={`A ${size} dialog`} description="Escape or the close button dismisses it.">
+    <Dialog
+      {size}
+      title={`A ${size} dialog`}
+      description="Escape or the close button dismisses it."
+    >
       {#snippet trigger()}Open {size}{/snippet}
       <p>Focus is trapped inside while it is open.</p>
     </Dialog>

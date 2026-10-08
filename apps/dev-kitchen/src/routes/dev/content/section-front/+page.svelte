@@ -5,4 +5,10 @@
   const dictionary = contentDictionary();
 </script>
 
-<SectionFront front={FRONT} mediaAssets={MEDIA_ASSETS} storageBaseUrl={STORAGE_BASE_URL} locale="en" {dictionary} />
+<SectionFront
+  front={FRONT}
+  mediaAssets={MEDIA_ASSETS}
+  storageBaseUrl={STORAGE_BASE_URL}
+  locale="en"
+  {dictionary}
+/>

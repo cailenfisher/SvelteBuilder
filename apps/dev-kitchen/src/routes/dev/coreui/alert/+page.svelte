@@ -14,7 +14,9 @@
 <Example title="Alert">
   <div style:display="grid" style:gap="var(--space-3)" style:inline-size="100%">
     {#each alertVariants as variant (variant)}
-      <Alert {variant} title={`A ${variant} alert`}>The body explains what happened and what to do.</Alert>
+      <Alert {variant} title={`A ${variant} alert`}
+        >The body explains what happened and what to do.</Alert
+      >
     {/each}
     <Alert variant="info">
       {#snippet icon()}★{/snippet}
@@ -36,7 +38,12 @@
       actions={[{ label: 'Retry', onAction: () => retries++ }]}
     />
     {#if !dismissed}
-      <InlineNotification severity="info" summary="Dismissible" dismissible onDismiss={() => (dismissed = true)} />
+      <InlineNotification
+        severity="info"
+        summary="Dismissible"
+        dismissible
+        onDismiss={() => (dismissed = true)}
+      />
     {/if}
     <p role="status">Retries: {retries}</p>
   </div>
@@ -45,7 +52,9 @@
 <Example title="Banner, given a message">
   <div style:display="grid" style:gap="var(--space-3)" style:inline-size="100%">
     {#each severities as severity (severity)}
-      <Banner message={{ severity, summary: `A ${severity} banner`, detail: 'Shown from a prop.' }} />
+      <Banner
+        message={{ severity, summary: `A ${severity} banner`, detail: 'Shown from a prop.' }}
+      />
     {/each}
   </div>
 </Example>
@@ -55,8 +64,11 @@
     <div style:display="flex" style:gap="var(--space-2)">
       <Button
         variant="secondary"
-        onclick={() => messageBus.sendBanner({ severity: 'warning', summary: 'Scheduled maintenance at 22:00 UTC.' })}
-        >Send banner</Button
+        onclick={() =>
+          messageBus.sendBanner({
+            severity: 'warning',
+            summary: 'Scheduled maintenance at 22:00 UTC.',
+          })}>Send banner</Button
       >
       <Button variant="ghost" onclick={() => messageBus.dismissBanner()}>Dismiss banner</Button>
     </div>

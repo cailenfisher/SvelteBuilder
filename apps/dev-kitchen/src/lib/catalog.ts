@@ -45,7 +45,11 @@ type CoreUi = typeof import('@sveltebuilder/coreui');
 export const COREUI_PAGES = [
   { slug: 'button', title: 'Button', components: ['Button'] },
   { slug: 'badge', title: 'Badge, Tag, StatusBadge', components: ['Badge', 'Tag', 'StatusBadge'] },
-  { slug: 'card', title: 'Card, Divider, MetricCard', components: ['Card', 'Divider', 'MetricCard'] },
+  {
+    slug: 'card',
+    title: 'Card, Divider, MetricCard',
+    components: ['Card', 'Divider', 'MetricCard'],
+  },
   { slug: 'avatar', title: 'Avatar', components: ['Avatar'] },
   {
     slug: 'progress',
@@ -141,7 +145,11 @@ export const CONTENT_PAGES = [
     title: 'BylineList, SectionLabel, TopicTag',
     components: ['BylineList', 'SectionLabel', 'TopicTag'],
   },
-  { slug: 'live-coverage', title: 'Live coverage', components: ['LiveCoverageView', 'LiveUpdateItem'] },
+  {
+    slug: 'live-coverage',
+    title: 'Live coverage',
+    components: ['LiveCoverageView', 'LiveUpdateItem'],
+  },
   { slug: 'section-front', title: 'SectionFront', components: ['SectionFront'] },
   { slug: 'author-profile', title: 'AuthorProfileView', components: ['AuthorProfileView'] },
   {
@@ -149,7 +157,11 @@ export const CONTENT_PAGES = [
     title: 'NewsletterSignup, SubscriberList',
     components: ['NewsletterSignup', 'SubscriberList'],
   },
-  { slug: 'article-list', title: 'ArticleList, AssignmentQueue', components: ['ArticleList', 'AssignmentQueue'] },
+  {
+    slug: 'article-list',
+    title: 'ArticleList, AssignmentQueue',
+    components: ['ArticleList', 'AssignmentQueue'],
+  },
   {
     slug: 'workflow',
     title: 'ArticleWorkflowPanel, BlockEditorHost',
@@ -167,7 +179,11 @@ type Logistic = typeof import('@sveltebuilder/logistic');
 export const LOGISTIC_PAGES = [
   { slug: 'supplier', title: 'SupplierCard', components: ['SupplierCard'] },
   { slug: 'storage-location', title: 'StorageLocationPath', components: ['StorageLocationPath'] },
-  { slug: 'pick-task', title: 'PickTaskCard, PickTaskStatusBadge', components: ['PickTaskCard', 'PickTaskStatusBadge'] },
+  {
+    slug: 'pick-task',
+    title: 'PickTaskCard, PickTaskStatusBadge',
+    components: ['PickTaskCard', 'PickTaskStatusBadge'],
+  },
   { slug: 'receipt', title: 'ReceiptCard', components: ['ReceiptCard'] },
   {
     slug: 'status-badge',

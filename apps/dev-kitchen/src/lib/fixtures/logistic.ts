@@ -24,8 +24,24 @@ export const SUPPLIERS = [
 ] satisfies Supplier[];
 
 export const CONTACTS: SupplierContact[] = [
-  { id: 1, supplierId: 1, role: 'Account manager', name: 'Marie Curie', email: 'marie@acme.example', phone: '+33 1 23 45 67 89', createdAt: CREATED_AT },
-  { id: 2, supplierId: 1, role: 'Dispatch', name: 'Kenji Sato', email: null, phone: '+81 3 1234 5678', createdAt: CREATED_AT },
+  {
+    id: 1,
+    supplierId: 1,
+    role: 'Account manager',
+    name: 'Marie Curie',
+    email: 'marie@acme.example',
+    phone: '+33 1 23 45 67 89',
+    createdAt: CREATED_AT,
+  },
+  {
+    id: 2,
+    supplierId: 1,
+    role: 'Dispatch',
+    name: 'Kenji Sato',
+    email: null,
+    phone: '+81 3 1234 5678',
+    createdAt: CREATED_AT,
+  },
 ];
 
 const location = (
@@ -34,7 +50,15 @@ const location = (
   locationType: StorageLocation['locationType'],
   parentStorageLocationId: number | null,
   sortOrder: number
-): StorageLocation => ({ id, slug, locationType, parentStorageLocationId, active: true, sortOrder, createdAt: CREATED_AT });
+): StorageLocation => ({
+  id,
+  slug,
+  locationType,
+  parentStorageLocationId,
+  active: true,
+  sortOrder,
+  createdAt: CREATED_AT,
+});
 
 export const LOCATIONS = [
   location(1, 'wh-north', 'warehouse', null, 1),
@@ -54,9 +78,20 @@ const task = (id: number, status: PickTask['status']): PickTask => ({
   updatedAt: '2026-10-06T07:30:00.000Z',
 });
 
-export const PICK_TASKS = [task(91, 'open'), task(92, 'in_progress'), task(93, 'completed'), task(94, 'cancelled')];
+export const PICK_TASKS = [
+  task(91, 'open'),
+  task(92, 'in_progress'),
+  task(93, 'completed'),
+  task(94, 'cancelled'),
+];
 
-const line = (id: number, storageLocation: StorageLocation, sku: string, requested: number, picked: number): PickTaskLine & { storageLocation: StorageLocation } => ({
+const line = (
+  id: number,
+  storageLocation: StorageLocation,
+  sku: string,
+  requested: number,
+  picked: number
+): PickTaskLine & { storageLocation: StorageLocation } => ({
   id,
   pickTaskId: 92,
   stockLevelId: id,
@@ -95,14 +130,56 @@ export const RECEIPTS = [
 ];
 
 export const RECEIPT_LINES: InboundReceiptLine[] = [
-  { id: 1, inboundReceiptId: 41, storageLocationId: BIN.id, sku: 'BOLT-M8', expectedQuantity: 500, receivedQuantity: 500, discrepancy: 0, createdAt: CREATED_AT },
-  { id: 2, inboundReceiptId: 41, storageLocationId: NEXT_BIN.id, sku: 'NUT-M8', expectedQuantity: 500, receivedQuantity: 460, discrepancy: -40, createdAt: CREATED_AT },
+  {
+    id: 1,
+    inboundReceiptId: 41,
+    storageLocationId: BIN.id,
+    sku: 'BOLT-M8',
+    expectedQuantity: 500,
+    receivedQuantity: 500,
+    discrepancy: 0,
+    createdAt: CREATED_AT,
+  },
+  {
+    id: 2,
+    inboundReceiptId: 41,
+    storageLocationId: NEXT_BIN.id,
+    sku: 'NUT-M8',
+    expectedQuantity: 500,
+    receivedQuantity: 460,
+    discrepancy: -40,
+    createdAt: CREATED_AT,
+  },
 ];
 
 export const TRACKING_EVENTS: TrackingEvent[] = [
-  { id: 3, shipmentId: 4182, status: 'delivered', eventLocation: 'Lyon', description: 'Delivered to reception', occurredAt: '2026-10-07T11:20:00.000Z', createdAt: CREATED_AT },
-  { id: 2, shipmentId: 4182, status: 'in_transit', eventLocation: 'Paris hub', description: null, occurredAt: '2026-10-06T22:05:00.000Z', createdAt: CREATED_AT },
-  { id: 1, shipmentId: 4182, status: 'dispatched', eventLocation: null, description: 'Collected by carrier', occurredAt: '2026-10-06T16:40:00.000Z', createdAt: CREATED_AT },
+  {
+    id: 3,
+    shipmentId: 4182,
+    status: 'delivered',
+    eventLocation: 'Lyon',
+    description: 'Delivered to reception',
+    occurredAt: '2026-10-07T11:20:00.000Z',
+    createdAt: CREATED_AT,
+  },
+  {
+    id: 2,
+    shipmentId: 4182,
+    status: 'in_transit',
+    eventLocation: 'Paris hub',
+    description: null,
+    occurredAt: '2026-10-06T22:05:00.000Z',
+    createdAt: CREATED_AT,
+  },
+  {
+    id: 1,
+    shipmentId: 4182,
+    status: 'dispatched',
+    eventLocation: null,
+    description: 'Collected by carrier',
+    occurredAt: '2026-10-06T16:40:00.000Z',
+    createdAt: CREATED_AT,
+  },
 ];
 
 type CopyRow = [string, string, number | null, string];

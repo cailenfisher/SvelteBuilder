@@ -43,5 +43,7 @@
       <MenuItem onSelect={() => (last = 'Export PDF')}>PDF</MenuItem>
     </MenuSub>
   </Menu>
-  <p role="status">Last action: {last}. Archived: {showArchived ? 'shown' : 'hidden'}. Sort: {sort}.</p>
+  <p role="status">
+    Last action: {last}. Archived: {showArchived ? 'shown' : 'hidden'}. Sort: {sort}.
+  </p>
 </Example>

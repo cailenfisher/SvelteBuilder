@@ -14,7 +14,12 @@
 <Example title="Toast, rendered directly">
   {#if !staticDismissed}
     <Toast
-      message={{ id: 'static', severity: 'success', summary: 'Supplier saved', detail: 'Acme Freight is now active.' }}
+      message={{
+        id: 'static',
+        severity: 'success',
+        summary: 'Supplier saved',
+        detail: 'Acme Freight is now active.',
+      }}
       onDismiss={() => (staticDismissed = true)}
     />
   {:else}
@@ -24,7 +29,9 @@
 
 <Example title="Through the bus (ToastRegion, MessageAriaLive)">
   {#each severities as severity (severity)}
-    <Button variant="secondary" onclick={() => messageBus.sendToast({ severity, summary: `A ${severity} toast` })}
+    <Button
+      variant="secondary"
+      onclick={() => messageBus.sendToast({ severity, summary: `A ${severity} toast` })}
       >{severity}</Button
     >
   {/each}

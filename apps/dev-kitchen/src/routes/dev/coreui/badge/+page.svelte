@@ -28,7 +28,9 @@
 
 <Example title="Removable tags">
   {#each tags as tag (tag)}
-    <Tag removeLabel={`Remove ${tag}`} onremove={() => (tags = tags.filter((t) => t !== tag))}>{tag}</Tag>
+    <Tag removeLabel={`Remove ${tag}`} onremove={() => (tags = tags.filter((t) => t !== tag))}
+      >{tag}</Tag
+    >
   {:else}
     <p>All tags removed.</p>
   {/each}

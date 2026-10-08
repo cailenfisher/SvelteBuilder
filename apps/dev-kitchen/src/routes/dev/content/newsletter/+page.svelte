@@ -17,7 +17,11 @@
   </Example>
 
   <Example title="After a failed submit">
-    <NewsletterSignup newsletter={NEWSLETTER} formResult={{ success: false, error: '' }} {dictionary} />
+    <NewsletterSignup
+      newsletter={NEWSLETTER}
+      formResult={{ success: false, error: '' }}
+      {dictionary}
+    />
   </Example>
 </div>
 

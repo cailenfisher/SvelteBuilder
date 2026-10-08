@@ -13,7 +13,9 @@
   chrome. See <code>apps/dev-kitchen/README.md</code>.
 </p>
 
-<p><a href="/dev/theme">Theme, direction and focus</a>: the set under light, dark and right-to-left.</p>
+<p>
+  <a href="/dev/theme">Theme, direction and focus</a>: the set under light, dark and right-to-left.
+</p>
 
 {#each SHOWCASE as section (section.slug)}
   <section>

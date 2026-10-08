@@ -13,7 +13,12 @@
   } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();
-  const article = { ...LEAD_ARTICLE, bylines: AUTHORS, sections: SECTIONS.slice(1), blocks: BLOCKS };
+  const article = {
+    ...LEAD_ARTICLE,
+    bylines: AUTHORS,
+    sections: SECTIONS.slice(1),
+    blocks: BLOCKS,
+  };
 </script>
 
 <Example title="With hero image">

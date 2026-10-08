@@ -20,7 +20,9 @@ const MODES = [
 const PAGES = [
   '/',
   '/dev/theme',
-  ...SHOWCASE.flatMap((section) => section.pages.map((page) => `/dev/${section.slug}/${page.slug}`)),
+  ...SHOWCASE.flatMap((section) =>
+    section.pages.map((page) => `/dev/${section.slug}/${page.slug}`)
+  ),
 ];
 
 /** Uncaught exceptions and console errors, which is how a failed hydration shows up. */
@@ -49,7 +51,9 @@ for (const mode of MODES) {
 
         // Soft, so one run reports every kind of failure on the page, not only the first.
         await expect.soft(page.locator('html')).toHaveAttribute('lang', mode.locale);
-        expect.soft(await page.locator('body').innerText(), 'missing copy').not.toContain('[missing:');
+        expect
+          .soft(await page.locator('body').innerText(), 'missing copy')
+          .not.toContain('[missing:');
 
         expect.soft(await axeViolations(page), 'axe violations').toEqual([]);
         expect.soft(errors, 'runtime errors').toEqual([]);

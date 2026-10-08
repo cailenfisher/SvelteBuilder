@@ -14,7 +14,11 @@
 {#each levels as level (level.title)}
   <Example title={level.title}>
     <div style:inline-size="min(100%, 24rem)">
-      <StockLevelBar onHand={level.onHand} reserved={level.reserved} reorderPoint={level.reorderPoint} />
+      <StockLevelBar
+        onHand={level.onHand}
+        reserved={level.reserved}
+        reorderPoint={level.reorderPoint}
+      />
     </div>
   </Example>
 {/each}

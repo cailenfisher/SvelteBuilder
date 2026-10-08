@@ -8,7 +8,14 @@
 
 <Example title="Partial, with a discrepancy">
   <div style:inline-size="min(100%, 28rem)">
-    <ReceiptCard receipt={RECEIPTS[0]} supplier={SUPPLIERS[0]} lines={RECEIPT_LINES} href="#receipt-41" locale="en" {dictionary} />
+    <ReceiptCard
+      receipt={RECEIPTS[0]}
+      supplier={SUPPLIERS[0]}
+      lines={RECEIPT_LINES}
+      href="#receipt-41"
+      locale="en"
+      {dictionary}
+    />
   </div>
 </Example>
 

@@ -26,7 +26,8 @@ test('every focus stop in the theme panels shows a visible indicator', async ({ 
       const style = getComputedStyle(element);
       const outline = style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0;
       const shadow = style.boxShadow !== 'none';
-      const label = element.getAttribute('aria-label') ?? element.textContent?.trim().slice(0, 40) ?? '';
+      const label =
+        element.getAttribute('aria-label') ?? element.textContent?.trim().slice(0, 40) ?? '';
       return {
         panel: element.closest('.theme__panel')?.id ?? null,
         description: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''} “${label}”`,
@@ -43,9 +44,14 @@ test('every focus stop in the theme panels shows a visible indicator', async ({ 
   expect(panelStops.length, 'focus stops inside the panels').toBeGreaterThan(30);
   // Every panel was reached, so nothing earlier on the page trapped focus.
   for (const panel of ['light-top', 'dark-top', 'rtl-top']) {
-    expect(panelStops.some((stop) => stop.panel === panel), `reached ${panel}`).toBe(true);
+    expect(
+      panelStops.some((stop) => stop.panel === panel),
+      `reached ${panel}`
+    ).toBe(true);
   }
 
-  const invisible = panelStops.filter((stop) => !stop.visible).map((stop) => `${stop.panel}: ${stop.description}`);
+  const invisible = panelStops
+    .filter((stop) => !stop.visible)
+    .map((stop) => `${stop.panel}: ${stop.description}`);
   expect(invisible, 'stops with no visible focus indicator').toEqual([]);
 });

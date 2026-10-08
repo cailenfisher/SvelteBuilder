@@ -1,7 +1,13 @@
 <script lang="ts">
   import { AuthorProfileView } from '@sveltebuilder/content';
   import Example from '$lib/Example.svelte';
-  import { ARTICLES_WITH_COPY, AUTHORS, MEDIA_ASSETS, STORAGE_BASE_URL, contentDictionary } from '$lib/fixtures/content';
+  import {
+    ARTICLES_WITH_COPY,
+    AUTHORS,
+    MEDIA_ASSETS,
+    STORAGE_BASE_URL,
+    contentDictionary,
+  } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();
 </script>

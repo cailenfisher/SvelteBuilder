@@ -41,7 +41,9 @@
         {#each section.pages as entry (entry.slug)}
           {@const href = `/dev/${section.slug}/${entry.slug}`}
           <li>
-            <a {href} aria-current={page.url.pathname === href ? 'page' : undefined}>{entry.title}</a>
+            <a {href} aria-current={page.url.pathname === href ? 'page' : undefined}
+              >{entry.title}</a
+            >
           </li>
         {/each}
       </ul>

@@ -153,7 +153,13 @@ export const BLOCKS: ArticleBlock[] = [
   block({ id: 101, blockType: 'paragraph', position: 1, content: {}, mediaAssetId: null }),
   block({ id: 102, blockType: 'heading', position: 2, content: { level: 2 }, mediaAssetId: null }),
   block({ id: 103, blockType: 'paragraph', position: 3, content: {}, mediaAssetId: null }),
-  block({ id: 104, blockType: 'image', position: 4, content: { altOverride: false }, mediaAssetId: 11 }),
+  block({
+    id: 104,
+    blockType: 'image',
+    position: 4,
+    content: { altOverride: false },
+    mediaAssetId: 11,
+  }),
   block({ id: 105, blockType: 'pullquote', position: 5, content: {}, mediaAssetId: null }),
   block({ id: 106, blockType: 'paragraph', position: 6, content: {}, mediaAssetId: null }),
 ];
@@ -169,7 +175,10 @@ export const REVIEW_BLOCKS: ArticleBlock[] = [
 type CopyRow = [string, string, number | null, string];
 
 const HEADLINES: Record<number, [string, string]> = {
-  7: ['Council advances transit levy', 'A seven-to-two vote sends the measure to a public hearing next month.'],
+  7: [
+    'Council advances transit levy',
+    'A seven-to-two vote sends the measure to a public hearing next month.',
+  ],
   8: ['Rents rise for a third quarter', 'Median asking rents are up 4.1% on the year.'],
   9: ['Night buses return downtown', 'Four routes resume after a two-year pause.'],
 };
@@ -198,9 +207,19 @@ const COPY: CopyRow[] = [
   ['alt_text', 'media_asset', 11, 'Council chamber during the vote'],
   ['caption', 'media_asset', 11, 'Councillors voted seven to two.'],
   ['credit', 'media_asset', 11, 'City press office'],
-  ['text', 'article_block', 101, 'The council voted on Tuesday to advance a levy that would fund three new transit lines.'],
+  [
+    'text',
+    'article_block',
+    101,
+    'The council voted on Tuesday to advance a levy that would fund three new transit lines.',
+  ],
   ['text', 'article_block', 102, 'What happens next'],
-  ['text', 'article_block', 103, 'The measure now goes to a public hearing, then a final vote in November.'],
+  [
+    'text',
+    'article_block',
+    103,
+    'The measure now goes to a public hearing, then a final vote in November.',
+  ],
   ['text', 'article_block', 105, 'We have waited a decade for this.'],
   ['text', 'article_block', 106, 'Opponents say the levy falls hardest on small businesses.'],
   ['title', 'live_coverage', 3, 'Live: the transit levy vote'],
@@ -219,12 +238,22 @@ const COPY: CopyRow[] = [
   ['action.publish', 'content', null, 'Publish'],
   ['action.unpublish', 'content', null, 'Unpublish'],
   ['newsletter.signup_heading', 'content', null, 'Get the newsletter'],
-  ['newsletter.signup_description', 'content', null, "The day's most important stories, in your inbox."],
+  [
+    'newsletter.signup_description',
+    'content',
+    null,
+    "The day's most important stories, in your inbox.",
+  ],
   ['newsletter.email_label', 'content', null, 'Email address'],
   ['newsletter.email_placeholder', 'content', null, 'you@example.com'],
   ['newsletter.submit_label', 'content', null, 'Subscribe'],
   ['newsletter.success_message', 'content', null, 'Check your inbox to confirm your subscription.'],
-  ['newsletter.error_message', 'content', null, 'We could not subscribe that address. Please try again.'],
+  [
+    'newsletter.error_message',
+    'content',
+    null,
+    'We could not subscribe that address. Please try again.',
+  ],
 ];
 
 const COPY_PAYLOAD: DictionaryPayload = COPY.map(([slug, scope, entityId, content], index) => ({
@@ -246,7 +275,10 @@ const copyOf = (slug: string, scope: string, entityId: number) =>
 
 // ── Shapes with baked copy, for the components that still take them ───────────
 
-const statusWithCopy = (status: ArticleStatus) => ({ ...status, label: copyOf('name', 'article_status', status.id) });
+const statusWithCopy = (status: ArticleStatus) => ({
+  ...status,
+  label: copyOf('name', 'article_status', status.id),
+});
 
 function withCopy(article: Article, status: ArticleStatus): ArticleWithCopy {
   return {
@@ -333,7 +365,10 @@ export const LIVE_COVERAGE: LiveCoverageWithUpdates = {
   active: true,
   startedAt: '2026-09-30T18:55:00.000Z',
   endedAt: null,
-  updates: LIVE_UPDATES.map((entry) => ({ ...entry, text: copyOf('text', 'live_update', entry.id) })),
+  updates: LIVE_UPDATES.map((entry) => ({
+    ...entry,
+    text: copyOf('text', 'live_update', entry.id),
+  })),
 };
 
 // ── Newsletter ───────────────────────────────────────────────────────────────
@@ -348,16 +383,48 @@ export const NEWSLETTER: NewsletterWithCopy = {
 };
 
 export const SUBSCRIBERS: Subscriber[] = [
-  { id: 1, emailAddress: 'ada@example.com', locale: 'en', confirmedAt: '2026-09-02T10:00:00.000Z', createdAt: CREATED_AT },
-  { id: 2, emailAddress: 'marie@example.fr', locale: 'fr', confirmedAt: null, createdAt: CREATED_AT },
-  { id: 3, emailAddress: 'kenji@example.jp', locale: 'ja', confirmedAt: '2026-09-04T10:00:00.000Z', createdAt: CREATED_AT },
+  {
+    id: 1,
+    emailAddress: 'ada@example.com',
+    locale: 'en',
+    confirmedAt: '2026-09-02T10:00:00.000Z',
+    createdAt: CREATED_AT,
+  },
+  {
+    id: 2,
+    emailAddress: 'marie@example.fr',
+    locale: 'fr',
+    confirmedAt: null,
+    createdAt: CREATED_AT,
+  },
+  {
+    id: 3,
+    emailAddress: 'kenji@example.jp',
+    locale: 'ja',
+    confirmedAt: '2026-09-04T10:00:00.000Z',
+    createdAt: CREATED_AT,
+  },
 ];
 
 // ── Workflow ─────────────────────────────────────────────────────────────────
 
 export const ASSIGNMENTS: ArticleAssignment[] = [
-  { id: 1, articleId: REVIEW_ARTICLE.id, userAccountId: 1, role: 'author', assignedAt: CREATED_AT, dueAt: '2026-10-08T12:00:00.000Z' },
-  { id: 2, articleId: REVIEW_ARTICLE.id, userAccountId: 2, role: 'editor', assignedAt: CREATED_AT, dueAt: null },
+  {
+    id: 1,
+    articleId: REVIEW_ARTICLE.id,
+    userAccountId: 1,
+    role: 'author',
+    assignedAt: CREATED_AT,
+    dueAt: '2026-10-08T12:00:00.000Z',
+  },
+  {
+    id: 2,
+    articleId: REVIEW_ARTICLE.id,
+    userAccountId: 2,
+    role: 'editor',
+    assignedAt: CREATED_AT,
+    dueAt: null,
+  },
 ];
 
 export const CHECKLIST_ITEMS: PublishChecklistItem[] = [
@@ -367,5 +434,11 @@ export const CHECKLIST_ITEMS: PublishChecklistItem[] = [
 ];
 
 export const CHECKLIST_STATES: ArticleChecklistState[] = [
-  { id: 1, articleId: REVIEW_ARTICLE.id, publishChecklistItemId: 1, satisfied: true, satisfiedAt: CREATED_AT },
+  {
+    id: 1,
+    articleId: REVIEW_ARTICLE.id,
+    publishChecklistItemId: 1,
+    satisfied: true,
+    satisfiedAt: CREATED_AT,
+  },
 ];

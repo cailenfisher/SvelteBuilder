@@ -56,6 +56,12 @@
 
 <Example title="Text only (no media), draft">
   <div style:inline-size="min(100%, 40rem)">
-    <ArticleCard article={DRAFT_ARTICLE} status={STATUS.draft} locale="en" showStatus {dictionary} />
+    <ArticleCard
+      article={DRAFT_ARTICLE}
+      status={STATUS.draft}
+      locale="en"
+      showStatus
+      {dictionary}
+    />
   </div>
 </Example>

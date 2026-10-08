@@ -50,7 +50,9 @@ for (const overlay of OVERLAYS) {
   });
 }
 
-test('select opens a listbox from the keyboard and closes back to its trigger', async ({ page }) => {
+test('select opens a listbox from the keyboard and closes back to its trigger', async ({
+  page,
+}) => {
   await page.goto('/dev/coreui/select');
   await page.waitForLoadState('networkidle');
 

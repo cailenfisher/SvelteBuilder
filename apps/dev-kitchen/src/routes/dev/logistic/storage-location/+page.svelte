@@ -11,7 +11,12 @@
 </Example>
 
 <Example title="Custom separator">
-  <StorageLocationPath location={BIN} ancestors={[WAREHOUSE, ZONE, AISLE]} separator="/" {dictionary} />
+  <StorageLocationPath
+    location={BIN}
+    ancestors={[WAREHOUSE, ZONE, AISLE]}
+    separator="/"
+    {dictionary}
+  />
 </Example>
 
 <Example title="A top-level location">

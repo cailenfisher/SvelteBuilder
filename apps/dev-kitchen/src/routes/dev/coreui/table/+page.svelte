@@ -1,5 +1,13 @@
 <script lang="ts">
-  import { Table, TableBody, TableCell, TableFoot, TableHead, TableHeader, TableRow } from '@sveltebuilder/coreui';
+  import {
+    Table,
+    TableBody,
+    TableCell,
+    TableFoot,
+    TableHead,
+    TableHeader,
+    TableRow,
+  } from '@sveltebuilder/coreui';
   import Example from '$lib/Example.svelte';
 
   type Line = { sku: string; quantity: number; location: string };
@@ -11,7 +19,9 @@
 
   let direction = $state<'asc' | 'desc'>('asc');
   const sorted = $derived(
-    [...lines].sort((a, b) => (direction === 'asc' ? a.quantity - b.quantity : b.quantity - a.quantity))
+    [...lines].sort((a, b) =>
+      direction === 'asc' ? a.quantity - b.quantity : b.quantity - a.quantity
+    )
   );
   const total = $derived(lines.reduce((sum, line) => sum + line.quantity, 0));
 </script>

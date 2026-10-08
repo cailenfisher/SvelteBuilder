@@ -8,7 +8,13 @@
 
 <Example title="PickTaskCard, in progress, with lines">
   <div style:inline-size="min(100%, 28rem)">
-    <PickTaskCard task={PICK_TASKS[1]} lines={PICK_LINES} href="#pick-92" locale="en" {dictionary} />
+    <PickTaskCard
+      task={PICK_TASKS[1]}
+      lines={PICK_LINES}
+      href="#pick-92"
+      locale="en"
+      {dictionary}
+    />
   </div>
 </Example>
 
@@ -22,6 +28,9 @@
 
 <Example title="PickTaskStatusBadge">
   {#each PICK_TASKS as task (task.id)}
-    <PickTaskStatusBadge status={task.status} label={dictionary.localText(`logistic.pick_task.status.${task.status}`, 'logistic')} />
+    <PickTaskStatusBadge
+      status={task.status}
+      label={dictionary.localText(`logistic.pick_task.status.${task.status}`, 'logistic')}
+    />
   {/each}
 </Example>

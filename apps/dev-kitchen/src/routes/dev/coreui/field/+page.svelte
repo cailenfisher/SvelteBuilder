@@ -6,7 +6,9 @@
 
   let reference = $state('');
   let notes = $state('Fragile; keep upright.');
-  const referenceError = $derived(reference.length > 0 && reference.length < 4 ? 'At least 4 characters.' : undefined);
+  const referenceError = $derived(
+    reference.length > 0 && reference.length < 4 ? 'At least 4 characters.' : undefined
+  );
 </script>
 
 <div style:display="grid" style:gap="var(--space-2)" style:max-inline-size="28rem">

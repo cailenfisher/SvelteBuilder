@@ -48,8 +48,8 @@
 
 <h1>Theme, direction and focus</h1>
 <p>
-  The same components under a forced light scheme, a forced dark scheme, and right-to-left. Walk
-  the page with Tab: every stop needs a visible focus indicator.
+  The same components under a forced light scheme, a forced dark scheme, and right-to-left. Walk the
+  page with Tab: every stop needs a visible focus indicator.
 </p>
 
 {#snippet gallery(prefix: string)}
@@ -72,7 +72,12 @@
     <StatusBadge label="Published" variant="success" />
   </div>
   <Alert variant="warning" title="Low stock">Twelve units left at A-04-2.</Alert>
-  <InlineNotification severity="error" summary="The carrier rejected the address." dismissible onDismiss={() => {}} />
+  <InlineNotification
+    severity="error"
+    summary="The carrier rejected the address."
+    dismissible
+    onDismiss={() => {}}
+  />
   <Field id="{prefix}-name" label="Supplier name" hint="As it appears on invoices.">
     <Input value="Acme Freight" />
   </Field>

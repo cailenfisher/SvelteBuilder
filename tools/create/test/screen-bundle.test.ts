@@ -449,10 +449,14 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
 function readComponentSlugs(module: string): string[] {
   const dir = path.join(REPO, 'packages', module, 'src', 'lib', 'components');
   if (!fs.existsSync(dir)) return [];
-  const call = new RegExp(String.raw`(?:localText|formatText)\(\s*'([^']+)'\s*,\s*'${module}'`, 'g');
+  const call = new RegExp(
+    String.raw`(?:localText|formatText)\(\s*'([^']+)'\s*,\s*'${module}'`,
+    'g'
+  );
   const slugs = new Set<string>();
   for (const file of fs.readdirSync(dir).filter((name) => name.endsWith('.svelte'))) {
-    for (const match of fs.readFileSync(path.join(dir, file), 'utf8').matchAll(call)) slugs.add(match[1]);
+    for (const match of fs.readFileSync(path.join(dir, file), 'utf8').matchAll(call))
+      slugs.add(match[1]);
   }
   return [...slugs].sort();
 }

@@ -2,7 +2,12 @@
      scaffold:check type-checks them there; this page renders them, which nothing else
      does without a database. LocaleSwitcher posts to this app's /api/locale. -->
 <script lang="ts">
-  import { LocaleEdit, LocaleSwitcher, LocalTextEdit, LocalTextLinkEdit } from '@sveltebuilder/coreui';
+  import {
+    LocaleEdit,
+    LocaleSwitcher,
+    LocalTextEdit,
+    LocalTextLinkEdit,
+  } from '@sveltebuilder/coreui';
   import { page } from '$app/state';
   import Example from '$lib/Example.svelte';
 </script>

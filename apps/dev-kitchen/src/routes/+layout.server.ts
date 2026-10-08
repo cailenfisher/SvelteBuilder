@@ -28,7 +28,13 @@ function dictionaryFor(locale: Locale, defaultLocale: Locale): DictionaryPayload
     const localeCode = locale.code in seed.translations ? locale.code : defaultLocale.code;
     const content = seed.translations[localeCode];
     if (content === undefined) return [];
-    return [{ link: { id: index + 1, slug: seed.slug, scope: null, entityId: null }, content, localeCode }];
+    return [
+      {
+        link: { id: index + 1, slug: seed.slug, scope: null, entityId: null },
+        content,
+        localeCode,
+      },
+    ];
   });
 }
 

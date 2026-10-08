@@ -1,7 +1,14 @@
 <script lang="ts">
   import { ArticleBlockRenderer, MediaFigure } from '@sveltebuilder/content';
   import Example from '$lib/Example.svelte';
-  import { ATTRIBUTIONS, BLOCKS, MEDIA, MEDIA_ASSETS, STORAGE_BASE_URL, contentDictionary } from '$lib/fixtures/content';
+  import {
+    ATTRIBUTIONS,
+    BLOCKS,
+    MEDIA,
+    MEDIA_ASSETS,
+    STORAGE_BASE_URL,
+    contentDictionary,
+  } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();
 </script>
@@ -35,9 +42,21 @@
 
 <Example title="MediaFigure, uncaptioned and decorative">
   <div style:inline-size="min(100%, 20rem)">
-    <MediaFigure asset={MEDIA[1]} captioned={false} locale="en" storageBaseUrl={STORAGE_BASE_URL} {dictionary} />
+    <MediaFigure
+      asset={MEDIA[1]}
+      captioned={false}
+      locale="en"
+      storageBaseUrl={STORAGE_BASE_URL}
+      {dictionary}
+    />
   </div>
   <div style:inline-size="min(100%, 20rem)">
-    <MediaFigure asset={MEDIA[1]} decorative locale="en" storageBaseUrl={STORAGE_BASE_URL} {dictionary} />
+    <MediaFigure
+      asset={MEDIA[1]}
+      decorative
+      locale="en"
+      storageBaseUrl={STORAGE_BASE_URL}
+      {dictionary}
+    />
   </div>
 </Example>
