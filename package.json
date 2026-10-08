@@ -36,7 +36,7 @@
   "packageManager": "pnpm@9.15.0",
   "pnpm": {
     "overrides": {
-      "svelte": "5.56.4"
+      "svelte": "5.57.2"
     }
   }
 }
