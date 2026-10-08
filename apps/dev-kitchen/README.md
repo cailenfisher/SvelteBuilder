@@ -25,13 +25,13 @@ replaced kept a hand-written copy of that wiring, and it rotted until it could n
 
 Everything else is committed and owned here:
 
-| Path                                | Purpose                                                                               |
-| ----------------------------------- | ------------------------------------------------------------------------------------- |
-| `src/routes/+layout.server.ts`      | The root load the base chrome expects, built from the canonical seed instead of SQL    |
-| `src/routes/api/locale/+server.ts`  | Where `LocaleSwitcher` posts; the base template ships no locale endpoint               |
-| `src/lib/catalog.ts`                | Every showcase page and the components it renders — and the coverage gate             |
-| `src/routes/dev/<package>/<page>/`  | The showcase pages                                                                    |
-| `svelte.config.js`, `vite.config.ts`| Source aliases and SSR settings                                                       |
+| Path                                 | Purpose                                                                             |
+| ------------------------------------ | ----------------------------------------------------------------------------------- |
+| `src/routes/+layout.server.ts`       | The root load the base chrome expects, built from the canonical seed instead of SQL |
+| `src/routes/api/locale/+server.ts`   | Where `LocaleSwitcher` posts; the base template ships no locale endpoint            |
+| `src/lib/catalog.ts`                 | Every showcase page and the components it renders — and the coverage gate           |
+| `src/routes/dev/<package>/<page>/`   | The showcase pages                                                                  |
+| `svelte.config.js`, `vite.config.ts` | Source aliases and SSR settings                                                     |
 
 ## Coverage is enforced
 

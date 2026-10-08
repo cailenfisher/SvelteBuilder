@@ -64,8 +64,8 @@ fails to record it.
 The RLS policy-pattern pass is done (2026-10-01): all 40 policies call the helpers as `(select …)`
 and gate admin through `public.current_user_admin()`, and `pnpm sql:check` asserts both properties.
 
-Outstanding for the package: a vitest suite (it still runs `--passWithNoTests` with no test files),
-and showcase coverage for the 3 components no screen bundle renders (see `docs/DEV-KITCHEN.md`).
+Outstanding for the package: a vitest suite (it still runs `--passWithNoTests` with no test files).
+All 9 components now render in `apps/dev-kitchen`, including the 3 no screen bundle uses.
 
 ---
 
@@ -144,7 +144,8 @@ server-side, including a no-`[missing:]` gate), but the other 9 have none. The l
 front-curation, author-profile, newsletter and
 media screens were never written — only the thirteen route files that existed were ported, and
 `SectionFront`, `FrontCurationBoard`, `AssignmentQueue`, `SubscriberList`, `LiveCoverageView` and
-`AuthorProfileView` are components with no screen rendering them. That is the next content gap, and
+`AuthorProfileView` are components with no screen rendering them. They render in `apps/dev-kitchen`
+and pass its accessibility audit, but no scaffold can show them. That is the next content gap, and
 it is feature work rather than a port.
 
 The section page is a lead-plus-river listing. The screen it replaced rendered a curated front and
@@ -197,30 +198,35 @@ What Native will need whenever it resumes (record additions here rather than fix
 
 ---
 
-## dev-kitchen — removed (2026-09-30)
+## dev-kitchen — rebuilt (2026-10-07)
 
-`apps/dev-kitchen` was deleted in commit 4988ae6, which removed all 82 of its tracked files and
-dropped the `--filter='!./apps/*'` exemption the three CI workflows carried to route around its
-expected build failure. The notes that stood here — a catalogue of which diglossia 0.1.0 and
-message-bus imports had stopped resolving inside it — described an app that no longer exists, and
-are gone with it.
+The first `apps/dev-kitchen` was deleted on 2026-09-30 (commit 4988ae6) after it hand-maintained a
+second copy of the scaffold's wiring until it could not build. It was rebuilt on 2026-10-07 to the
+requirements in `docs/DEV-KITCHEN.md`, which now records the design as built, what its first runs
+found, and what it still does not cover.
 
-**`docs/DEV-KITCHEN.md` is the design document for its replacement.** It records the three jobs the
-app actually did — in-repo component development with no scaffolded project, exercising components
-that no template screen renders, and a rendered surface for the WCAG 2.2 AA audit — the measured
-coverage gap behind the second of those, the structural reason it rotted (it hand-maintained a
-second copy of the scaffold's wiring that nothing ever compared against the template tree), and
-four requirements the replacement has to satisfy.
+Standing rules:
 
-Standing rules until that work is picked up:
+- **Never edit its generated chrome.** `hooks.server.ts`, the root layout and error page,
+  `app.d.ts`, `app.html` and the CSS are copied from `tools/create/templates/base/` on every run and
+  gitignored. A change to them belongs in the template.
+- **Nothing under `apps/` is exempt from CI.** Keep it that way instead of reintroducing a filter.
+- **A new component export needs a showcase page.** `pnpm check` fails otherwise; that is the point.
 
-- **Do not restore the old app.** `git show 4988ae6^:apps/dev-kitchen/<path>` recovers any file from
-  it, and the 33 coreui showcase routes are a reasonable starting point for a rebuild — but the
-  chrome around them is the part that failed, and must not come back as a hand-maintained copy.
-- **Nothing under `apps/` is exempt from CI any more.** Whatever lands there next is built and
-  tested by default. Keep it that way instead of reintroducing a filter.
-- The component-verification gap itself is tracked in `CLAUDE.md`'s Known Open Issues under
-  "In-repo component harness", not here.
+### Found by it and not fixed
+
+- **No favicon in any scaffold.** Both templates' `app.html` link `%sveltekit.assets%/favicon.png`,
+  and neither ships a `static/` directory, so every page of every scaffolded app requests a file
+  that does not exist and logs a 404. Fixing it needs an icon, which is a branding decision.
+- **`ArticleWorkflowPanel` is hard-coded English** ("Article Workflow", "Status", "Checklist",
+  "Team", "Required", the role names). It now works and is accessible, but showing it in another
+  locale needs copy slugs and seed rows.
+- **coreui's internal `class="label"`.** Seven components besides `Field` and `LocaleSwitcher` use
+  it for an internal element, so the form `Label`'s rules apply to them too. `Button`'s use failed
+  contrast and was renamed; the others pass, by luck rather than design.
+- **Right-to-left mirroring is unreviewed.** `components.css` has 15 physical-direction
+  declarations (`left`, `margin-right`, …) against 5 logical ones. axe passes under `dir="rtl"`,
+  but mirroring is visual.
 
 ---
 

@@ -37,7 +37,7 @@ For more details on the _what_ and _why_, see the [About](#About) section.
 > See the [SuperPrototype setup guide](docs/superprototype-setup.md) for detailed instructions.
 
 > [!NOTE]
-> **Status: Beta in progress.** The foundation (`diglossia`, `@sveltebuilder/cli`, the base and SuperPrototype scaffold templates) and `@sveltebuilder/coreui` are complete and published to npm. Two domain modules, `content` and `logistic`, are usable today; neither has a unit test suite yet, and no WCAG audit has been run. APIs may still change.
+> **Status: Beta in progress.** The foundation (`diglossia`, `@sveltebuilder/cli`, the base and SuperPrototype scaffold templates) and `@sveltebuilder/coreui` are complete and published to npm. Two domain modules, `content` and `logistic`, are usable today; `logistic` has no unit test suite yet, and the WCAG audit is half done: every component passes automated WCAG 2.2 AA checks in CI, but no manual review has been run. APIs may still change.
 
 ## Ecosystem Overview
 
@@ -216,12 +216,14 @@ Done:
 - `@sveltebuilder/logistic` — second domain module, routes ported to screen bundles
 - SSR-safe, request-scoped dictionary construction
 - Verification gates: `pnpm scaffold:check` (scaffolded projects typecheck and build) and `pnpm sql:check` (migrations, seeds, and RLS exercised against real Postgres as admin, user, and anonymous roles)
+- `pnpm check` — every package type-checked in CI
+- `apps/dev-kitchen` — an in-repo harness rendering every component from source, with automated WCAG 2.2 AA checks (axe-core, keyboard, focus visibility) in light, dark and right-to-left on every pull request
+- Unit test suite for `content`
 
 Remaining:
 
-- Unit test suites for `content` and `logistic`
-- An in-repo component harness for visual and accessibility review
-- WCAG 2.2 AA audit of coreui and the module components
+- Unit test suite for `logistic`
+- The manual half of the WCAG 2.2 AA audit: screen-reader flow, reading order, zoom, right-to-left mirroring
 
 ### Phase 3 — Release
 
