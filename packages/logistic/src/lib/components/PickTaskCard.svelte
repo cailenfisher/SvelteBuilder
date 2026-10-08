@@ -79,7 +79,7 @@
               {line.pickedQuantity}/{line.requestedQuantity}
             </span>
           </div>
-          <StorageLocationPath location={line.storageLocation} />
+          <StorageLocationPath location={line.storageLocation} {dictionary} />
         </li>
       {/each}
     </ul>
@@ -109,8 +109,12 @@
     border-inline-start: 3px solid var(--success);
   }
 
+  /* Cancelled tasks and picked lines read as finished through colour and border, not
+     opacity: they are still content someone may need to read, and dimming them to 50-60%
+     took their text below 4.5:1. */
   .pick-task-card--cancelled {
-    opacity: 0.6;
+    border-style: dashed;
+    color: var(--text-soft);
   }
 
   .pick-task-card__header {
@@ -192,7 +196,7 @@
   }
 
   .pick-task-card__line--done {
-    opacity: 0.5;
+    color: var(--text-soft);
   }
 
   .pick-task-card__line-info {
