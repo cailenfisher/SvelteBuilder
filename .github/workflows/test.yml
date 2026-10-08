@@ -1,6 +1,11 @@
 name: Test
 
-# The unit suites, across every package that has one.
+# The unit suites, across every package that has one, plus a type check of every package.
+#
+# The check step is svelte-check (tsc for local-text-schema) over each package's own source.
+# It is the only thing that type-checks a component no template screen renders: scaffold:check
+# reaches a component only through a screen that uses it, and svelte-package compiles without
+# checking cross-component prop usage.
 #
 # Separate from Scaffold check because the two cost very different amounts and catch
 # very different things: this runs in seconds and never scaffolds a project, while that
@@ -36,6 +41,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm turbo run check
 
       - name: Test
         run: pnpm turbo run test

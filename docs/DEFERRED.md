@@ -309,24 +309,6 @@ misrepresent history rather than correct it, so these were left alone. The root 
 Roadmap section has staleness unrelated to hermes (phases further along than its checkboxes show)
 that wasn't addressed — out of scope for a hermes-reference cleanup.
 
-**Pre-existing, unrelated defects surfaced by svelte-check.** Running svelte-check against
-`packages/content` (run read-only with a workspace `svelte-check` binary, since the package has no
-`check` script and `src/lib/templates/**` is excluded from its own tsconfig — this module has
-apparently never been typechecked with Svelte awareness) turned up defects with no connection to
-diglossia, confirmed unrelated by checking they sit outside anything this work order touched:
-`ArticleList`/`AssignmentQueue`/`SubscriberList`'s `DataTable` column-snippet typing,
-`FrontCurationBoard`'s `Badge` `variant="neutral"`, `BlockEditorHost`'s `EditorBlock` type
-mismatch and a stray `onChange` prop, several `ArticleWorkflowPanel` coreui prop-shape mismatches
-(`tabList`, `label`, `onCheckedChange`), `NewsletterSignup`'s `Button` `label` prop, and
-`AuthorProfileView`/`SectionFront` passing a `mediaAssets` prop to `ArticleCard`, which doesn't
-declare one. Left as found.
-
-Re-run on 2026-10-07: 22 errors in 10 files. The `onCheckedChange` mismatch went away when coreui
-`Checkbox` gained that prop, and the `mediaAssets` one when `ArticleCard` gained it for card
-pictures. That second change exposed a defect behind it: `AuthorProfileView` and `SectionFront`
-never pass `ArticleCard` its required `status` (five call sites). Everything else above is still
-present.
-
 ---
 
 ## Verification

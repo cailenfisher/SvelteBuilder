@@ -72,32 +72,39 @@ At removal there were no `*.test.ts` files in `packages/` at all. There are now 
 from `svelte/server` under vitest. content's `no-missing-copy.test.ts` in particular gates the
 `[missing: …]` class of bug — a Camp 2 child that never receives the `dictionary` prop — which
 `svelte-check` cannot see because the prop is optional. logistic and commerce still have none.
-Type-checking a component, as distinct from rendering one, still happens only in
-`pnpm scaffold:check`, which reaches a component only if some screen in the template tree renders it.
+Type-checking now happens per package (below), but nothing in the "dark" counts that follow renders
+a component.
 
 The content screen count is 3 (`ArticleView`, `ArticleCard`, `SectionLabel`) because the route port
 carried over only the thirteen route files that existed. The live-coverage, front-curation,
 author-profile, newsletter and media screens were never written, so the components they would
 render have no screen at all (see `docs/DEFERRED.md`).
 
-Content is in fact worse off than "unverified." `docs/DEFERRED.md` records a list of real type
-defects found the one time `svelte-check` was pointed at the package by hand — `DataTable`
-column-snippet typing in `ArticleList`/`AssignmentQueue`/`SubscriberList`, a `Badge`
-`variant="neutral"` that does not exist in `FrontCurationBoard`, an `EditorBlock` mismatch and a
-stray `onChange` in `BlockEditorHost`, several coreui prop-shape mismatches in
-`ArticleWorkflowPanel`, and a `Button` `label` prop in `NewsletterSignup`. Re-run on 2026-10-07:
-22 errors in 10 files, all still there. The `mediaAssets`-to-`ArticleCard` entry disappeared only
-because `ArticleCard` gained that prop. That exposed `AuthorProfileView` and `SectionFront` omitting
-`ArticleCard`'s required `status`, the same mismatch the old dev-kitchen fixture had, now in
-package code.
+Something cheaper than any harness recovers most of Job 2's regression value, and it is now done.
+Until 2026-10-07 no package had a `check` script: `build` (`svelte-package`) compiles without
+type-checking cross-component prop usage, `lint` is ESLint only, and `test` was vacuous where no
+tests existed. Every package now has `check` (`svelte-check`, or `tsc --noEmit` for
+local-text-schema), `turbo.json` has a `check` task, and the Test workflow runs it on every PR. It
+renders nothing, so it does not touch Jobs 1 and 3, but it changes how much the harness has to carry:
+a fixture or a component that disagrees with a coreui prop is now a CI failure without any app.
 
-Which points at something cheaper than any harness, and worth doing first: **no package in this repo
-has a `check` script.** Every Svelte package runs `build` (`svelte-package`, which compiles without
-type-checking cross-component prop usage), `lint` (ESLint only), and `test` (vitest; still
-`--passWithNoTests` in coreui, logistic and commerce, so the latter two pass vacuously). Adding
-`"check": "svelte-check"` per package plus a `check` task in `turbo.json` would recover most of
-Job 2's regression value for an afternoon's work, with no app to maintain. It renders nothing, so it
-does not touch Jobs 1 and 3 — but it changes how much the harness has to carry.
+Its first run found 22 errors, all real, and all fixed in the same change. coreui had 3. `Tooltip`
+passed `openDelay` to bits-ui v2, which does not accept it, so its `delay` prop had never taken
+effect. content had 19:
+- `BlockEditorHost` mapped blocks with the wrong field names and listened for an event `BlockEditor`
+  never emits, so no edit ever reached the parent.
+- `ArticleWorkflowPanel` was written against a `Drawer`/`Tabs` API that does not exist, and its tabs
+  never switched.
+- `SectionFront` and `AuthorProfileView` omitted `ArticleCard`'s required `status`, the same
+  mismatch the old dev-kitchen fixture had, and also failed to forward `dictionary`.
+- `NewsletterSignup` passed `Button` a `label` prop it does not have.
+
+The `DataTable` column-snippet errors that `docs/DEFERRED.md` once listed for `ArticleList`,
+`AssignmentQueue` and `SubscriberList` were not defects. They were the duplicate-Svelte artifact
+described under Requirement 2, from running a `svelte-check` installed outside the workspace, and
+they disappear with the workspace's own.
+
+No screen or test rendered any of those six components, which is how they survived.
 
 Which leaves 33 coreui components, 9 content components (`ArticleList`, `ArticleWorkflowPanel`,
 `AssignmentQueue`, `AuthorProfileView`, `BlockEditorHost`, `FrontCurationBoard`, `NewsletterSignup`,

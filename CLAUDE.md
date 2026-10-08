@@ -94,6 +94,10 @@ slug a screen renders is seeded, and that each has both required locales. The pa
 `svelte/server`. Their `vitest.config.ts` carries the `svelte` export condition and `ssr.noExternal`
 settings that make bits-ui render under SSR.
 
+`pnpm check` type-checks every package's own source (`svelte-check`, or `tsc --noEmit` for
+local-text-schema) and runs in the Test workflow. It is the only gate that type-checks a component no
+template screen renders.
+
 The workspace pins a single svelte through `pnpm.overrides` in the root `package.json`, for the same
 two-copies reason given above. Bump svelte there, not per package.
 
