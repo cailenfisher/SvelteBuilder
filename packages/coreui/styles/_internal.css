@@ -18,13 +18,19 @@
   --border-strong: color-mix(in srgb, var(--chrome), black 22%);
   --border:        1px solid var(--border-color);
 
-  /* ---- Text (from --chrome mixed toward black) ---- */
+  /* ---- Text (from --chrome) ----
+     Secondary text is placed at a fixed OKLCH lightness rather than mixed toward
+     black by a percentage: a percentage gives a different contrast for every
+     --chrome, and the old mixes measured 3.3:1 (soft) and 2.1:1 (muted) on white.
+     0.48 and 0.55 hold 4.5:1 or better on --surface and --surface-raised. */
   --text:        color-mix(in srgb, var(--chrome), black 88%);
-  --text-soft:   color-mix(in srgb, var(--chrome), black 52%);
-  --text-muted:  color-mix(in srgb, var(--chrome), black 22%);
+  --text-soft:   oklch(from var(--chrome) 0.48 c h);
+  --text-muted:  oklch(from var(--chrome) 0.55 c h);
   --text-invert: white;
 
-  /* ---- Disabled state ---- */
+  /* ---- Disabled state ----
+     Inactive controls are exempt from WCAG 1.4.3, so --disabled-text may sit below
+     4.5:1; that is what makes it read as disabled. */
   --disabled-bg:     color-mix(in srgb, var(--chrome), white 65%);
   --disabled-border: var(--chrome);
   --disabled-text:   color-mix(in srgb, var(--chrome), black 28%);
@@ -32,38 +38,48 @@
   /* ---- Overlay backdrop ---- */
   --overlay-bg: rgb(0 0 0 / 0.5);
 
+  /* ---- Contrast rules for every color family below ----
+     --*-text is the family's hue at OKLCH lightness 0.48 (0.80 in dark mode), so it
+     reads at 5:1 or better on white and on its own --*-soft, whatever the base color.
+     The previous 10% mix toward black left light bases unreadable: the scaffold's
+     #45b1e8 brand measured 2.4:1 as text.
+     --*-fg, the text on a solid --* background, is black or white by the base color's
+     WCAG luminance: white below 0.179, where both give 4.58:1, black above. That is
+     the better of the two for any color, so it never falls below 4.5:1. The channel
+     arithmetic is in linear sRGB, which is what WCAG luminance is defined over. */
+
   /* ---- Brand variants ---- */
   --brand-hover:  color-mix(in srgb, var(--brand), black 15%);
   --brand-active: color-mix(in srgb, var(--brand), black 25%);
   --brand-soft:   color-mix(in srgb, var(--brand), white 88%);
-  --brand-text:   color-mix(in srgb, var(--brand), black 10%);
-  --brand-fg:     white;
+  --brand-text:   oklch(from var(--brand) 0.48 c h);
+  --brand-fg:     color(from var(--brand) srgb-linear calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)));
   --link-text:    var(--brand-text);
 
   /* ---- Status variants ---- */
   --danger-soft:   color-mix(in srgb, var(--danger), white 88%);
-  --danger-text:   color-mix(in srgb, var(--danger), black 10%);
+  --danger-text:   oklch(from var(--danger) 0.48 c h);
   --danger-border: color-mix(in srgb, var(--danger) 35%, var(--chrome));
   --danger-hover:  color-mix(in srgb, var(--danger), black 15%);
-  --danger-fg:     white;
+  --danger-fg:     color(from var(--danger) srgb-linear calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)));
 
   --warning-soft:   color-mix(in srgb, var(--warning), white 88%);
-  --warning-text:   color-mix(in srgb, var(--warning), black 25%);
+  --warning-text:   oklch(from var(--warning) 0.48 c h);
   --warning-border: color-mix(in srgb, var(--warning) 35%, var(--chrome));
   --warning-hover:  color-mix(in srgb, var(--warning), black 15%);
-  --warning-fg:     var(--text);
+  --warning-fg:     color(from var(--warning) srgb-linear calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)));
 
   --success-soft:   color-mix(in srgb, var(--success), white 88%);
-  --success-text:   color-mix(in srgb, var(--success), black 10%);
+  --success-text:   oklch(from var(--success) 0.48 c h);
   --success-border: color-mix(in srgb, var(--success) 35%, var(--chrome));
   --success-hover:  color-mix(in srgb, var(--success), black 15%);
-  --success-fg:     white;
+  --success-fg:     color(from var(--success) srgb-linear calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)));
 
   --info-soft:   color-mix(in srgb, var(--info), white 88%);
-  --info-text:   color-mix(in srgb, var(--info), black 10%);
+  --info-text:   oklch(from var(--info) 0.48 c h);
   --info-border: color-mix(in srgb, var(--info) 35%, var(--chrome));
   --info-hover:  color-mix(in srgb, var(--info), black 15%);
-  --info-fg:     white;
+  --info-fg:     color(from var(--info) srgb-linear calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)) calc(clamp(0, (0.179 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000, 1)));
 
   /* ---- Typography ---- */
   --text-xs:   0.75rem;    /*  12px */
@@ -159,8 +175,8 @@
     --border:        1px solid var(--border-color);
 
     --text:        #f1f5f9;
-    --text-soft:   #94a3b8;
-    --text-muted:  #64748b;
+    --text-soft:   oklch(from var(--chrome) 0.80 c h);
+    --text-muted:  oklch(from var(--chrome) 0.75 c h);
     --text-invert: #0f172a;
 
     --disabled-bg:     #1e293b;
@@ -170,24 +186,20 @@
     --overlay-bg: rgb(0 0 0 / 0.7);
 
     --brand-soft:  color-mix(in srgb, var(--brand) 20%, #0f172a);
-    --brand-text:  color-mix(in srgb, var(--brand), white 15%);
-    --brand-fg:    #0f172a;
-    --link-text:   color-mix(in srgb, var(--brand), white 15%);
+    --brand-text:  oklch(from var(--brand) 0.80 c h);
+    --link-text:   var(--brand-text);
 
     --danger-soft:  color-mix(in srgb, var(--danger) 20%, #0f172a);
-    --danger-text:  color-mix(in srgb, var(--danger), white 15%);
-    --danger-fg:    #0f172a;
+    --danger-text:  oklch(from var(--danger) 0.80 c h);
 
     --warning-soft:  color-mix(in srgb, var(--warning) 20%, #0f172a);
-    --warning-text:  color-mix(in srgb, var(--warning), white 15%);
+    --warning-text:  oklch(from var(--warning) 0.80 c h);
 
     --success-soft:  color-mix(in srgb, var(--success) 20%, #0f172a);
-    --success-text:  color-mix(in srgb, var(--success), white 15%);
-    --success-fg:    #0f172a;
+    --success-text:  oklch(from var(--success) 0.80 c h);
 
     --info-soft:  color-mix(in srgb, var(--info) 20%, #0f172a);
-    --info-text:  color-mix(in srgb, var(--info), white 15%);
-    --info-fg:    #0f172a;
+    --info-text:  oklch(from var(--info) 0.80 c h);
   }
 }
 
@@ -195,7 +207,8 @@
 /* =============================================================================
    DARK MODE — explicit attribute (overrides system preference)
    Set data-color-scheme="dark" on <html> to force dark mode.
-   Set data-color-scheme="light" to force light regardless of system preference.
+   Set data-color-scheme="light" to force light regardless of system preference
+   (the block below this one).
    Omit the attribute to follow the system preference above.
    ============================================================================= */
 
@@ -210,8 +223,8 @@
   --border:        1px solid var(--border-color);
 
   --text:        #f1f5f9;
-  --text-soft:   #94a3b8;
-  --text-muted:  #64748b;
+  --text-soft:   oklch(from var(--chrome) 0.80 c h);
+  --text-muted:  oklch(from var(--chrome) 0.75 c h);
   --text-invert: #0f172a;
 
   --disabled-bg:     #1e293b;
@@ -221,24 +234,65 @@
   --overlay-bg: rgb(0 0 0 / 0.7);
 
   --brand-soft:  color-mix(in srgb, var(--brand) 20%, #0f172a);
-  --brand-text:  color-mix(in srgb, var(--brand), white 15%);
-  --brand-fg:    #0f172a;
-  --link-text:   color-mix(in srgb, var(--brand), white 15%);
+  --brand-text:  oklch(from var(--brand) 0.80 c h);
+  --link-text:   var(--brand-text);
 
   --danger-soft:  color-mix(in srgb, var(--danger) 20%, #0f172a);
-  --danger-text:  color-mix(in srgb, var(--danger), white 15%);
-  --danger-fg:    #0f172a;
+  --danger-text:  oklch(from var(--danger) 0.80 c h);
 
   --warning-soft:  color-mix(in srgb, var(--warning) 20%, #0f172a);
-  --warning-text:  color-mix(in srgb, var(--warning), white 15%);
+  --warning-text:  oklch(from var(--warning) 0.80 c h);
 
   --success-soft:  color-mix(in srgb, var(--success) 20%, #0f172a);
-  --success-text:  color-mix(in srgb, var(--success), white 15%);
-  --success-fg:    #0f172a;
+  --success-text:  oklch(from var(--success) 0.80 c h);
 
   --info-soft:  color-mix(in srgb, var(--info) 20%, #0f172a);
-  --info-text:  color-mix(in srgb, var(--info), white 15%);
-  --info-fg:    #0f172a;
+  --info-text:  oklch(from var(--info) 0.80 c h);
 }
 
 
+/* =============================================================================
+   LIGHT MODE — explicit attribute (overrides system preference)
+   Restates the light values of every token the two dark blocks above change.
+   Without it, data-color-scheme="light" did nothing on a system set to dark:
+   the media query's :root values applied and nothing put them back. Keep the
+   variable list here in step with the dark blocks.
+   ============================================================================= */
+
+[data-color-scheme='light'] {
+  --surface:         white;
+  --surface-raised:  color-mix(in srgb, var(--chrome), white 82%);
+  --surface-overlay: color-mix(in srgb, var(--chrome), white 65%);
+  --surface-invert:  color-mix(in srgb, var(--chrome), black 82%);
+
+  --border-color:  var(--chrome);
+  --border-strong: color-mix(in srgb, var(--chrome), black 22%);
+  --border:        1px solid var(--border-color);
+
+  --text:        color-mix(in srgb, var(--chrome), black 88%);
+  --text-soft:   oklch(from var(--chrome) 0.48 c h);
+  --text-muted:  oklch(from var(--chrome) 0.55 c h);
+  --text-invert: white;
+
+  --disabled-bg:     color-mix(in srgb, var(--chrome), white 65%);
+  --disabled-border: var(--chrome);
+  --disabled-text:   color-mix(in srgb, var(--chrome), black 28%);
+
+  --overlay-bg: rgb(0 0 0 / 0.5);
+
+  --brand-soft:  color-mix(in srgb, var(--brand), white 88%);
+  --brand-text:  oklch(from var(--brand) 0.48 c h);
+  --link-text:   var(--brand-text);
+
+  --danger-soft:  color-mix(in srgb, var(--danger), white 88%);
+  --danger-text:  oklch(from var(--danger) 0.48 c h);
+
+  --warning-soft:  color-mix(in srgb, var(--warning), white 88%);
+  --warning-text:  oklch(from var(--warning) 0.48 c h);
+
+  --success-soft:  color-mix(in srgb, var(--success), white 88%);
+  --success-text:  oklch(from var(--success) 0.48 c h);
+
+  --info-soft:  color-mix(in srgb, var(--info), white 88%);
+  --info-text:  oklch(from var(--info) 0.48 c h);
+}

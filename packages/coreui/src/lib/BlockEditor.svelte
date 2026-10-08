@@ -100,13 +100,11 @@
 >
   <ol class="block-list" aria-label="Content blocks">
     {#each blocks as block (block.id)}
-      <li
-        class="block-item"
-        data-block-type={block.blockType}
-        aria-label={`Block ${block.position}: ${BLOCK_TYPE_LABELS[block.blockType]}`}
-      >
-        <div class="block-controls" aria-label="Block controls">
-          <span class="block-type-label" aria-hidden="true">{BLOCK_TYPE_LABELS[block.blockType]}</span>
+      <!-- A list item cannot take an accessible name; its visible type label names it, and
+           the list itself conveys position ("item 3 of 5"). -->
+      <li class="block-item" data-block-type={block.blockType}>
+        <div class="block-controls" role="group" aria-label="Block controls">
+          <span class="block-type-label">{BLOCK_TYPE_LABELS[block.blockType]}</span>
 
           {#if !readonly}
             <div class="block-actions">

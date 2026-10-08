@@ -14,7 +14,7 @@
   Fixed-position container. Place once in the root layout.
   Visual channel only — ARIA announcements are handled by MessageAriaLive.
 -->
-<div class="toast-region" aria-label={messageBus.labels.region} aria-live="off">
+<div class="toast-region" role="region" aria-label={messageBus.labels.region} aria-live="off">
   {#each visibleToasts as message (message.id)}
     <Toast
       {message}

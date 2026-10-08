@@ -36,7 +36,7 @@
 
 <Dialog.Root bind:open onOpenChange={(v) => onOpenChange?.(v)}>
   {#if trigger}
-    <Dialog.Trigger>
+    <Dialog.Trigger class="drawer-trigger">
       {@render trigger()}
     </Dialog.Trigger>
   {/if}

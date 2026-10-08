@@ -24,11 +24,13 @@
     class: extraClass,
   }: Props = $props();
 
+  const labelId = $derived(`${id}-label`);
   const hintId = $derived(`${id}-hint`);
   const errorId = $derived(`${id}-error`);
 
   setContext('field', {
     get id()      { return id; },
+    get labelId() { return labelId; },
     get error()   { return error; },
     get hint()    { return hint; },
     get hintId()  { return hintId; },
@@ -42,7 +44,7 @@
   class={['field', extraClass ?? ''].filter(Boolean).join(' ')}
   data-disabled={disabled || undefined}
 >
-  <label class="label" for={id}>
+  <label class="label" for={id} id={labelId}>
     {label}
     {#if required}
       <span class="required" aria-hidden="true">*</span>
