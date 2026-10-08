@@ -203,7 +203,7 @@
 
   .workflow-panel__required {
     font-size: var(--text-xs);
-    color: var(--danger);
+    color: var(--danger-text);
     font-weight: var(--weight-medium);
   }
 
@@ -232,7 +232,7 @@
 
   .workflow-panel__team-role {
     font-weight: var(--weight-medium);
-    color: var(--brand);
+    color: var(--brand-text);
   }
 
   .workflow-panel__due {

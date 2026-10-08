@@ -436,3 +436,46 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
     expect(gaps, `slugs missing a translation: ${gaps.join(', ')}`).toEqual([]);
   });
 });
+
+// ── Module components ────────────────────────────────────────────────────────
+
+/**
+ * Module-scoped copy a module's own components ask for: `localText('slug', '<module>')`.
+ * Entity-bound copy (`'article'`, `'supplier'`) is seeded per row and is not checkable
+ * here; UI copy under the module's own scope is, and a component no screen renders is
+ * otherwise invisible to every check above. NewsletterSignup and ArticleWorkflowPanel
+ * asked for twelve such slugs that nothing seeded.
+ */
+function readComponentSlugs(module: string): string[] {
+  const dir = path.join(REPO, 'packages', module, 'src', 'lib', 'components');
+  if (!fs.existsSync(dir)) return [];
+  const call = new RegExp(String.raw`(?:localText|formatText)\(\s*'([^']+)'\s*,\s*'${module}'`, 'g');
+  const slugs = new Set<string>();
+  for (const file of fs.readdirSync(dir).filter((name) => name.endsWith('.svelte'))) {
+    for (const match of fs.readFileSync(path.join(dir, file), 'utf8').matchAll(call)) slugs.add(match[1]);
+  }
+  return [...slugs].sort();
+}
+
+const MODULES_WITH_COMPONENTS = readDirs(MODULES_DIR).filter(
+  (module) => readComponentSlugs(module).length > 0
+);
+
+describe.each(MODULES_WITH_COMPONENTS)('%s components', (module) => {
+  const slugs = readComponentSlugs(module);
+  const seed = readSeed(module);
+
+  it('seeds every module-scoped slug they render, in every required locale', () => {
+    const gaps: string[] = [];
+    for (const slug of slugs) {
+      if (!seed.links.get(module)?.has(slug)) {
+        gaps.push(`${slug} (no link)`);
+        continue;
+      }
+      for (const locale of REQUIRED_LOCALES) {
+        if (!seed.copy.get(locale)?.has(slug)) gaps.push(`${slug} (${locale})`);
+      }
+    }
+    expect(gaps, `component copy the seed does not provide: ${gaps.join(', ')}`).toEqual([]);
+  });
+});

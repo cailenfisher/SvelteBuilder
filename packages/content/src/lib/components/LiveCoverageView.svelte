@@ -111,7 +111,7 @@
     font-weight: var(--weight-semibold);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--danger);
+    color: var(--danger-text);
   }
 
   .live-coverage-view__ended-label {
