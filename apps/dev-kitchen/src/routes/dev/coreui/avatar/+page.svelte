@@ -25,5 +25,7 @@
 </Example>
 
 <Example title="Broken image falls back">
-  <Avatar src="/does-not-exist.png" fallback="GH" alt="Grace Hopper" />
+  <!-- Undecodable rather than missing, so the fallback is exercised without a 404 in the
+       console, which the accessibility run treats as an error. -->
+  <Avatar src="data:image/png;base64,AAAA" fallback="GH" alt="Grace Hopper" />
 </Example>

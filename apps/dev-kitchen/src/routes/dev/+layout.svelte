@@ -28,6 +28,13 @@
 
 <div class="kitchen">
   <nav class="kitchen__nav" aria-label="Showcase pages">
+    <ul class="kitchen__pages">
+      <li>
+        <a href="/dev/theme" aria-current={page.url.pathname === '/dev/theme' ? 'page' : undefined}
+          >Theme, direction and focus</a
+        >
+      </li>
+    </ul>
     {#each SHOWCASE as section (section.slug)}
       <h2 class="kitchen__section">{section.title}</h2>
       <ul class="kitchen__pages">
@@ -97,6 +104,13 @@
     padding: 0;
     display: grid;
     gap: var(--space-1);
+  }
+
+  /* 24px tall, the WCAG 2.5.8 minimum target size. */
+  .kitchen__pages a {
+    display: block;
+    min-block-size: 1.5rem;
+    padding-block: var(--space-0-5);
   }
 
   .kitchen__pages a[aria-current='page'] {

@@ -20,8 +20,8 @@
 <Example title="Everything a menu can hold">
   <Menu>
     {#snippet trigger()}Actions{/snippet}
-    <MenuLabel>Shipment 4182</MenuLabel>
     <MenuGroup>
+      <MenuLabel>Shipment 4182</MenuLabel>
       <MenuItem onSelect={() => (last = 'Edit')}>
         {#snippet leading()}✎{/snippet}
         Edit
@@ -32,8 +32,8 @@
     <MenuSeparator />
     <MenuCheckboxItem bind:checked={showArchived}>Show archived</MenuCheckboxItem>
     <MenuSeparator />
-    <MenuLabel>Sort</MenuLabel>
     <MenuRadioGroup bind:value={sort}>
+      <MenuLabel>Sort</MenuLabel>
       <MenuRadioItem value="newest">Newest first</MenuRadioItem>
       <MenuRadioItem value="oldest">Oldest first</MenuRadioItem>
     </MenuRadioGroup>

@@ -1,0 +1,57 @@
+name: Accessibility
+
+# Every component the workspace packages export, server-rendered and hydrated in
+# apps/dev-kitchen, audited by axe-core for WCAG 2.2 A and AA in light, dark and
+# right-to-left; overlays audited open, with focus checked going in and coming back;
+# and a keyboard walk that fails on any focus stop without a visible indicator.
+#
+# This is the automated half of the WCAG 2.2 AA audit. It finds what tools can find
+# (contrast, names, roles, ARIA misuse, target size, focus visibility) and nothing about
+# whether a flow makes sense to a screen-reader user.
+#
+# Separate from Test because it needs a browser, and from Scaffold check because the
+# harness renders the packages from source with no project to scaffold.
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  axe:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm --filter dev-kitchen exec playwright install --with-deps chromium
+
+      - name: Audit
+        run: pnpm --filter dev-kitchen test:a11y
+
+      - name: Upload traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: apps/dev-kitchen/test-results/
+          retention-days: 7
