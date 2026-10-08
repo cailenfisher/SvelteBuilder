@@ -1,0 +1,12 @@
+# Chrome copied from tools/create/templates/base by sync-chrome.mjs. Never edit these
+# here; change the template instead. Keep this list in step with CHROME in that script.
+/src/app.html
+/src/app.css
+/src/chrome.css
+/src/app.d.ts
+/src/hooks.server.ts
+/src/routes/+layout.svelte
+/src/routes/+error.svelte
+
+/test-results/
+/playwright-report/
