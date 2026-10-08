@@ -16,7 +16,9 @@ export const handle: Handle = async ({ event, resolve }) => {
     ?.split(';')[0]
     ?.trim()
 
-  const resolvedCode = cookieCode ?? headerCode ?? defaultCode
+  // The cookie and header are caller-controlled, and the code ends up in markup (the
+  // lang attribute below), so anything that is not shaped like a BCP-47 tag is ignored.
+  const resolvedCode = [cookieCode, headerCode].find(isLanguageTag) ?? defaultCode
 
   event.locals.locale = {
     id: 0,
@@ -34,5 +36,14 @@ export const handle: Handle = async ({ event, resolve }) => {
     dir: 'ltr'
   }
 
-  return resolve(event)
+  // app.html declares <html lang="%sveltekit.lang%">, which is not a placeholder SvelteKit
+  // fills on its own; without this every page ships that literal string as its language,
+  // failing WCAG 3.1.1.
+  return resolve(event, {
+    transformPageChunk: ({ html }) => html.replace('%sveltekit.lang%', resolvedCode)
+  })
+}
+
+function isLanguageTag(code: string | undefined): code is string {
+  return code !== undefined && /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(code)
 }

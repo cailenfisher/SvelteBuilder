@@ -51,7 +51,14 @@ const localeHook: Handle = async ({ event, resolve }) => {
   event.locals.locale = available.find((l) => l.code === resolvedCode) ?? defaultLocale;
   event.locals.defaultLocale = defaultLocale;
 
-  return resolve(event);
+  // app.html declares <html lang="%sveltekit.lang%">, which is not a placeholder SvelteKit
+  // fills on its own. Without this every page ships that literal string as its language,
+  // failing WCAG 3.1.1. The code is safe to write into markup: it is one of public.locale's
+  // codes, never the raw cookie or header.
+  const lang = event.locals.locale.code;
+  return resolve(event, {
+    transformPageChunk: ({ html }) => html.replace('%sveltekit.lang%', lang),
+  });
 };
 
 export const handle = sequence(providerHandle, populateLocals, localeHook);
