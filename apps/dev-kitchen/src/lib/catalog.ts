@@ -124,6 +124,62 @@ export const COREUI_PAGES = [
 
 export const COREUI_COVERAGE: Coverage<CoreUi, typeof COREUI_PAGES> = true;
 
+// ── @sveltebuilder/content ───────────────────────────────────────────────────
+
+type Content = typeof import('@sveltebuilder/content');
+
+export const CONTENT_PAGES = [
+  { slug: 'article-card', title: 'ArticleCard', components: ['ArticleCard'] },
+  { slug: 'article-view', title: 'ArticleView', components: ['ArticleView'] },
+  {
+    slug: 'article-block',
+    title: 'ArticleBlockRenderer, MediaFigure',
+    components: ['ArticleBlockRenderer', 'MediaFigure'],
+  },
+  {
+    slug: 'taxonomy',
+    title: 'BylineList, SectionLabel, TopicTag',
+    components: ['BylineList', 'SectionLabel', 'TopicTag'],
+  },
+  { slug: 'live-coverage', title: 'Live coverage', components: ['LiveCoverageView', 'LiveUpdateItem'] },
+  { slug: 'section-front', title: 'SectionFront', components: ['SectionFront'] },
+  { slug: 'author-profile', title: 'AuthorProfileView', components: ['AuthorProfileView'] },
+  {
+    slug: 'newsletter',
+    title: 'NewsletterSignup, SubscriberList',
+    components: ['NewsletterSignup', 'SubscriberList'],
+  },
+  { slug: 'article-list', title: 'ArticleList, AssignmentQueue', components: ['ArticleList', 'AssignmentQueue'] },
+  {
+    slug: 'workflow',
+    title: 'ArticleWorkflowPanel, BlockEditorHost',
+    components: ['ArticleWorkflowPanel', 'BlockEditorHost'],
+  },
+  { slug: 'front-curation', title: 'FrontCurationBoard', components: ['FrontCurationBoard'] },
+] as const satisfies readonly ShowcasePage<ComponentName<Content>>[];
+
+export const CONTENT_COVERAGE: Coverage<Content, typeof CONTENT_PAGES> = true;
+
+// ── @sveltebuilder/logistic ──────────────────────────────────────────────────
+
+type Logistic = typeof import('@sveltebuilder/logistic');
+
+export const LOGISTIC_PAGES = [
+  { slug: 'supplier', title: 'SupplierCard', components: ['SupplierCard'] },
+  { slug: 'storage-location', title: 'StorageLocationPath', components: ['StorageLocationPath'] },
+  { slug: 'pick-task', title: 'PickTaskCard, PickTaskStatusBadge', components: ['PickTaskCard', 'PickTaskStatusBadge'] },
+  { slug: 'receipt', title: 'ReceiptCard', components: ['ReceiptCard'] },
+  {
+    slug: 'status-badge',
+    title: 'ShipmentStatusBadge, ReturnConditionBadge',
+    components: ['ShipmentStatusBadge', 'ReturnConditionBadge'],
+  },
+  { slug: 'stock-level', title: 'StockLevelBar', components: ['StockLevelBar'] },
+  { slug: 'tracking', title: 'TrackingEventList', components: ['TrackingEventList'] },
+] as const satisfies readonly ShowcasePage<ComponentName<Logistic>>[];
+
+export const LOGISTIC_COVERAGE: Coverage<Logistic, typeof LOGISTIC_PAGES> = true;
+
 // ── Every package ────────────────────────────────────────────────────────────
 
 export type ShowcaseSection = {
@@ -134,6 +190,8 @@ export type ShowcaseSection = {
 
 export const SHOWCASE: readonly ShowcaseSection[] = [
   { slug: 'coreui', title: '@sveltebuilder/coreui', pages: COREUI_PAGES },
+  { slug: 'content', title: '@sveltebuilder/content', pages: CONTENT_PAGES },
+  { slug: 'logistic', title: '@sveltebuilder/logistic', pages: LOGISTIC_PAGES },
 ];
 
 /** The section and page a /dev/<section>/<page> path renders, if it is one. */
