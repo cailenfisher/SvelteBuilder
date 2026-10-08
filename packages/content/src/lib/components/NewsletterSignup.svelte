@@ -71,7 +71,7 @@
         </p>
       {/if}
 
-      <Button type="submit" label={submitLabel} variant="primary" />
+      <Button type="submit" variant="primary">{submitLabel}</Button>
     </form>
   {/if}
 </div>

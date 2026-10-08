@@ -276,12 +276,14 @@
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
   .article-card--lead .article-card__dek {
     -webkit-line-clamp: 4;
+    line-clamp: 4;
   }
 
   .article-card__meta {

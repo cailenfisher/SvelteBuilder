@@ -76,6 +76,8 @@
             blocks={article.blocks}
             {storageBaseUrl}
             {locale}
+            status={article.status}
+            {dictionary}
             sections={article.sections ?? []}
             variant="river"
           />

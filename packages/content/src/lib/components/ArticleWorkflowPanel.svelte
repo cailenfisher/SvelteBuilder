@@ -1,9 +1,9 @@
 <!-- Camp 2: article workflow side panel. Resolves status labels and checklist item labels
-     via hermes. Uses coreui Drawer + Tabs + Checkbox. -->
+     via diglossia. Uses coreui Drawer, Tabs and Checkbox. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
-  import { Drawer, Tabs, Checkbox, Button } from '@sveltebuilder/coreui';
+  import { Drawer, Tabs, TabsList, TabsTrigger, TabsContent, Checkbox, Button } from '@sveltebuilder/coreui';
   import type {
     ArticleWithCopy,
     ArticleAssignment,
@@ -44,6 +44,8 @@
     return checklistStates.find((s) => s.publishChecklistItemId === itemId)?.satisfied ?? false;
   }
 
+  let activeTab = $state('status');
+
   const ASSIGNMENT_ROLE_LABEL: Record<string, string> = {
     author: 'Author',
     editor: 'Editor',
@@ -52,25 +54,24 @@
   };
 </script>
 
-<Drawer {open} side="right" {onClose}>
-  {#snippet title()}
-    Article Workflow
-  {/snippet}
+<Drawer
+  {open}
+  onOpenChange={(next) => {
+    if (!next) onClose();
+  }}
+  side="right"
+  title="Article Workflow"
+  description={article.headline}
+>
+  <Tabs bind:value={activeTab}>
+    <TabsList>
+      <TabsTrigger value="status">Status</TabsTrigger>
+      <TabsTrigger value="checklist">Checklist</TabsTrigger>
+      <TabsTrigger value="team">Team</TabsTrigger>
+    </TabsList>
 
-  {#snippet description()}
-    {article.headline}
-  {/snippet}
-
-  <Tabs>
-    {#snippet tabList()}
-      <button role="tab" aria-selected="true">Status</button>
-      <button role="tab" aria-selected="false">Checklist</button>
-      <button role="tab" aria-selected="false">Team</button>
-    {/snippet}
-
-    {#snippet tabPanels()}
-      <!-- Status panel -->
-      <div role="tabpanel" class="workflow-panel__status">
+    <TabsContent value="status">
+      <div class="workflow-panel__status">
         <div class="workflow-panel__current-status">
           <span class="workflow-panel__status-label">Current:</span>
           <strong>{article.status.label}</strong>
@@ -79,39 +80,45 @@
         <div class="workflow-panel__actions">
           {#if article.status.slug === 'draft'}
             <Button
-              label={dictionary.localText('action.submit_for_review', 'content')}
               variant="primary"
               onclick={() => onTransitionStatus?.('in_review')}
-            />
+            >
+              {dictionary.localText('action.submit_for_review', 'content')}
+            </Button>
           {:else if article.status.slug === 'in_review'}
             <Button
-              label={dictionary.localText('action.approve', 'content')}
               variant="primary"
               onclick={() => onTransitionStatus?.('approved')}
-            />
+            >
+              {dictionary.localText('action.approve', 'content')}
+            </Button>
             <Button
-              label={dictionary.localText('action.send_back', 'content')}
               variant="secondary"
               onclick={() => onTransitionStatus?.('draft')}
-            />
+            >
+              {dictionary.localText('action.send_back', 'content')}
+            </Button>
           {:else if article.status.slug === 'approved'}
             <Button
-              label={dictionary.localText('action.publish', 'content')}
               variant="primary"
               onclick={() => onTransitionStatus?.('published')}
-            />
+            >
+              {dictionary.localText('action.publish', 'content')}
+            </Button>
           {:else if article.status.slug === 'published'}
             <Button
-              label={dictionary.localText('action.unpublish', 'content')}
               variant="secondary"
               onclick={() => onTransitionStatus?.('draft')}
-            />
+            >
+              {dictionary.localText('action.unpublish', 'content')}
+            </Button>
           {/if}
         </div>
       </div>
+    </TabsContent>
 
-      <!-- Checklist panel -->
-      <div role="tabpanel" class="workflow-panel__checklist">
+    <TabsContent value="checklist">
+      <div class="workflow-panel__checklist">
         {#each checklistItems as item (item.id)}
           {@const checked = getChecklistState(item.id)}
           <div class="workflow-panel__checklist-item">
@@ -119,7 +126,6 @@
               {checked}
               onCheckedChange={(value) => onChecklistToggle?.(item.id, value)}
               label={dictionary.localText('label', 'publish_checklist_item', item.id)}
-              id={`checklist-${item.id}`}
             />
             {#if item.required && !checked}
               <span class="workflow-panel__required" aria-label="Required">Required</span>
@@ -127,9 +133,10 @@
           </div>
         {/each}
       </div>
+    </TabsContent>
 
-      <!-- Team panel -->
-      <div role="tabpanel" class="workflow-panel__team">
+    <TabsContent value="team">
+      <div class="workflow-panel__team">
         {#if assignments.length === 0}
           <p class="workflow-panel__empty">No team members assigned.</p>
         {:else}
@@ -155,7 +162,7 @@
           </ul>
         {/if}
       </div>
-    {/snippet}
+    </TabsContent>
   </Tabs>
 </Drawer>
 

@@ -9,6 +9,8 @@
     variant?: Variant;
     size?: Size;
     loading?: boolean;
+    /** On a link, renders `aria-disabled` and removes it from the tab order. */
+    disabled?: boolean | null;
     full?: boolean;
     children: Snippet;
     leading?: Snippet;

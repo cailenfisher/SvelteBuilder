@@ -13,6 +13,7 @@
     position: number;
     content: Record<string, unknown>;
     text?: string;
+    mediaAssetId?: number | null;
   };
 
   type Props = {

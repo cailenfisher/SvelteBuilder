@@ -36,9 +36,11 @@
       .sort((a, b) => a.position - b.position)
       .map((b) => ({
         id: String(b.id),
-        type: b.blockType as EditorBlock['type'],
+        blockType: b.blockType,
+        position: b.position,
         text: dictionary.localText('text', 'article_block', b.id),
         content: b.content as EditorBlock['content'],
+        mediaAssetId: b.mediaAssetId,
       }));
   }
 
@@ -55,7 +57,7 @@
 </script>
 
 <div class="block-editor-host">
-  <BlockEditor blocks={editorBlocks} onChange={handleChange} />
+  <BlockEditor blocks={editorBlocks} onBlocksChange={handleChange} />
 </div>
 
 <style>

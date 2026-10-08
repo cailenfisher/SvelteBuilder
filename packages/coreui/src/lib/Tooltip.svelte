@@ -21,7 +21,7 @@
   );
 </script>
 
-<Tooltip.Provider openDelay={delay} closeDelay={0}>
+<Tooltip.Provider delayDuration={delay}>
   <Tooltip.Root>
     <Tooltip.Trigger class="tooltip-trigger">
       {@render children()}
