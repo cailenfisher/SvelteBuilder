@@ -1,5 +1,23 @@
 # @sveltebuilder/content
 
+## 1.1.2
+
+### Patch Changes
+
+- [#34](https://github.com/cailenfisher/SvelteBuilder/pull/34) [`06a3f67`](https://github.com/cailenfisher/SvelteBuilder/commit/06a3f67601354f2cd98bb1557ee2a114eedc00e6) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Fix what rendering every content component for the first time found.
+  - **Missing copy.** `NewsletterSignup` and `ArticleWorkflowPanel` ask for twelve module-scoped slugs (`newsletter.*`, `action.*`) that the content seed never created, so both rendered `[missing: …]` for every label and button. The seed now provides them in English and French. The screen-bundle suite now checks every module-scoped slug a module's components render, not only the ones its screens do.
+  - **Contrast.** `SectionLabel`, `AuthorProfileView`, `LiveCoverageView`, `NewsletterSignup`, `FrontCurationBoard` and `ArticleWorkflowPanel` used raw `--brand`, `--danger` and `--success` as text colors; they use the `-text` variants now. A pinned `LiveUpdateItem` mixed its background with white, which in dark mode put light text on a near-white panel; it uses `--brand-soft`.
+  - **`BlockEditorHost`** no longer asks the dictionary for the text of image, video and embed blocks, which logged a missing key for every media block in an article.
+
+- [#34](https://github.com/cailenfisher/SvelteBuilder/pull/34) [`3a8f724`](https://github.com/cailenfisher/SvelteBuilder/commit/3a8f7242e577483502cdf4a7ef91c7a1f787eba0) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Fix the defects a first `svelte-check` over each package found.
+
+  coreui: `Tooltip`'s `delay` prop now takes effect. It was passed to bits-ui as `openDelay`, which bits-ui v2 does not accept, so every tooltip opened after bits-ui's default 700ms. `Button` declares `disabled` for links as well as buttons, and `EditorBlock` declares the `mediaAssetId` that `BlockEditor` already read.
+
+  content: `BlockEditorHost` now works. It mapped blocks with `type` instead of `blockType`, dropped `position`, and listened for an `onChange` that `BlockEditor` never emits, so no edit reached the parent. `ArticleWorkflowPanel` uses coreui's actual `Drawer`, `Tabs`, `Button` and `Checkbox` APIs; its tabs never switched before. `SectionFront` and `AuthorProfileView` pass `ArticleCard` its required `status` and forward `dictionary`, without which entity copy fell back to context and rendered as `[missing: …]`. `NewsletterSignup`'s submit button passes its label as children. `Button` has no `label` prop, so it was rendering an undefined `children` snippet. Finally, `FrontCurationBoard` uses a `Badge` variant that exists.
+
+- Updated dependencies [[`2531d4d`](https://github.com/cailenfisher/SvelteBuilder/commit/2531d4d3944843337da02f7691b45b587219559d), [`3a8f724`](https://github.com/cailenfisher/SvelteBuilder/commit/3a8f7242e577483502cdf4a7ef91c7a1f787eba0)]:
+  - @sveltebuilder/coreui@0.2.3
+
 ## 1.1.1
 
 ### Patch Changes

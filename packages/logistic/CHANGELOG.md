@@ -1,5 +1,14 @@
 # @sveltebuilder/logistic
 
+## 1.0.2
+
+### Patch Changes
+
+- [#34](https://github.com/cailenfisher/SvelteBuilder/pull/34) [`97f69d4`](https://github.com/cailenfisher/SvelteBuilder/commit/97f69d4efc8df9bfef9f085b6612808a67cc4638) Thanks [@cailenfisher](https://github.com/cailenfisher)! - `PickTaskCard` forwards its `dictionary` to the `StorageLocationPath` it renders for each line. It did not, so a screen passing scoped copy as a prop saw every line's location render as `[missing: …]`. Cancelled cards and picked lines are no longer dimmed with opacity, which took their text below 4.5:1 contrast; they use secondary text color and, for cancelled, a dashed border.
+
+- Updated dependencies [[`2531d4d`](https://github.com/cailenfisher/SvelteBuilder/commit/2531d4d3944843337da02f7691b45b587219559d), [`3a8f724`](https://github.com/cailenfisher/SvelteBuilder/commit/3a8f7242e577483502cdf4a7ef91c7a1f787eba0)]:
+  - @sveltebuilder/coreui@0.2.3
+
 ## 1.0.1
 
 ### Patch Changes
