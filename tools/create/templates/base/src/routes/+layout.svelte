@@ -16,6 +16,9 @@
 
   // Not inside $effect: effects don't run during SSR, so a dictionary built in
   // one would leave every server-rendered page showing [missing: …] sentinels.
+  // Capturing the first value of `data` is intended: switching locale posts to
+  // /api/locale and redirects, a full page load that runs this script again.
+  // svelte-ignore state_referenced_locally
   setDictionary(createDictionary(data.dictionary))
   const dictionary = getDictionary()
 

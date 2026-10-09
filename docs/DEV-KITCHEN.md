@@ -1,12 +1,14 @@
-# DEV-KITCHEN.md — what the in-repo component harness was for, and what the next one must be
+# DEV-KITCHEN.md — the in-repo component harness: what it is for, why the first one died, how the second is built
 
-`apps/dev-kitchen` was removed from this repo on 2026-09-30. This document records what it was
-supposed to do, the three jobs it actually did, why it died, and the design the replacement has to
-satisfy. It is a design document, not a changelog: read it before rebuilding anything in `apps/`.
+`apps/dev-kitchen` renders every component the workspace packages export, from source, inside the
+scaffold's own chrome, and audits the result for accessibility in CI. The first version was removed
+on 2026-09-30 after it rotted past repair; it was rebuilt on 2026-10-07 to the requirements this
+document set out. Sections 1 and 2 are why it exists and why the first one died. Section 3 is the
+design as built, section 4 what its first runs found, section 5 what it still does not cover.
 
+How to run it and how to add a page are in [`apps/dev-kitchen/README.md`](../apps/dev-kitchen/README.md).
 Companion reading: `docs/MODULE-ROUTES.md` (where route code lives and why), `docs/DEFERRED.md`
-(what is deliberately not being done yet), and the Template Verification section of `CLAUDE.md`
-(the three gates that exist today).
+(what is deliberately not being done yet), and the Template Verification section of `CLAUDE.md`.
 
 ---
 
@@ -30,7 +32,8 @@ tarballs. Changing a component then means rebuild, repack, reinstall, reload. Th
 from under a second to tens of seconds, which is the difference between iterating on a focus ring
 and not bothering.
 
-The mechanism was a hand-written alias map plus an SSR escape hatch in `vite.config.ts`:
+The first app's mechanism was a hand-written alias map plus an SSR escape hatch in `vite.config.ts`
+(the rebuild uses `kit.alias`, which feeds Vite and the generated tsconfig from one list):
 
 ```ts
 resolve: {
@@ -54,51 +57,35 @@ all. This pair of settings is the whole trick, and it is worth keeping even if n
 The `/dev/coreui/*` and `/dev/content/*` routes were a kitchen sink: one page per component,
 rendering each variant beside the others. 33 coreui showcase routes and 7 content ones existed.
 
-This job turned out to be load-bearing in a way nobody planned, because of a gap measured while
-deciding to purge:
+This job turned out to be load-bearing in a way nobody planned. Measured on 2026-10-07, before the
+rebuild:
 
-| Surface                   | Public components | Referenced by any template screen | Covered by a unit test |
-| ------------------------- | ----------------- | --------------------------------- | ---------------------- |
-| `@sveltebuilder/coreui`   | 65                | 32                                | 0                      |
-| `@sveltebuilder/content`  | 18                | 0 (see note)                      | 0                      |
-| `@sveltebuilder/logistic` | 9                 | 6                                 | 0                      |
+| Surface                   | Public components | Referenced by any template screen | Rendered by a package test |
+| ------------------------- | ----------------- | --------------------------------- | -------------------------- |
+| `@sveltebuilder/coreui`   | 65                | 32                                | 2 (`Select`, `SelectItem`) |
+| `@sveltebuilder/content`  | 18                | 3                                 | 9                          |
+| `@sveltebuilder/logistic` | 9                 | 6                                 | 0                          |
 
-There are **zero** `*.test.ts` files anywhere in `packages/`. The only unit test in the repo is
-`tools/create/test/screen-bundle.test.ts`. So the only thing that type-checks a component today is
-`pnpm scaffold:check` running `svelte-check` over a scaffolded project — which reaches a component
-only if some screen in the template tree actually renders it.
+That left 33 coreui, 9 content and 3 logistic components with no verification of any kind — among
+them every `Menu*` component, `Popover`, `Tooltip`, `Drawer`, `BlockEditor` and `DateTimePicker`.
+The rebuilt app renders all 92, and its catalog makes an unshowcased export a `pnpm check` failure.
 
-The content row reads 0 rather than 5 because every content-component reference in the template tree
-is inside `tools/create/templates/modules/content/screens/_unsorted/`, and a `_`-prefixed directory
-is never copied by the create CLI and therefore never type-checked by anything.
-
-Content is in fact worse off than "unverified." `docs/DEFERRED.md` records a list of real type
-defects found the one time `svelte-check` was pointed at the package by hand — `DataTable`
-column-snippet typing in `ArticleList`/`AssignmentQueue`/`SubscriberList`, a `Badge`
-`variant="neutral"` that does not exist in `FrontCurationBoard`, an `EditorBlock` mismatch and a
-stray `onChange` in `BlockEditorHost`, several coreui prop-shape mismatches in
-`ArticleWorkflowPanel`, and a `Button` `label` prop in `NewsletterSignup`. None has been fixed.
-
-Which points at something cheaper than any harness, and worth doing first: **no package in this repo
-has a `check` script.** `coreui` and `content` both run `build` (`svelte-package`, which compiles
-without type-checking cross-component prop usage), `lint` (ESLint only), and `test`
-(`vitest run --passWithNoTests`, which passes vacuously). Adding `"check": "svelte-check"` per
-package plus a `check` task in `turbo.json` would recover most of Job 2's regression value for an
-afternoon's work, with no app to maintain. It renders nothing, so it does not touch Jobs 1 and 3 —
-but it changes how much the harness has to carry.
-
-Which leaves 33 coreui components, all 18 content components, and 3 logistic components with no
-verification of any kind — not a test, not a scaffold type-check, and (once dev-kitchen broke) not a
-render either. Among them: every `Menu*` component, `Popover`, `Tooltip`, `Drawer`, `BlockEditor`,
-`DateTimePicker`, `Timeline`, `RadioGroup`, `Accordion`, `Alert`, `Banner`, `Toast`.
+Something cheaper than any harness recovered part of this first: until 2026-10-07 no package had a
+`check` script, because `svelte-package` compiles without type-checking cross-component prop usage.
+Every package now runs `svelte-check` in CI. Its first run found 22 real errors, among them a
+`Tooltip` whose `delay` had never taken effect, a `BlockEditorHost` that never reported an edit, and
+an `ArticleWorkflowPanel` built against a `Drawer`/`Tabs` API that does not exist. No screen or test
+rendered any of them. (Three `DataTable` snippet errors once listed alongside them were not
+defects: they came from running a `svelte-check` installed outside the workspace, which loads a
+second copy of Svelte.)
 
 ### Job 3 — a rendered surface to audit
 
 The WCAG 2.2 AA audit named in `CLAUDE.md`'s Known Open Issues needs a page that renders every
 component in every state. So does visual review of dark mode, RTL, and focus-visible rings across
-the set. Nothing else in the repo produces that surface. This job never actually happened, but it is
-the strongest argument for rebuilding: Bits UI supplies accessible primitives, and that is an
-argument about primitives, not about what this repo wrapped them in.
+the set. Nothing else in the repo produces that surface. The first app never did this job, and it
+was the strongest argument for rebuilding: Bits UI supplies accessible primitives, which is an
+argument about primitives, not about what this repo wrapped them in. Section 4 bears that out.
 
 ---
 
@@ -159,140 +146,128 @@ covered by CI by default instead of inheriting an exemption written for somethin
 
 ---
 
-## 3. What the replacement must do differently
+## 3. The design as built
 
-### Requirement 1 — it must not hand-maintain scaffold wiring
+Each requirement the removal set, and how the rebuild meets it.
 
-This is the root cause and the one non-negotiable change. The harness must get its chrome —
-`hooks.server.ts`, root layout, dictionary and message-bus wiring, locale endpoints, `app.d.ts` —
-from the template tree rather than from a parallel copy a human keeps in sync.
+### Requirement 1 — no hand-maintained scaffold wiring
 
-Two shapes achieve that:
+The chrome — `hooks.server.ts`, the root `+layout.svelte` and `+error.svelte`, `app.d.ts`,
+`app.html`, `app.css`, `chrome.css` — is copied from `tools/create/templates/base/` by
+`sync-chrome.mjs` before every `dev`, `build`, `check` and `lint`, and is gitignored. Nobody edits
+it here, so it cannot drift: change the template and the harness follows.
 
-- **Generated, committed thin.** A script (`pnpm kitchen:sync`, say) runs the create CLI into
-  `apps/dev-kitchen/`, then overlays a committed `src/routes/dev/**` tree plus a `vite.config.ts`
-  that re-points the packages at source. Only the overlay is tracked; the generated chrome is
-  gitignored, and regenerating is how you update it. Drift becomes impossible because the chrome is
-  not an artifact anyone edits.
-- **Generated on demand into a temp directory.** Same overlay, nothing committed under `apps/`,
-  the harness materialised by `pnpm kitchen` and thrown away. Lighter, but gives up the stable path
-  and makes editing a showcase route awkward.
+The shape is **generated, committed thin**, the option this section originally preferred. The open
+question it raised — whether a generated app fights pnpm and turbo, which need a stable
+`package.json` — is answered by committing the app's own `package.json`, configs, showcase routes
+and fixtures, and generating only the chrome. The workspace sees an ordinary package.
 
-The first is the better trade for Job 1, since the point is a long-lived dev server you keep open.
-Either way the overlay must stay small enough to read in one sitting: showcase routes, fixtures,
-and the Vite resolution config. Nothing else.
+The chrome comes from the **base** template, not SuperPrototype, because base's hooks make no
+database call. The one thing base's root layout expects and does not ship — its data load — is a
+committed `+layout.server.ts` that builds the dictionary and locale list from
+`@sveltebuilder/local-text-schema`'s canonical `LOCALES` and `BASE_SLUGS`, the same data
+`sync:supabase` writes into every seed. Base also ships no locale endpoint, so a small
+`/api/locale` keeps SuperPrototype's contract. Those two files are the only plumbing the harness
+owns.
 
 ### Requirement 2 — source resolution, deliberately divergent from `scaffold:check`
 
-There is a real tension here, and the replacement should resolve it explicitly rather than
-discover it. `scripts/scaffold-check.mjs` deliberately **packs the workspace packages and installs
-the tarballs**, for a reason recorded in `CLAUDE.md`: a linked package brings its own
-`node_modules/svelte`, and two copies of Svelte make every cross-package `Snippet` prop a type
-error with no bug behind it. Packing also verifies the `files` array and `exports` map.
+Packages resolve to source through `kit.alias`, so a save re-renders with no `svelte-package` step,
+and svelte-check sees the same files Vite does. The consequences the requirement asked to be
+written down are in the app's README: aliases bypass `exports` and `files` (only `scaffold:check`
+catches that class), and a duplicate Svelte would turn every `Snippet` prop into a false error.
+The workspace pins one svelte through `pnpm.overrides`, at the template's own floor, and the app
+dedupes `svelte`, `diglossia` and `bits-ui`.
 
-The harness wants the opposite — source, aliased, HMR — and must therefore accept that it is _not_
-checking what `scaffold:check` checks. Three consequences follow, and all three should be written
-into whatever README the harness ships with:
-
-- The harness can render a component that a published consumer could not import, because aliases
-  bypass the `exports` map. Only `scaffold:check` catches that class of bug.
-- A `Snippet`-prop type error seen in the harness may be a duplicate-Svelte artifact rather than a
-  real defect. Pin Svelte at the workspace root and keep the alias list exhaustive.
-- **Aliasing to source broke SSR, and the old harness gave up on it.** Both showcase trees shipped
-  a `+layout.ts` containing `export const ssr = false`, the coreui one with the reason attached:
-  "bits-ui uses `.svelte.js` rune files that Vite's SSR module runner cannot execute without the
-  Svelte compiler." That is the cost of source resolution — the aliased package is inside the Vite
-  pipeline for the browser build but the SSR module runner reaches the rune files on its own terms.
-
-That last one matters more than it looks, and the replacement must decide it deliberately. A
-client-only harness never executes a loader, never server-renders a component, and therefore cannot
-observe the entire class of bug this repo has been most bitten by: dictionary construction that
-works in the browser and yields `[missing: …]` under SSR, a message bus that leaks across
-concurrent requests, a `getContext` call that throws only on the server. dev-kitchen's own root
-layout had the `$effect` form of exactly that bug, and its showcase routes were structurally
-incapable of showing it.
-
-So either the harness solves SSR with aliased sources — worth one real attempt, since `noExternal`
-exists precisely to pull a dependency into the Vite pipeline for SSR too, and the comment may
-predate a Vite or bits-ui version that fixed it — or it is honest that it covers browser rendering
-only, and the SSR path stays the business of `scaffold:check` and `sql:check`. What it must not do
-is set `ssr = false` quietly and let the gap be rediscovered.
-
-Neither gate subsumes the other. Say so in the doc rather than letting someone rediscover it.
+**Server rendering is on.** The old app's `ssr = false` rested on a claim that bits-ui could not run
+in Vite's SSR pipeline from source. It can: the scaffold's own `ssr.noExternal` list
+(`@sveltebuilder/*`, `bits-ui`, `runed`, `svelte-toolbelt`) is enough, and every page server-renders
+and hydrates. The first server render found a template bug no client-only harness could have:
+every scaffolded page shipped `<html lang="%sveltekit.lang%">` (section 4).
 
 ### Requirement 3 — a gate, or it rots again
 
-The app must be in CI from its first commit. Minimum: `svelte-check` over the harness on every PR,
-in a job with no `apps/*` exemption. If `svelte-check` on the harness is green, the fixtures agree
-with the component props, which is exactly the drift class that killed the last one.
+The app is in CI from its first commit, with no `apps/*` exemption: `check` and `lint` run in the
+Test workflow like any package, and the Accessibility workflow builds it and runs the audit. Its
+only environment variable is `PUBLIC_DEFAULT_LOCALE`, which the sync script writes, so CI needs no
+secrets and no database.
 
-The gate also has to be cheap enough to keep. A harness that requires a live Supabase connection to
-boot is not — dev-kitchen needed `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`,
-`SUPABASE_SECRET_KEY`, `SUPABASE_DB_URL` and `PUBLIC_DEFAULT_LOCALE`, which is partly why its build
-was never verified in CI. Prefer a harness whose `/dev/**` routes run entirely off committed
-fixtures, with the database path exercised by `pnpm sql:check` where it belongs.
+Coverage is a gate too. `src/lib/catalog.ts` lists each page's components, and a `*_COVERAGE`
+constant per package type-checks only when every component the package exports is on some page.
+Export a component without a showcase and `pnpm check` fails naming it.
 
-### Requirement 4 — fixtures are a typed contract, not a literal
+### Requirement 4 — fixtures are a typed contract
 
-Every one of dev-kitchen's content fixtures was an untyped object literal, which is how
-`ArticleCard` ended up receiving props that had not existed for months. Fixtures must be declared
-against the package's exported types — `satisfies Article`, and the module's
-`@sveltebuilder/<module>/views` view-model types where a screen-shaped component is involved — so a
-removed prop is a type error in the fixture file rather than a silent lie.
-
-This also means the harness should be rebuilt _after_ a module settles its view types, not before.
+Fixtures are declared against each package's exported types (`satisfies Article`, and
+`ComponentProps<typeof X>` where a row type is private), so a removed or newly required prop is a
+type error in the fixture. Entity copy arrives through a dictionary passed as a prop, built per page
+the way a loader's payload is; module UI copy mirrors the seeds.
 
 ---
 
-## 4. Scope when it comes back
+## 4. What the first runs found
 
-Ordered by value per unit of effort, from the measurements in section 1.
+Every item below shipped, and nothing else in the repo could have seen it. The harness found them
+on its first server render, its first axe run, or its first keyboard walk.
 
-1. **coreui, all 65 exports.** The 33 with no coverage first. coreui is complete and stable, so its
-   fixtures will not be rewritten underneath the work. This alone justifies the harness.
-2. **A theming and a11y surface.** One page rendering the full set under `data-color-scheme="dark"`,
-   under `dir="rtl"`, and with focus-visible walked by keyboard. This is the Job 3 payoff and the
-   entry point for the WCAG 2.2 AA audit.
-3. **content, 18 components.** Only after its route code is bundled out of `screens/_unsorted/` and
-   it exports view-model types; doing it earlier means writing the fixtures twice.
-4. **logistic, 9 components.** Listed as outstanding in `docs/DEFERRED.md`. Cheapest of the three —
-   6 of 9 already appear in shipped screen bundles, so only 3 are dark.
+**Every scaffold.**
 
-Explicitly out of scope: reproducing the scaffold's `(admin)` CRUD routes. The base template
-exercises `LocaleEdit`, `LocalTextEdit` and `LocalTextLinkEdit` against a real database, and
-`scaffold:check` type-checks them. Three of the old showcase routes existed only because that was
-not yet true.
+- Pages declared their language as the literal `%sveltekit.lang%`, which is not a placeholder
+  SvelteKit fills. Both templates' hooks now fill it (WCAG 3.1.1, level A).
+
+**coreui.**
+
+- The built-in triggers of `Dialog`, `Menu`, `Popover` and `Tooltip` were `display: contents`, which
+  takes a button out of the focus order, so none of those overlays opened from the keyboard (2.1.1,
+  level A).
+- A `Select` in a `Field` was never associated with the Field's label. It is now a select-only
+  combobox with a full name, description and `aria-controls`.
+- 862 color-contrast failures came from a handful of token derivations. `-text` and `-fg` tokens
+  now hold AA for any base color, links and focus rings use them, and the scaffold's light
+  `#45b1e8` brand produces readable text without a palette change. See
+  `docs/coreui-theming.md`.
+- `data-color-scheme="light"` did nothing on a dark system.
+- `Button`'s text picked up the form `Label`'s color through a shared `.label` class.
+- `ToastRegion` and `BlockEditor` used ARIA attributes their roles do not permit.
+- bits-ui 2.18.1 rendered `Menu` content without the id its trigger's `aria-controls` named, so the
+  peer floor is now 2.19.5. A `MenuLabel` outside a group throws and empties the whole menu; that is
+  now documented on the component.
+
+**content and logistic.**
+
+- Twelve slugs `NewsletterSignup` and `ArticleWorkflowPanel` render were never seeded. The
+  screen-bundle suite now checks every module-scoped slug a module's components ask for.
+- `PickTaskCard`, like `SectionFront` and `AuthorProfileView` before it, did not forward its
+  dictionary to a child, so scoped copy rendered `[missing:]`.
+- Raw `--brand`, `--danger` and `--success` as text colors, and opacity dimming on readable
+  content, failed contrast in both modules.
 
 ---
 
-## 5. Open questions
+## 5. What it still does not cover
 
-- **Is a SvelteKit app the right container at all?** Job 2 and Job 3 want a component gallery;
-  Job 1 wants a dev server with the repo's packages wired to source. A vitest +
-  `@testing-library/svelte` suite per package would cover Job 2's regression value more cheaply and
-  more precisely, and is already an open issue for both logistic and content. It would not cover Job
-  1 or Job 3. The honest answer is probably both — tests for assertions, a harness for eyes — but
-  the harness gets smaller if the tests exist, so the ordering matters.
-- **Does the generated-chrome shape fight `turbo`?** A gitignored, generated `apps/dev-kitchen/` has
-  no stable `package.json` for the workspace to discover until after the first sync, which affects
-  `pnpm install` and the task graph. Needs a concrete answer before committing to shape one.
-- **Which template flavour does the harness scaffold from?** SuperPrototype is the only active one,
-  so that is the default. But a harness pinned to SuperPrototype inherits a Supabase dependency for
-  booting, which cuts against Requirement 3's "runs off fixtures." Possibly the harness overlays
-  only the base template plus stub locals.
-- **Does `pnpm scaffold:check` already cover enough?** It type-checks real projects and would catch
-  a broken screen. It will never render a component, never exercise a variant no screen uses, and
-  never tell you a focus ring is invisible. That is the gap the harness fills; it is worth
-  re-measuring the numbers in section 1 before paying for it again, because if the template tree
-  grows to reference most of coreui, the gap narrows on its own.
+- **The human half of the WCAG 2.2 AA audit.** axe and the focus walk find contrast, names, roles,
+  ARIA misuse, target size and invisible focus. Screen-reader flow, reading order, whether an
+  announcement makes sense, and zoom to 400% are still unreviewed, so the Known Open Issue in
+  `CLAUDE.md` stays open.
+- **Right-to-left beyond what axe can see.** Every page renders under `dir="rtl"` and passes, but
+  `components.css` still has 15 physical `left`/`right` declarations against 5 logical ones. Mirroring
+  is a visual review.
+- **Chromium only.** The audit runs one browser.
+- **The `.label` collision elsewhere.** Seven more coreui components (`Checkbox`, `RadioItem`,
+  `Switch`, `Tag`, `MetricCard`, `TimelineItem`, `BarcodeInput`) use an internal `class="label"` and
+  so inherit the form `Label`'s rules. None fails today; `Button`'s did.
+- **Overlays inside module components**, such as `ArticleWorkflowPanel`'s drawer, are rendered
+  closed; only coreui's own overlays are audited open.
+- **Loaders and SQL.** The harness renders fixtures; screens against a database remain
+  `scaffold:check`'s and `sql:check`'s job. Neither gate subsumes the other.
 
 ---
 
 ## 6. Removal record
 
-The 82 tracked files of `apps/dev-kitchen` were removed in commit 4988ae6, together with the
-`--filter='!./apps/*'` exemption that `.github/workflows/test.yml`, `scaffold-check.yml` and
-`sql-check.yml` each carried. Recover any file from it with
-`git show 4988ae6^:apps/dev-kitchen/<path>`; the 33 coreui showcase routes in particular are a
-reasonable starting point for the rebuild, once their imports are migrated to
-`diglossia/svelte` and `createMessageBus`.
+The 82 tracked files of the first `apps/dev-kitchen` were removed in commit 4988ae6, together with
+the `--filter='!./apps/*'` exemption that `.github/workflows/test.yml`, `scaffold-check.yml` and
+`sql-check.yml` each carried. Any file from it can be recovered with
+`git show 4988ae6^:apps/dev-kitchen/<path>`. The rebuild did not reuse its routes; their variants
+were a reference, but their chrome and fixtures were the parts that failed.

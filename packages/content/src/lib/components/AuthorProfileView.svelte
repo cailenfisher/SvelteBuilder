@@ -76,6 +76,8 @@
             blocks={article.blocks}
             {storageBaseUrl}
             {locale}
+            status={article.status}
+            {dictionary}
             sections={article.sections ?? []}
             variant="river"
           />
@@ -140,7 +142,7 @@
   .author-profile-view__expertise {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--brand);
+    color: var(--brand-text);
     font-weight: var(--weight-medium);
   }
 

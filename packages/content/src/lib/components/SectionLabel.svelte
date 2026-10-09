@@ -36,7 +36,7 @@
     font-weight: var(--weight-semibold);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--brand);
+    color: var(--brand-text);
     text-decoration: none;
   }
 

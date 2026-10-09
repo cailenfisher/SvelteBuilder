@@ -53,6 +53,8 @@
             blocks={slot.article.blocks}
             {storageBaseUrl}
             {locale}
+            status={slot.article.status}
+            {dictionary}
             sections={slot.article.sections ?? []}
             variant="lead"
           />
@@ -71,6 +73,8 @@
             blocks={slot.article.blocks}
             {storageBaseUrl}
             {locale}
+            status={slot.article.status}
+            {dictionary}
             sections={slot.article.sections ?? []}
             variant="secondary"
           />
@@ -89,6 +93,8 @@
             blocks={slot.article.blocks}
             {storageBaseUrl}
             {locale}
+            status={slot.article.status}
+            {dictionary}
             sections={slot.article.sections ?? []}
             variant="river"
           />
@@ -107,6 +113,8 @@
             blocks={slot.article.blocks}
             {storageBaseUrl}
             {locale}
+            status={slot.article.status}
+            {dictionary}
             sections={slot.article.sections ?? []}
             variant="brief"
           />

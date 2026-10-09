@@ -29,6 +29,16 @@
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
+  // Only these carry their own text; asking the dictionary for an image's or an embed's
+  // text logged a missing key for every media block in the article.
+  const TEXT_BLOCK_TYPES = new Set<ArticleBlock['blockType']>([
+    'paragraph',
+    'heading',
+    'pullquote',
+    'gallery',
+    'live_update',
+  ]);
+
   /** Map ArticleBlock (server) → EditorBlock (coreui). */
   function toEditorBlocks(serverBlocks: ArticleBlock[]): EditorBlock[] {
     return serverBlocks
@@ -36,9 +46,11 @@
       .sort((a, b) => a.position - b.position)
       .map((b) => ({
         id: String(b.id),
-        type: b.blockType as EditorBlock['type'],
-        text: dictionary.localText('text', 'article_block', b.id),
+        blockType: b.blockType,
+        position: b.position,
+        text: TEXT_BLOCK_TYPES.has(b.blockType) ? dictionary.localText('text', 'article_block', b.id) : '',
         content: b.content as EditorBlock['content'],
+        mediaAssetId: b.mediaAssetId,
       }));
   }
 
@@ -55,7 +67,7 @@
 </script>
 
 <div class="block-editor-host">
-  <BlockEditor blocks={editorBlocks} onChange={handleChange} />
+  <BlockEditor blocks={editorBlocks} onBlocksChange={handleChange} />
 </div>
 
 <style>

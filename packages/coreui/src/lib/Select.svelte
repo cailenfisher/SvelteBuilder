@@ -47,8 +47,25 @@
   const items = $derived(Object.values(itemRecords));
 
   const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
+
   const resolvedError = $derived(error ?? field?.error);
   const hasError = $derived(!!resolvedError);
+
+  // The trigger is a select-only combobox (role="combobox" on the button, the ARIA APG
+  // pattern): Bits UI sets aria-activedescendant on it while open, which a plain button may
+  // not carry. A combobox takes no name from its contents, so it is named explicitly: inside
+  // a Field by that Field's label plus the current value ("Carrier, Express"), with the
+  // trigger taking the Field's id so the <label for> points at it; outside one, by the value.
+  const ownId = $props.id();
+  const valueId = $derived(`${field?.id ?? ownId}-value`);
+  // ARIA 1.2 requires an expanded combobox to name its popup; Bits UI does not set it here.
+  const listboxId = $derived(`${field?.id ?? ownId}-listbox`);
+  const labelledBy = $derived(field ? `${field.labelId} ${valueId}` : valueId);
+  const describedBy = $derived.by(() => {
+    if (!field) return undefined;
+    if (hasError) return field.errorId;
+    return field.hint ? field.hintId : undefined;
+  });
 
   const triggerClasses = $derived(
     ['select-trigger', size, hasError ? 'error' : ''].filter(Boolean).join(' ')
@@ -65,8 +82,16 @@
   <SelectItemCollector {registry}>{@render children()}</SelectItemCollector>
 
   <Select.Root type="single" bind:value {name} {items} disabled={resolvedDisabled}>
-    <Select.Trigger class={triggerClasses} aria-invalid={hasError || undefined}>
-      <Select.Value placeholder={placeholder} class="select-value" />
+    <Select.Trigger
+      class={triggerClasses}
+      role="combobox"
+      id={field?.id}
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy}
+      aria-controls={listboxId}
+      aria-invalid={hasError || undefined}
+    >
+      <Select.Value placeholder={placeholder} class="select-value" id={valueId} />
       <span class="chevron" aria-hidden="true">
         <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
           <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -75,7 +100,13 @@
     </Select.Trigger>
 
     <Select.Portal>
-      <Select.Content class="select-content" sideOffset={4}>
+      <!-- The listbox is a separate widget once open and needs its own name. -->
+      <Select.Content
+        id={listboxId}
+        class="select-content"
+        sideOffset={4}
+        aria-labelledby={field?.labelId}
+      >
         <Select.ScrollUpButton class="select-scroll-btn up">
           <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden="true">
             <path d="M4 10l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>

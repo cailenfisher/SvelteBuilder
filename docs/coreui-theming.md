@@ -7,8 +7,9 @@ actually configure. One brand color, one neutral, four status colors, two font s
 size and line height, and a corner radius. That's it.
 
 Everything else (surfaces, borders, text shades, hover and active states, tinted backgrounds,
-dark mode) is derived from those with `color-mix()` inside coreui. Change one public token and
-every component that depends on it follows. No build step, no config file, no plugin.
+dark mode) is derived from those inside coreui, with `color-mix()` and CSS relative color syntax.
+Change one public token and every component that depends on it follows. No build step, no
+config file, no plugin.
 
 ---
 
@@ -71,17 +72,32 @@ public theming surface.
 Each status color gets `-soft` (tinted background), `-text`, `-border`, `-hover` and `-fg`
 (foreground on a solid fill) variants derived for it automatically.
 
-> **Note:** The default values are chosen for WCAG AA contrast, though no automated check runs
-> yet. If you override brand or status colors, you are responsible for checking contrast: at minimum white text on `--brand`, `--brand` as
-> link text on the page background, and each status color as text.
+Text derived from a color is built to stay readable whatever that color is, so overriding one does
+not cost you contrast:
+
+- **`-text`** (and `--link-text`) is the color's hue at a fixed OKLCH lightness, 0.48 in light
+  mode and 0.80 in dark. It reads at 5:1 or better on the page background and on its own `-soft`.
+- **`-fg`** is black or white, whichever contrasts more with the solid color, chosen from its WCAG
+  luminance in CSS. The worse case of the two is 4.58:1, so it never drops below AA.
+- **Focus rings** use `--brand-text`, which clears the 3:1 an indicator needs even when `--brand`
+  itself is light.
+
+What is still yours to check after overriding: the solid colors themselves as non-text (a
+`--brand` button fill or a status border against the page needs 3:1 to be distinguishable, WCAG
+1.4.11), and anything you style with the raw tokens rather than their `-text` and `-fg` variants.
+
+Every coreui component is audited by axe-core in light, dark and right-to-left on each pull
+request (the Accessibility workflow over `apps/dev-kitchen`), using the scaffold's default
+palette. That is the automated half of a WCAG 2.2 AA review, not all of it.
 
 ---
 
 ## Dark Mode
 
 Dark mode follows `prefers-color-scheme` with no configuration. In dark mode, surfaces, borders
-and text switch to a fixed slate palette, and `--brand` and the status colors are re-tinted for
-dark backgrounds. `--chrome` has no effect in dark mode.
+and primary text switch to a fixed slate palette, and the `-text` and `-soft` variants of
+`--brand` and the status colors are re-derived for dark backgrounds. `--chrome` contributes only
+the hue of secondary text (`--text-soft`, `--text-muted`) in dark mode.
 
 To force a scheme, set `data-color-scheme` on `<html>` (or any ancestor):
 

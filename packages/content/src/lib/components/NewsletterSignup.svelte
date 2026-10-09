@@ -71,7 +71,7 @@
         </p>
       {/if}
 
-      <Button type="submit" label={submitLabel} variant="primary" />
+      <Button type="submit" variant="primary">{submitLabel}</Button>
     </form>
   {/if}
 </div>
@@ -116,7 +116,7 @@
   .newsletter-signup__success {
     margin: 0;
     font-size: var(--text-base);
-    color: var(--success);
+    color: var(--success-text);
     font-weight: var(--weight-medium);
     text-align: center;
     padding: var(--space-4);
@@ -125,6 +125,6 @@
   .newsletter-signup__error {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--danger);
+    color: var(--danger-text);
   }
 </style>

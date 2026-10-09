@@ -436,6 +436,65 @@ from (values
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
 
+-- Copy the module's own components ask for: the editorial workflow panel's transitions and
+-- the newsletter signup form. No screen renders either yet, which is how these went unseeded;
+-- tools/create/test/screen-bundle.test.ts now checks every module-scoped slug a component
+-- asks for, not only the ones a screen does.
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('action.submit_for_review',        'content', null),
+  ('action.approve',                  'content', null),
+  ('action.send_back',                'content', null),
+  ('action.publish',                  'content', null),
+  ('action.unpublish',                'content', null),
+  ('newsletter.signup_heading',       'content', null),
+  ('newsletter.signup_description',   'content', null),
+  ('newsletter.email_label',          'content', null),
+  ('newsletter.email_placeholder',    'content', null),
+  ('newsletter.submit_label',         'content', null),
+  ('newsletter.success_message',      'content', null),
+  ('newsletter.error_message',        'content', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('action.submit_for_review',        'Submit for review'),
+  ('action.approve',                  'Approve'),
+  ('action.send_back',                'Send back to draft'),
+  ('action.publish',                  'Publish'),
+  ('action.unpublish',                'Unpublish'),
+  ('newsletter.signup_heading',       'Get the newsletter'),
+  ('newsletter.signup_description',   'The day''s most important stories, in your inbox.'),
+  ('newsletter.email_label',          'Email address'),
+  ('newsletter.email_placeholder',    'you@example.com'),
+  ('newsletter.submit_label',         'Subscribe'),
+  ('newsletter.success_message',      'Check your inbox to confirm your subscription.'),
+  ('newsletter.error_message',        'We could not subscribe that address. Please try again.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('action.submit_for_review',        'Soumettre pour relecture'),
+  ('action.approve',                  'Approuver'),
+  ('action.send_back',                'Renvoyer en brouillon'),
+  ('action.publish',                  'Publier'),
+  ('action.unpublish',                'Dépublier'),
+  ('newsletter.signup_heading',       'Recevoir l''infolettre'),
+  ('newsletter.signup_description',   'L''essentiel de l''actualité du jour, dans votre boîte de réception.'),
+  ('newsletter.email_label',          'Adresse courriel'),
+  ('newsletter.email_placeholder',    'vous@exemple.com'),
+  ('newsletter.submit_label',         'S''abonner'),
+  ('newsletter.success_message',      'Consultez votre boîte de réception pour confirmer votre abonnement.'),
+  ('newsletter.error_message',        'Nous n''avons pas pu abonner cette adresse. Veuillez réessayer.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
 -- ──────────────────────────────────────────────────────────────────────────────
 -- Screen copy — section bundle
 -- ──────────────────────────────────────────────────────────────────────────────

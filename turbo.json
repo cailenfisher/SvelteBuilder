@@ -13,6 +13,10 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "check": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "format": {
       "cache": false,
       "outputs": []

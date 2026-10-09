@@ -53,7 +53,7 @@
 
   .live-update-item--pinned {
     border-inline-start-color: var(--brand);
-    background: color-mix(in srgb, var(--brand), white 95%);
+    background: var(--brand-soft);
     border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
   }
 

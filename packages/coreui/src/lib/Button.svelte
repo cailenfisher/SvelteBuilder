@@ -9,6 +9,8 @@
     variant?: Variant;
     size?: Size;
     loading?: boolean;
+    /** On a link, renders `aria-disabled` and removes it from the tab order. */
+    disabled?: boolean | null;
     full?: boolean;
     children: Snippet;
     leading?: Snippet;
@@ -55,7 +57,7 @@
     {:else if leading}
       <span class="leading" aria-hidden="true">{@render leading()}</span>
     {/if}
-    <span class="label">{@render children()}</span>
+    <span class="text">{@render children()}</span>
     {#if !loading && trailing}
       <span class="trailing" aria-hidden="true">{@render trailing()}</span>
     {/if}
@@ -73,7 +75,7 @@
     {:else if leading}
       <span class="leading" aria-hidden="true">{@render leading()}</span>
     {/if}
-    <span class="label">{@render children()}</span>
+    <span class="text">{@render children()}</span>
     {#if !loading && trailing}
       <span class="trailing" aria-hidden="true">{@render trailing()}</span>
     {/if}

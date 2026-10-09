@@ -2,6 +2,8 @@ import { getContext } from 'svelte';
 
 type FieldContext = {
   readonly id: string;
+  /** The Field's <label>. For controls a `for` attribute cannot name, such as a button trigger. */
+  readonly labelId: string;
   readonly error: string | undefined;
   readonly hint: string | undefined;
   readonly hintId: string;

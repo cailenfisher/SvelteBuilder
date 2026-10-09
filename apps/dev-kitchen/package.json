@@ -1,0 +1,35 @@
+{
+  "name": "dev-kitchen",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node sync-chrome.mjs",
+    "dev": "node sync-chrome.mjs && vite dev",
+    "build": "node sync-chrome.mjs && vite build",
+    "preview": "vite preview",
+    "lint": "node sync-chrome.mjs && svelte-kit sync && eslint src",
+    "check": "node sync-chrome.mjs && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "test:a11y": "playwright test"
+  },
+  "dependencies": {
+    "@sveltebuilder/content": "workspace:*",
+    "@sveltebuilder/coreui": "workspace:*",
+    "@sveltebuilder/local-text-schema": "workspace:*",
+    "@sveltebuilder/logistic": "workspace:*",
+    "bits-ui": "^2.19.5",
+    "diglossia": "^0.2.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.64.0",
+    "@sveltejs/adapter-auto": "^7.0.1",
+    "@sveltejs/kit": "^2.70.3",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/node": "^22.20.4",
+    "svelte": "^5.57.1",
+    "svelte-check": "^4.7.6",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.1"
+  }
+}

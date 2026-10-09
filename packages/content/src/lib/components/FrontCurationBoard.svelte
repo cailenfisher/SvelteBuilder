@@ -90,7 +90,7 @@
             <span class="front-curation-board__headline">
               {slot.article?.headline ?? '—'}
             </span>
-            <Badge variant="neutral" size="sm">
+            <Badge variant="default" size="sm">
               {VARIANT_LABEL[slot.layoutVariant] ?? slot.layoutVariant}
             </Badge>
           </div>
@@ -238,6 +238,6 @@
   }
 
   .front-curation-board__remove:hover {
-    color: var(--danger);
+    color: var(--danger-text);
   }
 </style>
