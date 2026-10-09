@@ -230,6 +230,36 @@ Standing rules:
 
 ---
 
+## Changesets: a coreui minor forces a major on every module (open, 2026-10-08)
+
+`@sveltebuilder/content` and `@sveltebuilder/logistic` declare coreui as a peer dependency with
+`workspace:^`, which publishes as a caret range such as `^0.2.2`. On a 0.x version a caret range
+excludes the next minor, so any **minor** coreui changeset means the range must widen to `^0.3.0`,
+and Changesets treats a changed peer range as breaking for the dependent: both modules are bumped a
+**major**, whatever their own changesets say. Their release notes then show a major whose only
+entry is "Updated dependencies".
+
+It has happened twice. Content and logistic went 0.x → 1.0.0 on 2026-10-05 this way (content's
+1.0.0 changelog entry is nothing but the coreui@0.2.0 dependency update), and the 2026-10-07
+accessibility work would have taken both to 2.0.0 had it shipped as a coreui minor.
+
+**Interim rule: write coreui changesets as `patch` wherever that is defensible.** That keeps a
+coreui release inside the modules' existing caret range, so nothing cascades. Use `minor` only for
+a genuinely breaking coreui change, and decide then, deliberately, that the modules take a major
+with it. `pnpm changeset status --verbose` shows the computed plan before anything merges; check it
+whenever a changeset touches coreui.
+
+**The underlying fix is still to do.** Either coreui reaches 1.0, so caret ranges cover its minors,
+or the modules' peer range is widened explicitly (for example `>=0.2.0 <1.0.0`), trading away
+protection against a real breaking coreui release. Not decided; coreui 1.0 is the preferred
+direction once it is ready.
+
+Private workspace apps (`apps/dev-kitchen`, `apps/docs`) are no longer versioned: `.changeset/config.json`
+sets `privatePackages.version` to false, since internal dependency updates were giving a never-published
+app a version and a changelog.
+
+---
+
 ## Pending manual steps
 
 **Migrate the Supabase project to asymmetric JWT signing keys.** `getClaims()` only verifies

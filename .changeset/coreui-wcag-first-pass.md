@@ -1,5 +1,5 @@
 ---
-'@sveltebuilder/coreui': minor
+'@sveltebuilder/coreui': patch
 ---
 
 Fix the WCAG 2.2 A and AA failures the first automated audit of every component found. Several of them changed what keyboard and screen-reader users could do at all.
