@@ -1,5 +1,18 @@
 # create-sveltebuilder
 
+## 0.1.4
+
+### Patch Changes
+
+- [#34](https://github.com/cailenfisher/SvelteBuilder/pull/34) [`06a3f67`](https://github.com/cailenfisher/SvelteBuilder/commit/06a3f67601354f2cd98bb1557ee2a114eedc00e6) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Fix what rendering every content component for the first time found.
+  - **Missing copy.** `NewsletterSignup` and `ArticleWorkflowPanel` ask for twelve module-scoped slugs (`newsletter.*`, `action.*`) that the content seed never created, so both rendered `[missing: …]` for every label and button. The seed now provides them in English and French. The screen-bundle suite now checks every module-scoped slug a module's components render, not only the ones its screens do.
+  - **Contrast.** `SectionLabel`, `AuthorProfileView`, `LiveCoverageView`, `NewsletterSignup`, `FrontCurationBoard` and `ArticleWorkflowPanel` used raw `--brand`, `--danger` and `--success` as text colors; they use the `-text` variants now. A pinned `LiveUpdateItem` mixed its background with white, which in dark mode put light text on a near-white panel; it uses `--brand-soft`.
+  - **`BlockEditorHost`** no longer asks the dictionary for the text of image, video and embed blocks, which logged a missing key for every media block in an article.
+
+- [#34](https://github.com/cailenfisher/SvelteBuilder/pull/34) [`29badab`](https://github.com/cailenfisher/SvelteBuilder/commit/29badabfb76c89e54b315f6df7cd5e3dfbe9d73f) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Scaffolded apps now declare their page language. `app.html` has always carried `<html lang="%sveltekit.lang%">`, but that is not a placeholder SvelteKit fills on its own, and no hook replaced it, so every page shipped the literal string as its language (a WCAG 3.1.1 failure). Both templates' `hooks.server.ts` now fill it with the resolved locale code through `transformPageChunk`. In the base template the code comes from a cookie or header, so it is only used when shaped like a language tag.
+
+  The root layout also no longer raises svelte's `state_referenced_locally` warning in `pnpm check`. Capturing the first `data.dictionary` is intended, since a locale switch is a full page load.
+
 ## 0.1.3
 
 ### Patch Changes
