@@ -2,6 +2,8 @@
 
 The approved name list for [`CONFORMANCE-PLAN.md`](./CONFORMANCE-PLAN.md). Every rename in Phases 3–11 comes from this file. A name not listed here is added as **pending** and approved before its phase closes.
 
+**Approved 2026-10-13**: every `proposed` entry, every recommendation in the decisions section, and the resolutions recorded in the pending rows below.
+
 Inventoried 2026-10-13 against `main` at `63d8dcd`.
 
 **Status:** `proposed` means verified against the code and ready to approve. `pending` means the right name is a judgment call and needs your answer. `decision` means it waits on an entry in the decisions section at the end.
@@ -22,8 +24,8 @@ Inventoried 2026-10-13 against `main` at `63d8dcd`.
 | route `/warehouse/pick[/[id]]` | `/warehouse/pick-task[/[id]]` | route, manifest, links | decision D3 |
 | route `/warehouse/receive[/[id]]` | `/warehouse/inbound-receipt[/[id]]` | route, manifest, links | decision D3 |
 | route `/warehouse/count[/[id]]` | `/warehouse/cycle-count[/[id]]` | route, manifest, links | decision D3 |
-| form action `addLine`, `receiveLine` (inbound receipt) | `addInboundReceiptLine`, `receiveInboundReceiptLine` | route, manifest | pending: a form action is local to its page, so the short form may be acceptable; same question for every bundle's actions |
-| form field `line_id` | `inbound_receipt_line_id` | route, manifest | pending, with the row above |
+| form action `addLine`, `receiveLine` (inbound receipt) | `addInboundReceiptLine`, `receiveInboundReceiptLine` | route, manifest | approved; the same rule applies to every bundle's actions and fields in Phase 8 |
+| form field `line_id` | `inbound_receipt_line_id` | route, manifest | approved |
 
 Screens `supplier`, `shipment`, `cycle-count`, `warehouse` and `dashboard` already conform.
 
@@ -85,7 +87,7 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | `logistic.field.location`, `logistic.field.location_type` | `logistic.field.storage_location`, `logistic.field.storage_location_type` | proposed |
 | `logistic.admin.dashboard.title` | `logistic.dashboard.title` (one prefix for the dashboard) | proposed |
 | `logistic.dashboard.pending_receipts`, `open_picks`, `open_returns` | `pending_inbound_receipt`, `open_pick_task`, `open_return_authorization` | proposed |
-| `logistic.admin.nav.*` (8) | seeded, never rendered: no `navigation_item` row uses them, and `storage_location` has no screen | pending: delete, or seed the nav rows |
+| `logistic.admin.nav.*` (8) | seeded, never rendered: no `navigation_item` row uses them, and `storage_location` has no screen | approved: delete them. Seeds are per module but screens are per bundle, so seeded nav rows would dead-link. Recorded in `DEFERRED.md` |
 | English labels "Receiving", "Returns", "Stock", "Locations" | "Inbound receipts", "Return authorizations", "Stock levels", "Storage locations" (and French equivalents) | decision D13 |
 
 ### dev-kitchen
@@ -141,11 +143,11 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | `SectionPageView` | `SectionDetailView` | proposed |
 | `PreviewPageView` | `ArticlePreviewDetailView` | decision D4 |
 | `AdminArticleListView`, `AdminArticleDetailView` | `ArticleAdminListView`, `ArticleAdminDetailView` | proposed |
-| `ChecklistEntry` | `ArticleChecklistEntry` | pending |
+| `ChecklistEntry` | `ArticleChecklistEntry` | approved |
 | `ParagraphBlockContent`, `HeadingBlockContent`, `ImageBlockContent`, `GalleryBlockContent`, `VideoBlockContent`, `EmbedBlockContent`, `PullquoteBlockContent`, `LiveUpdateBlockContent` | `ArticleBlockParagraphContent`, … (parent `ArticleBlock` first) | proposed |
 | `MediaType` / enum `media_type` | `MediaAssetType` / `media_asset_type` | proposed |
 | `MediaLicense` / enum `media_license` | `MediaAssetLicense` / `media_asset_license` | proposed |
-| `MediaAssetRights` / table `media_asset_rights` | `MediaAssetRight` / `media_asset_right`, or keep "rights" as a mass noun | pending |
+| `MediaAssetRights` / table `media_asset_rights` | keep; "rights" is a mass noun (one row is a rights record). Document the exception at the table definition. | approved (keep) |
 | `ScreenCopy`, `ScreenLocale`, `ScreenStorage`, `ScreenAttribution`, `ScreenPage`, `ScreenFormResult` | see D16 | decision D16 |
 
 ### Schema
@@ -157,7 +159,7 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | `media_asset.uploaded_by` (FK to `user_account`) | `user_account_id` (FK rule: `<table>_id`) | proposed |
 | `article.allow_comment` | `comment_allowed` (booleans read as states) | proposed |
 | `ordinal` (`article_status`, `publish_checklist_item`, `section`) and `position` (`article_block`, `article_byline`, `front_slot`, `live_update`) | see D12 | decision D12 |
-| `subscriber.locale` (text, no FK) | keep for now; record as drift (should reference `locale.id`) | pending |
+| `subscriber.locale` (text, no FK) | `subscriber.locale_id` → `locale.id`, FK added in supplemental SQL like content's `user_account` refs. `content_subscribe()` keeps its text `p_locale` parameter and resolves the code itself, falling back to `en`. `SubscriberList` shows the locale code via a join. Existing rows convert by code in the migration. Phase 5. | approved |
 | table `publish_checklist_item` | see D15 | decision D15 |
 
 ### Copy slugs
@@ -178,7 +180,7 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | `/dev/content/section-front` | `/dev/content/front-detail` | proposed |
 | `/dev/content/workflow` | `/dev/content/article-workflow` | proposed |
 | `/dev/content/newsletter` | keep (shows `NewsletterSubscriptionForm` and `SubscriberList`) | proposed (keep) |
-| `/dev/content/taxonomy` | `/dev/content/topic` and `/dev/content/section`, or keep as a grouping page | pending |
+| `/dev/content/taxonomy` | `/dev/content/topic` and `/dev/content/section` | approved |
 | new | `/dev/content/article-block-editor` (from `/dev/coreui/block-editor`) | proposed |
 
 ---
@@ -194,8 +196,8 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit` | moved to the base template as `LocaleForm`, `LocalTextForm`, `LocalTextLinkForm` | proposed (A-2) |
 | `LocaleSwitcher` | `LocalePicker` | proposed |
 | `StatusBadge` | removed | proposed (A-3) |
-| `BlockEditor`, type `EditorBlock` | moved to content as `ArticleBlockEditor`; type `ArticleBlockDraft` | pending (type name) |
-| `MessageAriaLive` | `MessageLiveRegion`. It is the message system's polite/assertive live region; "aria" names a technology, not the concept. | pending |
+| `BlockEditor`, type `EditorBlock` | moved to content as `ArticleBlockEditor`; type `ArticleBlockDraft` | approved |
+| `MessageAriaLive` | `MessageLiveRegion`. It is the message system's polite/assertive live region; "aria" names a technology, not the concept. | approved |
 | `SelectItemCollector` (internal, not exported) | keep | proposed (keep) |
 | `SBMessage`, `SBMessageAction`, `SBMessageSeverity` | `Message`, `MessageAction`, `MessageSeverity` | proposed |
 | `DEFAULT_MESSAGE_LABELS` | no longer exported | proposed (A-1) |
@@ -265,7 +267,7 @@ Roots of exported sub-components stay as they are: `.accordion-item`, `.menu-ite
 | `/dev/coreui/progress` | `/dev/coreui/progress-bar` | proposed |
 | `/dev/coreui/locale` | `/dev/coreui/locale-picker`; the editors leave with B2 | proposed |
 | `/dev/coreui/block-editor` | moves to content | proposed |
-| `/dev/coreui/choice` | `/dev/coreui/checkbox`, `/dev/coreui/radio-group`, `/dev/coreui/switch`, or keep as a grouping page | pending |
+| `/dev/coreui/choice` | `/dev/coreui/checkbox`, `/dev/coreui/radio-group`, `/dev/coreui/switch` | approved |
 
 ---
 
@@ -273,7 +275,7 @@ Roots of exported sub-components stay as they are: `.accordion-item`, `.menu-ite
 
 | Old | New | Status |
 | --- | --- | --- |
-| `navigation_item.scope` | `navigation_item.menu` (already flagged in CLAUDE.md as colliding with the i18n scope) | pending |
+| `navigation_item.scope` | `navigation_item.menu` (already flagged in CLAUDE.md as colliding with the i18n scope) | approved |
 | table `navigation_item` | see D15 | decision D15 |
 | `src/lib/server/scoped-copy.ts`, `hooks.server.ts` call `.from(` | not route files; excluded from the Phase 9 "no `.from(` in routes" check. (content's `feed-articles.ts` is the third non-route file in the 35, and it moves into the content seam.) | proposed |
 
@@ -320,7 +322,7 @@ REST paths (`/api/locale`, `/api/local-text/...`) are already singular. Only `CL
 | A-2 | Boundary | **Agree.** `BarcodeInput`: commerce is a stub with no planned scanning screen, so **move it to logistic** now. Adding it back to coreui later is additive; removing it from coreui after 1.0 would be breaking. |
 | A-3 | Duplicates | **Agree:** remove `StatusBadge`; keep `Alert` (static page content) and `InlineNotification` (a message-system result). |
 | A-4 | Severity word | **`danger`.** Note that `MessageSeverity` also has `critical`, which `Badge`/`Alert` lack; it stays message-only. |
-| A-5 | Attribute forwarding | **Closed and explicit**; keep `useField`/`FieldContext` private unless you want custom controls supported. |
+| A-5 | Attribute forwarding | **Closed and explicit.** `useField` and `FieldContext` are **public**: `BarcodeInput` moving to logistic (A-2) is a custom control that must read `Field`'s wiring. F3 ships in Phase 1. Approved as the best option today, to be revisited; see `DEFERRED.md`. |
 | A-6 | CSS contract | **Agree,** using the tables above. |
 | A-6b | Modifier form (new) | Modifiers are mixed today: `.btn.primary`, `.progress.lg`, `.toast.success` but `.drawer--left`. **Recommend BEM `--`** (`.button--primary`), which CLAUDE.md already names as the structure convention. |
 | A-7 | Callback and text conventions | **Agree.** |

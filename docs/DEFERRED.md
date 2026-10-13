@@ -67,6 +67,11 @@ and gate admin through `public.current_user_admin()`, and `pnpm sql:check` asser
 Outstanding for the package: a vitest suite (it still runs `--passWithNoTests` with no test files).
 All 9 components now render in `apps/dev-kitchen`, including the 3 no screen bundle uses.
 
+No admin navigation reaches the module's screens. The seed carried eight `logistic.admin.nav.*`
+slugs that no `navigation_item` row ever rendered; the conformance plan deletes them (2026-10-13).
+Seeding nav rows is not the fix: seeds are per module but screens are per bundle, so a row for an
+unselected bundle is a dead link. It needs the create CLI to emit nav rows per selected bundle.
+
 ---
 
 ## Content module — route port complete, and RLS written (2026-10-01)
@@ -227,6 +232,22 @@ Standing rules:
 - **Right-to-left mirroring is unreviewed.** `components.css` has 15 physical-direction
   declarations (`left`, `margin-right`, …) against 5 logical ones. axe passes under `dir="rtl"`,
   but mirroring is visual.
+
+---
+
+## `useField` as public API: revisit (open, 2026-10-13)
+
+The conformance plan makes `useField()` and `FieldContext` public coreui exports (decision A-5,
+option (a) in `docs/conformance-manifest.md`). That was forced by one case: `BarcodeInput` moves to
+logistic (A-2) and must still inherit its label, id and error from a surrounding `Field`, which
+only `useField()` provides.
+
+It is the best option for 1.0, not a settled design. Making a context hook public commits coreui to
+supporting custom form controls built outside the package, and the hook's shape becomes a 1.0
+contract. Revisit whether that is the right mechanism, for example whether `Field` should pass
+its wiring to a child through a snippet parameter instead, before a second module depends on it.
+Narrowing it after 1.0 is breaking, so the revisit has to land with a major or before anything
+other than `BarcodeInput` consumes it.
 
 ---
 
