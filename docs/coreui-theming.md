@@ -138,7 +138,13 @@ express Bits UI state through data attributes (`[data-state='open']`, `[data-hig
 }
 ```
 
-The class names for each component are in `@sveltebuilder/coreui/styles/components.css`.
+Target only the classes, modifiers, data attributes and tokens listed as public in
+[`COREUI-COMPATIBILITY.md`](./COREUI-COMPATIBILITY.md). Those are covered by semver; any other class
+in `components.css` is internal and may change in a minor release. Write each selector against one
+listed class or data attribute rather than a descendant chain, since DOM nesting is not public.
+
+coreui 1.0 renames its classes to BEM (`.btn.primary` becomes `.button--primary`, `.card .body`
+becomes `.card__body`). The table in `COREUI-COMPATIBILITY.md` already uses the 1.0 names.
 
 Reading a derived token such as `var(--brand-soft)` or `var(--text-soft)` in your own rules is
 fine. **Assigning** one is not supported (see below).

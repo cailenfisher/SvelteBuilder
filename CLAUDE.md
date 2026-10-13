@@ -138,6 +138,25 @@ bundle share goes in an ordinary module beside them in the routes tree (SvelteKi
 `+layout`, `+server` and `+error` as special), not in `$lib`, which a scaffold without that module
 would also receive.
 
+**Data access goes through one data module per concept.** A module's template directory carries a
+module-level `server.<flavour>/` overlay, which the create CLI copies to `src/lib/server/<module>/`
+whenever the module is selected, with or without any of its screens. It holds one file per concept
+(`inbound-receipt.ts` exporting `listInboundReceipt`, `getInboundReceipt`, `addInboundReceiptLine`,
+…). Each function takes the request's `supabase` client as its first argument, so every query still
+runs through `event.locals.supabase` (guardrail 8) with RLS applied, and handles its own errors.
+Route files call these functions and never `.from(` directly. Helpers every module needs, such as
+`toOne`, live once in the flavour's own `src/lib/server/`.
+
+**Where a screen's extracted components go.** A sub-block of a screen that names a concept becomes
+its own component. If it is presentational (props in, markup out), it goes in the module package's
+concept folder, with a dev-kitchen showcase. If it is bound to its route (posts to that page's form
+actions, or builds that route's hrefs), it stays in the bundle, beside the `+page.svelte` that uses
+it.
+
+**Shared screen-contract types are declared once.** `ScreenCopy`, `ScreenLocale`, `ScreenPage` and
+`ScreenFormResult` are type-only exports of `@sveltebuilder/coreui`, and every module's `views.ts`
+imports them. A module declares only the screen types particular to it.
+
 Package manager: **pnpm**. Task orchestration: **Turborepo**. Publishing: **Changesets**.
 
 The i18n primitives package (`diglossia`, formerly `@sveltebuilder/hermes`) has been extracted to
@@ -321,7 +340,7 @@ Full reference: https://github.com/cailenfisher/SvelteBuilder/wiki/Naming-Conven
 | SQL boolean                | state name, no `is_`/`has_` prefix                   | `active`, `email_verified`      |
 | SQL timestamp              | `_at` suffix                                         | `created_at`, `published_at`    |
 | SQL index/constraint       | prefixed, descriptive                                | `idx_user_account_email`        |
-| REST path                  | plural `kebab-case` (only plural exception)          | `/user-accounts`                |
+| REST path                  | singular `kebab-case`                                | `/user-account`                 |
 | JSON key                   | `camelCase`, singular unless collection              | `emailAddress`, `eventSessions` |
 | TS type / interface / enum | `PascalCase`, singular, no `I`/`T` prefix            | `UserAccount`, `Locale`         |
 | TS variable / function     | `camelCase`                                          | `userAccount`, `loadUser()`     |
@@ -341,6 +360,39 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
 **Acronyms** follow Google JS Style Guide — capitalize first letter only: `getHttpUrl`,
 `HtmlParser`, never `getHTTPURL`.
 
+### Concepts, roles and folders
+
+- **Never drop the parent concept**, in any layer: `inbound_receipt` is `InboundReceiptCard`,
+  `/admin/logistic/inbound-receipt`, `logistic.inbound_receipt.title`, and "Inbound receipts" in
+  the UI. Qualifiers come after the parent: `ArticleAdminListView`, screen id `article-admin`.
+- **UI labels use the full concept name** in headings, navigation and page titles. A short verb is
+  fine on a button or a worker's action menu ("Receive", "Pick"), because it names an action, not
+  the concept.
+- **Every concept gets a folder** in every component library and app: `Article/ArticleCard.svelte`,
+  `Article/ArticleBlock/ArticleBlockRenderer.svelte`, `Menu/MenuItem.svelte`. A folder's primary
+  component shares its name. No flat component directories. Non-component modules sit beside the
+  component they serve.
+- **Role suffixes** are the global list (`Form`, `List`, `Table`, `Row`, `Card`, `Detail`,
+  `Summary`, `Drawer`, `Modal`, `Header`, `Footer`, `Search`, `Filter`, `Picker`, `Field`, `Badge`,
+  `Link`, `Empty`, `Skeleton`) plus, in this repo: `Queue`, `Board`, `Panel`, `Renderer`, `Figure`,
+  `Bar`, `Path`, `Editor`, `Region`, and `Option` (a view-model type for one `<Select>` option).
+- **`View` means a view-model type**, never a component: `InboundReceiptDetailView` is the type a
+  loader returns; the component showing one is `…Detail`.
+- **`Item`** is allowed where the domain itself uses the word (`navigation_item`,
+  `publish_checklist_item`) and for coreui primitives that are items of a parent (`MenuItem`,
+  `AccordionItem`, `SelectItem`). Never as a stand-alone generic name.
+
+### Shared vocabulary
+
+One word per idea, across every module:
+
+| Idea | Word | Not |
+| --- | --- | --- |
+| A finished lifecycle state | `completed` | `complete`, `done` |
+| A time something stops applying | `<thing>_expires_at` | `<thing>_until` |
+| Manual ordering of sibling rows | `position` | `ordinal`, `sort_order` |
+| Severity of something gone wrong | `danger` | `error` |
+
 ---
 
 ## Svelte 5 / Framework Conventions
@@ -351,9 +403,19 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
 - **Derive, don't sync.** Prefer `$derived` over an `$effect` that writes to `$state`.
   Use `$effect` only for genuine side effects (DOM mutations, subscriptions, external logging).
 - **Component communication:** callback props (`onSessionSelect`) over `createEventDispatcher`.
+- **Callback names:** `on<Event>` in camelCase (`onRemove`, `onDismiss`). Every bindable value has
+  an `on<Value>Change` callback beside it (`onCheckedChange`, `onValueChange`, `onOpenChange`), so
+  a caller can react to a change without an `$effect` watching the bound value.
+- **Text props:** a `string` where the value names something (an accessible name, a title, a
+  label, an attribute); a snippet where it is content. An overlay's opener is always a `trigger`
+  snippet.
+- **No English defaults.** Every user-facing string prop on a coreui component is required. A
+  default would ship English to screen-reader users in every other locale, and nothing would warn
+  the caller. A component with many strings takes one typed `labels` prop.
 - **Snippets** (`{#snippet}` / `{@render}`) replace slots in all new code.
 - **Data loading:** `+page.server.ts` / `+layout.server.ts` load functions. Keep components
-  presentational.
+  presentational. Loaders and actions call the concept's data module rather than building queries
+  inline (see _Screen bundles_).
 - **Mutations:** form actions in `+page.server.ts`, not ad hoc `fetch`, unless the interaction
   is genuinely client-only.
 - **Errors / redirects:** throw `error()` and `redirect()` from `@sveltejs/kit`. Never return
@@ -368,6 +430,8 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
 - `strict` is on. No implicit `any`. Use `unknown` and narrow explicitly.
 - Prefer `type` aliases for object shapes and unions. Reserve `interface` for declaration merging.
 - No non-null assertions (`!`). Narrow so the failure path is real code.
+- Single-letter parameters are fine in a one-line lambda (`rows.map((r) => r.id)`), nowhere else.
+  A screen's copy lookup is `localText`, not `t`.
 - Export types from a colocated `types.ts` (or the dominant `PascalCase.ts` module).
 - Collections: the type is singular; pluralize the variable —
   `const userAccounts: UserAccount[]`.
@@ -384,7 +448,8 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
   `hooks.server.ts`). The browser client uses the anon key.
 - `snake_case` → `camelCase` conversion happens once, at the serialization boundary. DB code
   stays `snake_case` end to end. Nothing downstream of the boundary sees `snake_case`.
-- Prefer a single typed query helper per entity over inline queries scattered across loaders.
+- One data module per concept holds that concept's queries; loaders never build queries inline
+  (see _Screen bundles_).
 
 ### Schema file layout (per module)
 
@@ -394,8 +459,24 @@ artifact — never hand-authored for a domain module.
 ```
 packages/<module>/
 └── src/lib/
-    └── schema.ts             ← Drizzle table defs, exported as `<pkg>/schema`
+    └── schema/
+        ├── index.ts          ← barrel, exported as `<pkg>/schema`
+        ├── <concept>.ts      ← one table, its pgEnums and its inferred types
+        └── <enum>.ts         ← one enum's values, with no drizzle-orm import (see below)
 ```
+
+For example, `inbound-receipt.ts` holds the `inbound_receipt` table, and
+`inbound-receipt-status.ts` exports `INBOUND_RECEIPT_STATUSES` and the `InboundReceiptStatus` type.
+An enum is a concept of its own in the layer map, so its file is named after it.
+
+Each concept's types are **inferred** from its table (`typeof inboundReceipt.$inferSelect`), never
+hand-written beside it. Composite types (`InboundReceiptWithCopy`) are intersections of inferred
+types.
+
+**Enum values are declared once**, as a plain `as const` array in the enum's own module, which does
+not import `drizzle-orm` (guardrail 8 bans runtime `drizzle-orm`, and screens need the values at runtime for
+filters and validation). The `pgEnum` and the type union are both built from that array. A second
+hand-written list of the same values is a bug.
 
 A scaffolded project registers every module's schema in `.sveltebuilder/registry/*.json`:
 
@@ -456,6 +537,11 @@ translations at minimum — both entity-bound names and UI application-level cop
 **UI copy scope.** Application-level copy within a module uses `scope = '<module-name>'` and
 `entity_id = null`. Entity-bound copy uses `scope = '<table_name>'` and
 `entity_id = <entity>.id`.
+
+**UI copy slugs.** A module's application-level slug always starts with the module name, even
+though its scope already says it: `logistic.inbound_receipt.title` in scope `logistic`. The second
+segment is the full, singular concept name (`inbound_receipt`, never `receipt` or `receipts`).
+Screens, components, manifests and seeds all use the same full slug.
 
 ---
 
@@ -636,14 +722,18 @@ background, shadow, radius, font, padding, transition).
 If you are adding a visual rule to a coreui `<style>` block, stop and put it in
 `components.css` instead.
 
-**Internal sub-elements** that have no public BEM class are namespaced under their parent in
-`components.css`:
+**Class names are BEM, and they are public API.** A component's root class is its name in kebab
+case (`.date-time-picker`). Every styled element inside it is `<root>__<part>`, and every variant,
+size or class-expressed state is `<root>--<modifier>`. Never give an internal element a bare
+generic class (`.icon`, `.body`, `.label`): bare names collide with other components' roots and
+with application CSS. The full list, and what changing it costs, is in
+`docs/COREUI-COMPATIBILITY.md`.
 
 ```css
-/* correct: parent context scopes the internal element */
-.alert .icon { … }
-.card .body  { … }
-.toast .close:hover { … }
+.alert__icon { … }
+.card__body  { … }
+.toast__close:hover { … }
+.button--primary { … }
 ```
 
 **CSS custom property bridge for inherited state.** When a Bits UI data-attribute on a parent
@@ -651,15 +741,15 @@ element needs to affect a non-Bits child element, use a CSS custom property as t
 
 ```css
 /* declare on the state-carrying parent — --_ prefix marks it private */
-.accordion-trigger {
+.accordion-item__trigger {
   --_icon-rotate: 0deg;
 }
-.accordion-trigger[data-state='open'] {
+.accordion-item__trigger[data-state='open'] {
   --_icon-rotate: 180deg;
 }
 
 /* consume via inheritance in the child */
-.accordion-trigger .chevron {
+.accordion-item__chevron {
   transform: rotate(var(--_icon-rotate, 0deg));
 }
 ```
@@ -673,13 +763,13 @@ one component's ruleset in `components.css` — name it with a `--_` prefix:
 
 ```css
 /* private: consumers must not reference this */
-.accordion-trigger {
+.accordion-item__trigger {
   --_icon-rotate: 0deg;
 }
-.accordion-trigger[data-state='open'] {
+.accordion-item__trigger[data-state='open'] {
   --_icon-rotate: 180deg;
 }
-.accordion-trigger .chevron {
+.accordion-item__chevron {
   transform: rotate(var(--_icon-rotate, 0deg));
 }
 ```
@@ -780,7 +870,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | WCAG 2.2 AA audit                         | Half done. The automated half runs in CI over every component (`apps/dev-kitchen`, Accessibility workflow), and its first run found keyboard-unreachable overlays, an unlabeled `Select` and 862 contrast failures, all fixed 2026-10-07. The human half — screen-reader flow, reading order, 400% zoom, RTL mirroring — has not been done. Required before any module is marked production-ready. See `docs/DEV-KITCHEN.md` §5.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `apps/docs`                               | Placeholder only — no content, no structure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Changesets peer cascade                   | A **minor** coreui changeset bumps `content` and `logistic` a **major**: their `workspace:^` peer on 0.x coreui excludes the next minor, and Changesets treats widening a peer range as breaking. Until fixed (coreui 1.0, or wider peer ranges), write coreui changesets as `patch` wherever defensible and check `pnpm changeset status --verbose` before merging. See `docs/DEFERRED.md`. |
-| `navigation_item.scope` naming collision  | SuperPrototype's `navigation_item.scope` (which menu an item renders in, e.g. `'admin'`) is a documented exception to guardrail 6 — see the comment above its definition in `tools/create/templates/superprototype/src/lib/server/schema.ts`. It's a business grouping unrelated to the i18n scope convention, but the shared name reads as a violation at a glance. Documented for now rather than renamed; find a name that doesn't collide with the i18n vocabulary (`menu`, `nav_group`) when touching this table next.                                                                                                                                                                                                      |
+| `navigation_item.scope` naming collision  | SuperPrototype's `navigation_item.scope` (which menu an item renders in, e.g. `'admin'`) is a documented exception to guardrail 6 — see the comment above its definition in `tools/create/templates/superprototype/src/lib/server/schema.ts`. It's a business grouping unrelated to the i18n scope convention, but the shared name reads as a violation at a glance. Documented for now rather than renamed. Renaming it to `menu` is approved in `docs/conformance-manifest.md` and lands with the conformance plan's database vocabulary phase.                                                                                                                                                                                                      |
 
 ---
 

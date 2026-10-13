@@ -222,6 +222,10 @@ Done:
 
 Remaining:
 
+- The coreui 1.0 release train (`docs/CONFORMANCE-PLAN.md`): coreui's API settled and its CSS
+  classes made a published contract (`docs/COREUI-COMPATIBILITY.md`), and every concept named the
+  same way from table to UI label across the modules. Ships as coreui 1.0 with content and
+  logistic 2.0, through a release candidate.
 - Unit test suite for `logistic`
 - The manual half of the WCAG 2.2 AA audit: screen-reader flow, reading order, zoom, right-to-left mirroring
 

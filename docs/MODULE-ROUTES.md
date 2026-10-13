@@ -46,6 +46,28 @@ produced are stated here. Read alongside `CLAUDE.md`'s _Template Status_ and `do
    blocker — `withUser` + GUC still bypasses RLS against a table-owning role, and the non-owner role
    plus `ALTER DEFAULT PRIVILEGES` remains prerequisite.
 
+Added 2026-10-13 with the conformance plan (`docs/CONFORMANCE-PLAN.md`, decisions D5 and D6):
+
+9. **Queries live in one data module per concept, shipped per module, not per bundle.** A module's
+   template directory gains a module-level `server.<flavor>/` overlay, which the CLI copies to
+   `src/lib/server/<module>/` whenever the module is selected, exactly as it already copies the
+   module's `supplemental/` and `seed/`. Each file is one concept (`inbound-receipt.ts`), each
+   function takes the request's `supabase` client, and route files call these instead of
+   `.from(…)`. This keeps decision 1 intact (the package still ships no queries) and fixes what
+   decision 6 left open: code two bundles share had nowhere to live, because a bundle-local module
+   is invisible to its siblings and `$lib` would reach scaffolds without the module. Rejected
+   alternative: bundle-local `<concept>.server.ts` files, which duplicate across bundles that read
+   the same concept.
+
+10. **A screen's extracted components go where their dependencies point.** Presentational ones
+    (props in, markup out) go in the module package's concept folder and get a dev-kitchen
+    showcase. Ones bound to a route (posting to its form actions, building its hrefs) stay in the
+    bundle beside the page.
+
+11. **Screen ids and route segments name the concept in full, singular, parent first:**
+    `inbound-receipt`, `return-authorization`, `article-admin`, `article-preview`, `feed`. The
+    bundle names in _What this became_ below are the ones the port shipped with, before this rule.
+
 ## Flagged for later
 
 | Severity                       | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
