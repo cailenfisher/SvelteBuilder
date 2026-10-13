@@ -5,9 +5,10 @@
   type Props = {
     message: SBMessage;
     onDismiss: () => void;
+    class?: string | undefined;
   };
 
-  let { message, onDismiss }: Props = $props();
+  let { message, onDismiss, class: extraClass }: Props = $props();
 
   const labels = getMessageLabels();
 
@@ -49,7 +50,7 @@
     onDismiss();
   }
 
-  const classes = $derived(['toast', message.severity].join(' '));
+  const classes = $derived(['toast', message.severity, extraClass ?? ''].filter(Boolean).join(' '));
 </script>
 
 <article

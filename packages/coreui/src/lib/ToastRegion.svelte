@@ -2,6 +2,12 @@
   import { getMessageBus } from './message-bus.svelte.js';
   import Toast from './Toast.svelte';
 
+  type Props = {
+    class?: string | undefined;
+  };
+
+  let { class: extraClass }: Props = $props();
+
   const messageBus = getMessageBus();
 
   const MAX_VISIBLE = 3;
@@ -14,7 +20,7 @@
   Fixed-position container. Place once in the root layout.
   Visual channel only — ARIA announcements are handled by MessageAriaLive.
 -->
-<div class="toast-region" role="region" aria-label={messageBus.labels.region} aria-live="off">
+<div class={['toast-region', extraClass ?? ''].filter(Boolean).join(' ')} role="region" aria-label={messageBus.labels.region} aria-live="off">
   {#each visibleToasts as message (message.id)}
     <Toast
       {message}

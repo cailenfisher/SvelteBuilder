@@ -14,6 +14,8 @@
     disabled?: boolean;
     error?: string | boolean;
     name?: string;
+    /** Called when the value changes, with the new value. See Checkbox's `onCheckedChange`. */
+    onValueChange?: (value: string) => void;
     children: Snippet;
     class?: string | undefined;
   };
@@ -25,6 +27,7 @@
     disabled,
     error,
     name,
+    onValueChange,
     children,
     class: extraClass,
   }: Props = $props();
@@ -81,7 +84,7 @@
        Root below reads `items`. Must stay ahead of the Root in this template. -->
   <SelectItemCollector {registry}>{@render children()}</SelectItemCollector>
 
-  <Select.Root type="single" bind:value {name} {items} disabled={resolvedDisabled}>
+  <Select.Root type="single" bind:value {onValueChange} {name} {items} disabled={resolvedDisabled}>
     <Select.Trigger
       class={triggerClasses}
       role="combobox"

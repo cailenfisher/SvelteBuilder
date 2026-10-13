@@ -1,6 +1,6 @@
 import { getContext } from 'svelte';
 
-type FieldContext = {
+export type FieldContext = {
   readonly id: string;
   /** The Field's <label>. For controls a `for` attribute cannot name, such as a button trigger. */
   readonly labelId: string;
@@ -15,13 +15,20 @@ type FieldContext = {
 /**
  * Retrieves the nearest Field context, if any.
  *
- * Components that can appear inside a Field (Input, Select, Textarea,
- * Checkbox, RadioGroup, Switch) call this to inherit id, aria-describedby,
- * required, and disabled automatically — so callers don't have to wire
- * those props manually when using the Field wrapper.
+ * A control inside a Field calls this to inherit what the Field owns, so callers don't wire it by
+ * hand. What each control takes from it:
  *
- * Returns null when the component is used outside a Field, in which case
- * the component falls back to its own props.
+ * - Input, Textarea, Switch: id (so the Field's label points at it), aria-describedby, required,
+ *   disabled, and the error state.
+ * - Select: id, the label (via aria-labelledby), aria-describedby, disabled, and the error state.
+ * - DateTimePicker: id and aria-describedby.
+ * - RadioGroup: the label (via aria-labelledby) and disabled.
+ * - Checkbox: disabled only. It carries its own label, so the Field's label is not wired to it.
+ *
+ * Returns null when the component is used outside a Field, in which case the component falls back
+ * to its own props.
+ *
+ * Custom controls may call it too; that is why it and FieldContext are exported.
  *
  * Usage:
  *   const field = useField();

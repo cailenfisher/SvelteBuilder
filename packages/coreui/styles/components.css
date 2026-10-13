@@ -50,7 +50,7 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--text);
-  text-align: left;
+  text-align: start;
   gap: var(--space-3);
   transition: background var(--duration) var(--ease);
   --_icon-rotate: 0deg;
@@ -273,7 +273,7 @@
   flex-shrink: 0;
   width: 1.5rem;
   height: 1.5rem;
-  margin-left: auto;
+  margin-inline-start: auto;
   background: none;
   border: none;
   border-radius: var(--radius);
@@ -1106,13 +1106,13 @@
 }
 
 .menu-item.checkbox {
-  padding-left: calc(var(--space-3) + 1.25rem);
+  padding-inline-start: calc(var(--space-3) + 1.25rem);
   position: relative;
 }
 
 .menu-item.checkbox .check {
   position: absolute;
-  left: var(--space-3);
+  inset-inline-start: var(--space-3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1122,13 +1122,13 @@
 }
 
 .menu-item.radio {
-  padding-left: calc(var(--space-3) + 1.25rem);
+  padding-inline-start: calc(var(--space-3) + 1.25rem);
   position: relative;
 }
 
 .menu-item.radio .radio-dot {
   position: absolute;
-  left: var(--space-3);
+  inset-inline-start: var(--space-3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1158,7 +1158,7 @@
   display: inline-flex;
   align-items: center;
   color: var(--text-muted);
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 
@@ -1447,7 +1447,7 @@
   font-size: var(--text-sm);
   padding: 0 var(--space-3);
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
   appearance: none;
   --_icon-rotate: 0deg;
@@ -1683,7 +1683,7 @@
 
 .table .caption {
   caption-side: top;
-  text-align: left;
+  text-align: start;
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   color: var(--text);
@@ -1740,7 +1740,7 @@
   background: var(--surface-raised);
   color: var(--text-soft);
   font-weight: var(--weight-medium);
-  text-align: left;
+  text-align: start;
   padding: var(--space-3) var(--space-4);
   border-bottom: var(--border);
   font-size: var(--text-sm);
@@ -1751,7 +1751,7 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--text-soft);
-  text-align: left;
+  text-align: start;
   white-space: nowrap;
   background: var(--surface-raised);
   border-bottom: var(--border);
@@ -1793,7 +1793,7 @@
 }
 
 .table .align-right {
-  text-align: right;
+  text-align: end;
 }
 
 
@@ -1885,9 +1885,11 @@
 }
 
 .tabs.vertical .tabs-trigger[data-state='active'] {
-  border-left: 2px solid var(--brand);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  padding-left: calc(var(--space-3) - 2px);
+  border-inline-start: 2px solid var(--brand);
+  border-radius: 0;
+  border-start-end-radius: var(--radius);
+  border-end-end-radius: var(--radius);
+  padding-inline-start: calc(var(--space-3) - 2px);
 }
 
 .tabs-content {
@@ -2067,9 +2069,11 @@
 .toast::before {
   content: '';
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  inset-inline-start: 0; top: 0; bottom: 0;
   width: 3px;
-  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+  border-radius: 0;
+  border-start-start-radius: var(--radius-xl);
+  border-end-start-radius: var(--radius-xl);
 }
 .toast.success::before  { background: var(--success); }
 .toast.info::before     { background: var(--info); }
@@ -2125,7 +2129,7 @@
   text-decoration: underline;
   text-underline-offset: 2px;
   font-family: var(--font);
-  text-align: left;
+  text-align: start;
 }
 
 .toast .ref {
@@ -2182,7 +2186,7 @@
 
 .toast .timer {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0; inset-inline: 0;
   height: 3px;
   background: var(--surface-overlay);
   overflow: hidden;
@@ -2207,7 +2211,7 @@
 .toast-region {
   position: fixed;
   bottom: var(--space-6);
-  right: var(--space-6);
+  inset-inline-end: var(--space-6);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -2222,17 +2226,17 @@
 .toast-region .queue {
   font-size: var(--text-xs);
   color: var(--text-soft);
-  text-align: right;
+  text-align: end;
   margin: 0;
-  padding-right: var(--space-2);
+  padding-inline-end: var(--space-2);
   pointer-events: none;
 }
 
 @media (max-width: 480px) {
   .toast-region {
     bottom: var(--space-4);
-    right: var(--space-4);
-    left: var(--space-4);
+    inset-inline-end: var(--space-4);
+    inset-inline-start: var(--space-4);
   }
 }
 

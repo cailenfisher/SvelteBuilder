@@ -32,6 +32,8 @@
     closeLabel = 'Close',
     class: extraClass,
   }: Props = $props();
+
+  const descriptionId = $props.id();
 </script>
 
 <Dialog.Root bind:open onOpenChange={(v) => onOpenChange?.(v)}>
@@ -43,11 +45,11 @@
 
   <Dialog.Portal>
     <Dialog.Overlay class="drawer-overlay" />
-    <Dialog.Content class={['drawer', `drawer--${side}`, extraClass ?? ''].filter(Boolean).join(' ')} aria-describedby={description ? 'drawer-desc' : undefined}>
+    <Dialog.Content class={['drawer', `drawer--${side}`, extraClass ?? ''].filter(Boolean).join(' ')} aria-describedby={description ? descriptionId : undefined}>
       <div class="drawer-header">
         <Dialog.Title class="drawer-title">{title}</Dialog.Title>
         {#if description}
-          <Dialog.Description id="drawer-desc" class="drawer-description">{description}</Dialog.Description>
+          <Dialog.Description id={descriptionId} class="drawer-description">{description}</Dialog.Description>
         {/if}
         <Dialog.Close class="drawer-close" aria-label={closeLabel}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

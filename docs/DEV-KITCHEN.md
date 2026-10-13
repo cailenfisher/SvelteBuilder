@@ -230,8 +230,8 @@ on its first server render, its first axe run, or its first keyboard walk.
 - `Button`'s text picked up the form `Label`'s color through a shared `.label` class.
 - `ToastRegion` and `BlockEditor` used ARIA attributes their roles do not permit.
 - bits-ui 2.18.1 rendered `Menu` content without the id its trigger's `aria-controls` named, so the
-  peer floor is now 2.19.5. A `MenuLabel` outside a group throws and empties the whole menu; that is
-  now documented on the component.
+  peer floor is now 2.19.5. A `MenuLabel` outside a group threw and emptied the whole menu; it now
+  renders a plain label there (2026-10-13).
 
 **content and logistic.**
 

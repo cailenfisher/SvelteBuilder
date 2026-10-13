@@ -10,6 +10,8 @@
     orientation?: Orientation;
     disabled?: boolean;
     name?: string;
+    /** Called when the selection changes, with the new value. See Checkbox's `onCheckedChange`. */
+    onValueChange?: (value: string) => void;
     children: Snippet;
     class?: string | undefined;
   };
@@ -19,6 +21,7 @@
     orientation = 'vertical',
     disabled,
     name,
+    onValueChange,
     children,
     class: extraClass,
   }: Props = $props();
@@ -35,9 +38,11 @@
 
 <RadioGroup.Root
   bind:value
+  {onValueChange}
   {orientation}
   disabled={resolvedDisabled}
   {name}
+  aria-labelledby={field?.labelId}
   class={classes}
 >
   {@render children()}

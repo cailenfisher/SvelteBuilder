@@ -35,10 +35,10 @@
   const field = useField();
   const fieldId = $derived(idProp ?? field?.id);
   const describedBy = $derived.by(() => {
-    const parts: string[] = [];
-    if (field?.hintId) parts.push(field.hintId);
-    if (field?.errorId) parts.push(field.errorId);
-    return parts.length ? parts.join(' ') : undefined;
+    // Field renders the hint only when there is no error, so point at whichever one exists.
+    if (!field) return undefined;
+    if (field.error) return field.errorId;
+    return field.hint ? field.hintId : undefined;
   });
 
   // Convert a UTC ISO string to a datetime-local value (YYYY-MM-DDTHH:mm)
