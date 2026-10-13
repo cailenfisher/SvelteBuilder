@@ -3,12 +3,12 @@
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import {
+    Badge,
     Button,
     Checkbox,
     DataTable,
     Dialog,
     InlineNotification,
-    StatusBadge,
   } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
   import type { CycleCountStatus } from '@sveltebuilder/logistic';
@@ -33,7 +33,7 @@
     { key: 'createdAt', label: t('logistic.cycle_count.created_at') },
   ]);
 
-  // StatusBadge takes a variant, not a domain status: mapping the one to the other is the
+  // Badge takes a variant, not a domain status: mapping the one to the other is the
   // caller's job by design, since only the domain knows which states are good news.
   const statusVariant = (status: CycleCountStatus) =>
     status === 'complete'
@@ -60,10 +60,9 @@
   {#if column.key === 'id'}
     <a href="/admin/logistic/cycle-count/{row.id}" class="cycle-count-list__link">#{row.id}</a>
   {:else if column.key === 'status'}
-    <StatusBadge
-      variant={statusVariant(row.status)}
-      label={t(`logistic.cycle_count.status.${row.status}`)}
-    />
+    <Badge variant={statusVariant(row.status)}>
+      {t(`logistic.cycle_count.status.${row.status}`)}
+    </Badge>
   {:else if column.key === 'progress'}
     <!-- Interpolated through MF2 so a locale can order the two numbers as its grammar
          needs, rather than the screen hardcoding "x of y". -->

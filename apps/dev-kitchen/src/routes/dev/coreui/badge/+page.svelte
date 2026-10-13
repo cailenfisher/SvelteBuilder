@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Badge, StatusBadge, Tag } from '@sveltebuilder/coreui';
+  import { Badge, Tag } from '@sveltebuilder/coreui';
   import Example from '$lib/Example.svelte';
 
   const variants = ['default', 'brand', 'success', 'warning', 'danger', 'info'] as const;
@@ -36,11 +36,3 @@
   {/each}
 </Example>
 
-<Example title="StatusBadge">
-  <StatusBadge label="Draft" />
-  <StatusBadge label="In review" variant="info" />
-  <StatusBadge label="Published" variant="success" />
-  <StatusBadge label="Embargoed" variant="warning" />
-  <StatusBadge label="Rejected" variant="danger" />
-  <StatusBadge label="Featured" variant="brand" size="lg" />
-</Example>

@@ -1,6 +1,6 @@
 <!-- Camp 1: i18n-agnostic. Caller resolves the label string. No hermes import. -->
 <script lang="ts">
-  import { StatusBadge } from '@sveltebuilder/coreui';
+  import { Badge } from '@sveltebuilder/coreui';
   import type { ShipmentStatus } from '../schema/index.js';
 
   type Props = {
@@ -21,4 +21,4 @@
   ) as 'success' | 'info' | 'brand' | 'danger' | 'default';
 </script>
 
-<StatusBadge {variant} {label} size="sm" class={extraClass} />
+<Badge {variant} size="sm" class={extraClass}>{label}</Badge>

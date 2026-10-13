@@ -1,3 +1,6 @@
+<!-- InlineNotification: the message system's inline surface, for the outcome of something the
+     user just did, with optional detail, a technical reference, actions and dismissal. For static
+     page content that is not a result, use Alert. -->
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { SBMessageAction } from './message-bus.svelte.js';

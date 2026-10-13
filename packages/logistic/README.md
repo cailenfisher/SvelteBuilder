@@ -18,7 +18,7 @@ import { getStockLevels, createPickTask, receiveReceiptLine } from '@sveltebuild
 import { stockLevel, pickTask, shipment } from '@sveltebuilder/logistic/schema';
 ```
 
-- **`@sveltebuilder/logistic`** — Svelte components, split into Camp 1 (`PickTaskStatusBadge`, `ShipmentStatusBadge`, `ReturnConditionBadge`, `StockLevelBar`, `TrackingEventList` — no diglossia dependency) and Camp 2 (`SupplierCard`, `StorageLocationPath`, `PickTaskCard`, `ReceiptCard` — call `getDictionary()` from `diglossia/svelte`, with an optional `dictionary` prop for overriding context). Also re-exports all schema types.
+- **`@sveltebuilder/logistic`** — Svelte components, split into Camp 1 (`PickTaskStatusBadge`, `ShipmentStatusBadge`, `ReturnConditionBadge`, `StockLevelBar`, `TrackingEventList`, `BarcodeInput` — no diglossia dependency) and Camp 2 (`SupplierCard`, `StorageLocationPath`, `PickTaskCard`, `ReceiptCard` — call `getDictionary()` from `diglossia/svelte`, with an optional `dictionary` prop for overriding context). Also re-exports all schema types.
 - **`@sveltebuilder/logistic/server`** — query and mutation helpers covering the full warehouse workflow: `getStockLevels`/`adjustStock`, `createInboundReceipt`/`receiveReceiptLine`, `createPickTask`/`assignPickTask`/`recordPickedQuantity`/`completePickTask`, `createShipment`/`updateShipmentTracking`, `createReturnAuthorization`/`gradeReturnLine`, `createCycleCount`/`recordCycleCountLine`/`approveCycleCount`, and `getLogisticMetrics`.
 - **`@sveltebuilder/logistic/schema`** — Drizzle table definitions and TypeScript types (`Supplier`, `StorageLocation`, `StockLevel`, `InboundReceipt`, `PickTask`, `Shipment`, `ReturnAuthorization`, `CycleCount`, and their line/item types).
 

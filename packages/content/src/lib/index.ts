@@ -8,11 +8,12 @@ export * from './schema/index.js';
 // Camp 1 components (no hermes dependency)
 export { default as ArticleList } from './components/ArticleList.svelte';
 export { default as AssignmentQueue } from './components/AssignmentQueue.svelte';
-export { default as BlockEditorHost } from './components/BlockEditorHost.svelte';
 export { default as FrontCurationBoard } from './components/FrontCurationBoard.svelte';
 export { default as SubscriberList } from './components/SubscriberList.svelte';
 
 // Camp 2 components (import hermes — require hermes.load() before mount)
+export { default as ArticleBlockEditor } from './components/ArticleBlockEditor.svelte';
+export type { ArticleBlockDraft } from './components/ArticleBlockEditor.svelte';
 export { default as ArticleBlockRenderer } from './components/ArticleBlockRenderer.svelte';
 export { default as ArticleCard } from './components/ArticleCard.svelte';
 export { default as ArticleView } from './components/ArticleView.svelte';

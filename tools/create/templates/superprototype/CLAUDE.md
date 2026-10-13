@@ -588,16 +588,17 @@ Domain types mirror the table without copy fields. Name them after the table in 
 Check `@sveltebuilder/coreui` before building any UI. It exports:
 
 - **Layout and display:** Card, Divider, Badge, Tag, Avatar, Alert, ProgressBar, Skeleton,
-  Spinner, MetricCard, StatusBadge, Timeline/TimelineItem
+  Spinner, MetricCard, Timeline/TimelineItem
 - **Forms:** Field, Label, Input, Textarea, Checkbox, RadioGroup/RadioItem, Switch,
-  Select/SelectItem, DateTimePicker, BarcodeInput, BlockEditor, Button
+  Select/SelectItem, DateTimePicker, Button
 - **Disclosure and overlays:** Accordion/AccordionItem, Tabs (List, Trigger, Content), Dialog,
   Drawer, Popover, Tooltip, Menu (with Item, Separator, Label, Group, CheckboxItem, RadioGroup,
   RadioItem, Sub), ConfirmDialog
 - **Data:** Table (Head, Body, Foot, Row, Header, Cell), DataTable, Pagination
 - **Messages:** Toast/ToastRegion, Banner, InlineNotification, MessageAriaLive, and
   `getMessageBus()` for raising them from code
-- **Localization admin:** LocaleSwitcher, LocaleEdit, LocalTextLinkEdit, LocalTextEdit
+- **Localization:** LocaleSwitcher. The admin's locale and copy editors are this project's own,
+  in `src/lib/Locale/`, `src/lib/LocalText/` and `src/lib/LocalTextLink/`.
 
 Read the component's props in `node_modules/@sveltebuilder/coreui` rather than guessing them.
 Wrap form controls in `Field` (which wires up the label, `hint` and `error` with the right `aria-describedby`). Use
@@ -625,7 +626,7 @@ might belong in coreui.
   `<table>` for tabular data, headings in order. ARIA only when HTML can't express it.
 - Every input has a visible label (`Field` does this). Errors are announced and tied to the field.
 - Everything works by keyboard, with a visible focus indicator. Don't remove outlines.
-- Color is never the only signal. Pair status color with text or an icon (`StatusBadge` does this).
+- Color is never the only signal. Pair status color with text or an icon (`Badge` takes its text as content).
 - Images have meaningful `alt`, or `alt=""` when decorative.
 - Each page sets a localized `<title>` in `<svelte:head>`.
 - When you change `--brand` or a status color, check its contrast.

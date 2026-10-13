@@ -3,8 +3,8 @@
   import {
     Button, Field, Input,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
-    LocalTextLinkEdit,
   } from '@sveltebuilder/coreui'
+  import LocalTextLinkForm from '$lib/LocalTextLink/LocalTextLinkForm.svelte'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
@@ -38,7 +38,7 @@
     {/if}
 
     <form method="post" action="?/create" class="nav-item-admin__form">
-      <LocalTextLinkEdit {slugLabel} scopeLabel={dictionary.localText('admin.local_text.scope')} />
+      <LocalTextLinkForm {slugLabel} scopeLabel={dictionary.localText('admin.local_text.scope')} />
 
       <div class="nav-item-admin__form-row">
         <Field label={hrefLabel} id="nav-href" required>

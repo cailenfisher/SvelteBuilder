@@ -1,3 +1,6 @@
+<!-- Alert: a static, severity-coloured note that is part of the page's own content, written by the
+     page ("This supplier is inactive"). For the outcome of something the user just did (saved,
+     failed, needs attention), use InlineNotification, the message system's inline surface. -->
 <script lang="ts">
   import type { Snippet } from 'svelte';
 

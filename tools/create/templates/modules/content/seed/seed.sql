@@ -495,6 +495,113 @@ from (values
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
 
+-- Copy ArticleBlockEditor asks for: its controls, and a name for each article_block_type.
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('content.article_block_editor.region',              'content', null),
+  ('content.article_block_editor.block_list',          'content', null),
+  ('content.article_block_editor.block_controls',      'content', null),
+  ('content.article_block_editor.move_up',             'content', null),
+  ('content.article_block_editor.move_down',           'content', null),
+  ('content.article_block_editor.remove',              'content', null),
+  ('content.article_block_editor.heading_level',       'content', null),
+  ('content.article_block_editor.text',                'content', null),
+  ('content.article_block_editor.media',               'content', null),
+  ('content.article_block_editor.media_selected',      'content', null),
+  ('content.article_block_editor.provider',            'content', null),
+  ('content.article_block_editor.provider_youtube',    'content', null),
+  ('content.article_block_editor.provider_vimeo',      'content', null),
+  ('content.article_block_editor.provider_self',       'content', null),
+  ('content.article_block_editor.provider_twitter',    'content', null),
+  ('content.article_block_editor.provider_instagram',  'content', null),
+  ('content.article_block_editor.provider_other',      'content', null),
+  ('content.article_block_editor.url',                 'content', null),
+  ('content.article_block_editor.add',                 'content', null),
+  ('content.article_block_editor.add_after',           'content', null),
+  ('content.article_block_editor.add_first',           'content', null),
+  ('content.article_block_type.paragraph',             'content', null),
+  ('content.article_block_type.heading',               'content', null),
+  ('content.article_block_type.image',                 'content', null),
+  ('content.article_block_type.gallery',               'content', null),
+  ('content.article_block_type.video',                 'content', null),
+  ('content.article_block_type.embed',                 'content', null),
+  ('content.article_block_type.pullquote',             'content', null),
+  ('content.article_block_type.live_update',           'content', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('content.article_block_editor.region',              'Article block editor'),
+  ('content.article_block_editor.block_list',          'Content blocks'),
+  ('content.article_block_editor.block_controls',      'Block controls'),
+  ('content.article_block_editor.move_up',             'Move block {$position} up'),
+  ('content.article_block_editor.move_down',           'Move block {$position} down'),
+  ('content.article_block_editor.remove',              'Remove block {$position}'),
+  ('content.article_block_editor.heading_level',       'Heading level'),
+  ('content.article_block_editor.text',                '{$blockType} text, block {$position}'),
+  ('content.article_block_editor.media',               '{$blockType}: select a media asset in the media panel.'),
+  ('content.article_block_editor.media_selected',      'Asset selected'),
+  ('content.article_block_editor.provider',            'Provider'),
+  ('content.article_block_editor.provider_youtube',    'YouTube'),
+  ('content.article_block_editor.provider_vimeo',      'Vimeo'),
+  ('content.article_block_editor.provider_self',       'Self-hosted'),
+  ('content.article_block_editor.provider_twitter',    'Twitter / X'),
+  ('content.article_block_editor.provider_instagram',  'Instagram'),
+  ('content.article_block_editor.provider_other',      'Other'),
+  ('content.article_block_editor.url',                 'URL'),
+  ('content.article_block_editor.add',                 'Add block'),
+  ('content.article_block_editor.add_after',           'Add block after block {$position}'),
+  ('content.article_block_editor.add_first',           'Add first block'),
+  ('content.article_block_type.paragraph',             'Paragraph'),
+  ('content.article_block_type.heading',               'Heading'),
+  ('content.article_block_type.image',                 'Image'),
+  ('content.article_block_type.gallery',               'Gallery'),
+  ('content.article_block_type.video',                 'Video'),
+  ('content.article_block_type.embed',                 'Embed'),
+  ('content.article_block_type.pullquote',             'Pull quote'),
+  ('content.article_block_type.live_update',           'Live update')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('content.article_block_editor.region',              'Éditeur de blocs d''article'),
+  ('content.article_block_editor.block_list',          'Blocs de contenu'),
+  ('content.article_block_editor.block_controls',      'Commandes du bloc'),
+  ('content.article_block_editor.move_up',             'Monter le bloc {$position}'),
+  ('content.article_block_editor.move_down',           'Descendre le bloc {$position}'),
+  ('content.article_block_editor.remove',              'Supprimer le bloc {$position}'),
+  ('content.article_block_editor.heading_level',       'Niveau de titre'),
+  ('content.article_block_editor.text',                'Texte ({$blockType}), bloc {$position}'),
+  ('content.article_block_editor.media',               '{$blockType} : choisissez un média dans le panneau des médias.'),
+  ('content.article_block_editor.media_selected',      'Média sélectionné'),
+  ('content.article_block_editor.provider',            'Fournisseur'),
+  ('content.article_block_editor.provider_youtube',    'YouTube'),
+  ('content.article_block_editor.provider_vimeo',      'Vimeo'),
+  ('content.article_block_editor.provider_self',       'Hébergé sur le site'),
+  ('content.article_block_editor.provider_twitter',    'Twitter / X'),
+  ('content.article_block_editor.provider_instagram',  'Instagram'),
+  ('content.article_block_editor.provider_other',      'Autre'),
+  ('content.article_block_editor.url',                 'URL'),
+  ('content.article_block_editor.add',                 'Ajouter un bloc'),
+  ('content.article_block_editor.add_after',           'Ajouter un bloc après le bloc {$position}'),
+  ('content.article_block_editor.add_first',           'Ajouter un premier bloc'),
+  ('content.article_block_type.paragraph',             'Paragraphe'),
+  ('content.article_block_type.heading',               'Titre'),
+  ('content.article_block_type.image',                 'Image'),
+  ('content.article_block_type.gallery',               'Galerie'),
+  ('content.article_block_type.video',                 'Vidéo'),
+  ('content.article_block_type.embed',                 'Contenu intégré'),
+  ('content.article_block_type.pullquote',             'Citation en exergue'),
+  ('content.article_block_type.live_update',           'Mise à jour en direct')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
 -- ──────────────────────────────────────────────────────────────────────────────
 -- Screen copy — section bundle
 -- ──────────────────────────────────────────────────────────────────────────────

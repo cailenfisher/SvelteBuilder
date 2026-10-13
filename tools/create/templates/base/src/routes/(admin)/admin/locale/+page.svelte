@@ -3,8 +3,8 @@
   import {
     Button,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
-    LocaleEdit,
   } from '@sveltebuilder/coreui'
+  import LocaleForm from '$lib/Locale/LocaleForm.svelte'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
@@ -39,7 +39,7 @@
     {/if}
 
     <form method="post" action="?/create" class="locale-admin__form">
-      <LocaleEdit
+      <LocaleForm
         {codeLabel}
         {nameLabel}
         nativeNameLabel={nativeLabel}

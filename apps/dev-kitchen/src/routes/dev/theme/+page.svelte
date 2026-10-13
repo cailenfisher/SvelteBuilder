@@ -23,7 +23,6 @@
     Select,
     SelectItem,
     Spinner,
-    StatusBadge,
     Switch,
     Tabs,
     TabsContent,
@@ -69,7 +68,6 @@
     <Badge variant="danger">Danger</Badge>
     <Badge variant="info">Info</Badge>
     <Tag onremove={() => {}} removeLabel="Remove tag">Tag</Tag>
-    <StatusBadge label="Published" variant="success" />
   </div>
   <Alert variant="warning" title="Low stock">Twelve units left at A-04-2.</Alert>
   <InlineNotification

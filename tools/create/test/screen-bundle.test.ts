@@ -440,7 +440,8 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
 // ── Module components ────────────────────────────────────────────────────────
 
 /**
- * Module-scoped copy a module's own components ask for: `localText('slug', '<module>')`.
+ * Module-scoped copy a module's own components ask for: `localText('slug', '<module>')`, or
+ * `formatText('slug', { … }, '<module>')`, whose values object sits between slug and scope.
  * Entity-bound copy (`'article'`, `'supplier'`) is seeded per row and is not checkable
  * here; UI copy under the module's own scope is, and a component no screen renders is
  * otherwise invisible to every check above. NewsletterSignup and ArticleWorkflowPanel
@@ -450,7 +451,7 @@ function readComponentSlugs(module: string): string[] {
   const dir = path.join(REPO, 'packages', module, 'src', 'lib', 'components');
   if (!fs.existsSync(dir)) return [];
   const call = new RegExp(
-    String.raw`(?:localText|formatText)\(\s*'([^']+)'\s*,\s*'${module}'`,
+    String.raw`(?:localText|formatText)\(\s*'([^']+)'\s*,\s*(?:\{[^}]*\}\s*,\s*)?'${module}'`,
     'g'
   );
   const slugs = new Set<string>();

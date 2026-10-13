@@ -3,8 +3,8 @@
   import {
     Button, Field, Textarea,
     Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
-    LocalTextLinkEdit,
   } from '@sveltebuilder/coreui'
+  import LocalTextLinkForm from '$lib/LocalTextLink/LocalTextLinkForm.svelte'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
@@ -43,7 +43,7 @@
     {/if}
 
     <form method="post" action="?/create" class="local-text-admin__form">
-      <LocalTextLinkEdit {slugLabel} {scopeLabel} />
+      <LocalTextLinkForm {slugLabel} {scopeLabel} />
 
       <div class="local-text-admin__locales">
         {#each data.locales as locale (locale.id)}

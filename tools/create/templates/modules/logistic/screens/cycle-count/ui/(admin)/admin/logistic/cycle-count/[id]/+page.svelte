@@ -2,10 +2,10 @@
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import {
+    Badge,
     Button,
     ConfirmDialog,
     InlineNotification,
-    StatusBadge,
     Table,
     TableBody,
     TableCell,
@@ -59,10 +59,9 @@
     </a>
     <div class="count-detail__title-row">
       <h1 class="count-detail__title">{t('logistic.cycle_count.one')} #{count.id}</h1>
-      <StatusBadge
-        variant={statusVariant}
-        label={t(`logistic.cycle_count.status.${count.status}`)}
-      />
+      <Badge variant={statusVariant}>
+        {t(`logistic.cycle_count.status.${count.status}`)}
+      </Badge>
       {#if approvable}
         <Button variant="primary" onclick={() => (approveConfirmOpen = true)}>
           {t('logistic.cycle_count.approve')}

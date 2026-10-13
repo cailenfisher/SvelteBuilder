@@ -44,7 +44,7 @@ type CoreUi = typeof import('@sveltebuilder/coreui');
 
 export const COREUI_PAGES = [
   { slug: 'button', title: 'Button', components: ['Button'] },
-  { slug: 'badge', title: 'Badge, Tag, StatusBadge', components: ['Badge', 'Tag', 'StatusBadge'] },
+  { slug: 'badge', title: 'Badge, Tag', components: ['Badge', 'Tag'] },
   {
     slug: 'card',
     title: 'Card, Divider, MetricCard',
@@ -78,7 +78,6 @@ export const COREUI_PAGES = [
     components: ['Checkbox', 'RadioGroup', 'RadioItem', 'Switch'],
   },
   { slug: 'select', title: 'Select', components: ['Select', 'SelectItem'] },
-  { slug: 'barcode-input', title: 'BarcodeInput', components: ['BarcodeInput'] },
   { slug: 'date-time-picker', title: 'DateTimePicker', components: ['DateTimePicker'] },
   { slug: 'accordion', title: 'Accordion', components: ['Accordion', 'AccordionItem'] },
   {
@@ -118,11 +117,10 @@ export const COREUI_PAGES = [
   },
   { slug: 'data-table', title: 'DataTable, Pagination', components: ['DataTable', 'Pagination'] },
   { slug: 'timeline', title: 'Timeline', components: ['Timeline', 'TimelineItem'] },
-  { slug: 'block-editor', title: 'BlockEditor', components: ['BlockEditor'] },
   {
     slug: 'locale',
-    title: 'Localization admin',
-    components: ['LocaleSwitcher', 'LocaleEdit', 'LocalTextLinkEdit', 'LocalTextEdit'],
+    title: 'LocaleSwitcher',
+    components: ['LocaleSwitcher'],
   },
 ] as const satisfies readonly ShowcasePage<ComponentName<CoreUi>>[];
 
@@ -164,9 +162,10 @@ export const CONTENT_PAGES = [
   },
   {
     slug: 'workflow',
-    title: 'ArticleWorkflowPanel, BlockEditorHost',
-    components: ['ArticleWorkflowPanel', 'BlockEditorHost'],
+    title: 'ArticleWorkflowPanel',
+    components: ['ArticleWorkflowPanel'],
   },
+  { slug: 'article-block-editor', title: 'ArticleBlockEditor', components: ['ArticleBlockEditor'] },
   { slug: 'front-curation', title: 'FrontCurationBoard', components: ['FrontCurationBoard'] },
 ] as const satisfies readonly ShowcasePage<ComponentName<Content>>[];
 
@@ -191,6 +190,7 @@ export const LOGISTIC_PAGES = [
     components: ['ShipmentStatusBadge', 'ReturnConditionBadge'],
   },
   { slug: 'stock-level', title: 'StockLevelBar', components: ['StockLevelBar'] },
+  { slug: 'barcode-input', title: 'BarcodeInput', components: ['BarcodeInput'] },
   { slug: 'tracking', title: 'TrackingEventList', components: ['TrackingEventList'] },
 ] as const satisfies readonly ShowcasePage<ComponentName<Logistic>>[];
 

@@ -18,7 +18,7 @@ import { getPublishedArticles, getPublishedArticleBySlug } from '@sveltebuilder/
 import { article, section, comment } from '@sveltebuilder/content/schema';
 ```
 
-- **`@sveltebuilder/content`** — Svelte components, split into Camp 1 (`ArticleList`, `AssignmentQueue`, `FrontCurationBoard`, `SubscriberList` — no diglossia dependency) and Camp 2 (`ArticleCard`, `ArticleView`, `ArticleWorkflowPanel`, `AuthorProfileView`, `SectionFront`, `NewsletterSignup`, `BlockEditorHost`, and more — call `getDictionary()` from `diglossia/svelte`, with an optional `dictionary` prop for overriding context). Also re-exports all schema types.
+- **`@sveltebuilder/content`** — Svelte components, split into Camp 1 (`ArticleList`, `AssignmentQueue`, `FrontCurationBoard`, `SubscriberList` — no diglossia dependency) and Camp 2 (`ArticleCard`, `ArticleView`, `ArticleWorkflowPanel`, `AuthorProfileView`, `SectionFront`, `NewsletterSignup`, `ArticleBlockEditor`, and more — call `getDictionary()` from `diglossia/svelte`, with an optional `dictionary` prop for overriding context). Also re-exports all schema types.
 - **`@sveltebuilder/content/server`** — query helpers (`getPublishedArticles`, `createArticle`, `transitionArticleStatus`, `subscribeToNewsletter`, …), feed generation (`generateRssFeed`), sitemaps (`generateStandardSitemap`, `generateNewsSitemap`), and structured data (`buildNewsArticleJsonLd`, `buildArticleMetaTags`, `buildHreflangAlternates`).
 - **`@sveltebuilder/content/schema`** — Drizzle table definitions and TypeScript types (`Article`, `Section`, `Comment`, `Newsletter`, `MediaAsset`, `Front`, `LiveCoverage`, and more).
 

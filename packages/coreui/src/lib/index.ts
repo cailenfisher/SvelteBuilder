@@ -32,11 +32,6 @@ export { default as ConfirmDialog } from './ConfirmDialog.svelte';
 export { default as MessageAriaLive } from './MessageAriaLive.svelte';
 
 // ============================================================
-// Scan input
-// ============================================================
-export { default as BarcodeInput } from './BarcodeInput.svelte';
-
-// ============================================================
 // Form primitives
 // ============================================================
 export { default as Field } from './Field.svelte';
@@ -101,7 +96,6 @@ export { default as Pagination } from './Pagination.svelte';
 export { default as MetricCard } from './MetricCard.svelte';
 export { default as Timeline } from './Timeline.svelte';
 export { default as TimelineItem } from './TimelineItem.svelte';
-export { default as StatusBadge } from './StatusBadge.svelte';
 export { default as Table } from './Table.svelte';
 export { default as TableHead } from './TableHead.svelte';
 export { default as TableBody } from './TableBody.svelte';
@@ -111,19 +105,6 @@ export { default as TableHeader } from './TableHeader.svelte';
 export { default as TableCell } from './TableCell.svelte';
 export { default as DataTable } from './DataTable.svelte';
 export type { DataTableColumn } from './DataTable.svelte';
-
-// ============================================================
-// LocalText admin components
-// ============================================================
-export { default as LocaleEdit } from './LocaleEdit.svelte';
-export { default as LocalTextLinkEdit } from './LocalTextLinkEdit.svelte';
-export { default as LocalTextEdit } from './LocalTextEdit.svelte';
-
-// ============================================================
-// Editing
-// ============================================================
-export { default as BlockEditor } from './BlockEditor.svelte';
-export type { EditorBlock } from './BlockEditor.svelte';
 
 // ============================================================
 // Overlay / panel

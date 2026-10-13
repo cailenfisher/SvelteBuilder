@@ -9,6 +9,7 @@ export { default as PickTaskStatusBadge } from './components/PickTaskStatusBadge
 export { default as ShipmentStatusBadge } from './components/ShipmentStatusBadge.svelte';
 export { default as ReturnConditionBadge } from './components/ReturnConditionBadge.svelte';
 export { default as StockLevelBar } from './components/StockLevelBar.svelte';
+export { default as BarcodeInput } from './components/BarcodeInput.svelte';
 export { default as TrackingEventList } from './components/TrackingEventList.svelte';
 
 // Types
