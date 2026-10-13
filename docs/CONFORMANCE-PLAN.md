@@ -8,13 +8,13 @@ It folds in stage 1 of `docs/COREUI-1.0.md` in full (every item in `docs/COREUI-
 
 **One release train, one major per package, ever.** Everything breaking ships together:
 
-| Package | Now | Release candidate | Stable |
-|---|---|---|---|
-| `@sveltebuilder/coreui` | 0.2.x | `1.0.0-rc.N` | `1.0.0` |
-| `@sveltebuilder/content` | 1.1.x | `2.0.0-rc.N` | `2.0.0` |
-| `@sveltebuilder/logistic` | 1.0.x | `2.0.0-rc.N` | `2.0.0` |
-| `@sveltebuilder/local-text-schema` | 0.2.x | minor or patch, as computed | |
-| `create-sveltebuilder` | 0.1.x | minor | |
+| Package                            | Now   | Release candidate           | Stable  |
+| ---------------------------------- | ----- | --------------------------- | ------- |
+| `@sveltebuilder/coreui`            | 0.2.x | `1.0.0-rc.N`                | `1.0.0` |
+| `@sveltebuilder/content`           | 1.1.x | `2.0.0-rc.N`                | `2.0.0` |
+| `@sveltebuilder/logistic`          | 1.0.x | `2.0.0-rc.N`                | `2.0.0` |
+| `@sveltebuilder/local-text-schema` | 0.2.x | minor or patch, as computed |         |
+| `create-sveltebuilder`             | 0.1.x | minor                       |         |
 
 Why this shape:
 
@@ -27,7 +27,6 @@ Why this shape:
 
 - **Non-breaking fixes** (Phase 1) go to `main` first and release as patches, per the interim rule in `docs/DEFERRED.md`.
 - **All breaking work** goes on one branch, `release/coreui-1.0`. Nothing from it is released until Phase 12. Changesets are written as the work happens, but the branch never merges to `main` before pre mode is entered.
-- Merge `main` into the branch regularly to keep it current.
 
 ## Ground rules
 
@@ -64,109 +63,109 @@ Add `pnpm sql:check` (needs Docker) whenever a phase touches SQL, migrations, se
 
 **Logistic: concept shortened in the UI layers**
 
-| Old | Proposed | Notes |
-|---|---|---|
-| screen/route `receipt` | `inbound-receipt` | table `inbound_receipt` |
-| screen/route `return` | `return-authorization` | table `return_authorization` |
-| screen/route `stock` | `stock-level` | table `stock_level` |
-| `ReceiptCard` | `InboundReceiptCard` | |
-| copy slugs `logistic.receipt.*` | `logistic.inbound_receipt.*` | manifest already mixes both |
-| `ReturnListView`, `ReturnDetailView` | `ReturnAuthorizationListView`, `ReturnAuthorizationDetailView` | |
-| `StockListView` | `StockLevelListView` | |
-| `PickQueueView` | `PickTaskQueueView` | |
-| `ReceiveQueueView`, `ReceiveDetailView`, `CountQueueView`, `CountDetailView` | see D3 | warehouse app |
-| `LocationOption` | `StorageLocationOption` | |
-| `EntityOption` | verify; generic name | |
-| `AdjustmentReason` / `adjustment_reason` | `StockAdjustmentReason` / `stock_adjustment_reason` | DB enum rename |
-| copy slug `logistic.field.location` | `logistic.field.storage_location` | |
-| `PickTaskStatusBadge`, `ShipmentStatusBadge`, `ReturnConditionBadge` | keep names; wrap `Badge` | audit B4 |
+| Old                                                                          | Proposed                                                       | Notes                        |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- |
+| screen/route `receipt`                                                       | `inbound-receipt`                                              | table `inbound_receipt`      |
+| screen/route `return`                                                        | `return-authorization`                                         | table `return_authorization` |
+| screen/route `stock`                                                         | `stock-level`                                                  | table `stock_level`          |
+| `ReceiptCard`                                                                | `InboundReceiptCard`                                           |                              |
+| copy slugs `logistic.receipt.*`                                              | `logistic.inbound_receipt.*`                                   | manifest already mixes both  |
+| `ReturnListView`, `ReturnDetailView`                                         | `ReturnAuthorizationListView`, `ReturnAuthorizationDetailView` |                              |
+| `StockListView`                                                              | `StockLevelListView`                                           |                              |
+| `PickQueueView`                                                              | `PickTaskQueueView`                                            |                              |
+| `ReceiveQueueView`, `ReceiveDetailView`, `CountQueueView`, `CountDetailView` | see D3                                                         | warehouse app                |
+| `LocationOption`                                                             | `StorageLocationOption`                                        |                              |
+| `EntityOption`                                                               | verify; generic name                                           |                              |
+| `AdjustmentReason` / `adjustment_reason`                                     | `StockAdjustmentReason` / `stock_adjustment_reason`            | DB enum rename               |
+| copy slug `logistic.field.location`                                          | `logistic.field.storage_location`                              |                              |
+| `PickTaskStatusBadge`, `ShipmentStatusBadge`, `ReturnConditionBadge`         | keep names; wrap `Badge`                                       | audit B4                     |
 
 **Content: parent concept dropped, or names colliding**
 
-| Old | Proposed | Notes |
-|---|---|---|
-| `AssignmentQueue` | `ArticleAssignmentQueue` | |
-| `BylineList` | `ArticleBylineList` | |
-| `MediaFigure` | `MediaAssetFigure` | |
-| `TopicTag` | `TopicLink` | `tag` is a separate concept |
-| `SectionFront` | `FrontDetail` | renders `FrontWithSlots`; verify |
-| `SectionLabel` | `SectionLink` or `SectionBadge` | verify whether it links |
-| `ArticleView`, `AuthorProfileView`, `LiveCoverageView` | `ArticleDetail`, `AuthorProfileDetail`, `LiveCoverageDetail` | D8 |
-| `LiveUpdateItem` | `LiveUpdateCard` or `LiveUpdateRow` | |
-| `NewsletterSignup` | `NewsletterSubscriptionForm` | |
-| `BlockEditorHost` + coreui `BlockEditor` | one component, `ArticleBlockEditor` | audit B1; one concept, one component |
-| route `preview/[token]` | D4 | |
-| screen id `admin-article` | verify against parent-first rule | |
-| `ArticleWorkflowPanel` tab labels "Status", "Checklist", "Team" | copy slugs; "Team" → assignment | |
+| Old                                                             | Proposed                                                     | Notes                                |
+| --------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------ |
+| `AssignmentQueue`                                               | `ArticleAssignmentQueue`                                     |                                      |
+| `BylineList`                                                    | `ArticleBylineList`                                          |                                      |
+| `MediaFigure`                                                   | `MediaAssetFigure`                                           |                                      |
+| `TopicTag`                                                      | `TopicLink`                                                  | `tag` is a separate concept          |
+| `SectionFront`                                                  | `FrontDetail`                                                | renders `FrontWithSlots`; verify     |
+| `SectionLabel`                                                  | `SectionLink` or `SectionBadge`                              | verify whether it links              |
+| `ArticleView`, `AuthorProfileView`, `LiveCoverageView`          | `ArticleDetail`, `AuthorProfileDetail`, `LiveCoverageDetail` | D8                                   |
+| `LiveUpdateItem`                                                | `LiveUpdateCard` or `LiveUpdateRow`                          |                                      |
+| `NewsletterSignup`                                              | `NewsletterSubscriptionForm`                                 |                                      |
+| `BlockEditorHost` + coreui `BlockEditor`                        | one component, `ArticleBlockEditor`                          | audit B1; one concept, one component |
+| route `preview/[token]`                                         | D4                                                           |                                      |
+| screen id `admin-article`                                       | verify against parent-first rule                             |                                      |
+| `ArticleWorkflowPanel` tab labels "Status", "Checklist", "Team" | copy slugs; "Team" → assignment                              |                                      |
 
 **coreui: components**
 
-| Old | Proposed | Notes |
-|---|---|---|
-| `RadioItem` | `RadioGroupItem` | parent-first |
-| `TableHead` vs `TableHeader` | e.g. keep `TableHead` (thead), `TableHeader` → `TableHeaderCell` (th) | |
-| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit` | move to the base template (audit B2) as `LocaleForm`, `LocalTextForm`, `LocalTextLinkForm` | |
-| `LocaleSwitcher` | `LocalePicker` | stays in coreui (audit B2) |
-| `StatusBadge` | removed | audit B4 |
-| `MessageAriaLive`, `SelectItemCollector` | verify; propose names | |
-| `SBMessage`, `SBMessageAction`, `SBMessageSeverity` | `Message`, `MessageAction`, `MessageSeverity` | no prefixes |
-| `DEFAULT_MESSAGE_LABELS` | no longer exported | audit F4 |
+| Old                                                 | Proposed                                                                                   | Notes                      |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------ | -------------------------- |
+| `RadioItem`                                         | `RadioGroupItem`                                                                           | parent-first               |
+| `TableHead` vs `TableHeader`                        | e.g. keep `TableHead` (thead), `TableHeader` → `TableHeaderCell` (th)                      |                            |
+| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit`  | move to the base template (audit B2) as `LocaleForm`, `LocalTextForm`, `LocalTextLinkForm` |                            |
+| `LocaleSwitcher`                                    | `LocalePicker`                                                                             | stays in coreui (audit B2) |
+| `StatusBadge`                                       | removed                                                                                    | audit B4                   |
+| `MessageAriaLive`, `SelectItemCollector`            | verify; propose names                                                                      |                            |
+| `SBMessage`, `SBMessageAction`, `SBMessageSeverity` | `Message`, `MessageAction`, `MessageSeverity`                                              | no prefixes                |
+| `DEFAULT_MESSAGE_LABELS`                            | no longer exported                                                                         | audit F4                   |
 
 **coreui: CSS classes (become a public contract at 1.0)**
 
-| Old | Proposed | Notes |
-|---|---|---|
-| `.btn`, `.block-btn`, `.add-block-btn`, `.pagination-btn`, `.select-scroll-btn` | `.button`, …`-button` | no abbreviations |
-| `.dialog-desc` | `.dialog__description` | `.drawer-description` already spelled out |
-| `.checkbox-wrap`, `.switch-wrap`, `.table-wrap` | concept part names | generic "wrap" |
-| `.datetime-picker` | `.date-time-picker` | matches `DateTimePicker` |
-| `.progress` | `.progress-bar` | matches `ProgressBar` |
-| `.notification` | `.inline-notification` | matches `InlineNotification` |
-| `.aria-live` | matches the renamed `MessageAriaLive` | |
-| `.radio-item`, `.radio-control` | `.radio-group-item`, … | follows the rename |
-| every internal element class (`.label`, `.icon`, `.body`, `.close`, `.footer`, …) | `component__part` | audit D2 |
-| `.local-text-edit`, `.local-text-link-edit`, `.locale-edit` | move with the components | audit B2 |
+| Old                                                                               | Proposed                              | Notes                                     |
+| --------------------------------------------------------------------------------- | ------------------------------------- | ----------------------------------------- |
+| `.btn`, `.block-btn`, `.add-block-btn`, `.pagination-btn`, `.select-scroll-btn`   | `.button`, …`-button`                 | no abbreviations                          |
+| `.dialog-desc`                                                                    | `.dialog__description`                | `.drawer-description` already spelled out |
+| `.checkbox-wrap`, `.switch-wrap`, `.table-wrap`                                   | concept part names                    | generic "wrap"                            |
+| `.datetime-picker`                                                                | `.date-time-picker`                   | matches `DateTimePicker`                  |
+| `.progress`                                                                       | `.progress-bar`                       | matches `ProgressBar`                     |
+| `.notification`                                                                   | `.inline-notification`                | matches `InlineNotification`              |
+| `.aria-live`                                                                      | matches the renamed `MessageAriaLive` |                                           |
+| `.radio-item`, `.radio-control`                                                   | `.radio-group-item`, …                | follows the rename                        |
+| every internal element class (`.label`, `.icon`, `.body`, `.close`, `.footer`, …) | `component__part`                     | audit D2                                  |
+| `.local-text-edit`, `.local-text-link-edit`, `.locale-edit`                       | move with the components              | audit B2                                  |
 
 **Schema and vocabulary**
 
-| Old | Proposed | Notes |
-|---|---|---|
-| status value `complete` vs `completed` | D1 | |
-| `pinned_until`, `embargo_until` | D2 | |
-| severity `danger` vs `error` | audit C4 | one word everywhere |
-| comments mentioning "hermes" (17 files) | "diglossia" | former package name |
-| "Camp 1" / "Camp 2" comments | e.g. "dictionary-independent" / "dictionary-resolving" | code names |
+| Old                                     | Proposed                                               | Notes               |
+| --------------------------------------- | ------------------------------------------------------ | ------------------- |
+| status value `complete` vs `completed`  | D1                                                     |                     |
+| `pinned_until`, `embargo_until`         | D2                                                     |                     |
+| severity `danger` vs `error`            | audit C4                                               | one word everywhere |
+| comments mentioning "hermes" (17 files) | "diglossia"                                            | former package name |
+| "Camp 1" / "Camp 2" comments            | e.g. "dictionary-independent" / "dictionary-resolving" | code names          |
 
 ### Decisions to resolve in Phase 0
 
 **Conformance**
 
-| # | Question | Recommendation |
-|---|---|---|
-| D1 | Single form for completion status values | `completed` |
-| D2 | `pinned_until`, `embargo_until` | `pin_expires_at`, `embargo_expires_at` |
-| D3 | Warehouse routes `warehouse/pick`, `receive`, `count` | Rename to `warehouse/pick-task`, `warehouse/inbound-receipt`, `warehouse/cycle-count`; warehouse view variants as e.g. `InboundReceiptWarehouseDetailView` |
-| D4 | `preview/[token]` | `article-preview/[token]` |
-| D5 | Backend seam location (guardrail 11 bans a data layer in packages; bundle-shared code may not go in `$lib`) | Module-level server overlay in the template tree, copied by the CLI whenever the module is selected. Generic helpers such as `toOne` in the flavour base `templates/superprototype/src/lib/server/`. Fallback: bundle-local `<concept>.server.ts` |
-| D6 | Where extracted screen sub-components live | Presentational → module package concept folder. Bound to a route's actions or hrefs → bundle-local |
-| D7 | Versioning | The release strategy above. No deprecated aliases |
-| D8 | `View` suffix used for components and view-model types | Reserve `View` for view-model types |
-| D9 | Repo role vocabulary | Add `Queue`, `Board`, `Panel`, `Renderer`, `Figure`, `Bar`, `Path`, and `Item` for coreui primitives only (`MenuItem`, `AccordionItem`) |
-| D10 | Schema file layout | One `schema/` folder per package with a per-concept file holding the table, enum values and derived types. Align `local-text-schema/src/tables/` |
-| D11 | Single-letter lambda parameters and `t` | Allow in one-line lambdas. Rename `t` to `localText` or `copy` |
+| #   | Question                                                                                                    | Recommendation                                                                                                                                                                                                                                    |
+| --- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Single form for completion status values                                                                    | `completed`                                                                                                                                                                                                                                       |
+| D2  | `pinned_until`, `embargo_until`                                                                             | `pin_expires_at`, `embargo_expires_at`                                                                                                                                                                                                            |
+| D3  | Warehouse routes `warehouse/pick`, `receive`, `count`                                                       | Rename to `warehouse/pick-task`, `warehouse/inbound-receipt`, `warehouse/cycle-count`; warehouse view variants as e.g. `InboundReceiptWarehouseDetailView`                                                                                        |
+| D4  | `preview/[token]`                                                                                           | `article-preview/[token]`                                                                                                                                                                                                                         |
+| D5  | Backend seam location (guardrail 11 bans a data layer in packages; bundle-shared code may not go in `$lib`) | Module-level server overlay in the template tree, copied by the CLI whenever the module is selected. Generic helpers such as `toOne` in the flavour base `templates/superprototype/src/lib/server/`. Fallback: bundle-local `<concept>.server.ts` |
+| D6  | Where extracted screen sub-components live                                                                  | Presentational → module package concept folder. Bound to a route's actions or hrefs → bundle-local                                                                                                                                                |
+| D7  | Versioning                                                                                                  | The release strategy above. No deprecated aliases                                                                                                                                                                                                 |
+| D8  | `View` suffix used for components and view-model types                                                      | Reserve `View` for view-model types                                                                                                                                                                                                               |
+| D9  | Repo role vocabulary                                                                                        | Add `Queue`, `Board`, `Panel`, `Renderer`, `Figure`, `Bar`, `Path`, and `Item` for coreui primitives only (`MenuItem`, `AccordionItem`)                                                                                                           |
+| D10 | Schema file layout                                                                                          | One `schema/` folder per package with a per-concept file holding the table, enum values and derived types. Align `local-text-schema/src/tables/`                                                                                                  |
+| D11 | Single-letter lambda parameters and `t`                                                                     | Allow in one-line lambdas. Rename `t` to `localText` or `copy`                                                                                                                                                                                    |
 
 **coreui API (from `COREUI-API-AUDIT.md`, "Decisions needed")**
 
-| # | Question | Audit recommendation |
-|---|---|---|
-| A-1 | Copy policy (A1, A2) | Every user-facing string prop required, no English defaults; `BlockEditor` takes one typed `labels` prop |
-| A-2 | Boundary (B1–B3) | Move `BlockEditor` to content and the locale editors to the template; `BarcodeInput` follows commerce's needs, and becomes a `Field` citizen either way |
-| A-3 | Duplicates (B4, B5) | Remove `StatusBadge`; keep `Alert` and `InlineNotification` with a stated distinction |
-| A-4 | Severity word (C4) | `danger`, matching the tokens |
-| A-5 | Attribute forwarding (C6, F3) | Closed and explicit for 1.0; `useField`/`FieldContext` public only if custom controls are supported |
-| A-6 | CSS contract (D1, D2) | Published list of public classes; internal elements renamed `component__part` |
-| A-7 | Callback and text conventions (C1, C3) | `on<Event>` camelCase, `on<Value>Change` for bindables; strings where the value names something, snippets where it's content |
-| A-8 | Svelte peer floor (F1) | `^5.33.0`, in step with bits-ui |
+| #   | Question                               | Audit recommendation                                                                                                                                    |
+| --- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A-1 | Copy policy (A1, A2)                   | Every user-facing string prop required, no English defaults; `BlockEditor` takes one typed `labels` prop                                                |
+| A-2 | Boundary (B1–B3)                       | Move `BlockEditor` to content and the locale editors to the template; `BarcodeInput` follows commerce's needs, and becomes a `Field` citizen either way |
+| A-3 | Duplicates (B4, B5)                    | Remove `StatusBadge`; keep `Alert` and `InlineNotification` with a stated distinction                                                                   |
+| A-4 | Severity word (C4)                     | `danger`, matching the tokens                                                                                                                           |
+| A-5 | Attribute forwarding (C6, F3)          | Closed and explicit for 1.0; `useField`/`FieldContext` public only if custom controls are supported                                                     |
+| A-6 | CSS contract (D1, D2)                  | Published list of public classes; internal elements renamed `component__part`                                                                           |
+| A-7 | Callback and text conventions (C1, C3) | `on<Event>` camelCase, `on<Value>Change` for bindables; strings where the value names something, snippets where it's content                            |
+| A-8 | Svelte peer floor (F1)                 | `^5.33.0`, in step with bits-ui                                                                                                                         |
 
 ---
 
