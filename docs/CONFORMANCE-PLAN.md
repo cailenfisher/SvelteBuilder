@@ -25,8 +25,11 @@ Why this shape:
 
 ### Branching
 
-- **Non-breaking fixes** (Phase 1) go to `main` first and release as patches, per the interim rule in `docs/DEFERRED.md`.
-- **All breaking work** goes on one branch, `release/coreui-1.0`. Nothing from it is released until Phase 12. Changesets are written as the work happens, but the branch never merges to `main` before pre mode is entered.
+All work happens on `dev`. It already runs every CI gate on push, and the Release workflow only runs on `main`, so nothing on `dev` can publish. `dev` is reserved for this plan until Phase 12: no unrelated work lands on it.
+
+- **Non-breaking fixes** (Phase 1) are committed on `dev`, then `dev` merges to `main` and releases as patches, per the interim rule in `docs/DEFERRED.md`.
+- **All breaking work** (Phases 2–12) continues on `dev`. Changesets are written as the work happens, but `dev` does not merge to `main` again until pre mode is entered in Phase 12. Changesets' `version` consumes every pending changeset, so a merge before then would ship the majors.
+- **A hotfix during the train** goes on a short branch off `main`, and `main` is then merged back into `dev`.
 
 ## Ground rules
 
@@ -169,11 +172,11 @@ Add `pnpm sql:check` (needs Docker) whenever a phase touches SQL, migrations, se
 
 ---
 
-## Phase 1: Non-breaking fixes on `main` (released as patches)
+## Phase 1: Non-breaking fixes (released as patches)
 
 **Goal:** ship every non-breaking audit item now, so the breaking train is smaller and these fixes reach users immediately.
 
-On a branch from `main`, as patch changesets per `docs/DEFERRED.md`:
+On `dev`, as patch changesets per `docs/DEFERRED.md`:
 
 - **E1:** replace hard-coded element ids with `$props.id()`.
 - **E2:** `Switch` consumes `useField()`; correct the `Field` doc comment.
@@ -184,7 +187,7 @@ On a branch from `main`, as patch changesets per `docs/DEFERRED.md`:
 - **C5:** add `class` to every component with a styled root.
 - **D3:** convert physical-direction CSS to logical properties.
 
-Skip anything a later breaking phase will rewrite anyway (for example, ids inside the locale editors if they're moving). Gate, merge, release. Then create `release/coreui-1.0` from the updated `main`.
+Skip anything a later breaking phase will rewrite anyway (for example, ids inside the locale editors if they're moving). Gate, merge `dev` to `main`, release. From here on, `dev` does not merge to `main` until Phase 12.
 
 ---
 
@@ -347,7 +350,7 @@ Write changesets. Gate, including `pnpm sql:check`. Pause for review.
 3. Confirm content and logistic peer on coreui `^1.0.0-rc.0` (which also admits `1.0.0` and every later 1.x).
 4. Write `docs/MIGRATION-2.0.md`: every old → new export, component, prop, callback, route, view type, copy slug, CSS class, enum value and column, with the SQL for existing databases.
 5. Update `docs/COREUI-1.0.md` to show stages 1, 2 (partial) and 4 (policy) done, and stages 3 and 5 in progress.
-6. Pause. The release itself is the maintainer's call.
+6. Pause. The release itself is the maintainer's call: merging `dev` to `main` publishes the RC.
 
 ### The RC window (human, not Claude Code)
 
