@@ -24,6 +24,9 @@
     onConfirm: () => void;
     /** Called when the dialog is dismissed by the cancel button or Escape. */
     onCancel?: () => void;
+    /** Called when the overlay opens or closes, with the new state. */
+    onOpenChange?: (open: boolean) => void;
+    class?: string | undefined;
   };
 
   let {
@@ -36,6 +39,8 @@
     children,
     onConfirm,
     onCancel,
+    onOpenChange,
+    class: extraClass,
   }: Props = $props();
 </script>
 
@@ -49,6 +54,7 @@
 <AlertDialog.Root
   bind:open
   onOpenChange={(next) => {
+    onOpenChange?.(next);
     if (!next) onCancel?.();
   }}
 >
@@ -56,7 +62,7 @@
     <AlertDialog.Overlay class="dialog-overlay" />
 
     <AlertDialog.Content
-      class="dialog sm"
+      class={['dialog', 'sm', extraClass ?? ''].filter(Boolean).join(' ')}
       escapeKeydownBehavior={loading ? 'ignore' : 'close'}
     >
       <div class="header">

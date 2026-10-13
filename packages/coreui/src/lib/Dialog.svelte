@@ -6,6 +6,8 @@
 
   type Props = {
     open?: boolean;
+    /** Called when the overlay opens or closes, with the new state. */
+    onOpenChange?: (open: boolean) => void;
     size?: Size;
     title: string;
     description?: string;
@@ -19,6 +21,7 @@
 
   let {
     open = $bindable(false),
+    onOpenChange,
     size = 'md',
     title,
     description,
@@ -34,7 +37,7 @@
   );
 </script>
 
-<Dialog.Root bind:open>
+<Dialog.Root bind:open {onOpenChange}>
   {#if trigger}
     <Dialog.Trigger class="dialog-trigger">
       {@render trigger()}

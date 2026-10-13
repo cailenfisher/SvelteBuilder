@@ -46,6 +46,7 @@
     "access": "public"
   },
   "peerDependencies": {
+    "@internationalized/date": "^3.8.1",
     "bits-ui": "^2.19.5",
     "svelte": "^5.0.0"
   },

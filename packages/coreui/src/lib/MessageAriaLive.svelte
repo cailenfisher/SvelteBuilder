@@ -1,6 +1,15 @@
 <script lang="ts">
   import { getMessageBus } from './message-bus.svelte.js';
 
+  type Props = {
+    /** Applied to both live regions. */
+    class?: string | undefined;
+  };
+
+  let { class: extraClass }: Props = $props();
+
+  const classes = $derived(['aria-live', extraClass ?? ''].filter(Boolean).join(' '));
+
   const messageBus = getMessageBus();
 
   // These two regions are the only aria-live regions in the app.
@@ -57,9 +66,9 @@
   Must be present in the DOM before any messages are dispatched.
   Visually hidden — announcements are for assistive technology only.
 -->
-<div id="sb-live-polite" aria-live="polite" aria-atomic="true" class="aria-live">
+<div id="sb-live-polite" aria-live="polite" aria-atomic="true" class={classes}>
   {politeText}
 </div>
-<div id="sb-live-assertive" aria-live="assertive" aria-atomic="true" class="aria-live">
+<div id="sb-live-assertive" aria-live="assertive" aria-atomic="true" class={classes}>
   {assertiveText}
 </div>

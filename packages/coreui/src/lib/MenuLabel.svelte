@@ -1,9 +1,10 @@
-<!-- Heading for a group of menu items. It must be a child of MenuGroup or MenuRadioGroup:
-     it names that group for assistive technology (Bits UI's GroupHeading), and outside one
-     it throws, which takes the whole menu down with it. -->
+<!-- Heading for a group of menu items. Inside MenuGroup or MenuRadioGroup it names that group for
+     assistive technology (Bits UI's GroupHeading). Outside one it renders as a plain, presentational
+     label: GroupHeading throws there, and the throw would take the whole menu down with it. -->
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { DropdownMenu } from 'bits-ui';
+  import { insideMenuGroup } from './menu-group.js';
 
   type Props = {
     children: Snippet;
@@ -11,10 +12,17 @@
   };
 
   let { children, class: extraClass }: Props = $props();
+
+  const grouped = insideMenuGroup();
+  const classes = $derived(['menu-label', extraClass ?? ''].filter(Boolean).join(' '));
 </script>
 
-<DropdownMenu.GroupHeading
-  class={['menu-label', extraClass ?? ''].filter(Boolean).join(' ')}
->
-  {@render children()}
-</DropdownMenu.GroupHeading>
+{#if grouped}
+  <DropdownMenu.GroupHeading class={classes}>
+    {@render children()}
+  </DropdownMenu.GroupHeading>
+{:else}
+  <div role="presentation" class={classes}>
+    {@render children()}
+  </div>
+{/if}

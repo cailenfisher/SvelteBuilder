@@ -5,6 +5,8 @@
   type Props = {
     checked?: boolean;
     onSelect?: () => void;
+    /** Called when the item is toggled, with its new state. See Checkbox's `onCheckedChange`. */
+    onCheckedChange?: (checked: boolean) => void;
     disabled?: boolean;
     children: Snippet;
     class?: string | undefined;
@@ -12,6 +14,7 @@
 
   let {
     checked = $bindable(false),
+    onCheckedChange,
     onSelect,
     disabled = false,
     children: itemContent,
@@ -25,6 +28,7 @@
 
 <DropdownMenu.CheckboxItem
   bind:checked
+  {onCheckedChange}
   class={classes}
   {disabled}
   onSelect={onSelect}

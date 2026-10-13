@@ -47,3 +47,11 @@
     Last action: {last}. Archived: {showArchived ? 'shown' : 'hidden'}. Sort: {sort}.
   </p>
 </Example>
+
+<Example title="A label outside a group">
+  <Menu>
+    {#snippet trigger()}More{/snippet}
+    <MenuLabel>Shipment 4183</MenuLabel>
+    <MenuItem onSelect={() => (last = 'Print')}>Print</MenuItem>
+  </Menu>
+</Example>

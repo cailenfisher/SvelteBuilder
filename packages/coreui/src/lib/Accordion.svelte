@@ -5,6 +5,8 @@
   type SingleProps = {
     type: 'single';
     value?: string;
+    /** Called when the value changes, with the new value. See Checkbox's `onCheckedChange`. */
+    onValueChange?: (value: string) => void;
     disabled?: boolean;
     children: Snippet;
     class?: string | undefined;
@@ -13,6 +15,8 @@
   type MultipleProps = {
     type: 'multiple';
     value?: string[];
+    /** Called when the value changes, with the new value. See Checkbox's `onCheckedChange`. */
+    onValueChange?: (value: string[]) => void;
     disabled?: boolean;
     children: Snippet;
     class?: string | undefined;
@@ -23,6 +27,7 @@
   let {
     type,
     value = $bindable(),
+    onValueChange,
     disabled = false,
     children,
     class: extraClass,
@@ -37,6 +42,7 @@
   <Accordion.Root
     type="single"
     bind:value={value as string}
+    onValueChange={onValueChange as ((value: string) => void) | undefined}
     {disabled}
     class={classes}
   >
@@ -46,6 +52,7 @@
   <Accordion.Root
     type="multiple"
     bind:value={value as string[]}
+    onValueChange={onValueChange as ((value: string[]) => void) | undefined}
     {disabled}
     class={classes}
   >

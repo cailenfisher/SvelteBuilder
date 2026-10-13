@@ -6,6 +6,7 @@
     current: LocaleOption;
     locales: LocaleOption[];
     action?: string;
+    class?: string | undefined;
   };
 
   let {
@@ -13,13 +14,16 @@
     current,
     locales,
     action = '/api/locale',
+    class: extraClass,
   }: Props = $props();
+
+  const selectId = $props.id();
 </script>
 
-<form method="POST" {action} class="locale-switcher">
-  <label for="locale-switcher-select" class="label">{label}</label>
+<form method="POST" {action} class={['locale-switcher', extraClass ?? ''].filter(Boolean).join(' ')}>
+  <label for={selectId} class="label">{label}</label>
   <select
-    id="locale-switcher-select"
+    id={selectId}
     name="code"
     class="select"
     onchange={(e) => e.currentTarget.form?.submit()}

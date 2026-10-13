@@ -139,3 +139,4 @@ export { default as DateTimePicker } from './DateTimePicker.svelte';
 // Utilities — for consumers building custom form controls
 // ============================================================
 export { useField } from './use-field.js';
+export type { FieldContext } from './use-field.js';

@@ -12,6 +12,7 @@ const OVERLAYS = [
   { path: '/dev/coreui/dialog', trigger: 'Open right' },
   { path: '/dev/coreui/confirm-dialog', trigger: 'Delete supplier' },
   { path: '/dev/coreui/menu', trigger: 'Actions' },
+  { path: '/dev/coreui/menu', trigger: 'More' },
   { path: '/dev/coreui/popover', trigger: 'Stock detail' },
 ] as const;
 
