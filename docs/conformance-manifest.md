@@ -1,0 +1,337 @@
+# Conformance manifest
+
+The approved name list for [`CONFORMANCE-PLAN.md`](./CONFORMANCE-PLAN.md). Every rename in Phases 3–11 comes from this file. A name not listed here is added as **pending** and approved before its phase closes.
+
+Inventoried 2026-10-13 against `main` at `63d8dcd`.
+
+**Status:** `proposed` means verified against the code and ready to approve. `pending` means the right name is a judgment call and needs your answer. `decision` means it waits on an entry in the decisions section at the end.
+
+**Layers key:** `db` table, column or enum · `type` TypeScript type · `view` view-model type · `cmp` component · `css` class · `route` route or screen id · `slug` copy slug and seed · `dk` dev-kitchen page and `catalog.ts` · `doc` README, CLAUDE.md, docs
+
+---
+
+## Logistic
+
+### Screens and routes
+
+| Old | New | Layers | Status |
+| --- | --- | --- | --- |
+| screen `receipt`, route `/admin/logistic/receipt[/[id]]` | `inbound-receipt`, `/admin/logistic/inbound-receipt[/[id]]` | route, manifest, `dashboard.requires`, scaffold-check, test, doc | proposed |
+| screen `return`, route `/admin/logistic/return[/[id]]` | `return-authorization`, `/admin/logistic/return-authorization[/[id]]` | same | proposed |
+| screen `stock`, route `/admin/logistic/stock` | `stock-level`, `/admin/logistic/stock-level` | same | proposed |
+| route `/warehouse/pick[/[id]]` | `/warehouse/pick-task[/[id]]` | route, manifest, links | decision D3 |
+| route `/warehouse/receive[/[id]]` | `/warehouse/inbound-receipt[/[id]]` | route, manifest, links | decision D3 |
+| route `/warehouse/count[/[id]]` | `/warehouse/cycle-count[/[id]]` | route, manifest, links | decision D3 |
+| form action `addLine`, `receiveLine` (inbound receipt) | `addInboundReceiptLine`, `receiveInboundReceiptLine` | route, manifest | pending: a form action is local to its page, so the short form may be acceptable; same question for every bundle's actions |
+| form field `line_id` | `inbound_receipt_line_id` | route, manifest | pending, with the row above |
+
+Screens `supplier`, `shipment`, `cycle-count`, `warehouse` and `dashboard` already conform.
+
+### Components
+
+| Old | New | Layers | Status |
+| --- | --- | --- | --- |
+| `ReceiptCard`, `.receipt-card` | `InboundReceiptCard`, `.inbound-receipt-card` | cmp, css, dk, test, doc | proposed |
+| `PickTaskStatusBadge`, `ShipmentStatusBadge`, `ReturnConditionBadge` | keep names; wrap `Badge` instead of `StatusBadge` | cmp | proposed (audit B4) |
+
+### View-model types (`views.ts`)
+
+| Old | New | Status |
+| --- | --- | --- |
+| `StockListView` | `StockLevelListView` | proposed |
+| `ReturnListView`, `ReturnDetailView` | `ReturnAuthorizationListView`, `ReturnAuthorizationDetailView` | proposed |
+| `PickQueueView` | `PickTaskWarehouseQueueView` | decision D3 |
+| `PickTaskDetailView` (warehouse) | `PickTaskWarehouseDetailView` | decision D3 |
+| `ReceiveQueueView`, `ReceiveDetailView` | `InboundReceiptWarehouseQueueView`, `InboundReceiptWarehouseDetailView` | decision D3 |
+| `CountQueueView`, `CountDetailView` | `CycleCountWarehouseQueueView`, `CycleCountWarehouseDetailView` | decision D3 |
+| `LocationOption` | `StorageLocationOption` | proposed |
+| `EntityOption` | keep. It is the shared shape of every `<Select>` option (`id`, `slug`), and "entity" is the repo's own term for a row that copy links to (`entity_id`). | proposed (keep) |
+| `ScreenCopy`, `ScreenLocale`, `ScreenPage`, `ScreenFormResult` | declared once, not per module | decision D16 |
+| field `LogisticMetrics.pendingReceiptCount` | `pendingInboundReceiptCount` | proposed |
+| field `LogisticMetrics.openReturnCount` | `openReturnAuthorizationCount` | proposed |
+| field `LogisticDashboardView.pendingReceipts`, `openReturns` | `pendingInboundReceipts`, `openReturnAuthorizations` | proposed |
+| field `StockLevelListView.levels`, `history`, `historyId` | `stockLevels`, `stockAdjustments`, `historyStockLevelId` | proposed |
+| field `PickQueueView.myTasks`, `openTasks` | `myPickTasks`, `openPickTasks` | proposed |
+| field `ReceiveQueueView.active`, `recent` | `activeInboundReceipts`, `recentInboundReceipts` | proposed |
+| field `CountQueueView.myCounts`, `openCounts` | `myCycleCounts`, `openCycleCounts` | proposed |
+| field `ReceiveDetailView.receipt`, `PickTaskDetailView.task` | `inboundReceipt`, `pickTask` | proposed |
+
+### Schema
+
+| Old | New | Layers | Status |
+| --- | --- | --- | --- |
+| enum `adjustment_reason` / `AdjustmentReason` | `stock_adjustment_reason` / `StockAdjustmentReason` | db (`ALTER TYPE … RENAME`), type, slug | proposed |
+| `inbound_receipt_status` value `complete` | `completed` | db, type, slug | decision D1 |
+| `cycle_count_status` value `complete` | `completed` | db, type, slug | decision D1 |
+| `storage_location.sort_order` | see D12 | db, type | decision D12 |
+| `tracking_event.description`, `tracking_event.status` (text) | keep. Carrier-supplied data, not copy, so guardrail 2 does not apply; record it as a documented deviation beside `supplier_contact.name` | doc | proposed (keep) |
+| `src/lib/schema.ts` + hand-written `src/lib/schema/index.ts` | one `schema/` folder per D10, types inferred | type | decision D10 |
+
+### Copy slugs
+
+All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.json` `copySlugs` list change with them.
+
+| Old prefix | New prefix | Status |
+| --- | --- | --- |
+| `logistic.receipt.*` (18) | `logistic.inbound_receipt.*` (joins the 5 already there) | proposed |
+| `logistic.return.*` (28) | `logistic.return_authorization.*` | proposed |
+| `logistic.stock.*` (14) | `logistic.stock_level.*` | proposed |
+| `logistic.pick.*` (13) | `logistic.pick_task.*` | proposed |
+| `logistic.count.*` (8) | `logistic.cycle_count.*` | proposed |
+| `logistic.receive.*` (6) | `logistic.inbound_receipt.*`, warehouse-only ones as `logistic.warehouse.inbound_receipt.*` | decision D3 |
+| `logistic.warehouse.pick`, `.receive`, `.count` (+ `.hint`) | `logistic.warehouse.pick_task`, `.inbound_receipt`, `.cycle_count` | decision D3 |
+| `logistic.location_type.*` | `logistic.storage_location_type.*` | proposed |
+| `logistic.adjustment_reason.*` | `logistic.stock_adjustment_reason.*` | proposed |
+| `logistic.field.location`, `logistic.field.location_type` | `logistic.field.storage_location`, `logistic.field.storage_location_type` | proposed |
+| `logistic.admin.dashboard.title` | `logistic.dashboard.title` (one prefix for the dashboard) | proposed |
+| `logistic.dashboard.pending_receipts`, `open_picks`, `open_returns` | `pending_inbound_receipt`, `open_pick_task`, `open_return_authorization` | proposed |
+| `logistic.admin.nav.*` (8) | seeded, never rendered: no `navigation_item` row uses them, and `storage_location` has no screen | pending: delete, or seed the nav rows |
+| English labels "Receiving", "Returns", "Stock", "Locations" | "Inbound receipts", "Return authorizations", "Stock levels", "Storage locations" (and French equivalents) | decision D13 |
+
+### dev-kitchen
+
+| Old | New | Status |
+| --- | --- | --- |
+| `/dev/logistic/receipt` | `/dev/logistic/inbound-receipt` | proposed |
+| `/dev/logistic/tracking` | `/dev/logistic/tracking-event` | proposed |
+| `/dev/logistic/status-badge` | keep. It shows three status badges side by side; "status badge" is their role, not a concept. | proposed (keep) |
+
+---
+
+## Content
+
+### Screens and routes
+
+| Old | New | Layers | Status |
+| --- | --- | --- | --- |
+| screen `admin-article` | `article-admin` (qualifier after parent) | route, manifest, scaffold-check, test, doc | proposed |
+| screen `preview`, route `/preview/[token]` | `article-preview`, `/article-preview/[token]` | route, manifest, preview-link generation | decision D4 |
+| screen `feeds` | `feed` (singular) | manifest, scaffold-check, test, doc | proposed |
+| `feed-articles.ts` | `feed-article.ts` | route | proposed |
+
+`rss.xml`, `sitemap.xml` and `sitemap-news.xml` keep their names: their URLs are fixed by convention outside this repo.
+
+### Components
+
+| Old | New | Root class | Status |
+| --- | --- | --- | --- |
+| `AssignmentQueue` | `ArticleAssignmentQueue` | `.article-assignment-queue` | proposed |
+| `BylineList` | `ArticleBylineList` | `.article-byline-list` | proposed |
+| `MediaFigure` | `MediaAssetFigure` | `.media-asset-figure` | proposed |
+| `TopicTag` | `TopicLink`. It renders an `<a>` to `/?topic=…`, and `tag` is a separate table. | `.topic-link` | proposed |
+| `SectionFront` | `FrontDetail`. Its prop is `front: FrontWithSlots`. | `.front-detail` | proposed |
+| `SectionLabel` | `SectionLink`. It always renders an `<a>`. | `.section-link` | proposed |
+| `ArticleView` | `ArticleDetail` | `.article-detail` | decision D8 |
+| `AuthorProfileView` | `AuthorProfileDetail` | `.author-profile-detail` | decision D8 |
+| `LiveCoverageView` | `LiveCoverageDetail` | `.live-coverage-detail` | decision D8 |
+| `LiveUpdateItem` (prop `update`) | `LiveUpdateCard` (prop `liveUpdate`). It renders a self-contained `<article>`. | `.live-update-card` | proposed |
+| `NewsletterSignup` | `NewsletterSubscriptionForm` | `.newsletter-subscription-form` | proposed |
+| `BlockEditorHost` + coreui `BlockEditor` | `ArticleBlockEditor` | `.article-block-editor`, internals `.article-block-editor__*` | proposed (A-2) |
+| `ArticleBlockRenderer` | keep name | `.article-block` → `.article-block-renderer` | proposed |
+| `ArticleWorkflowPanel` | keep name | `.workflow-panel` → `.article-workflow-panel` | proposed |
+| `ArticleWorkflowPanel` tab "Team", class `__team-item` | "Assignment", `__assignment` | — | proposed |
+| `ArticleWorkflowPanel` hard-coded "Status", "Checklist", "Team" | copy slugs (see below) | slug | proposed |
+| local type `AssignmentWithArticle` (in `AssignmentQueue`) | `ArticleAssignmentWithArticle` | type | proposed |
+
+### Types
+
+| Old | New | Status |
+| --- | --- | --- |
+| `ArticlePageView` | `ArticleDetailView` | proposed |
+| `SectionPageView` | `SectionDetailView` | proposed |
+| `PreviewPageView` | `ArticlePreviewDetailView` | decision D4 |
+| `AdminArticleListView`, `AdminArticleDetailView` | `ArticleAdminListView`, `ArticleAdminDetailView` | proposed |
+| `ChecklistEntry` | `ArticleChecklistEntry` | pending |
+| `ParagraphBlockContent`, `HeadingBlockContent`, `ImageBlockContent`, `GalleryBlockContent`, `VideoBlockContent`, `EmbedBlockContent`, `PullquoteBlockContent`, `LiveUpdateBlockContent` | `ArticleBlockParagraphContent`, … (parent `ArticleBlock` first) | proposed |
+| `MediaType` / enum `media_type` | `MediaAssetType` / `media_asset_type` | proposed |
+| `MediaLicense` / enum `media_license` | `MediaAssetLicense` / `media_asset_license` | proposed |
+| `MediaAssetRights` / table `media_asset_rights` | `MediaAssetRight` / `media_asset_right`, or keep "rights" as a mass noun | pending |
+| `ScreenCopy`, `ScreenLocale`, `ScreenStorage`, `ScreenAttribution`, `ScreenPage`, `ScreenFormResult` | see D16 | decision D16 |
+
+### Schema
+
+| Old | New | Status |
+| --- | --- | --- |
+| `front_slot.pinned_until` | `pin_expires_at` | decision D2 |
+| `article.embargo_until` | `embargo_expires_at` | decision D2 |
+| `media_asset.uploaded_by` (FK to `user_account`) | `user_account_id` (FK rule: `<table>_id`) | proposed |
+| `article.allow_comment` | `comment_allowed` (booleans read as states) | proposed |
+| `ordinal` (`article_status`, `publish_checklist_item`, `section`) and `position` (`article_block`, `article_byline`, `front_slot`, `live_update`) | see D12 | decision D12 |
+| `subscriber.locale` (text, no FK) | keep for now; record as drift (should reference `locale.id`) | pending |
+| table `publish_checklist_item` | see D15 | decision D15 |
+
+### Copy slugs
+
+| Old | New | Status |
+| --- | --- | --- |
+| `content.comments.*` (7) | `content.comment.*` (singular) | proposed |
+| `content.admin.*` (21) | `content.article_admin.*`, matching the screen id | proposed |
+| `content.admin.articles`, `.bylines`, `.sections` | `content.article_admin.article`, `.article_byline`, `.section` | proposed |
+| component slugs without the module prefix (`newsletter.signup_heading`, `action.publish`, … in scope `content`) | one convention; see D14 | decision D14 |
+| new: workflow tabs | `content.article_workflow.status`, `.checklist`, `.assignment` | proposed |
+
+### dev-kitchen
+
+| Old | New | Status |
+| --- | --- | --- |
+| `/dev/content/article-view` | `/dev/content/article-detail` | decision D8 |
+| `/dev/content/section-front` | `/dev/content/front-detail` | proposed |
+| `/dev/content/workflow` | `/dev/content/article-workflow` | proposed |
+| `/dev/content/newsletter` | keep (shows `NewsletterSubscriptionForm` and `SubscriberList`) | proposed (keep) |
+| `/dev/content/taxonomy` | `/dev/content/topic` and `/dev/content/section`, or keep as a grouping page | pending |
+| new | `/dev/content/article-block-editor` (from `/dev/coreui/block-editor`) | proposed |
+
+---
+
+## coreui
+
+### Components and exports
+
+| Old | New | Status |
+| --- | --- | --- |
+| `RadioItem` | `RadioGroupItem` | proposed |
+| `TableHead` (`<thead>`), `TableHeader` (`<th>`) | `TableHead` kept; `TableHeader` → `TableHeaderCell` | proposed |
+| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit` | moved to the base template as `LocaleForm`, `LocalTextForm`, `LocalTextLinkForm` | proposed (A-2) |
+| `LocaleSwitcher` | `LocalePicker` | proposed |
+| `StatusBadge` | removed | proposed (A-3) |
+| `BlockEditor`, type `EditorBlock` | moved to content as `ArticleBlockEditor`; type `ArticleBlockDraft` | pending (type name) |
+| `MessageAriaLive` | `MessageLiveRegion`. It is the message system's polite/assertive live region; "aria" names a technology, not the concept. | pending |
+| `SelectItemCollector` (internal, not exported) | keep | proposed (keep) |
+| `SBMessage`, `SBMessageAction`, `SBMessageSeverity` | `Message`, `MessageAction`, `MessageSeverity` | proposed |
+| `DEFAULT_MESSAGE_LABELS` | no longer exported | proposed (A-1) |
+| `interface MessageBus` | `type MessageBus` (TS convention: `type` unless merging) | proposed |
+| `.table .align-right` | `.table__cell--end` (logical, BEM) | proposed |
+
+### CSS classes
+
+**Rule (A-6):** the root class of every exported component is its name in kebab case. Every internal element is `<root>__<part>`. Modifiers follow decision A-6b.
+
+**Root classes that change:**
+
+| Old | New |
+| --- | --- |
+| `.btn` | `.button` |
+| `.progress` | `.progress-bar` |
+| `.notification` | `.inline-notification` |
+| `.datetime-picker` | `.date-time-picker` |
+| `.aria-live` | `.message-live-region` |
+| `.radio-item` | `.radio-group-item` |
+| `.table-header` | `.table-header-cell` |
+| `.locale-switcher` | `.locale-picker` |
+| `.checkbox-wrap`, `.switch-wrap` | `.checkbox`, `.switch` become the wrapping root; the inputs become `.checkbox__control`, `.switch__control` |
+| `.table-wrap` | `.table` becomes the scroll root; `<table>` becomes `.table__element` |
+| `.block-editor`, `.block-*`, `.add-block-btn`, `.embed-*`, `.heading-level-select` | move with the component as `.article-block-editor__*` |
+| `.locale-edit`, `.local-text-edit`, `.local-text-link-edit` | move with the components as `.locale-form`, `.local-text-form`, `.local-text-link-form` |
+
+**Internal elements that become `__part`:**
+
+| Root | Internals today → new |
+| --- | --- |
+| `.accordion-item` | `.accordion-header`, `.accordion-trigger`, `.accordion-content`, `.chevron`, `.title`, `.body` → `__header`, `__trigger`, `__content`, `__chevron`, `__title`, `__body` |
+| `.alert` | `.icon .title .body .content` → `.alert__icon`, … |
+| `.avatar` | `.image .fallback` |
+| `.banner` | `.icon .summary .detail .body .actions .action .close` |
+| `.barcode-input` | `.label .field .input-wrap .icon .error-msg` (`error-msg` → `__error-message`) |
+| `.button` | `.leading .trailing .spinner` |
+| `.card` | `.header .body .footer` |
+| `.checkbox` | `.checkbox-indicator .icon .label` |
+| `.data-table` | `.empty .footer` |
+| `.dialog` | `.dialog-overlay .dialog-trigger .dialog-title .dialog-desc .dialog-close .header .body .footer` (`desc` → `__description`) |
+| `.drawer` | `.drawer-overlay .drawer-trigger .drawer-title .drawer-description .drawer-close .drawer-header .drawer-body .drawer-footer` |
+| `.field` | `.label .required .hint .error .control` |
+| `.inline-notification` | `.icon .summary .detail .detail-toggle .ref .body .actions .action .close` (`ref` → `__reference`) |
+| `.locale-picker` | `.label .select` |
+| `.menu` | `.menu-trigger`; `.menu-item` internals `.leading .check .radio-dot .sub-arrow` |
+| `.metric-card` | `.label .value .trend .description` |
+| `.pagination` | `.pagination-btn .pages .ellipsis` (`btn` → `__button`) |
+| `.popover`, `.tooltip` | `-trigger`, `-arrow` |
+| `.progress-bar` | `.track .indicator` |
+| `.radio-group-item` | `.radio-control .label` |
+| `.select` | `.select-trigger .select-value .select-content .select-viewport .select-scroll-btn .chevron` |
+| `.spinner` | `.svg .track .arc` |
+| `.switch` | `.switch-thumb .label` |
+| `.table-header-cell` | `.sort-trigger .sort-icon .content` |
+| `.table` | `.caption` |
+| `.tag` | `.remove` |
+| `.timeline-item` | `.dot .body .content .label .meta .timestamp` |
+| `.toast`, `.toast-region` | `.icon .summary .detail .detail-toggle .ref .body .actions .action .close .fill .timer`; region `.queue` |
+
+Roots of exported sub-components stay as they are: `.accordion-item`, `.menu-item`, `.menu-group`, `.menu-label`, `.menu-radio-group`, `.menu-separator`, `.select-item`, `.tabs-list`, `.tabs-trigger`, `.tabs-content`, `.table-head`, `.table-body`, `.table-foot`, `.table-row`, `.table-cell`, `.timeline-item`, `.toast-region`. `.dialog` stays shared with `ConfirmDialog`, and `.menu` / `.menu-item` with the menu family, as the audit records.
+
+### dev-kitchen
+
+| Old | New | Status |
+| --- | --- | --- |
+| `/dev/coreui/progress` | `/dev/coreui/progress-bar` | proposed |
+| `/dev/coreui/locale` | `/dev/coreui/locale-picker`; the editors leave with B2 | proposed |
+| `/dev/coreui/block-editor` | moves to content | proposed |
+| `/dev/coreui/choice` | `/dev/coreui/checkbox`, `/dev/coreui/radio-group`, `/dev/coreui/switch`, or keep as a grouping page | pending |
+
+---
+
+## Base and SuperPrototype templates
+
+| Old | New | Status |
+| --- | --- | --- |
+| `navigation_item.scope` | `navigation_item.menu` (already flagged in CLAUDE.md as colliding with the i18n scope) | pending |
+| table `navigation_item` | see D15 | decision D15 |
+| `src/lib/server/scoped-copy.ts`, `hooks.server.ts` call `.from(` | not route files; excluded from the Phase 9 "no `.from(` in routes" check. (content's `feed-articles.ts` is the third non-route file in the 35, and it moves into the content seam.) | proposed |
+
+REST paths (`/api/locale`, `/api/local-text/...`) are already singular. Only `CLAUDE.md`'s naming table still states the plural exception (Phase 2).
+
+---
+
+## Comments, docs and vocabulary
+
+| Old | New | Scope | Status |
+| --- | --- | --- | --- |
+| "hermes", `@sveltebuilder/hermes` | "diglossia" | 25 files outside `CHANGELOG.md` (17 code files, plus README, CLAUDE.md, `docs/DEFERRED.md`, `docs/DEV-KITCHEN.md`, the messaging doc, two content build logs and the logistic seed) | proposed |
+| "Camp 1", "Camp 2" | "dictionary-independent", "dictionary-resolving" | 45 files | proposed |
+| `t` (293 calls in screens) | `localText` | screens | decision D11 |
+| severity `error` vs `danger` | `danger` | coreui, base template, docs | decision A-4 |
+
+`packages/content/CONTENT_AUDIT.md` and `CONTENT_BUILD_LOG.md` are historical records. Proposed: leave them unedited, the same as `CHANGELOG.md`.
+
+---
+
+## Decisions
+
+### From the plan
+
+| # | Question | Recommendation and evidence |
+| --- | --- | --- |
+| D1 | One form for completion status | **`completed`.** `pick_task_status` already uses it; `inbound_receipt_status` and `cycle_count_status` say `complete`. `completed` also matches `in_progress`/`cancelled` as past-participle states. Two `ALTER TYPE … RENAME VALUE`, plus 2 slugs per locale. |
+| D2 | `pinned_until`, `embargo_until` | **`pin_expires_at`, `embargo_expires_at`.** The schema already has `media_asset_rights.expires_at` and `article_preview_token.expires_at`. These are the only two non-`_at` timestamps in the repo. |
+| D3 | Warehouse routes | **Agree with the plan.** `/warehouse/pick-task`, `/warehouse/inbound-receipt`, `/warehouse/cycle-count`; views `<Concept>Warehouse<Role>View`; slugs `logistic.warehouse.<concept>.*`. The worker home screen labels can stay friendly ("Pick", "Receive", "Count") as copy, since those are actions, not concept names. |
+| D4 | `preview/[token]` | **`/article-preview/[token]`.** The token is `article_preview_token.token`, and only articles are previewable. |
+| D5 | Backend seam location | **Module-level server overlay.** `tools/create/src/index.ts` already copies per-module `supplemental/`, `seed/` and `manifest.json` when a module is selected (lines 428–453). Adding `modules/<module>/server.superprototype/` → `src/lib/server/<module>/` is the same mechanism, a few lines. `toOne` (in 14 files) goes in `templates/superprototype/src/lib/server/`. The 35 files calling `.from(` confirm the scope; 3 of them are not route files (see the templates section). |
+| D6 | Extracted screen sub-components | **Agree.** Presentational → module package; bound to a route's actions or hrefs → bundle-local. |
+| D7 | Versioning | **Agree.** No deprecated aliases. |
+| D8 | `View` suffix | **Reserve `View` for view-model types.** Today it means both: `ArticleView` (component) and `ArticlePageView` (type), which is the "a suffix means one thing" violation. `Detail` is already in the role vocabulary. |
+| D9 | Role vocabulary additions | **Agree**, with D15 settled first, because it decides what `Item` may mean. `Queue` (`ArticleAssignmentQueue`), `Board` (`FrontCurationBoard`), `Panel` (`ArticleWorkflowPanel`), `Renderer` (`ArticleBlockRenderer`), `Figure` (`MediaAssetFigure`), `Bar` (`StockLevelBar`, `ProgressBar`), `Path` (`StorageLocationPath`) all have current users. Also add `Editor` (`ArticleBlockEditor`), `Region` (`ToastRegion`, `MessageLiveRegion`) and `Option` (`StorageLocationOption`, a type role). |
+| D10 | Schema file layout | **Agree.** Logistic and content each have `src/lib/schema.ts` (Drizzle) *and* `src/lib/schema/index.ts` (hand-written types) — the collision Phase 4 resolves. `local-text-schema` already uses `src/tables/<concept>.ts`; adopt `src/lib/schema/<concept>.ts` everywhere. |
+| D11 | Single-letter lambdas and `t` | **Allow single letters in one-line lambdas; rename `t` to `localText`.** Every screen declares `const t = (slug) => scoped.localText(slug, 'logistic')`, so the new name says what it already is. |
+
+### coreui API
+
+| # | Question | Recommendation |
+| --- | --- | --- |
+| A-1 | Copy policy | **Agree:** required string props, no English defaults; `ArticleBlockEditor` takes one typed `labels`. |
+| A-2 | Boundary | **Agree.** `BarcodeInput`: commerce is a stub with no planned scanning screen, so **move it to logistic** now. Adding it back to coreui later is additive; removing it from coreui after 1.0 would be breaking. |
+| A-3 | Duplicates | **Agree:** remove `StatusBadge`; keep `Alert` (static page content) and `InlineNotification` (a message-system result). |
+| A-4 | Severity word | **`danger`.** Note that `MessageSeverity` also has `critical`, which `Badge`/`Alert` lack; it stays message-only. |
+| A-5 | Attribute forwarding | **Closed and explicit**; keep `useField`/`FieldContext` private unless you want custom controls supported. |
+| A-6 | CSS contract | **Agree,** using the tables above. |
+| A-6b | Modifier form (new) | Modifiers are mixed today: `.btn.primary`, `.progress.lg`, `.toast.success` but `.drawer--left`. **Recommend BEM `--`** (`.button--primary`), which CLAUDE.md already names as the structure convention. |
+| A-7 | Callback and text conventions | **Agree.** |
+| A-8 | Svelte peer floor | **`^5.33.0`.** |
+
+### New, found in the inventory
+
+| # | Question | Recommendation |
+| --- | --- | --- |
+| D12 | One name for ordering columns | Three names for one idea: `ordinal` (3 tables), `position` (4), `sort_order` (1). **Recommend `position`**, the most used. Renames 4 columns. |
+| D13 | Do UI labels use the full concept name? | The global rule says a shorter everyday label is drift. Logistic's nav says "Receiving", "Returns", "Stock". **Recommend full names in admin chrome and headings** ("Inbound receipts", "Return authorizations"), and allow short action words only for buttons and the warehouse worker home ("Receive", "Pick"). |
+| D14 | Module UI copy slug convention | Screens use `logistic.receipt.title` in scope `logistic` (module prefix repeated in slug and scope). Content's components use `newsletter.signup_heading` in scope `content` (no prefix). **Recommend keeping the prefix everywhere**, which changes only content's components (about 15 slugs) instead of every screen; the screen-bundle test and manifests are written against prefixed slugs. |
+| D15 | `Item` in domain table names | `publish_checklist_item` and `navigation_item` are domain tables, but D9 limits `Item` to coreui primitives. **Recommend allowing `Item` where the domain itself says it** ("checklist item", "navigation item" are the domain's terms) and banning it only as a stand-alone generic name. Otherwise: `publish_checklist_requirement`, `navigation_link`. |
+| D16 | `Screen*` view types duplicated | `ScreenCopy`, `ScreenLocale`, `ScreenPage` and `ScreenFormResult` are declared identically in both `views.ts` files (content adds `ScreenStorage`, `ScreenAttribution`). A helper declared twice is a bug under the single-source rule. **Recommend moving the shared ones into coreui as types-only exports** (`ScreenCopy` needs only a type import from diglossia, which guardrail 1 allows). Keep content's two extras in content. |
