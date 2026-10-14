@@ -1,6 +1,6 @@
 # Conformance manifest
 
-The approved name list for [`CONFORMANCE-PLAN.md`](./CONFORMANCE-PLAN.md). Every rename in Phases 3–11 comes from this file. A name not listed here is added as **pending** and approved before its phase closes.
+The approved name list for [`CONFORMANCE-PLAN.md`](./CONFORMANCE-PLAN.md). Every rename in Phases 3–12 comes from this file. A name not listed here is added as **pending** and approved before its phase closes.
 
 **Approved 2026-10-13**: every `proposed` entry, every recommendation in the decisions section, and the resolutions recorded in the pending rows below.
 

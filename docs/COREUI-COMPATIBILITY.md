@@ -181,6 +181,6 @@ Set by Bits UI, and public because coreui's own styles key on them: `data-state`
 | Firefox | 128 | relative colour syntax |
 | Safari, iOS Safari | 18 | complete relative colour syntax; earlier versions shipped a partial implementation |
 
-The accessibility workflow audits Chromium. WebKit and Firefox join it in Phase 11 of the
+The accessibility workflow audits Chromium. WebKit and Firefox join it in Phase 12 of the
 conformance plan. Until then, the Firefox and Safari floors come from the features coreui uses, not
 from a test run.

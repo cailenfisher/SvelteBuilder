@@ -1,8 +1,8 @@
 # MIGRATION-2.0.md — upgrading to coreui 1.0, content 2.0 and logistic 2.0
 
 **Draft.** Written phase by phase as the conformance plan (`docs/CONFORMANCE-PLAN.md`) renames
-things, and completed in Phase 12. The SQL below has not yet been run against a database built from
-the 1.x schema; Phase 12 validates it before release.
+things, and completed in Phase 13. The SQL below has not yet been run against a database built from
+the 1.x schema; Phase 13 validates it before release.
 
 Screens are scaffolded once and owned by your app (`CLAUDE.md`, guardrail 10), so an existing
 project receives none of these changes on upgrade. This guide is how to apply them.

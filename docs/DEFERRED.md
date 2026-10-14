@@ -252,18 +252,24 @@ other than `BarcodeInput` consumes it.
 
 ---
 
-## Styling a class passed to a child component: revisit (open, 2026-10-13)
+## Styling a class passed to a child component: revisit (decided 2026-10-14)
 
 The base template's local-text admin page gives `TableCell` the class
 `local-text-admin__content-cell` and styles it in its own `<style>` block. Svelte scopes that block
 to elements the page renders itself, so the rule never matched, and `svelte-check` reported it as
-unused. The fix applied is `:global(.local-text-admin__content-cell)`.
+unused. The fix applied was `:global(.local-text-admin__content-cell)`. Content's `ArticleCard`
+does the same to crop `MediaAssetFigure`'s image.
 
-That is a stopgap. `:global` escapes scoping for a page-specific class, and the same pattern will
-recur anywhere a screen styles a coreui component it composes. Decide the real mechanism: a page
-wrapper element with `.wrapper :global(.cell)`, an unlayered page stylesheet, or a coreui prop for
-the specific need (truncation here). Settle it before Phase 10 extracts screen sub-components,
-which will multiply the cases.
+`:global` was a stopgap. It escapes scoping for a page-specific class, and the pattern recurs
+anywhere a component styles a child it composes. The options were a wrapper element plus
+`:global`, a coreui prop for each need, CSS custom properties exposed by the child, or plain
+stylesheets with no Svelte scoping at all.
+
+**Decision:** plain stylesheets. BEM names already scope every rule, so Svelte's scoping is a
+second, redundant system and the one that breaks here. No component has a `<style>` block;
+packages export stylesheets the app layers, and app code imports its own. This costs more files
+and loses `svelte-check`'s unused-selector warning, which `scripts/css-check.mjs` replaces. Applied
+in Phase 10 of `docs/CONFORMANCE-PLAN.md`; the rules are in `CLAUDE.md`.
 
 ---
 
