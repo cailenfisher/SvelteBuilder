@@ -447,7 +447,7 @@ You will touch, from most to least common:
 | ----------------------------------------------------- | ------------------------------------------------------------------------- |
 | Brand color, neutrals, status colors, font, radius    | The `:root` token block in `src/app.css`                                  |
 | A specific component's look                           | Unlayered rules at the bottom of `src/app.css`                            |
-| The base structure of `.btn`, `.input`, `.card`, etc. | `src/chrome.css` (it is yours, not a package file)                        |
+| The base structure of `.button`, `.input`, `.card`, etc. | `src/chrome.css` (it is yours, not a package file)                        |
 | The app shell: header, footer, page padding           | `src/routes/+layout.svelte`                                               |
 
 ### 8.2 The tokens
@@ -504,22 +504,23 @@ The scaffold loads no web fonts. To use one:
 
 ### 8.4 Overriding a specific component
 
-coreui components use plain class names (`.btn`, `.btn.primary`, `.card`, `.alert`, ...) and
-target Bits UI state through data attributes (`[data-state='open']`, `[data-highlighted]`,
-`[data-disabled]`), never toggled classes. Write unlayered rules against those:
+coreui components use BEM class names (`.button`, `.button--primary`, `.card__body`, `.alert`, ...)
+and target Bits UI state through data attributes (`[data-state='open']`, `[data-highlighted]`,
+`[data-disabled]`), never toggled classes. The public list is in `docs/COREUI-COMPATIBILITY.md`.
+Write unlayered rules against those:
 
 ```css
 /* bottom of src/app.css — unlayered, so it wins */
-.btn {
+.button {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.btn.primary {
+.button--primary {
   box-shadow: 0 1px 0 rgb(0 0 0 / 0.15);
 }
 
-.accordion-trigger[data-state='open'] {
+.accordion-item__trigger[data-state='open'] {
   background: var(--brand-soft);
 }
 ```

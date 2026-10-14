@@ -1,11 +1,11 @@
-<!-- ToastRegion and MessageAriaLive are mounted once by the base chrome's root layout, so
+<!-- ToastRegion and MessageLiveRegion are mounted once by the base chrome's root layout, so
      this page exercises them by sending through the bus rather than mounting copies. -->
 <script lang="ts">
-  import { Button, Toast, getMessageBus, type SBMessageSeverity } from '@sveltebuilder/coreui';
+  import { Button, Toast, getMessageBus, type MessageSeverity } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
 
   const messageBus = getMessageBus();
-  const severities: SBMessageSeverity[] = ['info', 'success', 'warning', 'error'];
+  const severities: MessageSeverity[] = ['info', 'success', 'warning', 'danger'];
 
   let undone = $state(0);
   let staticDismissed = $state(false);
@@ -27,7 +27,7 @@
   {/if}
 </Example>
 
-<Example title="Through the bus (ToastRegion, MessageAriaLive)">
+<Example title="Through the bus (ToastRegion, MessageLiveRegion)">
   {#each severities as severity (severity)}
     <Button
       variant="secondary"
@@ -39,7 +39,7 @@
     variant="secondary"
     onclick={() =>
       messageBus.sendToast({
-        severity: 'error',
+        severity: 'danger',
         summary: 'Pick task could not be completed',
         detail: 'Location A-04-2 reports less stock than requested.',
         technicalId: 'PICK-0091',

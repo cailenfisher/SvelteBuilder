@@ -8,8 +8,19 @@
     key: string;
     label: string;
     sortable?: boolean;
-    // Right-align numeric columns (quantities, amounts).
-    align?: 'left' | 'right';
+    // Align numeric columns (quantities, amounts) to the end of the line: the right in
+    // left-to-right text, the left in right-to-left.
+    align?: 'start' | 'end';
+  };
+
+  /** Every string the table renders around its rows. All are required: there is no English default. */
+  export type DataTableLabels = {
+    /** Shown in place of rows when there are none. */
+    empty: string;
+    /** Accessible name of the pagination landmark. */
+    pagination: string;
+    previousPage: string;
+    nextPage: string;
   };
 </script>
 
@@ -19,7 +30,7 @@
   import TableHead from '../Table/TableHead.svelte';
   import TableBody from '../Table/TableBody.svelte';
   import TableRow from '../Table/TableRow.svelte';
-  import TableHeader from '../Table/TableHeader.svelte';
+  import TableHeaderCell from '../Table/TableHeaderCell.svelte';
   import TableCell from '../Table/TableCell.svelte';
   import Pagination from '../Pagination/Pagination.svelte';
 
@@ -30,7 +41,7 @@
     cell: Snippet<[Row, DataTableColumn]>;
     caption?: string;
     stickyHeader?: boolean;
-    emptyLabel?: string;
+    labels: DataTableLabels;
     // Controlled sort. Headers are only interactive when onSortChange is given.
     sortKey?: string;
     sortDirection?: 'asc' | 'desc';
@@ -50,7 +61,7 @@
     cell,
     caption,
     stickyHeader = false,
-    emptyLabel = 'No data',
+    labels,
     sortKey,
     sortDirection = 'asc',
     onSortChange,
@@ -77,27 +88,27 @@
     <TableHead>
       <TableRow>
         {#each columns as column (column.key)}
-          <TableHeader
+          <TableHeaderCell
             sortable={column.sortable === true && onSortChange !== undefined}
             sorted={sortKey === column.key ? sortDirection : false}
             onSort={column.sortable && onSortChange ? () => handleSort(column) : undefined}
-            class={column.align === 'right' ? 'align-right' : undefined}
+            class={column.align === 'end' ? 'table-cell--end' : undefined}
           >
             {column.label}
-          </TableHeader>
+          </TableHeaderCell>
         {/each}
       </TableRow>
     </TableHead>
     <TableBody>
       {#if rows.length === 0}
         <TableRow>
-          <TableCell colspan={columns.length} class="empty">{emptyLabel}</TableCell>
+          <TableCell colspan={columns.length} class="data-table__empty">{labels.empty}</TableCell>
         </TableRow>
       {:else}
         {#each rows as row (rowKey(row))}
           <TableRow>
             {#each columns as column (column.key)}
-              <TableCell class={column.align === 'right' ? 'align-right' : undefined}>
+              <TableCell class={column.align === 'end' ? 'table-cell--end' : undefined}>
                 {@render cell(row, column)}
               </TableCell>
             {/each}
@@ -108,8 +119,16 @@
   </Table>
 
   {#if total !== undefined && total > perPage}
-    <div class="footer">
-      <Pagination count={total} {perPage} bind:page {onPageChange} />
+    <div class="data-table__footer">
+      <Pagination
+        count={total}
+        {perPage}
+        bind:page
+        {onPageChange}
+        label={labels.pagination}
+        previousLabel={labels.previousPage}
+        nextLabel={labels.nextPage}
+      />
     </div>
   {/if}
 </div>

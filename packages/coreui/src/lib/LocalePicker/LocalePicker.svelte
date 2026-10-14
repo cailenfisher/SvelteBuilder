@@ -20,12 +20,12 @@
   const selectId = $props.id();
 </script>
 
-<form method="POST" {action} class={['locale-switcher', extraClass ?? ''].filter(Boolean).join(' ')}>
-  <label for={selectId} class="label">{label}</label>
+<form method="POST" {action} class={['locale-picker', extraClass ?? ''].filter(Boolean).join(' ')}>
+  <label for={selectId} class="locale-picker__label">{label}</label>
   <select
     id={selectId}
     name="code"
-    class="select"
+    class="locale-picker__select"
     onchange={(e) => e.currentTarget.form?.submit()}
   >
     {#each locales as locale (locale.code)}

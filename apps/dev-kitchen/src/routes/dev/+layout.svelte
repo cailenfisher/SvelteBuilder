@@ -1,5 +1,5 @@
 <!-- The showcase frame: page list, the page's heading and components, and a colour-scheme
-     switch. Locale and direction come from the base chrome's LocaleSwitcher (pick
+     switch. Locale and direction come from the base chrome's LocalePicker (pick
      العربية for right-to-left). Harness-only copy is English: nothing here ships. -->
 <script lang="ts">
   import type { Snippet } from 'svelte';

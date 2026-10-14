@@ -1,8 +1,8 @@
 // ============================================================
-// SBMessage — unified message type and reactive message bus
+// Message — unified message type and reactive message bus
 //
 // Consumers call messageBus.sendToast() / sendBanner() to emit.
-// ToastRegion, Banner, and MessageAriaLive read from context via
+// ToastRegion, Banner, and MessageLiveRegion read from context via
 // getMessageBus(). A module-level singleton would share state across
 // concurrent server requests, so the bus is a per-request instance
 // created with createMessageBus() and put in context with
@@ -11,39 +11,39 @@
 
 import { getContext, setContext } from 'svelte';
 
-export type SBMessageSeverity = 'success' | 'info' | 'warning' | 'error' | 'critical';
+export type MessageSeverity = 'success' | 'info' | 'warning' | 'danger' | 'critical';
 
-export type SBMessageAction = {
+export type MessageAction = {
   label: string;
   onAction: () => void;
 };
 
-export type SBMessage = {
+export type Message = {
   id: string;
-  severity: SBMessageSeverity;
+  severity: MessageSeverity;
   summary: string;
   detail?: string;
   technicalId?: string;
-  actions?: SBMessageAction[];
+  actions?: MessageAction[];
   source?: string;
   undoAction?: () => void;
   undoDurationMs?: number;
 };
 
 // Default auto-dismiss durations in ms. null = never auto-dismiss.
-export const AUTO_DISMISS_MS: Record<SBMessageSeverity, number | null> = {
+export const AUTO_DISMISS_MS: Record<MessageSeverity, number | null> = {
   success: 5000,
   info: 7000,
   warning: null,
-  error: null,
+  danger: null,
   critical: null,
 };
 
 /**
  * Copy the message surfaces render around a message — the message text itself
- * arrives on SBMessage. Interpolated entries are functions so a locale controls
- * where the value sits; the English defaults exist for library consumers with no
- * dictionary, and a scaffold overrides every one from its own.
+ * arrives on Message. Interpolated entries are functions so a locale controls
+ * where the value sits. Every entry is required: there is no English fallback, so
+ * a caller cannot ship English accessible names to readers of another locale.
  */
 export type MessageLabels = {
   undo: string;
@@ -56,39 +56,28 @@ export type MessageLabels = {
   queued: (count: number) => string;
 };
 
-export const DEFAULT_MESSAGE_LABELS: MessageLabels = {
-  undo: 'Undo',
-  showDetails: 'Show details',
-  hideDetails: 'Hide details',
-  reference: (technicalId) => `Reference: ${technicalId}`,
-  dismiss: (summary) => `Dismiss: ${summary}`,
-  secondsRemaining: (seconds) => `${seconds} ${seconds === 1 ? 'second' : 'seconds'} until dismissed`,
-  region: 'Notifications',
-  queued: (count) => `+${count} more`,
-};
-
 export type MessageBusOptions = {
-  labels?: Partial<MessageLabels>;
+  labels: MessageLabels;
 };
 
-export interface MessageBus {
+export type MessageBus = {
   readonly labels: MessageLabels;
-  readonly toasts: SBMessage[];
-  readonly banner: SBMessage | null;
-  sendToast(msg: Omit<SBMessage, 'id'>): string;
+  readonly toasts: Message[];
+  readonly banner: Message | null;
+  sendToast(msg: Omit<Message, 'id'>): string;
   dismissToast(id: string): void;
-  sendBanner(msg: Omit<SBMessage, 'id'>): string;
+  sendBanner(msg: Omit<Message, 'id'>): string;
   dismissBanner(): void;
-}
+};
 
 function generateId(): string {
   return Math.random().toString(36).slice(2, 9);
 }
 
 /** Creates a fresh, request-scoped message bus. Call once per render, in the root layout's `<script>` body. */
-export function createMessageBus(options: MessageBusOptions = {}): MessageBus {
-  const labels: MessageLabels = { ...DEFAULT_MESSAGE_LABELS, ...options.labels };
-  const state = $state<{ toasts: SBMessage[]; banner: SBMessage | null }>({
+export function createMessageBus(options: MessageBusOptions): MessageBus {
+  const { labels } = options;
+  const state = $state<{ toasts: Message[]; banner: Message | null }>({
     toasts: [],
     banner: null,
   });
@@ -104,7 +93,7 @@ export function createMessageBus(options: MessageBusOptions = {}): MessageBus {
       return state.banner;
     },
 
-    sendToast(msg: Omit<SBMessage, 'id'>): string {
+    sendToast(msg: Omit<Message, 'id'>): string {
       const id = generateId();
       state.toasts = [...state.toasts, { ...msg, id }];
       return id;
@@ -114,7 +103,7 @@ export function createMessageBus(options: MessageBusOptions = {}): MessageBus {
       state.toasts = state.toasts.filter((m) => m.id !== id);
     },
 
-    sendBanner(msg: Omit<SBMessage, 'id'>): string {
+    sendBanner(msg: Omit<Message, 'id'>): string {
       const id = generateId();
       state.banner = { ...msg, id };
       return id;
@@ -147,10 +136,10 @@ export function getMessageBus(): MessageBus {
 }
 
 /**
- * The context bus's labels, or the English defaults when no bus is set. For
- * components like InlineNotification that render without a bus but should
- * follow its copy when one exists.
+ * The context bus's labels, for components such as InlineNotification that render a message
+ * without sending one. Throws the same error as getMessageBus() when no bus is set: there is no
+ * English fallback to use instead.
  */
 export function getMessageLabels(): MessageLabels {
-  return getContext<MessageBus | undefined>(CONTEXT_KEY)?.labels ?? DEFAULT_MESSAGE_LABELS;
+  return getMessageBus().labels;
 }

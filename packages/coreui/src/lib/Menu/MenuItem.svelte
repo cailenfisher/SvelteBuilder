@@ -29,7 +29,7 @@
   onSelect={onSelect}
 >
   {#if leading}
-    <span class="leading" aria-hidden="true">
+    <span class="menu-item__leading" aria-hidden="true">
       {@render leading()}
     </span>
   {/if}

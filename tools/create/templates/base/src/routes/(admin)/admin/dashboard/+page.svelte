@@ -8,7 +8,7 @@
     TableHead,
     TableBody,
     TableRow,
-    TableHeader,
+    TableHeaderCell,
     TableCell,
   } from '@sveltebuilder/coreui'
   import type { PageData } from './$types'
@@ -79,10 +79,10 @@
     <Table>
       <TableHead>
         <TableRow>
-          <TableHeader>{dictionary.localText('table.id')}</TableHeader>
-          <TableHeader>{dictionary.localText('table.name')}</TableHeader>
-          <TableHeader>{dictionary.localText('table.status')}</TableHeader>
-          <TableHeader>{dictionary.localText('table.date')}</TableHeader>
+          <TableHeaderCell>{dictionary.localText('table.id')}</TableHeaderCell>
+          <TableHeaderCell>{dictionary.localText('table.name')}</TableHeaderCell>
+          <TableHeaderCell>{dictionary.localText('table.status')}</TableHeaderCell>
+          <TableHeaderCell>{dictionary.localText('table.date')}</TableHeaderCell>
         </TableRow>
       </TableHead>
       <TableBody>

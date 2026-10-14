@@ -3,7 +3,8 @@
   import { Button, Field, InlineNotification, Input, Textarea } from '@sveltebuilder/coreui';
   import { ArticleView } from '@sveltebuilder/content';
   import { buildArticleMetaTags, buildNewsArticleJsonLd } from '@sveltebuilder/content/publishing';
-  import type { ArticlePageView, ScreenFormResult } from '@sveltebuilder/content/views';
+  import type { ArticlePageView } from '@sveltebuilder/content/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: ArticlePageView; form?: ScreenFormResult } = $props();
 
@@ -99,7 +100,7 @@
               <h3 class="article-page__comment-form-heading">{t('content.comments.leave')}</h3>
 
               {#if form?.error}
-                <InlineNotification severity="error" summary={form.error} />
+                <InlineNotification severity="danger" summary={form.error} />
               {/if}
 
               <Field label={t('content.comments.name')} id="comment-name" required>

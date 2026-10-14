@@ -38,7 +38,8 @@
       <MenuRadioItem value="oldest">Oldest first</MenuRadioItem>
     </MenuRadioGroup>
     <MenuSeparator />
-    <MenuSub triggerLabel="Export">
+    <MenuSub>
+      {#snippet trigger()}Export{/snippet}
       <MenuItem onSelect={() => (last = 'Export CSV')}>CSV</MenuItem>
       <MenuItem onSelect={() => (last = 'Export PDF')}>PDF</MenuItem>
     </MenuSub>

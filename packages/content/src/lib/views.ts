@@ -1,4 +1,4 @@
-import type { DictionaryPayload } from 'diglossia';
+import type { ScreenCopy, ScreenLocale, ScreenPage } from '@sveltebuilder/coreui';
 import type {
   Article,
   ArticleBlock,
@@ -34,29 +34,6 @@ import type {
  */
 
 /**
- * Every screen in this module needs copy, and the root dictionary does not carry it —
- * `get_dictionary` treats a null scope filter as "scope is null", so scoped copy has to be
- * loaded and provided by the screen's own loader.
- *
- * The payload must already be resolved to one entry per key; diglossia only flattens it. It
- * carries both the module's UI copy (scope 'content') and the entity-bound copy the screen
- * renders — an article's headline, a block's text, a section's name.
- */
-export type ScreenCopy = {
-  copy: DictionaryPayload;
-};
-
-/**
- * The locale a screen formats dates in, and declares to assistive technology.
- *
- * Carried on the view rather than read from the root layout's data, because a screen is
- * provider-neutral and the layout's shape is the scaffold's business.
- */
-export type ScreenLocale = {
-  localeCode: string;
-};
-
-/**
  * Where a media asset's storageKey resolves to a URL.
  *
  * On the view rather than read from an environment variable in the screen, because the answer
@@ -80,16 +57,6 @@ export type ScreenStorage = {
  */
 export type ScreenAttribution = {
   attributions: MediaAssetAttribution[];
-};
-
-/**
- * A server-paginated list. The loader owns the slice; the screen renders the controls.
- */
-export type ScreenPage = {
-  page: number;
-  perPage: number;
-  /** Rows matching the filter, not rows on this page. */
-  total: number;
 };
 
 // ── Shared article shapes ────────────────────────────────────────────────────
@@ -208,13 +175,3 @@ export type ChecklistEntry = {
   completed: boolean;
 };
 
-/**
- * What a screen's form actions return. `fail()` payloads and successful returns share one
- * shape so a screen can render `form?.error` without narrowing per action — which is why the
- * success branch declares `error?: undefined` rather than omitting the key: a union whose
- * members disagree on which keys exist cannot be read through `?.` at all, only narrowed
- * first.
- */
-export type ScreenFormResult =
-  | { success: true; message?: string; error?: undefined }
-  | { success?: false; error: string };

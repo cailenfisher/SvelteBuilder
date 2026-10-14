@@ -29,6 +29,8 @@
   <ConfirmDialog
     bind:open={busyOpen}
     title="Publishing…"
+    confirmLabel="Publish"
+    cancelLabel="Cancel"
     loading
     onConfirm={() => (busyOpen = false)}
     onCancel={() => (busyOpen = false)}

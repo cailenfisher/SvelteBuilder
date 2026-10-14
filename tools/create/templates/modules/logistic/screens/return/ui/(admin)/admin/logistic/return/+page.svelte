@@ -14,11 +14,8 @@
   } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
   import type { ReturnAuthorizationStatus } from '@sveltebuilder/logistic';
-  import type {
-    ReturnAuthorizationRow,
-    ReturnListView,
-    ScreenFormResult,
-  } from '@sveltebuilder/logistic/views';
+  import type { ReturnAuthorizationRow, ReturnListView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: ReturnListView; form?: ScreenFormResult } = $props();
 
@@ -32,7 +29,7 @@
     { key: 'id', label: t('logistic.return.one') },
     { key: 'status', label: t('logistic.return.status_label') },
     { key: 'reason', label: t('logistic.return.reason') },
-    { key: 'lineCount', label: t('logistic.return.lines'), align: 'right' },
+    { key: 'lineCount', label: t('logistic.return.lines'), align: 'end' },
     { key: 'createdAt', label: t('logistic.return.created_at') },
   ]);
 
@@ -86,7 +83,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <nav class="return-list__filters" aria-label={t('logistic.return.filter_status')}>
@@ -119,7 +116,12 @@
     perPage={data.perPage}
     total={data.total}
     onPageChange={(next) => goto(href(data.status, next))}
-    emptyLabel={t('logistic.return.empty')}
+    labels={{
+      empty: t('logistic.return.empty'),
+      pagination: dictionary.localText('nav.pagination'),
+      previousPage: dictionary.localText('pagination.previous'),
+      nextPage: dictionary.localText('pagination.next'),
+    }}
   />
 </div>
 

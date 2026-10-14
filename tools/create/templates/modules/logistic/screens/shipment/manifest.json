@@ -49,6 +49,9 @@
     "action.save",
     "action.add",
     "action.cancel",
-    "action.close"
+    "action.close",
+    "pagination.previous",
+    "pagination.next",
+    "nav.pagination"
   ]
 }

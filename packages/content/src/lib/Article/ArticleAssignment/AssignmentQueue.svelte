@@ -1,6 +1,9 @@
-<!-- Camp 1: no hermes import — receives pre-resolved copy from server.
+<!-- Camp 2: receives pre-resolved article copy from the server, and resolves its own column,
+     role and table copy (scope `content`) from the dictionary.
      Uses coreui DataTable for article assignment queue management. -->
 <script lang="ts">
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import { DataTable } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
   import type { ArticleAssignment, ArticleWithCopy } from '../../schema/index.js';
@@ -18,24 +21,37 @@
     onPageChange?: (page: number) => void;
     onRowClick?: (assignment: AssignmentWithArticle) => void;
     locale: string;
+    dictionary?: DictionaryInstance;
   };
 
-  let { assignments, total, page, perPage, onPageChange, onRowClick, locale }: Props = $props();
+  let {
+    assignments,
+    total,
+    page,
+    perPage,
+    onPageChange,
+    onRowClick,
+    locale,
+    dictionary: dictionaryProp,
+  }: Props = $props();
 
-  const ROLE_LABEL: Record<string, string> = {
-    author: 'Author',
-    editor: 'Editor',
-    photo: 'Photo',
-    copy: 'Copy',
-  };
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
 
-  const columns: DataTableColumn[] = [
-    { key: 'headline', label: 'Article' },
-    { key: 'role', label: 'Role' },
-    { key: 'assignee', label: 'Assignee' },
-    { key: 'status', label: 'Status' },
-    { key: 'dueAt', label: 'Due' },
-  ];
+  const columns: DataTableColumn[] = $derived([
+    { key: 'headline', label: dictionary.localText('content.article_assignment_queue.article', 'content') },
+    { key: 'role', label: dictionary.localText('content.article_assignment_queue.role', 'content') },
+    { key: 'assignee', label: dictionary.localText('content.article_assignment_queue.assignee', 'content') },
+    { key: 'status', label: dictionary.localText('content.article_assignment_queue.status', 'content') },
+    { key: 'dueAt', label: dictionary.localText('content.article_assignment_queue.due_at', 'content') },
+  ]);
+
+  const tableLabels = $derived({
+    empty: dictionary.localText('content.article_assignment_queue.empty', 'content'),
+    pagination: dictionary.localText('content.pagination.label', 'content'),
+    previousPage: dictionary.localText('content.pagination.previous', 'content'),
+    nextPage: dictionary.localText('content.pagination.next', 'content'),
+  });
 
   function formatDate(iso: string): string {
     return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(iso));
@@ -56,7 +72,7 @@
       {assignment.article.headline}
     {/if}
   {:else if column.key === 'role'}
-    {ROLE_LABEL[assignment.role] ?? assignment.role}
+    {dictionary.localText(`content.article_assignment_role.${assignment.role}`, 'content')}
   {:else if column.key === 'assignee'}
     {assignment.assigneeName}
   {:else if column.key === 'status'}
@@ -75,7 +91,7 @@
   {perPage}
   {total}
   onPageChange={onPageChange ?? (() => {})}
-  emptyLabel="No assignments in queue."
+  labels={tableLabels}
 />
 
 <style>

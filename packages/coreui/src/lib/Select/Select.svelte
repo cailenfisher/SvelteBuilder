@@ -1,3 +1,7 @@
+<script module lang="ts">
+  export type SelectSize = 'sm' | 'md' | 'lg';
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { Select } from 'bits-ui';
@@ -5,12 +9,12 @@
   import SelectItemCollector from './SelectItemCollector.svelte';
   import type { SelectItemRecord, SelectItemRegistry } from './select-items.js';
 
-  type Size = 'sm' | 'md' | 'lg';
-
   type Props = {
     value?: string;
+    /** Shown when nothing is selected. Optional, with no default: the accessible name comes from
+        the surrounding Field's label, not from this. */
     placeholder?: string;
-    size?: Size;
+    size?: SelectSize;
     disabled?: boolean;
     error?: string | boolean;
     name?: string;
@@ -22,7 +26,7 @@
 
   let {
     value = $bindable(''),
-    placeholder = 'Select an option…',
+    placeholder,
     size = 'md',
     disabled,
     error,
@@ -71,7 +75,7 @@
   });
 
   const triggerClasses = $derived(
-    ['select-trigger', size, hasError ? 'error' : ''].filter(Boolean).join(' ')
+    ['select__trigger', `select__trigger--${size}`, hasError ? 'select__trigger--error' : ''].filter(Boolean).join(' ')
   );
 
   const wrapperClasses = $derived(
@@ -94,8 +98,8 @@
       aria-controls={listboxId}
       aria-invalid={hasError || undefined}
     >
-      <Select.Value placeholder={placeholder} class="select-value" id={valueId} />
-      <span class="chevron" aria-hidden="true">
+      <Select.Value placeholder={placeholder} class="select__value" id={valueId} />
+      <span class="select__chevron" aria-hidden="true">
         <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
           <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -106,21 +110,21 @@
       <!-- The listbox is a separate widget once open and needs its own name. -->
       <Select.Content
         id={listboxId}
-        class="select-content"
+        class="select__content"
         sideOffset={4}
         aria-labelledby={field?.labelId}
       >
-        <Select.ScrollUpButton class="select-scroll-btn up">
+        <Select.ScrollUpButton class="select__scroll-button select__scroll-button--up">
           <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden="true">
             <path d="M4 10l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </Select.ScrollUpButton>
 
-        <Select.Viewport class="select-viewport">
+        <Select.Viewport class="select__viewport">
           {@render children()}
         </Select.Viewport>
 
-        <Select.ScrollDownButton class="select-scroll-btn down">
+        <Select.ScrollDownButton class="select__scroll-button select__scroll-button--down">
           <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>

@@ -1,13 +1,15 @@
+<script module lang="ts">
+  export type SwitchSize = 'sm' | 'md';
+</script>
+
 <script lang="ts">
   import { Switch } from 'bits-ui';
   import { useField } from '../Field/use-field.js';
 
-  type Size = 'sm' | 'md';
-
   type Props = {
     checked?: boolean;
     label?: string;
-    size?: Size;
+    size?: SwitchSize;
     disabled?: boolean;
     required?: boolean;
     name?: string;
@@ -39,10 +41,10 @@
   });
 
   const wrapClasses = $derived(
-    ['switch-wrap', extraClass ?? ''].filter(Boolean).join(' ')
+    ['switch', extraClass ?? ''].filter(Boolean).join(' ')
   );
 
-  const rootClasses = $derived(['switch', size].join(' '));
+  const rootClasses = $derived(['switch__control', `switch__control--${size}`].join(' '));
 </script>
 
 <label class={wrapClasses} data-disabled={resolvedDisabled || undefined}>
@@ -57,10 +59,10 @@
     {name}
     class={rootClasses}
   >
-    <Switch.Thumb class="switch-thumb" />
+    <Switch.Thumb class="switch__thumb" />
   </Switch.Root>
 
   {#if label}
-    <span class="label">{label}</span>
+    <span class="switch__label">{label}</span>
   {/if}
 </label>

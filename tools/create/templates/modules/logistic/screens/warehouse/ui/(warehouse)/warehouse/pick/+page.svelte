@@ -2,7 +2,8 @@
   import { createDictionary } from 'diglossia';
   import { Button, InlineNotification } from '@sveltebuilder/coreui';
   import { PickTaskStatusBadge } from '@sveltebuilder/logistic';
-  import type { PickQueueView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { PickQueueView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: PickQueueView; form?: ScreenFormResult } = $props();
 
@@ -18,7 +19,7 @@
   <h1 class="pick-queue__title">{t('logistic.warehouse.pick')}</h1>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   {#if data.myTasks.length > 0}

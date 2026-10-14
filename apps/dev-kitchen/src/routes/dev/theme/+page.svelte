@@ -19,7 +19,7 @@
     Pagination,
     ProgressBar,
     RadioGroup,
-    RadioItem,
+    RadioGroupItem,
     Select,
     SelectItem,
     Spinner,
@@ -67,11 +67,11 @@
     <Badge variant="warning">Warning</Badge>
     <Badge variant="danger">Danger</Badge>
     <Badge variant="info">Info</Badge>
-    <Tag onremove={() => {}} removeLabel="Remove tag">Tag</Tag>
+    <Tag onRemove={() => {}} removeLabel="Remove tag">Tag</Tag>
   </div>
   <Alert variant="warning" title="Low stock">Twelve units left at A-04-2.</Alert>
   <InlineNotification
-    severity="error"
+    severity="danger"
     summary="The carrier rejected the address."
     dismissible
     onDismiss={() => {}}
@@ -86,7 +86,7 @@
     <Textarea value="Keep upright." rows={2} />
   </Field>
   <Field id="{prefix}-carrier" label="Carrier">
-    <Select value="express">
+    <Select value="express" placeholder="Choose a carrier">
       <SelectItem value="ground" label="Ground" />
       <SelectItem value="express" label="Express" />
     </Select>
@@ -96,8 +96,8 @@
     <Switch checked label="Notify" />
   </div>
   <RadioGroup value="list" orientation="horizontal" name="{prefix}-layout">
-    <RadioItem value="list" label="List" />
-    <RadioItem value="grid" label="Grid" />
+    <RadioGroupItem value="list" label="List" />
+    <RadioGroupItem value="grid" label="Grid" />
   </RadioGroup>
   <Tabs value="details">
     <TabsList>
@@ -124,7 +124,14 @@
       <TimelineItem label="Packed" current>Two cartons.</TimelineItem>
     </Timeline>
   </Card>
-  <Pagination count={60} perPage={10} page={2} label="{prefix} pages" />
+  <Pagination
+    count={60}
+    perPage={10}
+    page={2}
+    label="{prefix} pages"
+    previousLabel="Previous page"
+    nextLabel="Next page"
+  />
 {/snippet}
 
 <div class="theme">

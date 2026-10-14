@@ -35,6 +35,7 @@
       perPage={20}
       onPageChange={(next) => (page = next)}
       locale="en"
+      {dictionary}
     />
   </div>
 </Example>

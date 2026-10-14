@@ -2,7 +2,7 @@
   import Field from '../../src/lib/Field/Field.svelte';
   import Switch from '../../src/lib/Switch/Switch.svelte';
   import RadioGroup from '../../src/lib/RadioGroup/RadioGroup.svelte';
-  import RadioItem from '../../src/lib/RadioGroup/RadioItem.svelte';
+  import RadioGroupItem from '../../src/lib/RadioGroup/RadioGroupItem.svelte';
 
   type Props = { control: 'switch' | 'radio-group'; hint?: string; error?: string };
 
@@ -14,7 +14,7 @@
     <Switch />
   {:else}
     <RadioGroup>
-      <RadioItem value="email" label="Email" />
+      <RadioGroupItem value="email" label="Email" />
     </RadioGroup>
   {/if}
 </Field>

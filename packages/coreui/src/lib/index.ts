@@ -22,14 +22,14 @@ export { default as Spinner } from './Spinner/Spinner.svelte';
 // ============================================================
 // Messaging system
 // ============================================================
-export { createMessageBus, setMessageBus, getMessageBus, AUTO_DISMISS_MS, DEFAULT_MESSAGE_LABELS } from './Message/message-bus.svelte.js';
-export type { MessageBus, MessageBusOptions, MessageLabels, SBMessage, SBMessageSeverity, SBMessageAction } from './Message/message-bus.svelte.js';
+export { createMessageBus, setMessageBus, getMessageBus, AUTO_DISMISS_MS } from './Message/message-bus.svelte.js';
+export type { MessageBus, MessageBusOptions, MessageLabels, Message, MessageSeverity, MessageAction } from './Message/message-bus.svelte.js';
 export { default as Toast } from './Toast/Toast.svelte';
 export { default as ToastRegion } from './Toast/ToastRegion.svelte';
 export { default as InlineNotification } from './InlineNotification/InlineNotification.svelte';
 export { default as Banner } from './Banner/Banner.svelte';
 export { default as ConfirmDialog } from './ConfirmDialog/ConfirmDialog.svelte';
-export { default as MessageAriaLive } from './Message/MessageAriaLive.svelte';
+export { default as MessageLiveRegion } from './Message/MessageLiveRegion.svelte';
 
 // ============================================================
 // Form primitives
@@ -40,7 +40,7 @@ export { default as Input } from './Input/Input.svelte';
 export { default as Textarea } from './Textarea/Textarea.svelte';
 export { default as Checkbox } from './Checkbox/Checkbox.svelte';
 export { default as RadioGroup } from './RadioGroup/RadioGroup.svelte';
-export { default as RadioItem } from './RadioGroup/RadioItem.svelte';
+export { default as RadioGroupItem } from './RadioGroup/RadioGroupItem.svelte';
 export { default as Switch } from './Switch/Switch.svelte';
 export { default as Select } from './Select/Select.svelte';
 export { default as SelectItem } from './Select/SelectItem.svelte';
@@ -87,7 +87,7 @@ export { default as MenuSub } from './Menu/MenuSub.svelte';
 // ============================================================
 // Navigation
 // ============================================================
-export { default as LocaleSwitcher } from './LocaleSwitcher/LocaleSwitcher.svelte';
+export { default as LocalePicker } from './LocalePicker/LocalePicker.svelte';
 export { default as Pagination } from './Pagination/Pagination.svelte';
 
 // ============================================================
@@ -101,10 +101,10 @@ export { default as TableHead } from './Table/TableHead.svelte';
 export { default as TableBody } from './Table/TableBody.svelte';
 export { default as TableFoot } from './Table/TableFoot.svelte';
 export { default as TableRow } from './Table/TableRow.svelte';
-export { default as TableHeader } from './Table/TableHeader.svelte';
+export { default as TableHeaderCell } from './Table/TableHeaderCell.svelte';
 export { default as TableCell } from './Table/TableCell.svelte';
 export { default as DataTable } from './DataTable/DataTable.svelte';
-export type { DataTableColumn } from './DataTable/DataTable.svelte';
+export type { DataTableColumn, DataTableLabels } from './DataTable/DataTable.svelte';
 
 // ============================================================
 // Overlay / panel
@@ -121,3 +121,31 @@ export { default as DateTimePicker } from './DateTimePicker/DateTimePicker.svelt
 // ============================================================
 export { useField } from './Field/use-field.js';
 export type { FieldContext } from './Field/use-field.js';
+
+// ============================================================
+// Screen contracts — types shared by every module's view types
+// ============================================================
+export type { ScreenCopy, ScreenFormResult, ScreenLocale, ScreenPage } from './Screen/screen.js';
+
+// ============================================================
+// Variant, size and other prop value types
+// ============================================================
+export type { AlertVariant } from './Alert/Alert.svelte';
+export type { AvatarSize } from './Avatar/Avatar.svelte';
+export type { BadgeSize, BadgeVariant } from './Badge/Badge.svelte';
+export type { BannerSeverity } from './Banner/Banner.svelte';
+export type { ButtonSize, ButtonVariant } from './Button/Button.svelte';
+export type { CheckboxSize } from './Checkbox/Checkbox.svelte';
+export type { DialogSize } from './Dialog/Dialog.svelte';
+export type { DrawerSide } from './Drawer/Drawer.svelte';
+export type { InlineNotificationSeverity } from './InlineNotification/InlineNotification.svelte';
+export type { InputSize } from './Input/Input.svelte';
+export type { ProgressBarSize } from './ProgressBar/ProgressBar.svelte';
+export type { RadioGroupOrientation } from './RadioGroup/RadioGroup.svelte';
+export type { SelectSize } from './Select/Select.svelte';
+export type { SpinnerSize } from './Spinner/Spinner.svelte';
+export type { SwitchSize } from './Switch/Switch.svelte';
+export type { TableHeaderCellScope, TableHeaderCellSortDirection } from './Table/TableHeaderCell.svelte';
+export type { TabsOrientation } from './Tabs/Tabs.svelte';
+export type { TagVariant } from './Tag/Tag.svelte';
+export type { TextareaSize } from './Textarea/Textarea.svelte';

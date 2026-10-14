@@ -51,7 +51,8 @@ this table at the end of every phase, and update it when an item lands or a new 
 | --- | --- | --- | --- |
 | Styling a class passed to a child component (`:global` stopgap on the base local-text page) | `docs/DEFERRED.md` | Phase 10 (screen decomposition multiplies the cases) | open |
 | `useField`/`FieldContext` as public API, or another way for a custom control to read `Field` | `docs/DEFERRED.md` | Phase 12 (1.0 freezes it), or before a second consumer | open |
-| Hard-coded English found along the way: `PickTaskCard` progress `aria-label`, `SubscriberList` column labels and counts | this table | Phase 11 (copy sweep) | open |
+| Hard-coded English found along the way: `PickTaskCard` progress `aria-label`; `LiveUpdateItem` ("Pinned"), `LiveCoverageView` ("Live", "Coverage ended"), `BylineList` ("By"), `FrontCurationBoard` (layout names, slot labels). `SubscriberList`, `ArticleList`, `AssignmentQueue` and `ArticleWorkflowPanel` were done in Phase 7 | this table | Phase 11 (copy sweep) | open |
+| Right-to-left: a `Checkbox` label's first letter is hidden ("artial shipments" on `/dev/theme`). Present before the Phase 7 rename too; axe does not see it | this table | Phase 12 (the RC's human RTL pass), or fix in Phase 11 | open |
 | Validate the upgrade SQL against a database built from the 1.x schema | `docs/MIGRATION-2.0.md` | Phase 12 | open |
 
 ### Gate (run at the end of every phase)

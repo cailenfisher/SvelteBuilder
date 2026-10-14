@@ -15,11 +15,8 @@
     Textarea,
   } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
-  import type {
-    ScreenFormResult,
-    StockLevelRow,
-    StockListView,
-  } from '@sveltebuilder/logistic/views';
+  import type { StockLevelRow, StockListView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: StockListView; form?: ScreenFormResult } = $props();
 
@@ -43,10 +40,10 @@
   const columns: DataTableColumn[] = $derived([
     { key: 'sku', label: t('logistic.field.sku') },
     { key: 'location', label: t('logistic.field.location') },
-    { key: 'onHand', label: t('logistic.field.on_hand'), align: 'right' },
-    { key: 'reserved', label: t('logistic.field.reserved'), align: 'right' },
-    { key: 'available', label: t('logistic.field.available'), align: 'right' },
-    { key: 'reorderPoint', label: t('logistic.field.reorder_point'), align: 'right' },
+    { key: 'onHand', label: t('logistic.field.on_hand'), align: 'end' },
+    { key: 'reserved', label: t('logistic.field.reserved'), align: 'end' },
+    { key: 'available', label: t('logistic.field.available'), align: 'end' },
+    { key: 'reorderPoint', label: t('logistic.field.reorder_point'), align: 'end' },
     { key: 'actions', label: '' },
   ]);
 
@@ -107,7 +104,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   {#if historyLevel !== null}
@@ -159,7 +156,12 @@
     rows={data.levels}
     rowKey={(row) => row.id}
     cell={stockCell}
-    emptyLabel={data.lowOnly ? t('logistic.stock.empty_low') : t('logistic.stock.empty')}
+    labels={{
+      empty: data.lowOnly ? t('logistic.stock.empty_low') : t('logistic.stock.empty'),
+      pagination: dictionary.localText('nav.pagination'),
+      previousPage: dictionary.localText('pagination.previous'),
+      nextPage: dictionary.localText('pagination.next'),
+    }}
   />
 </div>
 

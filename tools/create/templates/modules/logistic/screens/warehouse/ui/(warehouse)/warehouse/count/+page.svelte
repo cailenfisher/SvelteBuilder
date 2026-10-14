@@ -1,7 +1,8 @@
 <script lang="ts">
   import { createDictionary } from 'diglossia';
   import { Button, InlineNotification } from '@sveltebuilder/coreui';
-  import type { CountQueueView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { CountQueueView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: CountQueueView; form?: ScreenFormResult } = $props();
 
@@ -17,7 +18,7 @@
   <h1 class="count-queue__title">{t('logistic.warehouse.count')}</h1>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   {#if data.myCounts.length > 0}

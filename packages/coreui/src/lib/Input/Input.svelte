@@ -1,11 +1,13 @@
+<script module lang="ts">
+  export type InputSize = 'sm' | 'md' | 'lg';
+</script>
+
 <script lang="ts">
   import type { HTMLInputAttributes } from 'svelte/elements';
   import { useField } from '../Field/use-field.js';
 
-  type Size = 'sm' | 'md' | 'lg';
-
   type Props = Omit<HTMLInputAttributes, 'size'> & {
-    size?: Size;
+    size?: InputSize;
     error?: string | boolean;
     class?: string;
   };
@@ -37,11 +39,11 @@
   });
 
   const classes = $derived(
-    ['input', size, hasError ? 'error' : '', extraClass ?? ''].filter(Boolean).join(' ')
+    ['input', `input--${size}`, hasError ? 'input--error' : '', extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 
-<div class="wrap">
+<div class="input__wrap">
   <input
     class={classes}
     id={resolvedId}
@@ -55,7 +57,7 @@
 </div>
 
 <style>
-  .wrap {
+  .input__wrap {
     display: flex;
     flex-direction: column;
     width: 100%;

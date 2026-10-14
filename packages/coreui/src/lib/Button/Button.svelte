@@ -1,13 +1,15 @@
+<script module lang="ts">
+  export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
+  export type ButtonSize = 'sm' | 'md' | 'lg';
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { HTMLButtonAttributes, HTMLAnchorAttributes } from 'svelte/elements';
 
-  type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
-  type Size = 'sm' | 'md' | 'lg';
-
   type BaseProps = {
-    variant?: Variant;
-    size?: Size;
+    variant?: ButtonVariant;
+    size?: ButtonSize;
     loading?: boolean;
     /** On a link, renders `aria-disabled` and removes it from the tab order. */
     disabled?: boolean | null;
@@ -38,7 +40,7 @@
   const isDisabled = $derived(disabled || loading);
 
   const classes = $derived(
-    ['btn', variant, size, full ? 'full' : '', loading ? 'loading' : '', extraClass ?? '']
+    ['button', `button--${variant}`, `button--${size}`, full ? 'button--full' : '', loading ? 'button--loading' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
@@ -53,13 +55,13 @@
     {...restProps as HTMLAnchorAttributes}
   >
     {#if loading}
-      <span class="spinner" aria-hidden="true"></span>
+      <span class="button__spinner" aria-hidden="true"></span>
     {:else if leading}
-      <span class="leading" aria-hidden="true">{@render leading()}</span>
+      <span class="button__leading" aria-hidden="true">{@render leading()}</span>
     {/if}
-    <span class="text">{@render children()}</span>
+    <span class="button__text">{@render children()}</span>
     {#if !loading && trailing}
-      <span class="trailing" aria-hidden="true">{@render trailing()}</span>
+      <span class="button__trailing" aria-hidden="true">{@render trailing()}</span>
     {/if}
   </a>
 {:else}
@@ -71,13 +73,13 @@
     {...restProps as HTMLButtonAttributes}
   >
     {#if loading}
-      <span class="spinner" aria-hidden="true"></span>
+      <span class="button__spinner" aria-hidden="true"></span>
     {:else if leading}
-      <span class="leading" aria-hidden="true">{@render leading()}</span>
+      <span class="button__leading" aria-hidden="true">{@render leading()}</span>
     {/if}
-    <span class="text">{@render children()}</span>
+    <span class="button__text">{@render children()}</span>
     {#if !loading && trailing}
-      <span class="trailing" aria-hidden="true">{@render trailing()}</span>
+      <span class="button__trailing" aria-hidden="true">{@render trailing()}</span>
     {/if}
   </button>
 {/if}

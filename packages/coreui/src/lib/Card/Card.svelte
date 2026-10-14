@@ -20,20 +20,20 @@
   }: Props = $props();
 
   const classes = $derived(
-    ['card', padding ? 'padded' : '', extraClass ?? ''].filter(Boolean).join(' ')
+    ['card', padding ? 'card--padded' : '', extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 
 {#if element === 'article'}
   <article class={classes}>
-    {#if header}<div class="header">{@render header()}</div>{/if}
-    <div class="body">{@render children()}</div>
-    {#if footer}<div class="footer">{@render footer()}</div>{/if}
+    {#if header}<div class="card__header">{@render header()}</div>{/if}
+    <div class="card__body">{@render children()}</div>
+    {#if footer}<div class="card__footer">{@render footer()}</div>{/if}
   </article>
 {:else}
   <div class={classes}>
-    {#if header}<div class="header">{@render header()}</div>{/if}
-    <div class="body">{@render children()}</div>
-    {#if footer}<div class="footer">{@render footer()}</div>{/if}
+    {#if header}<div class="card__header">{@render header()}</div>{/if}
+    <div class="card__body">{@render children()}</div>
+    {#if footer}<div class="card__footer">{@render footer()}</div>{/if}
   </div>
 {/if}

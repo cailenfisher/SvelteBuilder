@@ -13,10 +13,11 @@
     TableBody,
     TableCell,
     TableHead,
-    TableHeader,
+    TableHeaderCell,
     TableRow,
   } from '@sveltebuilder/coreui';
-  import type { AdminArticleDetailView, ScreenFormResult } from '@sveltebuilder/content/views';
+  import type { AdminArticleDetailView } from '@sveltebuilder/content/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: AdminArticleDetailView; form?: ScreenFormResult } = $props();
 
@@ -55,7 +56,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <div class="admin-article__columns">
@@ -66,8 +67,8 @@
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>{t('content.admin.block_type')}</TableHeader>
-              <TableHeader>{t('content.admin.block_text')}</TableHeader>
+              <TableHeaderCell>{t('content.admin.block_type')}</TableHeaderCell>
+              <TableHeaderCell>{t('content.admin.block_text')}</TableHeaderCell>
             </TableRow>
           </TableHead>
           <TableBody>

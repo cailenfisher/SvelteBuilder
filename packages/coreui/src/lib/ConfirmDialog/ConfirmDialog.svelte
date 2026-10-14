@@ -8,14 +8,14 @@
     title: string;
     description?: string;
     /**
-     * Label for the destructive confirm button. Defaults to "Confirm".
+     * Label for the destructive confirm button.
      * Use specific action language: "Delete", "Archive", "Remove".
      */
-    confirmLabel?: string;
+    confirmLabel: string;
     /**
-     * Label for the cancel button. Defaults to "Cancel".
+     * Label for the cancel button.
      */
-    cancelLabel?: string;
+    cancelLabel: string;
     /**
      * Set true when the confirm action is in-flight (shows loading state).
      */
@@ -33,8 +33,8 @@
     open = $bindable(false),
     title,
     description,
-    confirmLabel = 'Confirm',
-    cancelLabel = 'Cancel',
+    confirmLabel,
+    cancelLabel,
     loading = false,
     children,
     onConfirm,
@@ -59,31 +59,31 @@
   }}
 >
   <AlertDialog.Portal>
-    <AlertDialog.Overlay class="dialog-overlay" />
+    <AlertDialog.Overlay class="dialog__overlay" />
 
     <AlertDialog.Content
-      class={['dialog', 'sm', extraClass ?? ''].filter(Boolean).join(' ')}
+      class={['dialog', 'dialog--sm', extraClass ?? ''].filter(Boolean).join(' ')}
       escapeKeydownBehavior={loading ? 'ignore' : 'close'}
     >
-      <div class="header">
-        <AlertDialog.Title class="dialog-title" level={2}>
+      <div class="dialog__header">
+        <AlertDialog.Title class="dialog__title" level={2}>
           {title}
         </AlertDialog.Title>
       </div>
 
       {#if description}
-        <AlertDialog.Description class="dialog-desc">
+        <AlertDialog.Description class="dialog__description">
           {description}
         </AlertDialog.Description>
       {/if}
 
       {#if children}
-        <div class="body">
+        <div class="dialog__body">
           {@render children()}
         </div>
       {/if}
 
-      <div class="footer">
+      <div class="dialog__footer">
         <AlertDialog.Cancel disabled={loading}>
           {#snippet child({ props })}
             <Button variant="secondary" {...props}>

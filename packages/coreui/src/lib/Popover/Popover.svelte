@@ -25,7 +25,7 @@
 </script>
 
 <Popover.Root bind:open {onOpenChange}>
-  <Popover.Trigger class="popover-trigger">
+  <Popover.Trigger class="popover__trigger">
     {@render trigger()}
   </Popover.Trigger>
 
@@ -34,7 +34,7 @@
       class={contentClasses}
       sideOffset={8}
     >
-      <Popover.Arrow class="popover-arrow" />
+      <Popover.Arrow class="popover__arrow" />
       {@render children()}
     </Popover.Content>
   </Popover.Portal>

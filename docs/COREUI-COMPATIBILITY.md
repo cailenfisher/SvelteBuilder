@@ -89,7 +89,8 @@ target.
 - **Part:** a styled element inside a component is `<root>__<part>` (`.dialog__title`). A part is
   public when it is listed below.
 - **Modifier:** a variant, size or state expressed as a class is `<root>--<modifier>`
-  (`.button--primary`, `.badge--sm`).
+  (`.button--primary`, `.badge--sm`), or `<root>__<part>--<modifier>` when it styles one part
+  (`.select__trigger--sm`, `.checkbox__control--md`).
 - **State from Bits UI** is a data attribute, never a class (CLAUDE.md, guardrail 9).
 
 ### Classes
@@ -102,9 +103,9 @@ target.
 | Avatar | `.avatar` | `__image`, `__fallback` | `--xs`, `--sm`, `--md`, `--lg`, `--xl` |
 | Badge | `.badge` | | `--default`, `--brand`, `--danger`, `--info`, `--success`, `--warning`, `--sm`, `--md`, `--lg` |
 | Banner | `.banner` | `__icon`, `__summary`, `__detail`, `__body`, `__actions`, `__action`, `__close` | `--danger`, `--info`, `--success`, `--warning` |
-| Button | `.button` | `__leading`, `__trailing`, `__spinner` | `--primary`, `--secondary`, `--ghost`, `--danger`, `--link`, `--sm`, `--md`, `--lg`, `--full`, `--loading` |
+| Button | `.button` | `__leading`, `__text`, `__trailing`, `__spinner` | `--primary`, `--secondary`, `--ghost`, `--danger`, `--link`, `--sm`, `--md`, `--lg`, `--full`, `--loading` |
 | Card | `.card` | `__header`, `__body`, `__footer` | `--padded` |
-| Checkbox | `.checkbox` | `__control`, `__indicator`, `__icon`, `__label` | `--sm`, `--md` |
+| Checkbox | `.checkbox` | `__control`, `__indicator`, `__icon`, `__label` | `__control--sm`, `__control--md` |
 | DataTable | `.data-table` | `__empty`, `__footer` | |
 | DateTimePicker | `.date-time-picker` | | |
 | Dialog, ConfirmDialog (shared) | `.dialog` | `__overlay`, `__trigger`, `__header`, `__title`, `__description`, `__body`, `__footer`, `__close` | `--sm`, `--md`, `--lg`, `--xl`, `--full` |
@@ -116,34 +117,35 @@ target.
 | LocalePicker | `.locale-picker` | `__label`, `__select` | |
 | Menu family (shared) | `.menu` | `__trigger` | |
 | MenuItem, MenuCheckboxItem, MenuRadioItem, MenuSub trigger (shared) | `.menu-item` | `__leading`, `__check`, `__radio-dot`, `__sub-arrow` | `--checkbox`, `--radio`, `--sub-trigger` |
+| MenuSub content | `.menu` | | `--sub` |
 | MenuGroup, MenuRadioGroup, MenuLabel, MenuSeparator | `.menu-group`, `.menu-radio-group`, `.menu-label`, `.menu-separator` | | |
 | MessageLiveRegion | `.message-live-region` | | |
-| MetricCard | `.metric-card` | `__label`, `__value`, `__trend`, `__description` | |
-| Pagination | `.pagination` | `__button`, `__pages`, `__ellipsis` | `__button--page` |
+| MetricCard | `.metric-card` | `__label`, `__value`, `__trend`, `__description` | `__trend--positive`, `__trend--negative`, `__trend--neutral` |
+| Pagination | `.pagination` | `__button`, `__pages`, `__ellipsis` | `__button--page`, `__button--nav` |
 | Popover | `.popover` | `__trigger`, `__arrow` | |
 | ProgressBar | `.progress-bar` | `__track`, `__indicator` | `--sm`, `--md`, `--lg`, `--indeterminate` |
 | RadioGroup | `.radio-group` | | `--horizontal`, `--vertical` |
 | RadioGroupItem | `.radio-group-item` | `__control`, `__label` | |
-| Select | `.select` | `__trigger`, `__value`, `__chevron`, `__content`, `__viewport`, `__scroll-button` | `--sm`, `--md`, `--lg`, `--error` |
+| Select | `.select` | `__trigger`, `__value`, `__chevron`, `__content`, `__viewport`, `__scroll-button` | `__trigger--sm`, `__trigger--md`, `__trigger--lg`, `__trigger--error`, `__scroll-button--up`, `__scroll-button--down` |
 | SelectItem | `.select-item` | | |
 | Skeleton | `.skeleton` | | `--inline` |
 | Spinner | `.spinner` | `__svg`, `__track`, `__arc` | `--sm`, `--md`, `--lg` |
-| Switch | `.switch` | `__control`, `__thumb`, `__label` | `--sm`, `--md` |
-| Table | `.table` | `__element`, `__caption` | `--sticky-header` |
+| Switch | `.switch` | `__control`, `__thumb`, `__label` | `__control--sm`, `__control--md` |
+| Table | `.table` | `__element`, `__caption` | `__element--sticky-header` |
 | TableHead, TableBody, TableFoot, TableRow, TableCell | `.table-head`, `.table-body`, `.table-foot`, `.table-row`, `.table-cell` | | `.table-cell--end` |
 | TableHeaderCell | `.table-header-cell` | `__sort-trigger`, `__sort-icon`, `__content` | `--sortable` |
 | Tabs | `.tabs` | | `--horizontal`, `--vertical` |
 | TabsList, TabsTrigger, TabsContent | `.tabs-list`, `.tabs-trigger`, `.tabs-content` | | |
-| Tag | `.tag` | `__remove` | `--default`, `--brand`, `--danger`, `--info`, `--success`, `--warning` |
+| Tag | `.tag` | `__label`, `__remove` | `--default`, `--brand`, `--danger`, `--info`, `--success`, `--warning` |
 | Timeline | `.timeline` | | |
 | TimelineItem | `.timeline-item` | `__dot`, `__body`, `__content`, `__label`, `__meta`, `__timestamp` | `--current` |
-| Toast | `.toast` | `__icon`, `__summary`, `__detail`, `__detail-toggle`, `__reference`, `__body`, `__actions`, `__action`, `__close`, `__fill`, `__timer` | `--critical`, `--danger`, `--info`, `--success`, `--warning` |
+| Toast | `.toast` | `__icon`, `__summary`, `__detail`, `__detail-toggle`, `__reference`, `__body`, `__actions`, `__action`, `__close`, `__fill`, `__timer` | `--critical`, `--danger`, `--info`, `--success`, `--warning`, `__action--undo` |
 | ToastRegion | `.toast-region` | `__queue` | |
 | Tooltip | `.tooltip` | `__trigger`, `__arrow` | |
 
 `BarcodeInput` moves to `@sveltebuilder/logistic` (decision A-2), so its classes are logistic's, not
 coreui's. `.input` and `.textarea` are chrome classes the scaffold defines in `chrome.css`. coreui
-styles their `--sm`/`--md`/`--lg` modifiers, and those modifiers are public.
+styles their `--sm`/`--md`/`--lg` and `--error` modifiers, and those modifiers are public.
 
 ### Data attributes
 

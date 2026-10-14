@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { SBMessage } from '../Message/message-bus.svelte.js';
+  import type { Message } from '../Message/message-bus.svelte.js';
   import { AUTO_DISMISS_MS, getMessageLabels } from '../Message/message-bus.svelte.js';
 
   type Props = {
-    message: SBMessage;
+    message: Message;
     onDismiss: () => void;
     class?: string | undefined;
   };
@@ -50,7 +50,7 @@
     onDismiss();
   }
 
-  const classes = $derived(['toast', message.severity, extraClass ?? ''].filter(Boolean).join(' '));
+  const classes = $derived(['toast', `toast--${message.severity}`, extraClass ?? ''].filter(Boolean).join(' '));
 </script>
 
 <article
@@ -60,7 +60,7 @@
   onfocusin={() => (paused = true)}
   onfocusout={() => (paused = false)}
 >
-  <span class="icon" aria-hidden="true">
+  <span class="toast__icon" aria-hidden="true">
     {#if message.severity === 'success'}
       <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
         <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
@@ -84,34 +84,34 @@
     {/if}
   </span>
 
-  <div class="body">
-    <p class="summary">{message.summary}</p>
+  <div class="toast__body">
+    <p class="toast__summary">{message.summary}</p>
 
     {#if message.detail}
-      <p class="detail">{message.detail}</p>
+      <p class="toast__detail">{message.detail}</p>
     {/if}
 
     {#if message.technicalId}
       <button
         type="button"
-        class="detail-toggle"
+        class="toast__detail-toggle"
         aria-expanded={detailOpen}
         onclick={() => (detailOpen = !detailOpen)}
       >
         {detailOpen ? labels.hideDetails : labels.showDetails}
       </button>
       {#if detailOpen}
-        <p class="ref">{labels.reference(message.technicalId)}</p>
+        <p class="toast__reference">{labels.reference(message.technicalId)}</p>
       {/if}
     {/if}
 
     {#if message.undoAction || (message.actions && message.actions.length > 0)}
-      <div class="actions">
+      <div class="toast__actions">
         {#if message.undoAction}
-          <button type="button" class="action undo" onclick={handleUndo}>{labels.undo}</button>
+          <button type="button" class="toast__action toast__action--undo" onclick={handleUndo}>{labels.undo}</button>
         {/if}
         {#each message.actions ?? [] as action (action.label)}
-          <button type="button" class="action" onclick={action.onAction}>{action.label}</button>
+          <button type="button" class="toast__action" onclick={action.onAction}>{action.label}</button>
         {/each}
       </div>
     {/if}
@@ -119,7 +119,7 @@
 
   <button
     type="button"
-    class="close"
+    class="toast__close"
     aria-label={labels.dismiss(message.summary)}
     onclick={onDismiss}
   >
@@ -130,14 +130,14 @@
 
   {#if duration != null}
     <div
-      class="timer"
+      class="toast__timer"
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={duration / 1000}
       aria-valuenow={secondsRemaining}
       aria-label={labels.secondsRemaining(secondsRemaining)}
     >
-      <div class="fill" style="width: {progressRemaining * 100}%"></div>
+      <div class="toast__fill" style="width: {progressRemaining * 100}%"></div>
     </div>
   {/if}
 </article>

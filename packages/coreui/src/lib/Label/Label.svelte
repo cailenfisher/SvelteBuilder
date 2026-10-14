@@ -27,6 +27,6 @@
 >
   {@render children()}
   {#if required}
-    <span class="required" aria-hidden="true">*</span>
+    <span class="label__required" aria-hidden="true">*</span>
   {/if}
 </Label.Root>

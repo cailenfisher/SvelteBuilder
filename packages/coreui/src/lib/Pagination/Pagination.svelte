@@ -7,12 +7,12 @@
     page?: number;
     siblingCount?: number;
     onPageChange?: (page: number) => void;
-    /** Accessible name for the previous-page button. Defaults to "Previous page". */
-    previousLabel?: string;
-    /** Accessible name for the next-page button. Defaults to "Next page". */
-    nextLabel?: string;
-    /** Accessible name for the group of page buttons. Defaults to "Pagination". */
-    label?: string;
+    /** Accessible name for the previous-page button. */
+    previousLabel: string;
+    /** Accessible name for the next-page button. */
+    nextLabel: string;
+    /** Accessible name for the group of page buttons. */
+    label: string;
     class?: string | undefined;
   };
 
@@ -22,9 +22,9 @@
     page = $bindable(1),
     siblingCount = 1,
     onPageChange,
-    previousLabel = 'Previous page',
-    nextLabel = 'Next page',
-    label = 'Pagination',
+    previousLabel,
+    nextLabel,
+    label,
     class: extraClass,
   }: Props = $props();
 
@@ -42,25 +42,25 @@
   class={classes}
 >
   {#snippet children({ pages })}
-    <Pagination.PrevButton class="pagination-btn nav" aria-label={previousLabel}>
+    <Pagination.PrevButton class="pagination__button pagination__button--nav" aria-label={previousLabel}>
       <svg viewBox="0 0 16 16" fill="none" width="16" height="16" aria-hidden="true">
         <path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </Pagination.PrevButton>
 
-    <div class="pages" role="group" aria-label={label}>
+    <div class="pagination__pages" role="group" aria-label={label}>
       {#each pages as pageItem, i (i)}
         {#if pageItem.type === 'ellipsis'}
-          <span class="ellipsis" aria-hidden="true">…</span>
+          <span class="pagination__ellipsis" aria-hidden="true">…</span>
         {:else}
-          <Pagination.Page page={pageItem} class="pagination-btn page">
+          <Pagination.Page page={pageItem} class="pagination__button pagination__button--page">
             {pageItem.value}
           </Pagination.Page>
         {/if}
       {/each}
     </div>
 
-    <Pagination.NextButton class="pagination-btn nav" aria-label={nextLabel}>
+    <Pagination.NextButton class="pagination__button pagination__button--nav" aria-label={nextLabel}>
       <svg viewBox="0 0 16 16" fill="none" width="16" height="16" aria-hidden="true">
         <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>

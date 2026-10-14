@@ -2,7 +2,8 @@
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import { Button, Field, Input, Switch, Divider, InlineNotification } from '@sveltebuilder/coreui';
-  import type { SupplierDetailView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { SupplierDetailView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: SupplierDetailView; form?: ScreenFormResult } = $props();
 
@@ -31,7 +32,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <form method="POST" action="?/update" class="supplier-detail__form">

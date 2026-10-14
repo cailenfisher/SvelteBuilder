@@ -123,17 +123,18 @@ When the tokens can't express what you need, write ordinary CSS **after the impo
 `app.css`, outside any `@layer`**. Unlayered rules beat every layered rule regardless of
 specificity, so there is no need for `!important`.
 
-coreui components use plain class names (`.btn`, `.btn.primary`, `.card`, `.alert`, ...) and
-express Bits UI state through data attributes (`[data-state='open']`, `[data-highlighted]`,
-`[data-disabled]`), so target those:
+coreui components use BEM class names: a root per component (`.button`, `.card`, `.alert`), its
+parts (`.card__body`, `.dialog__title`) and its modifiers (`.button--primary`, `.badge--sm`). Bits
+UI state is expressed through data attributes (`[data-state='open']`, `[data-highlighted]`,
+`[data-disabled]`). Target those:
 
 ```css
 /* bottom of src/app.css */
-.btn {
+.button {
   letter-spacing: 0.02em;
 }
 
-.accordion-trigger[data-state='open'] {
+.accordion-item__trigger[data-state='open'] {
   background: var(--brand-soft);
 }
 ```
@@ -142,9 +143,6 @@ Target only the classes, modifiers, data attributes and tokens listed as public 
 [`COREUI-COMPATIBILITY.md`](./COREUI-COMPATIBILITY.md). Those are covered by semver; any other class
 in `components.css` is internal and may change in a minor release. Write each selector against one
 listed class or data attribute rather than a descendant chain, since DOM nesting is not public.
-
-coreui 1.0 renames its classes to BEM (`.btn.primary` becomes `.button--primary`, `.card .body`
-becomes `.card__body`). The table in `COREUI-COMPATIBILITY.md` already uses the 1.0 names.
 
 Reading a derived token such as `var(--brand-soft)` or `var(--text-soft)` in your own rules is
 fine. **Assigning** one is not supported (see below).

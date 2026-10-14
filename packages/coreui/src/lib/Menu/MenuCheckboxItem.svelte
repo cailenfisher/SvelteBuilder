@@ -22,7 +22,7 @@
   }: Props = $props();
 
   const classes = $derived(
-    ['menu-item', 'checkbox', extraClass ?? ''].filter(Boolean).join(' ')
+    ['menu-item', 'menu-item--checkbox', extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 
@@ -34,7 +34,7 @@
   onSelect={onSelect}
 >
   {#snippet children({ checked: isChecked })}
-    <span class="check" aria-hidden="true">
+    <span class="menu-item__check" aria-hidden="true">
       {#if isChecked}
         <svg viewBox="0 0 12 12" fill="none" width="10" height="10" aria-hidden="true">
           <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

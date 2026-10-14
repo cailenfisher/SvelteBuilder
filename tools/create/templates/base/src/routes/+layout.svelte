@@ -4,11 +4,11 @@
   import { createDictionary } from 'diglossia'
   import { setDictionary, getDictionary, LocalText } from 'diglossia/svelte'
   import {
-    LocaleSwitcher,
+    LocalePicker,
     createMessageBus,
     setMessageBus,
     ToastRegion,
-    MessageAriaLive,
+    MessageLiveRegion,
   } from '@sveltebuilder/coreui'
   import type { LayoutData } from './$types'
 
@@ -61,7 +61,7 @@
         <LocalText slug="app.name" />
       </a>
       <nav class="app__nav">
-        <LocaleSwitcher
+        <LocalePicker
           label={dictionary.localText('locale.select')}
           current={data.locale}
           locales={data.locales}
@@ -82,7 +82,7 @@
 {/if}
 
 <ToastRegion />
-<MessageAriaLive />
+<MessageLiveRegion />
 
 <style>
   .full-page {

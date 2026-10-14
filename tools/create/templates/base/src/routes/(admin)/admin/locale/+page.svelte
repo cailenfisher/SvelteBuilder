@@ -2,7 +2,7 @@
   import { getDictionary } from 'diglossia/svelte'
   import {
     Button,
-    Table, TableHead, TableBody, TableRow, TableHeader, TableCell,
+    Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell,
   } from '@sveltebuilder/coreui'
   import LocaleFieldset from '$lib/Locale/LocaleFieldset.svelte'
   import type { PageData, ActionData } from './$types'
@@ -55,13 +55,13 @@
     <Table>
       <TableHead>
         <TableRow>
-          <TableHeader>{codeLabel}</TableHeader>
-          <TableHeader>{nameLabel}</TableHeader>
-          <TableHeader>{nativeLabel}</TableHeader>
-          <TableHeader>{dirLabel}</TableHeader>
-          <TableHeader>
+          <TableHeaderCell>{codeLabel}</TableHeaderCell>
+          <TableHeaderCell>{nameLabel}</TableHeaderCell>
+          <TableHeaderCell>{nativeLabel}</TableHeaderCell>
+          <TableHeaderCell>{dirLabel}</TableHeaderCell>
+          <TableHeaderCell>
             <span class="sr-only">{dictionary.localText('table.actions')}</span>
-          </TableHeader>
+          </TableHeaderCell>
         </TableRow>
       </TableHead>
       <TableBody>

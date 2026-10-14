@@ -15,6 +15,7 @@
       {size}
       title={`A ${size} dialog`}
       description="Escape or the close button dismisses it."
+      closeLabel="Close"
     >
       {#snippet trigger()}Open {size}{/snippet}
       <p>Focus is trapped inside while it is open.</p>
@@ -37,7 +38,7 @@
 
 <Example title="Drawer sides">
   {#each sides as side (side)}
-    <Drawer {side} title={`Drawer from the ${side}`} description="A side panel for secondary work.">
+    <Drawer {side} title={`Drawer from the ${side}`} description="A side panel for secondary work." closeLabel="Close">
       {#snippet trigger()}Open {side}{/snippet}
       <p>Drawer content.</p>
     </Drawer>
@@ -46,7 +47,12 @@
 
 <Example title="Controlled drawer with a footer">
   <Button variant="secondary" onclick={() => (drawerOpen = true)}>Filters</Button>
-  <Drawer bind:open={drawerOpen} title="Filters" onOpenChange={(next) => (drawerOpen = next)}>
+  <Drawer
+    bind:open={drawerOpen}
+    title="Filters"
+    closeLabel="Close"
+    onOpenChange={(next) => (drawerOpen = next)}
+  >
     <p>Filter controls go here.</p>
     {#snippet footer()}
       <Button onclick={() => (drawerOpen = false)}>Apply</Button>

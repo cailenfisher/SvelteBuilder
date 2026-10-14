@@ -3,7 +3,8 @@
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import { Button, ConfirmDialog, InlineNotification, Input } from '@sveltebuilder/coreui';
-  import type { PickTaskDetailView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { PickTaskDetailView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: PickTaskDetailView; form?: ScreenFormResult } = $props();
 
@@ -38,7 +39,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <ol class="pick-task__lines">

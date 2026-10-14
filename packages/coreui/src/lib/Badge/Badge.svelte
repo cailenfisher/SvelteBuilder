@@ -1,12 +1,14 @@
+<script module lang="ts">
+  export type BadgeVariant = 'default' | 'brand' | 'success' | 'warning' | 'danger' | 'info';
+  export type BadgeSize = 'sm' | 'md' | 'lg';
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  type Variant = 'default' | 'brand' | 'success' | 'warning' | 'danger' | 'info';
-  type Size = 'sm' | 'md' | 'lg';
-
   type Props = {
-    variant?: Variant;
-    size?: Size;
+    variant?: BadgeVariant;
+    size?: BadgeSize;
     children: Snippet;
     class?: string | undefined;
   };
@@ -19,7 +21,7 @@
   }: Props = $props();
 
   const classes = $derived(
-    ['badge', variant, size, extraClass ?? ''].filter(Boolean).join(' ')
+    ['badge', `badge--${variant}`, `badge--${size}`, extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 

@@ -14,11 +14,12 @@
     TableBody,
     TableCell,
     TableHead,
-    TableHeader,
+    TableHeaderCell,
     TableRow,
   } from '@sveltebuilder/coreui';
   import { ReturnConditionBadge } from '@sveltebuilder/logistic';
-  import type { ReturnDetailView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { ReturnDetailView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: ReturnDetailView; form?: ScreenFormResult } = $props();
 
@@ -83,7 +84,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <section class="return-detail__lines">
@@ -92,13 +93,13 @@
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeader>{t('logistic.field.sku')}</TableHeader>
-            <TableHeader>{t('logistic.return.expected_quantity')}</TableHeader>
-            <TableHeader>{t('logistic.return.received_quantity')}</TableHeader>
-            <TableHeader>{t('logistic.return.condition')}</TableHeader>
-            <TableHeader>{t('logistic.return.disposition')}</TableHeader>
+            <TableHeaderCell>{t('logistic.field.sku')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.return.expected_quantity')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.return.received_quantity')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.return.condition')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.return.disposition')}</TableHeaderCell>
             {#if open}
-              <TableHeader>{t('logistic.return.grade')}</TableHeader>
+              <TableHeaderCell>{t('logistic.return.grade')}</TableHeaderCell>
             {/if}
           </TableRow>
         </TableHead>

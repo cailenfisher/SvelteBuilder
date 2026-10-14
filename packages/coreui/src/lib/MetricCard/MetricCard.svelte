@@ -26,15 +26,15 @@
 </script>
 
 <div class={classes}>
-  <p class="label">{label}</p>
-  <p class="value">{value}</p>
+  <p class="metric-card__label">{label}</p>
+  <p class="metric-card__value">{value}</p>
 
   {#if description}
-    <p class="description">{description}</p>
+    <p class="metric-card__description">{description}</p>
   {/if}
 
   {#if formattedTrend !== null}
-    <p class="trend {trendVariant}" aria-label={trendLabel}>
+    <p class="metric-card__trend metric-card__trend--{trendVariant}" aria-label={trendLabel}>
       {formattedTrend}
     </p>
   {/if}

@@ -1,4 +1,4 @@
-import type { DictionaryPayload } from 'diglossia';
+import type { ScreenCopy, ScreenLocale, ScreenPage } from '@sveltebuilder/coreui';
 import type {
   StockAdjustmentReason,
   CycleCount,
@@ -44,19 +44,6 @@ import type {
  * form action names, their field names, and which of them a screen submits.
  */
 
-/**
- * Every screen in this module needs the module's own copy, and the root dictionary
- * does not carry it — `get_dictionary` treats a null scope filter as "scope is
- * null", so scoped copy has to be loaded and provided by the screen's own loader.
- *
- * The payload must already be resolved to one entry per key; diglossia only
- * flattens it. It carries both the module's UI copy (scope 'logistic') and the
- * entity-bound copy the screen renders (scope = table name, entity_id = row id).
- */
-export type ScreenCopy = {
-  copy: DictionaryPayload;
-};
-
 export type SupplierWithContacts = Supplier & {
   contacts: SupplierContact[];
 };
@@ -69,17 +56,6 @@ export type SupplierListView = ScreenCopy & {
 /** `/admin/logistic/supplier/[id]` */
 export type SupplierDetailView = ScreenCopy & {
   supplier: SupplierWithContacts;
-};
-
-/**
- * The locale a screen formats dates and numbers in.
- *
- * Carried on the view rather than read from the root layout's data, because a screen is
- * provider-neutral and the layout's shape is the scaffold's business. The loader knows
- * it from `locals.locale`; this keeps the screen from having to know where that lives.
- */
-export type ScreenLocale = {
-  localeCode: string;
 };
 
 /**
@@ -113,18 +89,6 @@ export type StockListView = ScreenCopy &
      */
     manualReasons: StockAdjustmentReason[];
   };
-
-/**
- * A server-paginated list. The screen renders the controls and links the page; the loader
- * owns the slice, because DataTable is deliberately a controlled component — sorting and
- * paging client-side would mean shipping every row to do it.
- */
-export type ScreenPage = {
-  page: number;
-  perPage: number;
-  /** Rows matching the filter, not rows on this page. */
-  total: number;
-};
 
 /**
  * An entity offered in a `<Select>`, carrying only what an option needs.
@@ -367,13 +331,3 @@ export type LogisticDashboardView = ScreenCopy &
     openReturns: ReturnAuthorizationRow[];
   };
 
-/**
- * What a screen's form actions return. `fail()` payloads and successful returns share
- * one shape so a screen can render `form?.error` without narrowing per action — which
- * is why the success branch declares `error?: undefined` rather than omitting the key:
- * a union whose members disagree on which keys exist cannot be read through `?.` at
- * all, only narrowed first.
- */
-export type ScreenFormResult =
-  | { success: true; message?: string; error?: undefined }
-  | { success?: false; error: string };

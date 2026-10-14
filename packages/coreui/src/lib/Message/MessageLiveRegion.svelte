@@ -8,7 +8,7 @@
 
   let { class: extraClass }: Props = $props();
 
-  const classes = $derived(['aria-live', extraClass ?? ''].filter(Boolean).join(' '));
+  const classes = $derived(['message-live-region', extraClass ?? ''].filter(Boolean).join(' '));
 
   const messageBus = getMessageBus();
 
@@ -41,7 +41,7 @@
     if (!latest || latest.id === lastToastId) return;
     lastToastId = latest.id;
 
-    if (latest.severity === 'error' || latest.severity === 'critical') {
+    if (latest.severity === 'danger' || latest.severity === 'critical') {
       announceAssertive(latest.summary);
     } else {
       announcePolite(latest.summary);
@@ -53,7 +53,7 @@
     if (!banner || banner.id === lastBannerId) return;
     lastBannerId = banner.id;
 
-    if (banner.severity === 'error' || banner.severity === 'critical') {
+    if (banner.severity === 'danger' || banner.severity === 'critical') {
       announceAssertive(banner.summary);
     } else {
       announcePolite(banner.summary);

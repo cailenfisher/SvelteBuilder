@@ -16,7 +16,7 @@
   }: Props = $props();
 
   const classes = $derived(
-    ['skeleton', inline ? 'inline' : '', extraClass ?? '']
+    ['skeleton', inline ? 'skeleton--inline' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );

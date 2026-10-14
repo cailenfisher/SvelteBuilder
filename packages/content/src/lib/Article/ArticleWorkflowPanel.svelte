@@ -46,12 +46,6 @@
 
   let activeTab = $state('status');
 
-  const ASSIGNMENT_ROLE_LABEL: Record<string, string> = {
-    author: 'Author',
-    editor: 'Editor',
-    photo: 'Photo',
-    copy: 'Copy',
-  };
 </script>
 
 <Drawer
@@ -60,20 +54,29 @@
     if (!next) onClose();
   }}
   side="right"
-  title="Article Workflow"
+  title={dictionary.localText('content.article_workflow.title', 'content')}
   description={article.headline}
+  closeLabel={dictionary.localText('content.article_workflow.close', 'content')}
 >
   <Tabs bind:value={activeTab}>
     <TabsList>
-      <TabsTrigger value="status">Status</TabsTrigger>
-      <TabsTrigger value="checklist">Checklist</TabsTrigger>
-      <TabsTrigger value="team">Team</TabsTrigger>
+      <TabsTrigger value="status">
+        {dictionary.localText('content.article_workflow.status', 'content')}
+      </TabsTrigger>
+      <TabsTrigger value="checklist">
+        {dictionary.localText('content.article_workflow.checklist', 'content')}
+      </TabsTrigger>
+      <TabsTrigger value="assignment">
+        {dictionary.localText('content.article_workflow.assignment', 'content')}
+      </TabsTrigger>
     </TabsList>
 
     <TabsContent value="status">
       <div class="workflow-panel__status">
         <div class="workflow-panel__current-status">
-          <span class="workflow-panel__status-label">Current:</span>
+          <span class="workflow-panel__status-label">
+            {dictionary.localText('content.article_workflow.current', 'content')}
+          </span>
           <strong>{article.status.label}</strong>
         </div>
 
@@ -128,23 +131,27 @@
               label={dictionary.localText('label', 'publish_checklist_item', item.id)}
             />
             {#if item.required && !checked}
-              <span class="workflow-panel__required" aria-label="Required">Required</span>
+              <span class="workflow-panel__required">
+                {dictionary.localText('content.article_workflow.required', 'content')}
+              </span>
             {/if}
           </div>
         {/each}
       </div>
     </TabsContent>
 
-    <TabsContent value="team">
+    <TabsContent value="assignment">
       <div class="workflow-panel__team">
         {#if assignments.length === 0}
-          <p class="workflow-panel__empty">No team members assigned.</p>
+          <p class="workflow-panel__empty">
+            {dictionary.localText('content.article_workflow.assignment_empty', 'content')}
+          </p>
         {:else}
           <ul class="workflow-panel__team-list" role="list">
             {#each assignments as assignment (assignment.id)}
               <li class="workflow-panel__team-item">
                 <span class="workflow-panel__team-role">
-                  {ASSIGNMENT_ROLE_LABEL[assignment.role] ?? assignment.role}
+                  {dictionary.localText(`content.article_assignment_role.${assignment.role}`, 'content')}
                 </span>
                 <span class="workflow-panel__team-member">
                   <!-- userAccountId resolved server-side; name comes from hermes via author_profile scope -->

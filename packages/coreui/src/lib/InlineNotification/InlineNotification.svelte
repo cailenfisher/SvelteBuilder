@@ -1,19 +1,21 @@
 <!-- InlineNotification: the message system's inline surface, for the outcome of something the
      user just did, with optional detail, a technical reference, actions and dismissal. For static
      page content that is not a result, use Alert. -->
+<script module lang="ts">
+  export type InlineNotificationSeverity = 'success' | 'info' | 'warning' | 'danger';
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { SBMessageAction } from '../Message/message-bus.svelte.js';
+  import type { MessageAction } from '../Message/message-bus.svelte.js';
   import { getMessageLabels } from '../Message/message-bus.svelte.js';
 
-  type Severity = 'success' | 'info' | 'warning' | 'error';
-
   type Props = {
-    severity?: Severity;
+    severity?: InlineNotificationSeverity;
     summary: string;
     detail?: string;
     technicalId?: string;
-    actions?: SBMessageAction[];
+    actions?: MessageAction[];
     dismissible?: boolean;
     onDismiss?: () => void;
     class?: string | undefined;
@@ -43,16 +45,16 @@
   }
 
   const classes = $derived(
-    ['notification', severity, extraClass ?? ''].filter(Boolean).join(' ')
+    ['inline-notification', `inline-notification--${severity}`, extraClass ?? ''].filter(Boolean).join(' ')
   );
 
-  const role = $derived(severity === 'error' || severity === 'warning' ? 'alert' : 'status');
+  const role = $derived(severity === 'danger' || severity === 'warning' ? 'alert' : 'status');
   const ariaLive = $derived(role === 'status' ? 'polite' : undefined);
 </script>
 
 {#if visible}
   <div class={classes} role={role} aria-live={ariaLive}>
-    <span class="icon" aria-hidden="true">
+    <span class="inline-notification__icon" aria-hidden="true">
       {#if icon}
         {@render icon()}
       {:else if severity === 'success'}
@@ -78,31 +80,31 @@
       {/if}
     </span>
 
-    <div class="body">
-      <p class="summary">{summary}</p>
+    <div class="inline-notification__body">
+      <p class="inline-notification__summary">{summary}</p>
 
       {#if detail}
-        <p class="detail">{detail}</p>
+        <p class="inline-notification__detail">{detail}</p>
       {/if}
 
       {#if technicalId}
         <button
           type="button"
-          class="detail-toggle"
+          class="inline-notification__detail-toggle"
           aria-expanded={detailOpen}
           onclick={() => (detailOpen = !detailOpen)}
         >
           {detailOpen ? labels.hideDetails : labels.showDetails}
         </button>
         {#if detailOpen}
-          <p class="ref">{labels.reference(technicalId)}</p>
+          <p class="inline-notification__reference">{labels.reference(technicalId)}</p>
         {/if}
       {/if}
 
       {#if actions && actions.length > 0}
-        <div class="actions">
+        <div class="inline-notification__actions">
           {#each actions as action (action.label)}
-            <button type="button" class="action" onclick={action.onAction}>
+            <button type="button" class="inline-notification__action" onclick={action.onAction}>
               {action.label}
             </button>
           {/each}
@@ -113,7 +115,7 @@
     {#if dismissible}
       <button
         type="button"
-        class="close"
+        class="inline-notification__close"
         aria-label={labels.dismiss(summary)}
         onclick={handleDismiss}
       >

@@ -3,7 +3,8 @@
   import { getDictionary } from 'diglossia/svelte';
   import { Button, Field, Input, InlineNotification } from '@sveltebuilder/coreui';
   import { SupplierCard } from '@sveltebuilder/logistic';
-  import type { SupplierListView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { SupplierListView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   // The loader for this screen is flavour-specific; SupplierListView is the contract
   // between the two. Typing `data` as the view rather than PageData is what makes a
@@ -34,7 +35,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   {#if showCreateForm}

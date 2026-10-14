@@ -24,10 +24,10 @@
 </script>
 
 <Accordion.Item {value} {disabled} class={itemClasses}>
-  <Accordion.Header class="accordion-header" level={3}>
-    <Accordion.Trigger class="accordion-trigger">
-      <span class="title">{title}</span>
-      <span class="chevron" aria-hidden="true">
+  <Accordion.Header class="accordion-item__header" level={3}>
+    <Accordion.Trigger class="accordion-item__trigger">
+      <span class="accordion-item__title">{title}</span>
+      <span class="accordion-item__chevron" aria-hidden="true">
         <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
           <path
             d="M4 6l4 4 4-4"
@@ -41,8 +41,8 @@
     </Accordion.Trigger>
   </Accordion.Header>
 
-  <Accordion.Content class="accordion-content">
-    <div class="body">
+  <Accordion.Content class="accordion-item__content">
+    <div class="accordion-item__body">
       {@render children()}
     </div>
   </Accordion.Content>

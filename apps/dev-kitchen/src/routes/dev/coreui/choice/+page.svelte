@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Checkbox, RadioGroup, RadioItem, Switch } from '@sveltebuilder/coreui';
+  import { Checkbox, RadioGroup, RadioGroupItem, Switch } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
 
   let accepted = $state(true);
@@ -21,24 +21,24 @@
 
 <Example title="RadioGroup, vertical">
   <RadioGroup bind:value={carrier} name="carrier">
-    <RadioItem value="ground" label="Ground" />
-    <RadioItem value="express" label="Express" />
-    <RadioItem value="freight" label="Freight" disabled />
+    <RadioGroupItem value="ground" label="Ground" />
+    <RadioGroupItem value="express" label="Express" />
+    <RadioGroupItem value="freight" label="Freight" disabled />
   </RadioGroup>
   <p role="status">Carrier: {carrier}</p>
 </Example>
 
 <Example title="RadioGroup, horizontal">
   <RadioGroup bind:value={layout} orientation="horizontal" name="layout">
-    <RadioItem value="list" label="List" />
-    <RadioItem value="grid" label="Grid" />
+    <RadioGroupItem value="list" label="List" />
+    <RadioGroupItem value="grid" label="Grid" />
   </RadioGroup>
 </Example>
 
 <Example title="RadioGroup, disabled">
   <RadioGroup value="a" disabled name="locked">
-    <RadioItem value="a" label="Locked option A" />
-    <RadioItem value="b" label="Locked option B" />
+    <RadioGroupItem value="a" label="Locked option A" />
+    <RadioGroupItem value="b" label="Locked option B" />
   </RadioGroup>
 </Example>
 

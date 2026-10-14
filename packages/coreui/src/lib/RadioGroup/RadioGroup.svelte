@@ -1,13 +1,15 @@
+<script module lang="ts">
+  export type RadioGroupOrientation = 'vertical' | 'horizontal';
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { RadioGroup } from 'bits-ui';
   import { useField } from '../Field/use-field.js';
 
-  type Orientation = 'vertical' | 'horizontal';
-
   type Props = {
     value?: string;
-    orientation?: Orientation;
+    orientation?: RadioGroupOrientation;
     disabled?: boolean;
     name?: string;
     /** Called when the selection changes, with the new value. See Checkbox's `onCheckedChange`. */
@@ -30,7 +32,7 @@
   const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
 
   const classes = $derived(
-    ['radio-group', orientation, extraClass ?? '']
+    ['radio-group', `radio-group--${orientation}`, extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );

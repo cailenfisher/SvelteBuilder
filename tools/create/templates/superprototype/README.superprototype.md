@@ -19,5 +19,5 @@ selects the SuperPrototype scaffold. Files here overwrite their base counterpart
 - Locale resolution logic in `hooks.server.ts` (cookie/header fallback, no DB)
 - `PUBLIC_DEFAULT_LOCALE` in `.env.example`
 - All schema files (`supabase/schemas/`)
-- `LocaleSwitcher` and app shell (`+layout.svelte`, `+page.svelte`, `+error.svelte`)
+- `LocalePicker` and app shell (`+layout.svelte`, `+page.svelte`, `+error.svelte`)
 - `app.d.ts` base locals (`locale`, `defaultLocale` only)

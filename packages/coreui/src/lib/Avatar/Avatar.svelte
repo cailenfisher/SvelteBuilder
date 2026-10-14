@@ -1,11 +1,14 @@
+<script module lang="ts">
+  export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+</script>
+
 <script lang="ts">
-  type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
   type Props = {
     src?: string;
     alt?: string;
     fallback?: string;
-    size?: Size;
+    size?: AvatarSize;
     class?: string | undefined;
   };
 
@@ -34,7 +37,7 @@
   );
 
   const classes = $derived(
-    ['avatar', size, extraClass ?? ''].filter(Boolean).join(' ')
+    ['avatar', `avatar--${size}`, extraClass ?? ''].filter(Boolean).join(' ')
   );
 
   function handleError() {
@@ -49,14 +52,14 @@
 <span class={classes} role="img" aria-label={alt || undefined}>
   {#if showImage}
     <img
-      class="image"
+      class="avatar__image"
       {src}
       alt={alt}
       aria-hidden={!alt || undefined}
       onerror={handleError}
     />
   {:else}
-    <span class="fallback" aria-hidden="true">
+    <span class="avatar__fallback" aria-hidden="true">
       {initials}
     </span>
   {/if}

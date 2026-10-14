@@ -13,11 +13,12 @@
     TableBody,
     TableCell,
     TableHead,
-    TableHeader,
+    TableHeaderCell,
     TableRow,
   } from '@sveltebuilder/coreui';
   import { ShipmentStatusBadge, TrackingEventList } from '@sveltebuilder/logistic';
-  import type { ScreenFormResult, ShipmentDetailView } from '@sveltebuilder/logistic/views';
+  import type { ShipmentDetailView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: ShipmentDetailView; form?: ScreenFormResult } = $props();
 
@@ -54,7 +55,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <div class="shipment-detail__columns">
@@ -64,8 +65,8 @@
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>{t('logistic.field.sku')}</TableHeader>
-              <TableHeader>{t('logistic.shipment.quantity')}</TableHeader>
+              <TableHeaderCell>{t('logistic.field.sku')}</TableHeaderCell>
+              <TableHeaderCell>{t('logistic.shipment.quantity')}</TableHeaderCell>
             </TableRow>
           </TableHead>
           <TableBody>

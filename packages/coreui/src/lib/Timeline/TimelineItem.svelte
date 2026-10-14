@@ -18,28 +18,28 @@
   }: Props = $props();
 
   const classes = $derived(
-    ['timeline-item', current ? 'current' : '', extraClass ?? '']
+    ['timeline-item', current ? 'timeline-item--current' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
 </script>
 
 <li class={classes}>
-  <span class="dot" aria-hidden="true"></span>
+  <span class="timeline-item__dot" aria-hidden="true"></span>
 
-  <div class="content">
+  <div class="timeline-item__content">
     {#if label || timestamp}
-      <div class="meta">
+      <div class="timeline-item__meta">
         {#if label}
-          <span class="label">{label}</span>
+          <span class="timeline-item__label">{label}</span>
         {/if}
         {#if timestamp}
-          <time class="timestamp" datetime={timestamp}>{timestamp}</time>
+          <time class="timeline-item__timestamp" datetime={timestamp}>{timestamp}</time>
         {/if}
       </div>
     {/if}
 
-    <div class="body">
+    <div class="timeline-item__body">
       {@render children()}
     </div>
   </div>

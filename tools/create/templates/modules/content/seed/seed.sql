@@ -495,6 +495,129 @@ from (values
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
 
+-- Copy the module's list, queue and workflow components ask for: column headings, table and
+-- pagination labels, assignment role names and the workflow panel's tabs.
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('content.article_list.headline',              'content', null),
+  ('content.article_list.author',                'content', null),
+  ('content.article_list.section',               'content', null),
+  ('content.article_list.status',                'content', null),
+  ('content.article_list.published_at',          'content', null),
+  ('content.article_list.empty',                 'content', null),
+  ('content.article_assignment_queue.article',   'content', null),
+  ('content.article_assignment_queue.role',      'content', null),
+  ('content.article_assignment_queue.assignee',  'content', null),
+  ('content.article_assignment_queue.status',    'content', null),
+  ('content.article_assignment_queue.due_at',    'content', null),
+  ('content.article_assignment_queue.empty',     'content', null),
+  ('content.article_assignment_role.author',     'content', null),
+  ('content.article_assignment_role.editor',     'content', null),
+  ('content.article_assignment_role.photo',      'content', null),
+  ('content.article_assignment_role.copy',       'content', null),
+  ('content.subscriber_list.email_address',      'content', null),
+  ('content.subscriber_list.locale',             'content', null),
+  ('content.subscriber_list.confirmed_at',       'content', null),
+  ('content.subscriber_list.created_at',         'content', null),
+  ('content.subscriber_list.pending',            'content', null),
+  ('content.subscriber_list.empty',              'content', null),
+  ('content.subscriber_list.count',              'content', null),
+  ('content.pagination.label',                   'content', null),
+  ('content.pagination.previous',                'content', null),
+  ('content.pagination.next',                    'content', null),
+  ('content.article_workflow.title',             'content', null),
+  ('content.article_workflow.close',             'content', null),
+  ('content.article_workflow.status',            'content', null),
+  ('content.article_workflow.checklist',         'content', null),
+  ('content.article_workflow.assignment',        'content', null),
+  ('content.article_workflow.current',           'content', null),
+  ('content.article_workflow.required',          'content', null),
+  ('content.article_workflow.assignment_empty',  'content', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('content.article_list.headline',              'Headline'),
+  ('content.article_list.author',                'Author'),
+  ('content.article_list.section',               'Section'),
+  ('content.article_list.status',                'Status'),
+  ('content.article_list.published_at',          'Published'),
+  ('content.article_list.empty',                 'No articles found.'),
+  ('content.article_assignment_queue.article',   'Article'),
+  ('content.article_assignment_queue.role',      'Role'),
+  ('content.article_assignment_queue.assignee',  'Assignee'),
+  ('content.article_assignment_queue.status',    'Status'),
+  ('content.article_assignment_queue.due_at',    'Due'),
+  ('content.article_assignment_queue.empty',     'No assignments in the queue.'),
+  ('content.article_assignment_role.author',     'Author'),
+  ('content.article_assignment_role.editor',     'Editor'),
+  ('content.article_assignment_role.photo',      'Photo'),
+  ('content.article_assignment_role.copy',       'Copy editing'),
+  ('content.subscriber_list.email_address',      'Email address'),
+  ('content.subscriber_list.locale',             'Language'),
+  ('content.subscriber_list.confirmed_at',       'Confirmed'),
+  ('content.subscriber_list.created_at',         'Joined'),
+  ('content.subscriber_list.pending',            'Pending'),
+  ('content.subscriber_list.empty',              'No subscribers yet.'),
+  ('content.subscriber_list.count',              '.input {$count :number} .match $count one {{{$count} subscriber}} * {{{$count} subscribers}}'),
+  ('content.pagination.label',                   'Pagination'),
+  ('content.pagination.previous',                'Previous page'),
+  ('content.pagination.next',                    'Next page'),
+  ('content.article_workflow.title',             'Article workflow'),
+  ('content.article_workflow.close',             'Close'),
+  ('content.article_workflow.status',            'Status'),
+  ('content.article_workflow.checklist',         'Checklist'),
+  ('content.article_workflow.assignment',        'Assignment'),
+  ('content.article_workflow.current',           'Current:'),
+  ('content.article_workflow.required',          'Required'),
+  ('content.article_workflow.assignment_empty',  'No one is assigned yet.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('content.article_list.headline',              'Titre'),
+  ('content.article_list.author',                'Auteur'),
+  ('content.article_list.section',               'Rubrique'),
+  ('content.article_list.status',                'Statut'),
+  ('content.article_list.published_at',          'Publié'),
+  ('content.article_list.empty',                 'Aucun article trouvé.'),
+  ('content.article_assignment_queue.article',   'Article'),
+  ('content.article_assignment_queue.role',      'Rôle'),
+  ('content.article_assignment_queue.assignee',  'Responsable'),
+  ('content.article_assignment_queue.status',    'Statut'),
+  ('content.article_assignment_queue.due_at',    'Échéance'),
+  ('content.article_assignment_queue.empty',     'Aucune affectation en attente.'),
+  ('content.article_assignment_role.author',     'Auteur'),
+  ('content.article_assignment_role.editor',     'Éditeur'),
+  ('content.article_assignment_role.photo',      'Photo'),
+  ('content.article_assignment_role.copy',       'Révision'),
+  ('content.subscriber_list.email_address',      'Adresse courriel'),
+  ('content.subscriber_list.locale',             'Langue'),
+  ('content.subscriber_list.confirmed_at',       'Confirmé'),
+  ('content.subscriber_list.created_at',         'Inscrit le'),
+  ('content.subscriber_list.pending',            'En attente'),
+  ('content.subscriber_list.empty',              'Aucun abonné pour l''instant.'),
+  ('content.subscriber_list.count',              '.input {$count :number} .match $count one {{{$count} abonné}} * {{{$count} abonnés}}'),
+  ('content.pagination.label',                   'Pagination'),
+  ('content.pagination.previous',                'Page précédente'),
+  ('content.pagination.next',                    'Page suivante'),
+  ('content.article_workflow.title',             'Flux de travail de l''article'),
+  ('content.article_workflow.close',             'Fermer'),
+  ('content.article_workflow.status',            'Statut'),
+  ('content.article_workflow.checklist',         'Liste de contrôle'),
+  ('content.article_workflow.assignment',        'Affectation'),
+  ('content.article_workflow.current',           'Actuel :'),
+  ('content.article_workflow.required',          'Obligatoire'),
+  ('content.article_workflow.assignment_empty',  'Personne n''est encore affecté.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
 -- Copy ArticleBlockEditor asks for: its controls, and a name for each article_block_type.
 
 insert into local_text_link (slug, scope, entity_id)

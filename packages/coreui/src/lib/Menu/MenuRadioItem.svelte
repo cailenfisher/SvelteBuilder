@@ -12,11 +12,11 @@
   let { value, disabled = false, children, class: extraClass }: Props = $props();
 
   const classes = $derived(
-    ['menu-item', 'radio', extraClass ?? ''].filter(Boolean).join(' ')
+    ['menu-item', 'menu-item--radio', extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 
 <DropdownMenu.RadioItem {value} {disabled} class={classes}>
-  <span class="radio-dot" aria-hidden="true"></span>
+  <span class="menu-item__radio-dot" aria-hidden="true"></span>
   {@render children()}
 </DropdownMenu.RadioItem>

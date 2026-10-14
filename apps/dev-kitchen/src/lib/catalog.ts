@@ -64,7 +64,7 @@ export const COREUI_PAGES = [
   {
     slug: 'toast',
     title: 'Toast and the message bus',
-    components: ['Toast', 'ToastRegion', 'MessageAriaLive'],
+    components: ['Toast', 'ToastRegion', 'MessageLiveRegion'],
   },
   { slug: 'confirm-dialog', title: 'ConfirmDialog', components: ['ConfirmDialog'] },
   {
@@ -75,7 +75,7 @@ export const COREUI_PAGES = [
   {
     slug: 'choice',
     title: 'Checkbox, RadioGroup, Switch',
-    components: ['Checkbox', 'RadioGroup', 'RadioItem', 'Switch'],
+    components: ['Checkbox', 'RadioGroup', 'RadioGroupItem', 'Switch'],
   },
   { slug: 'select', title: 'Select', components: ['Select', 'SelectItem'] },
   { slug: 'date-time-picker', title: 'DateTimePicker', components: ['DateTimePicker'] },
@@ -111,7 +111,7 @@ export const COREUI_PAGES = [
       'TableBody',
       'TableFoot',
       'TableRow',
-      'TableHeader',
+      'TableHeaderCell',
       'TableCell',
     ],
   },
@@ -119,8 +119,8 @@ export const COREUI_PAGES = [
   { slug: 'timeline', title: 'Timeline', components: ['Timeline', 'TimelineItem'] },
   {
     slug: 'locale',
-    title: 'LocaleSwitcher',
-    components: ['LocaleSwitcher'],
+    title: 'LocalePicker',
+    components: ['LocalePicker'],
   },
 ] as const satisfies readonly ShowcasePage<ComponentName<CoreUi>>[];
 

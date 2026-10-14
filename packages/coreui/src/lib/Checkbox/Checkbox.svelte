@@ -1,13 +1,15 @@
+<script module lang="ts">
+  export type CheckboxSize = 'sm' | 'md';
+</script>
+
 <script lang="ts">
   import { Checkbox } from 'bits-ui';
   import { useField } from '../Field/use-field.js';
 
-  type Size = 'sm' | 'md';
-
   type Props = {
     checked?: boolean;
     indeterminate?: boolean;
-    size?: Size;
+    size?: CheckboxSize;
     label?: string;
     disabled?: boolean;
     name?: string;
@@ -40,9 +42,9 @@
 
   const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
 
-  const wrapClasses = $derived(['checkbox-wrap', extraClass ?? ''].filter(Boolean).join(' '));
+  const wrapClasses = $derived(['checkbox', extraClass ?? ''].filter(Boolean).join(' '));
 
-  const boxClasses = $derived(['checkbox', size].join(' '));
+  const boxClasses = $derived(['checkbox__control', `checkbox__control--${size}`].join(' '));
 </script>
 
 <label class={wrapClasses} data-disabled={resolvedDisabled || undefined}>
@@ -56,13 +58,13 @@
     class={boxClasses}
   >
     {#snippet children({ checked: isChecked, indeterminate: isIndeterminate })}
-      <span class="checkbox-indicator">
+      <span class="checkbox__indicator">
         {#if isIndeterminate}
-          <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false" class="icon">
+          <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false" class="checkbox__icon">
             <path d="M2.5 6h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
           </svg>
         {:else if isChecked}
-          <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false" class="icon">
+          <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false" class="checkbox__icon">
             <path
               d="M2 6l3 3 5-5"
               stroke="currentColor"
@@ -77,6 +79,6 @@
   </Checkbox.Root>
 
   {#if label}
-    <span class="label">{label}</span>
+    <span class="checkbox__label">{label}</span>
   {/if}
 </label>

@@ -13,10 +13,11 @@
     TableBody,
     TableCell,
     TableHead,
-    TableHeader,
+    TableHeaderCell,
     TableRow,
   } from '@sveltebuilder/coreui';
-  import type { InboundReceiptDetailView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { InboundReceiptDetailView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: InboundReceiptDetailView; form?: ScreenFormResult } = $props();
 
@@ -72,7 +73,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <dl class="receipt-detail__meta">
@@ -130,13 +131,13 @@
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeader>{t('logistic.field.sku')}</TableHeader>
-            <TableHeader>{t('logistic.field.location')}</TableHeader>
-            <TableHeader>{t('logistic.receipt.expected_quantity')}</TableHeader>
-            <TableHeader>{t('logistic.receipt.received_quantity')}</TableHeader>
-            <TableHeader>{t('logistic.receipt.discrepancy')}</TableHeader>
+            <TableHeaderCell>{t('logistic.field.sku')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.field.location')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.receipt.expected_quantity')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.receipt.received_quantity')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.receipt.discrepancy')}</TableHeaderCell>
             {#if open}
-              <TableHeader>{t('logistic.receipt.receive')}</TableHeader>
+              <TableHeaderCell>{t('logistic.receipt.receive')}</TableHeaderCell>
             {/if}
           </TableRow>
         </TableHead>

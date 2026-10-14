@@ -44,22 +44,22 @@
   class={['field', extraClass ?? ''].filter(Boolean).join(' ')}
   data-disabled={disabled || undefined}
 >
-  <label class="label" for={id} id={labelId}>
+  <label class="field__label" for={id} id={labelId}>
     {label}
     {#if required}
-      <span class="required" aria-hidden="true">*</span>
+      <span class="field__required" aria-hidden="true">*</span>
     {/if}
   </label>
 
-  <div class="control">
+  <div class="field__control">
     {@render children()}
   </div>
 
   {#if hint && !error}
-    <span id={hintId} class="hint">{hint}</span>
+    <span id={hintId} class="field__hint">{hint}</span>
   {/if}
 
   {#if error}
-    <span id={errorId} class="error" role="alert">{error}</span>
+    <span id={errorId} class="field__error" role="alert">{error}</span>
   {/if}
 </div>

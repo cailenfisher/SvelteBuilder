@@ -22,7 +22,7 @@
 
   <Example title="Preselected value shows its label">
     <Field id="select-license" label="License">
-      <Select bind:value={license}>
+      <Select bind:value={license} placeholder="Choose a license">
         <SelectItem value="all_rights_reserved" label="All rights reserved" />
         <SelectItem value="creative_commons" label="Creative Commons" />
       </Select>
@@ -36,7 +36,7 @@
       </Select>
     </Field>
     <Field id="select-disabled" label="Region" disabled>
-      <Select value="eu" disabled>
+      <Select value="eu" placeholder="Choose a region" disabled>
         <SelectItem value="eu" label="Europe" />
       </Select>
     </Field>

@@ -2,7 +2,8 @@
   import { enhance } from '$app/forms';
   import { createDictionary } from 'diglossia';
   import { Button, InlineNotification, Input } from '@sveltebuilder/coreui';
-  import type { CountDetailView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { CountDetailView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: CountDetailView; form?: ScreenFormResult } = $props();
 
@@ -31,7 +32,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <ol class="count-task__lines">

@@ -10,10 +10,11 @@
     TableBody,
     TableCell,
     TableHead,
-    TableHeader,
+    TableHeaderCell,
     TableRow,
   } from '@sveltebuilder/coreui';
-  import type { CycleCountDetailView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { CycleCountDetailView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: CycleCountDetailView; form?: ScreenFormResult } = $props();
 
@@ -86,17 +87,17 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <Table>
     <TableHead>
       <TableRow>
-        <TableHeader>{t('logistic.field.location')}</TableHeader>
-        <TableHeader>{t('logistic.field.sku')}</TableHeader>
-        <TableHeader>{t('logistic.cycle_count.expected')}</TableHeader>
-        <TableHeader>{t('logistic.cycle_count.counted')}</TableHeader>
-        <TableHeader>{t('logistic.cycle_count.variance')}</TableHeader>
+        <TableHeaderCell>{t('logistic.field.location')}</TableHeaderCell>
+        <TableHeaderCell>{t('logistic.field.sku')}</TableHeaderCell>
+        <TableHeaderCell>{t('logistic.cycle_count.expected')}</TableHeaderCell>
+        <TableHeaderCell>{t('logistic.cycle_count.counted')}</TableHeaderCell>
+        <TableHeaderCell>{t('logistic.cycle_count.variance')}</TableHeaderCell>
       </TableRow>
     </TableHead>
     <TableBody>

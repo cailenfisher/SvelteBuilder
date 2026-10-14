@@ -25,7 +25,7 @@
 </script>
 
 <DropdownMenu.Root bind:open {onOpenChange}>
-  <DropdownMenu.Trigger class="menu-trigger">
+  <DropdownMenu.Trigger class="menu__trigger">
     {@render trigger()}
   </DropdownMenu.Trigger>
 

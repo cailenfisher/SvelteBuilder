@@ -1,11 +1,13 @@
+<script module lang="ts">
+  export type TextareaSize = 'sm' | 'md' | 'lg';
+</script>
+
 <script lang="ts">
   import type { HTMLTextareaAttributes } from 'svelte/elements';
   import { useField } from '../Field/use-field.js';
 
-  type Size = 'sm' | 'md' | 'lg';
-
   type Props = Omit<HTMLTextareaAttributes, 'size'> & {
-    size?: Size;
+    size?: TextareaSize;
     error?: string | boolean;
     rows?: number;
     class?: string | undefined;
@@ -39,13 +41,13 @@
   });
 
   const classes = $derived(
-    ['textarea', size, hasError ? 'error' : '', extraClass ?? '']
+    ['textarea', `textarea--${size}`, hasError ? 'textarea--error' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
 </script>
 
-<div class="wrap">
+<div class="textarea__wrap">
   <textarea
     class={classes}
     id={resolvedId}
@@ -60,7 +62,7 @@
 </div>
 
 <style>
-  .wrap {
+  .textarea__wrap {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);

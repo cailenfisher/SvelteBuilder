@@ -14,7 +14,7 @@
   }: Props = $props();
 
   const classes = $derived(
-    ['divider', orientation, extraClass ?? '']
+    ['divider', `divider--${orientation}`, extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );

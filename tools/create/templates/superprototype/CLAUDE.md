@@ -80,7 +80,7 @@ say so instead of working around it.
 ```
 src/
 ├── app.css                  CSS layer order + design token overrides
-├── chrome.css               structural styles for .btn, .input, .card (project-owned)
+├── chrome.css               structural styles for .button, .input, .card (project-owned)
 ├── app.d.ts                 App.Locals: supabase, userAccountId, locale, defaultLocale
 ├── hooks.server.ts          per-request Supabase client → userAccountId → locale
 ├── lib/server/
@@ -589,15 +589,15 @@ Check `@sveltebuilder/coreui` before building any UI. It exports:
 
 - **Layout and display:** Card, Divider, Badge, Tag, Avatar, Alert, ProgressBar, Skeleton,
   Spinner, MetricCard, Timeline/TimelineItem
-- **Forms:** Field, Label, Input, Textarea, Checkbox, RadioGroup/RadioItem, Switch,
+- **Forms:** Field, Label, Input, Textarea, Checkbox, RadioGroup/RadioGroupItem, Switch,
   Select/SelectItem, DateTimePicker, Button
 - **Disclosure and overlays:** Accordion/AccordionItem, Tabs (List, Trigger, Content), Dialog,
   Drawer, Popover, Tooltip, Menu (with Item, Separator, Label, Group, CheckboxItem, RadioGroup,
-  RadioItem, Sub), ConfirmDialog
+  RadioGroupItem, Sub), ConfirmDialog
 - **Data:** Table (Head, Body, Foot, Row, Header, Cell), DataTable, Pagination
-- **Messages:** Toast/ToastRegion, Banner, InlineNotification, MessageAriaLive, and
+- **Messages:** Toast/ToastRegion, Banner, InlineNotification, MessageLiveRegion, and
   `getMessageBus()` for raising them from code
-- **Localization:** LocaleSwitcher. The admin's locale and copy editors are this project's own,
+- **Localization:** LocalePicker. The admin's locale and copy editors are this project's own,
   in `src/lib/Locale/`, `src/lib/LocalText/` and `src/lib/LocalTextLink/`.
 
 Read the component's props in `node_modules/@sveltebuilder/coreui` rather than guessing them.
@@ -660,9 +660,8 @@ One concept, one name, at every layer: `ticket` table → `Ticket` type → `Tic
 | JSON key               | `camelCase`                                    | `emailAddress`                       |
 | CSS class / property   | `kebab-case` / `--kebab-case`                  | `.ticket-card__title`                |
 
-No abbreviations: `configuration`, not `cfg`; `button`, not `btn` in new names (`.btn` is
-coreui's existing class). `id`, `url`, `http` and `api` are fine. Acronyms are capitalized as
-words: `getHttpUrl`, `HtmlParser`.
+No abbreviations: `configuration`, not `cfg`; `button`, not `btn`. `id`, `url`, `http` and `api`
+are fine. Acronyms are capitalized as words: `getHttpUrl`, `HtmlParser`.
 
 TypeScript is `strict`. No `any` (use `unknown` and narrow), and no non-null assertions (`!`).
 Narrow so the failure path is real code.

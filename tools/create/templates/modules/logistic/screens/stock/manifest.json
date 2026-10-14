@@ -46,6 +46,9 @@
     "logistic.stock_adjustment_reason.return_restock",
     "action.save",
     "action.cancel",
-    "action.close"
+    "action.close",
+    "pagination.previous",
+    "pagination.next",
+    "nav.pagination"
   ]
 }

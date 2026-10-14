@@ -12,11 +12,8 @@
     Input,
   } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
-  import type {
-    AdminArticleListView,
-    ArticleRow,
-    ScreenFormResult,
-  } from '@sveltebuilder/content/views';
+  import type { AdminArticleListView, ArticleRow } from '@sveltebuilder/content/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: AdminArticleListView; form?: ScreenFormResult } = $props();
 
@@ -74,7 +71,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <!-- Links in a nav, not tabs: the filter is server-side, so each option is a navigation to a
@@ -109,7 +106,12 @@
     perPage={data.perPage}
     total={data.total}
     onPageChange={(next) => goto(href(data.statusSlug, next))}
-    emptyLabel={t('content.admin.empty')}
+    labels={{
+      empty: t('content.admin.empty'),
+      pagination: dictionary.localText('nav.pagination'),
+      previousPage: dictionary.localText('pagination.previous'),
+      nextPage: dictionary.localText('pagination.next'),
+    }}
   />
 </div>
 

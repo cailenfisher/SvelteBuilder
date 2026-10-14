@@ -77,7 +77,7 @@ The research points toward one clear conclusion: **a unified messaging system ne
 
 ### The Message Taxonomy
 
-Define a single `SBMessage` type with a `severity` discriminant:
+Define a single `Message` type with a `severity` discriminant:
 
 | Severity | Intent | Auto-dismiss? | Blocks interaction? |
 |---|---|---|---|
@@ -134,7 +134,7 @@ This is faster, less friction, and empirically more trusted by users than "Are y
 
 ### Error Message Structure
 
-Every `SBMessage` of severity `warning` or `error` should carry:
+Every `Message` of severity `warning` or `error` should carry:
 
 - **`summary`** — one sentence, plain language, no jargon. What happened. ("The shipment could not be saved.")
 - **`detail`** *(optional)* — one to two sentences of helpful guidance. What to do next. ("Check that the destination address is complete and try again.")
@@ -179,7 +179,7 @@ The components to add to `sveltebuilder-coreui` to support this system:
 
 | Component | Role |
 |---|---|
-| `<SBToast>` | Single toast unit; receives an `SBMessage`, handles timer, pause-on-hover, dismiss |
+| `<SBToast>` | Single toast unit; receives an `Message`, handles timer, pause-on-hover, dismiss |
 | `<SBToastRegion>` | Fixed-position container managing the stack and queue; owns the polite ARIA live region |
 | `<SBInlineNotification>` | Persistent contextual notification for use inside domain components and forms |
 | `<SBBanner>` | App-shell-level persistent notification |

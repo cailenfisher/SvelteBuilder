@@ -1,16 +1,18 @@
+<script module lang="ts">
+  export type BannerSeverity = 'success' | 'info' | 'warning' | 'danger';
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { SBMessageAction } from '../Message/message-bus.svelte.js';
+  import type { MessageAction } from '../Message/message-bus.svelte.js';
   import { getMessageBus } from '../Message/message-bus.svelte.js';
-
-  type Severity = 'success' | 'info' | 'warning' | 'error';
 
   type Props = {
     message?: {
-      severity: Severity;
+      severity: BannerSeverity;
       summary: string;
       detail?: string;
-      actions?: SBMessageAction[];
+      actions?: MessageAction[];
     } | null;
     onDismiss?: () => void;
     class?: string | undefined;
@@ -35,13 +37,13 @@
   }
 
   const classes = $derived(
-    ['banner', active ? active.severity : '', extraClass ?? ''].filter(Boolean).join(' ')
+    ['banner', active ? `banner--${active.severity}` : '', extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 
 {#if active}
   <div class={classes} role="alert" aria-live="assertive" aria-atomic="true">
-    <span class="icon" aria-hidden="true">
+    <span class="banner__icon" aria-hidden="true">
       {#if icon}
         {@render icon()}
       {:else if active.severity === 'success'}
@@ -67,15 +69,15 @@
       {/if}
     </span>
 
-    <div class="body">
-      <span class="summary">{active.summary}</span>
+    <div class="banner__body">
+      <span class="banner__summary">{active.summary}</span>
       {#if active.detail}
-        <span class="detail">{active.detail}</span>
+        <span class="banner__detail">{active.detail}</span>
       {/if}
       {#if active.actions && active.actions.length > 0}
-        <span class="actions">
+        <span class="banner__actions">
           {#each active.actions as action (action.label)}
-            <button type="button" class="action" onclick={action.onAction}>{action.label}</button>
+            <button type="button" class="banner__action" onclick={action.onAction}>{action.label}</button>
           {/each}
         </span>
       {/if}
@@ -83,7 +85,7 @@
 
     <button
       type="button"
-      class="close"
+      class="banner__close"
       aria-label={messageBus.labels.dismiss(active.summary)}
       onclick={handleDismiss}
     >

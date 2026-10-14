@@ -18,7 +18,7 @@
 
 <!--
   Fixed-position container. Place once in the root layout.
-  Visual channel only — ARIA announcements are handled by MessageAriaLive.
+  Visual channel only — ARIA announcements are handled by MessageLiveRegion.
 -->
 <div class={['toast-region', extraClass ?? ''].filter(Boolean).join(' ')} role="region" aria-label={messageBus.labels.region} aria-live="off">
   {#each visibleToasts as message (message.id)}
@@ -29,6 +29,6 @@
   {/each}
 
   {#if queueCount > 0}
-    <p class="queue">{messageBus.labels.queued(queueCount)}</p>
+    <p class="toast-region__queue">{messageBus.labels.queued(queueCount)}</p>
   {/if}
 </div>

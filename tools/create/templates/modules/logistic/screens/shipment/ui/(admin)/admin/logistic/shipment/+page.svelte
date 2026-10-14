@@ -13,11 +13,8 @@
   import type { DataTableColumn } from '@sveltebuilder/coreui';
   import { ShipmentStatusBadge } from '@sveltebuilder/logistic';
   import type { ShipmentStatus } from '@sveltebuilder/logistic';
-  import type {
-    ScreenFormResult,
-    ShipmentListView,
-    ShipmentRow,
-  } from '@sveltebuilder/logistic/views';
+  import type { ShipmentListView, ShipmentRow } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: ShipmentListView; form?: ScreenFormResult } = $props();
 
@@ -32,7 +29,7 @@
     { key: 'status', label: t('logistic.shipment.status_label') },
     { key: 'carrier', label: t('logistic.field.carrier') },
     { key: 'trackingNumber', label: t('logistic.field.tracking_number') },
-    { key: 'lineCount', label: t('logistic.shipment.lines'), align: 'right' },
+    { key: 'lineCount', label: t('logistic.shipment.lines'), align: 'end' },
     { key: 'createdAt', label: t('logistic.shipment.created_at') },
   ]);
 
@@ -82,7 +79,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <nav class="shipment-list__filters" aria-label={t('logistic.shipment.filter_status')}>
@@ -115,7 +112,12 @@
     perPage={data.perPage}
     total={data.total}
     onPageChange={(next) => goto(href(data.status, next))}
-    emptyLabel={t('logistic.shipment.empty')}
+    labels={{
+      empty: t('logistic.shipment.empty'),
+      pagination: dictionary.localText('nav.pagination'),
+      previousPage: dictionary.localText('pagination.previous'),
+      nextPage: dictionary.localText('pagination.next'),
+    }}
   />
 </div>
 

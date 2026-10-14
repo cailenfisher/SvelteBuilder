@@ -15,7 +15,8 @@
   } from '@sveltebuilder/coreui';
   import { INBOUND_RECEIPT_STATUSES, ReceiptCard } from '@sveltebuilder/logistic';
   import type { InboundReceiptStatus } from '@sveltebuilder/logistic';
-  import type { InboundReceiptListView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { InboundReceiptListView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: InboundReceiptListView; form?: ScreenFormResult } = $props();
 
@@ -43,7 +44,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <!-- Links in a nav rather than a Tabs: the filter is server-side, so each option is a

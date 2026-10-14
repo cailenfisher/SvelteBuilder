@@ -15,17 +15,16 @@
     class: extraClass,
   }: Props = $props();
 
-  const classes = $derived(
-    ['table', stickyHeader ? 'sticky-header' : '', extraClass ?? '']
-      .filter(Boolean)
-      .join(' ')
+  const rootClasses = $derived(['table', extraClass ?? ''].filter(Boolean).join(' '));
+  const elementClasses = $derived(
+    ['table__element', stickyHeader ? 'table__element--sticky-header' : ''].filter(Boolean).join(' ')
   );
 </script>
 
-<div class="table-wrap">
-  <table class={classes}>
+<div class={rootClasses}>
+  <table class={elementClasses}>
     {#if caption}
-      <caption class="caption">{caption}</caption>
+      <caption class="table__caption">{caption}</caption>
     {/if}
     {@render children()}
   </table>

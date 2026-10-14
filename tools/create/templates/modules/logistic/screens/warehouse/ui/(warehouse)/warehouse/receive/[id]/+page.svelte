@@ -2,7 +2,8 @@
   import { enhance } from '$app/forms';
   import { createDictionary } from 'diglossia';
   import { Badge, Button, InlineNotification, Input } from '@sveltebuilder/coreui';
-  import type { ReceiveDetailView, ScreenFormResult } from '@sveltebuilder/logistic/views';
+  import type { ReceiveDetailView } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: ReceiveDetailView; form?: ScreenFormResult } = $props();
 
@@ -48,7 +49,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <ol class="receive-task__lines">

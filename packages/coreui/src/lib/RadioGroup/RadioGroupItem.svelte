@@ -16,11 +16,11 @@
   }: Props = $props();
 
   const wrapClasses = $derived(
-    ['radio-item', extraClass ?? ''].filter(Boolean).join(' ')
+    ['radio-group-item', extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 
 <label class={wrapClasses} data-disabled={disabled || undefined}>
-  <RadioGroup.Item {value} {disabled} class="radio-control" />
-  <span class="label">{label}</span>
+  <RadioGroup.Item {value} {disabled} class="radio-group-item__control" />
+  <span class="radio-group-item__label">{label}</span>
 </label>

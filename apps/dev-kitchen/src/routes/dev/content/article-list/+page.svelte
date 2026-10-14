@@ -2,7 +2,9 @@
   import { ArticleList, AssignmentQueue } from '@sveltebuilder/content';
   import type { ComponentProps } from 'svelte';
   import Example from '$lib/Example/Example.svelte';
-  import { ARTICLES_WITH_COPY, ASSIGNMENTS } from '$lib/fixtures/content';
+  import { ARTICLES_WITH_COPY, ASSIGNMENTS, contentDictionary } from '$lib/fixtures/content';
+
+  const dictionary = contentDictionary();
 
   // AssignmentQueue's row type is not exported; typing through its props still fails the
   // check when the component's shape changes.
@@ -24,6 +26,7 @@
       perPage={20}
       onRowClick={(article) => (opened = article.headline)}
       locale="en"
+      {dictionary}
     />
     <p role="status">Opened: {opened}</p>
   </div>
@@ -31,6 +34,13 @@
 
 <Example title="AssignmentQueue">
   <div style:inline-size="100%">
-    <AssignmentQueue {assignments} total={assignments.length} page={1} perPage={20} locale="en" />
+    <AssignmentQueue
+      {assignments}
+      total={assignments.length}
+      page={1}
+      perPage={20}
+      locale="en"
+      {dictionary}
+    />
   </div>
 </Example>

@@ -41,6 +41,9 @@
     "logistic.field.location",
     "logistic.field.sku",
     "action.cancel",
-    "action.close"
+    "action.close",
+    "pagination.previous",
+    "pagination.next",
+    "nav.pagination"
   ]
 }

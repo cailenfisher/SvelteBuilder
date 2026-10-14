@@ -110,6 +110,6 @@
   {disabled}
   {required}
   aria-describedby={describedBy}
-  class={['datetime-picker', extraClass ?? ''].filter(Boolean).join(' ')}
+  class={['date-time-picker', extraClass ?? ''].filter(Boolean).join(' ')}
   onchange={handleChange}
 />

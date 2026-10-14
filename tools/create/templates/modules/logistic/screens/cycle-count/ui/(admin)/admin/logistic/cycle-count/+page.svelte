@@ -12,11 +12,8 @@
   } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
   import type { CycleCountStatus } from '@sveltebuilder/logistic';
-  import type {
-    CycleCountListView,
-    CycleCountRow,
-    ScreenFormResult,
-  } from '@sveltebuilder/logistic/views';
+  import type { CycleCountListView, CycleCountRow } from '@sveltebuilder/logistic/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
   let { data, form }: { data: CycleCountListView; form?: ScreenFormResult } = $props();
 
@@ -29,7 +26,7 @@
   const columns: DataTableColumn[] = $derived([
     { key: 'id', label: t('logistic.cycle_count.one') },
     { key: 'status', label: t('logistic.cycle_count.status_label') },
-    { key: 'progress', label: t('logistic.cycle_count.progress'), align: 'right' },
+    { key: 'progress', label: t('logistic.cycle_count.progress'), align: 'end' },
     { key: 'createdAt', label: t('logistic.cycle_count.created_at') },
   ]);
 
@@ -89,7 +86,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="error" summary={form.error} />
+    <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   <nav class="cycle-count-list__filters" aria-label={t('logistic.cycle_count.filter_status')}>
@@ -122,7 +119,12 @@
     perPage={data.perPage}
     total={data.total}
     onPageChange={(next) => goto(href(data.status, next))}
-    emptyLabel={t('logistic.cycle_count.empty')}
+    labels={{
+      empty: t('logistic.cycle_count.empty'),
+      pagination: dictionary.localText('nav.pagination'),
+      previousPage: dictionary.localText('pagination.previous'),
+      nextPage: dictionary.localText('pagination.next'),
+    }}
   />
 </div>
 

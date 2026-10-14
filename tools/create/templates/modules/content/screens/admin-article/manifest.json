@@ -39,6 +39,9 @@
     "content.admin.publish_blocked",
     "action.cancel",
     "action.save",
-    "action.close"
+    "action.close",
+    "pagination.previous",
+    "pagination.next",
+    "nav.pagination"
   ]
 }

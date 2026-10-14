@@ -1,13 +1,15 @@
+<script module lang="ts">
+  export type ProgressBarSize = 'sm' | 'md' | 'lg';
+</script>
+
 <script lang="ts">
   import { Progress } from 'bits-ui';
-
-  type Size = 'sm' | 'md' | 'lg';
 
   type Props = {
     value?: number | null;
     max?: number;
-    size?: Size;
-    label?: string;
+    size?: ProgressBarSize;
+    label: string;
     class?: string | undefined;
   };
 
@@ -15,14 +17,14 @@
     value,
     max = 100,
     size = 'md',
-    label = 'Progress',
+    label,
     class: extraClass,
   }: Props = $props();
 
   const indeterminate = $derived(value == null);
 
   const wrapperClasses = $derived(
-    ['progress', size, indeterminate ? 'indeterminate' : '', extraClass ?? '']
+    ['progress-bar', `progress-bar--${size}`, indeterminate ? 'progress-bar--indeterminate' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
@@ -41,9 +43,9 @@
     aria-label={label}
     style="display: contents;"
   >
-    <div class="track">
+    <div class="progress-bar__track">
       <div
-        class="indicator"
+        class="progress-bar__indicator"
         style={fillPercent ? `width: ${fillPercent}` : undefined}
       ></div>
     </div>

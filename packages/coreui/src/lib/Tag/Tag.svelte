@@ -1,39 +1,44 @@
+<script module lang="ts">
+  export type TagVariant = 'default' | 'brand' | 'success' | 'warning' | 'danger' | 'info';
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
-  type Variant = 'default' | 'brand' | 'success' | 'warning' | 'danger' | 'info';
+  type Removal =
+    | { onRemove?: undefined; removeLabel?: undefined }
+    /** `removeLabel` is the remove button's accessible name, so it comes with `onRemove`. */
+    | { onRemove: () => void; removeLabel: string };
 
-  type Props = {
-    variant?: Variant;
-    onremove?: () => void;
-    removeLabel?: string;
+  type Props = Removal & {
+    variant?: TagVariant;
     children: Snippet;
     class?: string | undefined;
   };
 
   let {
     variant = 'default',
-    onremove,
-    removeLabel = 'Remove',
+    onRemove,
+    removeLabel,
     children,
     class: extraClass,
   }: Props = $props();
 
   const classes = $derived(
-    ['tag', variant, extraClass ?? ''].filter(Boolean).join(' ')
+    ['tag', `tag--${variant}`, extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 
 <span class={classes}>
-  <span class="label">
+  <span class="tag__label">
     {@render children()}
   </span>
-  {#if onremove}
+  {#if onRemove}
     <button
       type="button"
-      class="remove"
+      class="tag__remove"
       aria-label={removeLabel}
-      onclick={onremove}
+      onclick={onRemove}
     >
       <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false" width="10" height="10">
         <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>

@@ -1,12 +1,14 @@
+<script module lang="ts">
+  export type TabsOrientation = 'horizontal' | 'vertical';
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { Tabs } from 'bits-ui';
 
-  type Orientation = 'horizontal' | 'vertical';
-
   type Props = {
     value?: string;
-    orientation?: Orientation;
+    orientation?: TabsOrientation;
     /** Called when the value changes, with the new value. See Checkbox's `onCheckedChange`. */
     onValueChange?: (value: string) => void;
     children: Snippet;
@@ -22,7 +24,7 @@
   }: Props = $props();
 
   const classes = $derived(
-    ['tabs', orientation, extraClass ?? ''].filter(Boolean).join(' ')
+    ['tabs', `tabs--${orientation}`, extraClass ?? ''].filter(Boolean).join(' ')
   );
 </script>
 

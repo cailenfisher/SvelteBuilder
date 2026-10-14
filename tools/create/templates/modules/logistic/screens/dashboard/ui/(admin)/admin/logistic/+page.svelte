@@ -9,7 +9,7 @@
     TableBody,
     TableCell,
     TableHead,
-    TableHeader,
+    TableHeaderCell,
     TableRow,
   } from '@sveltebuilder/coreui';
   import type { LogisticDashboardView } from '@sveltebuilder/logistic/views';
@@ -84,10 +84,10 @@
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeader>{t('logistic.field.sku')}</TableHeader>
-            <TableHeader>{t('logistic.field.location')}</TableHeader>
-            <TableHeader>{t('logistic.field.available')}</TableHeader>
-            <TableHeader>{t('logistic.field.reorder_point')}</TableHeader>
+            <TableHeaderCell>{t('logistic.field.sku')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.field.location')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.field.available')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.field.reorder_point')}</TableHeaderCell>
           </TableRow>
         </TableHead>
         <TableBody>

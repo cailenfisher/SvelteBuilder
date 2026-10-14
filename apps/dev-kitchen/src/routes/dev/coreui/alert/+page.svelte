@@ -5,7 +5,7 @@
   const messageBus = getMessageBus();
 
   const alertVariants = ['info', 'success', 'warning', 'danger'] as const;
-  const severities = ['info', 'success', 'warning', 'error'] as const;
+  const severities = ['info', 'success', 'warning', 'danger'] as const;
 
   let dismissed = $state(false);
   let retries = $state(0);
@@ -31,7 +31,7 @@
       <InlineNotification {severity} summary={`A ${severity} notification`} />
     {/each}
     <InlineNotification
-      severity="error"
+      severity="danger"
       summary="The shipment could not be saved."
       detail="The carrier rejected the address."
       technicalId="ERR-4182"
