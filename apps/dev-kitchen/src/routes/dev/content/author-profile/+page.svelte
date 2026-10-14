@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AuthorProfileView } from '@sveltebuilder/content';
+  import { AuthorProfileDetail } from '@sveltebuilder/content';
   import Example from '$lib/Example/Example.svelte';
   import {
     ARTICLES_WITH_COPY,
@@ -13,7 +13,7 @@
 </script>
 
 <Example title="With avatar and articles">
-  <AuthorProfileView
+  <AuthorProfileDetail
     author={AUTHORS[0]}
     articles={ARTICLES_WITH_COPY}
     mediaAssets={MEDIA_ASSETS}
@@ -25,7 +25,7 @@
 </Example>
 
 <Example title="No avatar, no articles">
-  <AuthorProfileView
+  <AuthorProfileDetail
     author={AUTHORS[1]}
     articles={[]}
     mediaAssets={MEDIA_ASSETS}

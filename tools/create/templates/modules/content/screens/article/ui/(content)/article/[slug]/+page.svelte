@@ -1,12 +1,12 @@
 <script lang="ts">
   import { createDictionary } from 'diglossia';
   import { Button, Field, InlineNotification, Input, Textarea } from '@sveltebuilder/coreui';
-  import { ArticleView } from '@sveltebuilder/content';
+  import { ArticleDetail } from '@sveltebuilder/content';
   import { buildArticleMetaTags, buildNewsArticleJsonLd } from '@sveltebuilder/content/publishing';
-  import type { ArticlePageView } from '@sveltebuilder/content/views';
+  import type { ArticleDetailView } from '@sveltebuilder/content/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
 
-  let { data, form }: { data: ArticlePageView; form?: ScreenFormResult } = $props();
+  let { data, form }: { data: ArticleDetailView; form?: ScreenFormResult } = $props();
 
   // A fresh instance from this screen's payload, not `getDictionary().merge(...)`. Merging
   // would mutate the dictionary the root layout put in context, which on the server is shared
@@ -67,7 +67,7 @@
 <main class="article-page">
   <!-- Camp 2 component: it resolves the headline, dek and every block's text from the
        dictionary by entity id, so it takes this screen's instance rather than context. -->
-  <ArticleView
+  <ArticleDetail
     article={data.article}
     {mediaAssets}
     {attributions}
@@ -77,8 +77,8 @@
   >
     {#snippet after()}
       {#if data.article.commentAllowed}
-        <section class="article-page__comments" aria-label={t('content.comments.heading')}>
-          <h2 class="article-page__comments-heading">{t('content.comments.heading')}</h2>
+        <section class="article-page__comments" aria-label={t('content.comment.heading')}>
+          <h2 class="article-page__comments-heading">{t('content.comment.heading')}</h2>
 
           {#if data.comments.length > 0}
             <ol class="article-page__comment-list">
@@ -94,34 +94,34 @@
           {#if commentAccepted}
             <!-- role="status" rather than an alert: a successful submission is confirmation,
                  not a problem, and should not interrupt a screen reader. -->
-            <InlineNotification severity="success" summary={t('content.comments.pending')} />
+            <InlineNotification severity="success" summary={t('content.comment.pending')} />
           {:else}
             <form class="article-page__comment-form" method="POST" action="?/comment">
-              <h3 class="article-page__comment-form-heading">{t('content.comments.leave')}</h3>
+              <h3 class="article-page__comment-form-heading">{t('content.comment.leave')}</h3>
 
               {#if form?.error}
                 <InlineNotification severity="danger" summary={form.error} />
               {/if}
 
-              <Field label={t('content.comments.name')} id="comment-name" required>
+              <Field label={t('content.comment.name')} id="comment-name" required>
                 <Input name="author_name" required />
               </Field>
-              <Field label={t('content.comments.email')} id="comment-email" required>
+              <Field label={t('content.comment.email')} id="comment-email" required>
                 <Input name="author_email" type="email" required />
               </Field>
-              <Field label={t('content.comments.body')} id="comment-body" required>
+              <Field label={t('content.comment.body')} id="comment-body" required>
                 <Textarea name="body" rows={5} required />
               </Field>
 
               <!-- No status field: a comment is created pending, and the RLS insert policy is
                    what enforces that rather than this form omitting it. -->
-              <Button type="submit" variant="primary">{t('content.comments.submit')}</Button>
+              <Button type="submit" variant="primary">{t('content.comment.submit')}</Button>
             </form>
           {/if}
         </section>
       {/if}
     {/snippet}
-  </ArticleView>
+  </ArticleDetail>
 </main>
 
 <style>

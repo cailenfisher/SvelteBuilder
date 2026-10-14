@@ -53,9 +53,9 @@ export type ArticleWithRelations = Article & {
 };
 
 /**
- * The least an article has to be for `ArticleView` to render it.
+ * The least an article has to be for `ArticleDetail` to render it.
  *
- * Narrower than ArticleWithCopy on purpose. ArticleView is a Camp 2 component: it resolves
+ * Narrower than ArticleWithCopy on purpose. ArticleDetail is a Camp 2 component: it resolves
  * the headline, the dek and every block's text from the dictionary itself, by entity id, so
  * the resolved strings on ArticleWithCopy are fields it never reads. Typing the prop as the
  * enriched shape demanded them anyway, which made the component unusable from a loader that

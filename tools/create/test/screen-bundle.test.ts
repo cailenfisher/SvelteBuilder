@@ -444,7 +444,7 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
  * `formatText('slug', { … }, '<module>')`, whose values object sits between slug and scope.
  * Entity-bound copy (`'article'`, `'supplier'`) is seeded per row and is not checkable
  * here; UI copy under the module's own scope is, and a component no screen renders is
- * otherwise invisible to every check above. NewsletterSignup and ArticleWorkflowPanel
+ * otherwise invisible to every check above. NewsletterSubscriptionForm and ArticleWorkflowPanel
  * asked for twelve such slugs that nothing seeded.
  */
 function readComponentSlugs(module: string): string[] {

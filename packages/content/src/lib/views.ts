@@ -79,7 +79,7 @@ export type ArticleRow = Article & {
   tags: Tag[];
   /**
    * In byline order, which is editorially meaningful: the first name is the lead. Named
-   * `bylines` to match both the article_byline table and ArticleView's prop, so an
+   * `bylines` to match both the article_byline table and ArticleDetail's prop, so an
    * ArticleWithBlocks satisfies ArticleRenderable without reshaping.
    */
   bylines: AuthorProfile[];
@@ -100,10 +100,10 @@ export type ArticleWithBlocks = ArticleRow & {
 /**
  * `/article/[slug]`
  *
- * Named ArticlePageView rather than ArticleView because the package already exports a
+ * Named ArticleDetailView rather than ArticleDetail because the package already exports a
  * component by that name, and a screen imports both.
  */
-export type ArticlePageView = ScreenCopy &
+export type ArticleDetailView = ScreenCopy &
   ScreenLocale &
   ScreenStorage &
   ScreenAttribution & {
@@ -117,7 +117,7 @@ export type ArticlePageView = ScreenCopy &
   };
 
 /** `/section/[slug]` — SectionView is taken by a component, hence the suffix. */
-export type SectionPageView = ScreenCopy &
+export type SectionDetailView = ScreenCopy &
   ScreenLocale &
   ScreenStorage &
   ScreenPage & {
@@ -128,13 +128,13 @@ export type SectionPageView = ScreenCopy &
   };
 
 /**
- * `/preview/[token]`
+ * `/article-preview/[token]`
  *
  * The article comes back through a SECURITY DEFINER function keyed on the token rather than a
  * normal read, because RLS hides an unpublished article and a policy cannot see which token
  * the request presented. The token is the credential; see the module's 02-content-rls.sql.
  */
-export type PreviewPageView = ScreenCopy &
+export type ArticlePreviewDetailView = ScreenCopy &
   ScreenLocale &
   ScreenStorage &
   ScreenAttribution & {
@@ -144,7 +144,7 @@ export type PreviewPageView = ScreenCopy &
 // ── Admin screens ────────────────────────────────────────────────────────────
 
 /** `/admin/content/article` */
-export type AdminArticleListView = ScreenCopy &
+export type ArticleAdminListView = ScreenCopy &
   ScreenLocale &
   ScreenPage & {
     articles: ArticleRow[];
@@ -155,19 +155,19 @@ export type AdminArticleListView = ScreenCopy &
   };
 
 /** `/admin/content/article/[id]` */
-export type AdminArticleDetailView = ScreenCopy &
+export type ArticleAdminDetailView = ScreenCopy &
   ScreenLocale & {
     article: ArticleWithBlocks;
     statuses: ArticleStatus[];
     /** The publish gate: every checklist item, and whether this article has ticked it. */
-    checklist: ChecklistEntry[];
+    checklist: ArticleChecklistEntry[];
     /** Sections, topics and tags the editor can file this article under. */
     availableSections: Section[];
     availableTopics: Topic[];
     availableTags: Tag[];
   };
 
-export type ChecklistEntry = {
+export type ArticleChecklistEntry = {
   id: number;
   slug: string;
   position: number;

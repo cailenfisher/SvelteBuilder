@@ -75,7 +75,7 @@
     </div>
 
     {#if showContactForm}
-      <form method="POST" action="?/addContact" class="supplier-detail__contact-form">
+      <form method="POST" action="?/addSupplierContact" class="supplier-detail__contact-form">
         <div class="supplier-detail__contact-fields">
           <Field label={t('logistic.field.role')} id="contact-role" required>
             <Input id="contact-role" name="role" required />
@@ -106,8 +106,8 @@
                   : ''}
               </p>
             </div>
-            <form method="POST" action="?/deleteContact">
-              <input type="hidden" name="contact_id" value={contact.id} />
+            <form method="POST" action="?/deleteSupplierContact">
+              <input type="hidden" name="supplier_contact_id" value={contact.id} />
               <Button type="submit" variant="ghost" size="sm">
                 {dictionary.localText('action.remove')}
               </Button>

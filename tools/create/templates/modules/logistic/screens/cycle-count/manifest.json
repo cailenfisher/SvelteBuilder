@@ -8,7 +8,7 @@
   "views": ["CycleCountListView", "CycleCountDetailView", "CycleCountRow", "CycleCountLineRow"],
   "actions": {
     "/admin/logistic/cycle-count": {
-      "create": ["location_ids"]
+      "create": ["storage_location_ids"]
     },
     "/admin/logistic/cycle-count/[id]": {
       "approve": []
@@ -38,7 +38,7 @@
     "logistic.cycle_count.status.in_progress",
     "logistic.cycle_count.status.completed",
     "logistic.cycle_count.status.cancelled",
-    "logistic.field.location",
+    "logistic.field.storage_location",
     "logistic.field.sku",
     "action.cancel",
     "action.close",

@@ -87,7 +87,7 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | `logistic.field.location`, `logistic.field.location_type` | `logistic.field.storage_location`, `logistic.field.storage_location_type` | proposed |
 | `logistic.admin.dashboard.title` | `logistic.dashboard.title` (one prefix for the dashboard) | proposed |
 | `logistic.dashboard.pending_receipts`, `open_picks`, `open_returns` | `pending_inbound_receipt`, `open_pick_task`, `open_return_authorization` | proposed |
-| `logistic.admin.nav.*` (8) | seeded, never rendered: no `navigation_item` row uses them, and `storage_location` has no screen | approved: delete them. Seeds are per module but screens are per bundle, so seeded nav rows would dead-link. Recorded in `DEFERRED.md` |
+| `logistic.admin.nav.*` (8) | keep, labels per D13. **Corrected in Phase 8:** Phase 0 recorded these as never rendered and approved deleting them, but the logistic dashboard renders them as its section links; the inventory search missed that file | corrected |
 | English labels "Receiving", "Returns", "Stock", "Locations" | "Inbound receipts", "Return authorizations", "Stock levels", "Storage locations" (and French equivalents) | decision D13 |
 
 ### dev-kitchen
@@ -338,3 +338,21 @@ REST paths (`/api/locale`, `/api/local-text/...`) are already singular. Only `CL
 | D15 | `Item` in domain table names | `publish_checklist_item` and `navigation_item` are domain tables, but D9 limits `Item` to coreui primitives. **Recommend allowing `Item` where the domain itself says it** ("checklist item", "navigation item" are the domain's terms) and banning it only as a stand-alone generic name. Otherwise: `publish_checklist_requirement`, `navigation_link`. |
 | D16 | `Screen*` view types duplicated | `ScreenCopy`, `ScreenLocale`, `ScreenPage` and `ScreenFormResult` are declared identically in both `views.ts` files (content adds `ScreenStorage`, `ScreenAttribution`). A helper declared twice is a bug under the single-source rule. **Recommend moving the shared ones into coreui as types-only exports** (`ScreenCopy` needs only a type import from diglossia, which guardrail 1 allows). Keep content's two extras in content. |
 | D17 | Timestamp type (found in Phase 4) | `timestamptz` (`withTimezone: true`) in content and `user_account`; plain `timestamp` in logistic, `navigation_item` and local-text-schema's `local_text`. Same idea, two types, sometimes in one schema file. **Recommend `timestamptz` everywhere**, Postgres's own advice for points in time. A Phase 5 column type change (`ALTER COLUMN … TYPE timestamptz`), with existing values read as UTC. **Pending.** |
+
+---
+
+## Added during Phase 8 (pending approval)
+
+Applied in Phase 8 because they follow from approved rules; listed for review.
+
+| Old | New | Rule |
+| --- | --- | --- |
+| view fields `receipts`, `receipt` (admin inbound receipt), `returns`, `counts`, `locations` (3 views), `task`, `active`, `recent`, `openTotal` | `inboundReceipts`, `inboundReceipt`, `returnAuthorizations`, `cycleCounts`, `storageLocations`, `pickTask`, `activeInboundReceipts`, `recentInboundReceipts`, `openPickTaskTotal` | never drop the parent concept (same as the approved `pendingReceipts` → `pendingInboundReceipts`) |
+| warehouse copy `logistic.pick.*`, `logistic.count.*`, `logistic.receive.*`; nav `logistic.warehouse.pick` (+ `.hint`) etc. | `logistic.warehouse.pick_task.*`, `logistic.warehouse.cycle_count.*`, `logistic.warehouse.inbound_receipt.*`; `logistic.warehouse.pick_task.title` (+ `.hint`) | D3: warehouse slugs under `logistic.warehouse.<concept>.*`; avoids colliding with the admin `logistic.cycle_count.empty`, `.lines` |
+| `logistic.pick.task` (dashboard label) | `logistic.pick_task.one` | matches `logistic.cycle_count.one`, `logistic.shipment.one` |
+| form actions `gradeLine`, `addContact`, `deleteContact`, `addEvent` | `gradeReturnAuthorizationLine`, `addSupplierContact`, `deleteSupplierContact`, `addTrackingEvent` | approved rule for every bundle's actions |
+| form fields `line_id`, `task_id`, `count_id`, `contact_id`, `location_ids` | `inbound_receipt_line_id`, `return_authorization_line_id`, `pick_task_line_id`, `cycle_count_line_id`, `pick_task_id`, `cycle_count_id`, `supplier_contact_id`, `storage_location_ids` | approved rule for every bundle's fields |
+| English "RMA" (`logistic.return_authorization.one`) | "Return authorization" | no abbreviations; D13 |
+| D14: `newsletter.*` and `action.submit_for_review` … `action.unpublish` in scope `content` | `content.newsletter_subscription_form.*`, `content.article_workflow.*` | D14 prefix, grouped by the component that renders them, like `content.article_block_editor.*` |
+| dev-kitchen `/dev/content/taxonomy` | `/dev/content/article-byline`, `/dev/content/section`, `/dev/content/topic` | the page also showed `ArticleBylineList`, so it splits three ways |
+| page-local CSS `admin-article`, `admin-article-list` | `article-admin`, `article-admin-list` | follows the screen id |

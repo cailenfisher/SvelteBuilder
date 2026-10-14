@@ -3,10 +3,10 @@
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
   import { Badge } from '@sveltebuilder/coreui';
-  import SectionLabel from '../Section/SectionLabel.svelte';
-  import TopicTag from '../Topic/TopicTag.svelte';
-  import BylineList from './ArticleByline/BylineList.svelte';
-  import MediaFigure from '../MediaAsset/MediaFigure.svelte';
+  import SectionLink from '../Section/SectionLink.svelte';
+  import TopicLink from '../Topic/TopicLink.svelte';
+  import ArticleBylineList from './ArticleByline/ArticleBylineList.svelte';
+  import MediaAssetFigure from '../MediaAsset/MediaAssetFigure.svelte';
   import { selectLeadMediaAssetId } from '../publishing/lead-image.js';
   import type {
     Article,
@@ -30,7 +30,7 @@
     variant?: 'lead' | 'secondary' | 'river' | 'brief';
     /**
      * Where the card's picture comes from: the article's lead image (its `leadMediaAssetId`,
-     * else the first image block among `blocks`), looked up here. The same rule ArticleView's
+     * else the first image block among `blocks`), looked up here. The same rule ArticleDetail's
      * hero and the social cards use. A card with no `mediaAssets`, or whose lead asset is not
      * in them, renders text only — as every card did before it could show a picture.
      */
@@ -115,7 +115,7 @@
          a second description of the same story would be read out twice. The large lead keeps
          its alt text. -->
     <div class="article-card__media">
-      <MediaFigure
+      <MediaAssetFigure
         asset={leadAsset}
         {storageBaseUrl}
         {locale}
@@ -129,7 +129,7 @@
 
   {#if sections.length > 0}
     <div class="article-card__kicker" aria-label="Section">
-      <SectionLabel section={sections[0]} {locale} {dictionary} />
+      <SectionLink section={sections[0]} {locale} {dictionary} />
     </div>
   {/if}
 
@@ -156,7 +156,7 @@
 
     <footer class="article-card__meta">
       {#if bylines.length > 0}
-        <BylineList {bylines} {locale} {dictionary} />
+        <ArticleBylineList {bylines} {locale} {dictionary} />
       {/if}
 
       {#if publishedDate}
@@ -168,7 +168,7 @@
       {#if topics.length > 0 && variant !== 'brief'}
         <ul class="article-card__topics" aria-label="Topics">
           {#each topics as topic (topic.id)}
-            <li><TopicTag {topic} {locale} href={`/?topic=${topic.slug}`} {dictionary} /></li>
+            <li><TopicLink {topic} {locale} href={`/?topic=${topic.slug}`} {dictionary} /></li>
           {/each}
         </ul>
       {/if}
@@ -199,13 +199,13 @@
 
   /* The picture is cropped to a fixed ratio so a column of cards stays aligned whatever the
      source image's shape. Large for the lead, a banner for secondary. */
-  .article-card__media :global(.media-figure__img) {
+  .article-card__media :global(.media-asset-figure__img) {
     aspect-ratio: 16 / 9;
     object-fit: cover;
     border-radius: 0;
   }
 
-  .article-card--lead .article-card__media :global(.media-figure__img) {
+  .article-card--lead .article-card__media :global(.media-asset-figure__img) {
     aspect-ratio: 3 / 2;
   }
 
@@ -221,7 +221,7 @@
     grid-row: 1 / span 2;
   }
 
-  .article-card--river .article-card__media :global(.media-figure__img) {
+  .article-card--river .article-card__media :global(.media-asset-figure__img) {
     aspect-ratio: 4 / 3;
   }
 

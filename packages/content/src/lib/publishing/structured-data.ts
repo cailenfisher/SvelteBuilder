@@ -36,7 +36,7 @@ export type PublisherForStructuredData = PublisherProfile & {
 /**
  * Media assets the article's blocks refer to, keyed by id.
  *
- * Passed alongside rather than embedded on each block, the same way ArticleView takes them: a
+ * Passed alongside rather than embedded on each block, the same way ArticleDetail takes them: a
  * block row carries only mediaAssetId, and which assets were actually fetched is the loader's
  * decision, not something these pure functions should imply.
  */

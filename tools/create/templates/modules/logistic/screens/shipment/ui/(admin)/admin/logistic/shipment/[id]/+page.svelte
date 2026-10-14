@@ -125,13 +125,13 @@
       </form>
 
       <h2 class="shipment-detail__section-title">{t('logistic.shipment.event_add')}</h2>
-      <form method="POST" action="?/addEvent" class="shipment-detail__form" use:enhance>
+      <form method="POST" action="?/addTrackingEvent" class="shipment-detail__form" use:enhance>
         <!-- Free text, not the shipment enum: this records what the carrier called the
              scan, which no enum of ours can enumerate. -->
         <Field label={t('logistic.shipment.event')} id="event-status" required>
           <Input name="status" required />
         </Field>
-        <Field label={t('logistic.field.location')} id="event-location">
+        <Field label={t('logistic.field.storage_location')} id="event-location">
           <Input name="event_location" />
         </Field>
         <Field label={t('logistic.shipment.event_description')} id="event-description">

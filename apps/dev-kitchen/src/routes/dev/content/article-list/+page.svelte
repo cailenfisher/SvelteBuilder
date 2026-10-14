@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { ArticleList, AssignmentQueue } from '@sveltebuilder/content';
+  import { ArticleList, ArticleAssignmentQueue } from '@sveltebuilder/content';
   import type { ComponentProps } from 'svelte';
   import Example from '$lib/Example/Example.svelte';
   import { ARTICLES_WITH_COPY, ASSIGNMENTS, contentDictionary } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();
 
-  // AssignmentQueue's row type is not exported; typing through its props still fails the
+  // ArticleAssignmentQueue's row type is not exported; typing through its props still fails the
   // check when the component's shape changes.
   const assignments = ASSIGNMENTS.map((assignment, index) => ({
     ...assignment,
     article: ARTICLES_WITH_COPY[2],
     assigneeName: ['Ada Reporter', 'Grace Editor'][index],
-  })) satisfies ComponentProps<typeof AssignmentQueue>['assignments'];
+  })) satisfies ComponentProps<typeof ArticleAssignmentQueue>['assignments'];
 
   let opened = $state('(none)');
 </script>
@@ -32,9 +32,9 @@
   </div>
 </Example>
 
-<Example title="AssignmentQueue">
+<Example title="ArticleAssignmentQueue">
   <div style:inline-size="100%">
-    <AssignmentQueue
+    <ArticleAssignmentQueue
       {assignments}
       total={assignments.length}
       page={1}

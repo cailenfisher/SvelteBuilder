@@ -1,7 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { loadEntityCopy, loadScopedCopy } from '$lib/server/scoped-copy';
-import type { ArticlePageView, ArticleWithBlocks } from '@sveltebuilder/content/views';
+import type { ArticleDetailView, ArticleWithBlocks } from '@sveltebuilder/content/views';
 import type { Actions, PageServerLoad } from './$types';
 
 // No auth guard: this is a public page. What a reader may see is decided entirely by the
@@ -19,7 +19,7 @@ const toOne = <T>(embed: T | T[] | null): T | null =>
 // loader rather than the screen: the screen is flavour-neutral and should not know.
 const STORAGE_BASE_URL = `${PUBLIC_SUPABASE_URL}/storage/v1/object/public`;
 
-export const load: PageServerLoad = async ({ locals, params, url }): Promise<ArticlePageView> => {
+export const load: PageServerLoad = async ({ locals, params, url }): Promise<ArticleDetailView> => {
   const articleResult = await locals.supabase
     .from('article')
     .select(ARTICLE_COLUMNS)

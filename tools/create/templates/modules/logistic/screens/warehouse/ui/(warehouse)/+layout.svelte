@@ -13,9 +13,9 @@
   const t = (slug: string) => scoped.localText(slug, 'logistic');
 
   const flows = [
-    { href: '/warehouse/pick', slug: 'logistic.warehouse.pick' },
-    { href: '/warehouse/receive', slug: 'logistic.warehouse.receive' },
-    { href: '/warehouse/count', slug: 'logistic.warehouse.count' },
+    { href: '/warehouse/pick-task', slug: 'logistic.warehouse.pick_task.title' },
+    { href: '/warehouse/inbound-receipt', slug: 'logistic.warehouse.inbound_receipt.title' },
+    { href: '/warehouse/cycle-count', slug: 'logistic.warehouse.cycle_count.title' },
   ];
 </script>
 

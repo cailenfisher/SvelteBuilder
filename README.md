@@ -87,7 +87,7 @@ Domain modules provide production-grade implementations for specific application
 Selecting a module in `create-sveltebuilder` does the rest. The CLI registers the module's schema, copies its seed and supplemental SQL (RLS policies, functions), and offers its **screen bundles**: complete features such as a list, its detail page, and any layout they share. You choose which bundles to scaffold. Screens are copied into your routes once and belong to your app from then on; they are not a dependency you track.
 
 ```ts
-import { ArticleCard, ArticleView } from '@sveltebuilder/content';
+import { ArticleCard, ArticleDetail } from '@sveltebuilder/content';
 ```
 
 All domain modules consume `@sveltebuilder/coreui` components wherever possible. When overlap is identified across multiple modules, new additions are proposed to the core library rather than duplicated.

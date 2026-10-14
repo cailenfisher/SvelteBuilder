@@ -52,7 +52,7 @@ export const COREUI_PAGES = [
   },
   { slug: 'avatar', title: 'Avatar', components: ['Avatar'] },
   {
-    slug: 'progress',
+    slug: 'progress-bar',
     title: 'ProgressBar, Spinner, Skeleton',
     components: ['ProgressBar', 'Spinner', 'Skeleton'],
   },
@@ -72,11 +72,9 @@ export const COREUI_PAGES = [
     title: 'Field, Label, Input, Textarea',
     components: ['Field', 'Label', 'Input', 'Textarea'],
   },
-  {
-    slug: 'choice',
-    title: 'Checkbox, RadioGroup, Switch',
-    components: ['Checkbox', 'RadioGroup', 'RadioGroupItem', 'Switch'],
-  },
+  { slug: 'checkbox', title: 'Checkbox', components: ['Checkbox'] },
+  { slug: 'radio-group', title: 'RadioGroup', components: ['RadioGroup', 'RadioGroupItem'] },
+  { slug: 'switch', title: 'Switch', components: ['Switch'] },
   { slug: 'select', title: 'Select', components: ['Select', 'SelectItem'] },
   { slug: 'date-time-picker', title: 'DateTimePicker', components: ['DateTimePicker'] },
   { slug: 'accordion', title: 'Accordion', components: ['Accordion', 'AccordionItem'] },
@@ -118,7 +116,7 @@ export const COREUI_PAGES = [
   { slug: 'data-table', title: 'DataTable, Pagination', components: ['DataTable', 'Pagination'] },
   { slug: 'timeline', title: 'Timeline', components: ['Timeline', 'TimelineItem'] },
   {
-    slug: 'locale',
+    slug: 'locale-picker',
     title: 'LocalePicker',
     components: ['LocalePicker'],
   },
@@ -132,36 +130,34 @@ type Content = typeof import('@sveltebuilder/content');
 
 export const CONTENT_PAGES = [
   { slug: 'article-card', title: 'ArticleCard', components: ['ArticleCard'] },
-  { slug: 'article-view', title: 'ArticleView', components: ['ArticleView'] },
+  { slug: 'article-detail', title: 'ArticleDetail', components: ['ArticleDetail'] },
   {
     slug: 'article-block',
-    title: 'ArticleBlockRenderer, MediaFigure',
-    components: ['ArticleBlockRenderer', 'MediaFigure'],
+    title: 'ArticleBlockRenderer, MediaAssetFigure',
+    components: ['ArticleBlockRenderer', 'MediaAssetFigure'],
   },
-  {
-    slug: 'taxonomy',
-    title: 'BylineList, SectionLabel, TopicTag',
-    components: ['BylineList', 'SectionLabel', 'TopicTag'],
-  },
+  { slug: 'article-byline', title: 'ArticleBylineList', components: ['ArticleBylineList'] },
+  { slug: 'section', title: 'SectionLink', components: ['SectionLink'] },
+  { slug: 'topic', title: 'TopicLink', components: ['TopicLink'] },
   {
     slug: 'live-coverage',
     title: 'Live coverage',
-    components: ['LiveCoverageView', 'LiveUpdateItem'],
+    components: ['LiveCoverageDetail', 'LiveUpdateCard'],
   },
-  { slug: 'section-front', title: 'SectionFront', components: ['SectionFront'] },
-  { slug: 'author-profile', title: 'AuthorProfileView', components: ['AuthorProfileView'] },
+  { slug: 'front-detail', title: 'FrontDetail', components: ['FrontDetail'] },
+  { slug: 'author-profile', title: 'AuthorProfileDetail', components: ['AuthorProfileDetail'] },
   {
     slug: 'newsletter',
-    title: 'NewsletterSignup, SubscriberList',
-    components: ['NewsletterSignup', 'SubscriberList'],
+    title: 'NewsletterSubscriptionForm, SubscriberList',
+    components: ['NewsletterSubscriptionForm', 'SubscriberList'],
   },
   {
     slug: 'article-list',
-    title: 'ArticleList, AssignmentQueue',
-    components: ['ArticleList', 'AssignmentQueue'],
+    title: 'ArticleList, ArticleAssignmentQueue',
+    components: ['ArticleList', 'ArticleAssignmentQueue'],
   },
   {
-    slug: 'workflow',
+    slug: 'article-workflow',
     title: 'ArticleWorkflowPanel',
     components: ['ArticleWorkflowPanel'],
   },
@@ -183,7 +179,7 @@ export const LOGISTIC_PAGES = [
     title: 'PickTaskCard, PickTaskStatusBadge',
     components: ['PickTaskCard', 'PickTaskStatusBadge'],
   },
-  { slug: 'receipt', title: 'ReceiptCard', components: ['ReceiptCard'] },
+  { slug: 'inbound-receipt', title: 'InboundReceiptCard', components: ['InboundReceiptCard'] },
   {
     slug: 'status-badge',
     title: 'ShipmentStatusBadge, ReturnConditionBadge',
@@ -191,7 +187,7 @@ export const LOGISTIC_PAGES = [
   },
   { slug: 'stock-level', title: 'StockLevelBar', components: ['StockLevelBar'] },
   { slug: 'barcode-input', title: 'BarcodeInput', components: ['BarcodeInput'] },
-  { slug: 'tracking', title: 'TrackingEventList', components: ['TrackingEventList'] },
+  { slug: 'tracking-event', title: 'TrackingEventList', components: ['TrackingEventList'] },
 ] as const satisfies readonly ShowcasePage<ComponentName<Logistic>>[];
 
 export const LOGISTIC_COVERAGE: Coverage<Logistic, typeof LOGISTIC_PAGES> = true;

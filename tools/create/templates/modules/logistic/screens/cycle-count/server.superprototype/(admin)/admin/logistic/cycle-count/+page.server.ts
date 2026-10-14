@@ -5,7 +5,7 @@ import type { CycleCountStatus } from '@sveltebuilder/logistic';
 import type {
   CycleCountListView,
   CycleCountRow,
-  LocationOption,
+  StorageLocationOption,
 } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -71,20 +71,20 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<CycleCountL
     };
   });
 
-  const locations: LocationOption[] = (locationsResult.data ?? []).map((location) => ({
+  const locations: StorageLocationOption[] = (locationsResult.data ?? []).map((location) => ({
     id: location.id,
     slug: location.slug,
     locationType: location.location_type,
   }));
 
   return {
-    counts,
+    cycleCounts: counts,
     total: countsResult.count ?? counts.length,
     page,
     perPage: PER_PAGE,
     status,
     statuses: CYCLE_COUNT_STATUSES,
-    locations,
+    storageLocations: locations,
     localeCode: locals.locale.code,
     copy,
   };
@@ -99,7 +99,7 @@ export const actions: Actions = {
 
     const form = await request.formData();
     const locationIds = form
-      .getAll('location_ids')
+      .getAll('storage_location_ids')
       .map((value) => Number(value))
       .filter((id) => Number.isInteger(id));
 

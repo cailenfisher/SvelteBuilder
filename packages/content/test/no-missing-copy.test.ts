@@ -5,8 +5,8 @@
  * dictionary either from context or from an optional `dictionary` prop. Two mistakes
  * are invisible to every other check in the repo:
  *
- *  1. A composite component (ArticleView, ArticleCard, ArticleBlockRenderer,
- *     LiveCoverageView) renders a child Camp 2 component and forgets to forward
+ *  1. A composite component (ArticleDetail, ArticleCard, ArticleBlockRenderer,
+ *     LiveCoverageDetail) renders a child Camp 2 component and forgets to forward
  *     `dictionary`. The child silently falls back to `getDictionary()` — the root
  *     layout's context dictionary, which by design carries only global scope-null
  *     copy — and every entity-bound string becomes a `[missing: …]` sentinel.
@@ -21,7 +21,7 @@
  *
  * `onMissing` is the real assertion rather than scanning the HTML for '[missing:',
  * because a sentinel can land somewhere a string scan would plausibly be written not
- * to look, like MediaFigure's `alt` attribute. The HTML scan stays as a backstop.
+ * to look, like MediaAssetFigure's `alt` attribute. The HTML scan stays as a backstop.
  */
 import { describe, expect, it } from 'vitest';
 import { render } from 'svelte/server';
@@ -30,13 +30,13 @@ import type { Component } from 'svelte';
 
 import ArticleBlockRenderer from '../src/lib/Article/ArticleBlock/ArticleBlockRenderer.svelte';
 import ArticleCard from '../src/lib/Article/ArticleCard.svelte';
-import ArticleView from '../src/lib/Article/ArticleView.svelte';
-import BylineList from '../src/lib/Article/ArticleByline/BylineList.svelte';
-import LiveCoverageView from '../src/lib/LiveCoverage/LiveCoverageView.svelte';
-import LiveUpdateItem from '../src/lib/LiveUpdate/LiveUpdateItem.svelte';
-import MediaFigure from '../src/lib/MediaAsset/MediaFigure.svelte';
-import SectionLabel from '../src/lib/Section/SectionLabel.svelte';
-import TopicTag from '../src/lib/Topic/TopicTag.svelte';
+import ArticleDetail from '../src/lib/Article/ArticleDetail.svelte';
+import ArticleBylineList from '../src/lib/Article/ArticleByline/ArticleBylineList.svelte';
+import LiveCoverageDetail from '../src/lib/LiveCoverage/LiveCoverageDetail.svelte';
+import LiveUpdateCard from '../src/lib/LiveUpdate/LiveUpdateCard.svelte';
+import MediaAssetFigure from '../src/lib/MediaAsset/MediaAssetFigure.svelte';
+import SectionLink from '../src/lib/Section/SectionLink.svelte';
+import TopicLink from '../src/lib/Topic/TopicLink.svelte';
 
 import type {
   Article,
@@ -187,7 +187,7 @@ const CAPTION = 'The council chamber on Tuesday evening.';
 const CREDIT = 'Meridian staff';
 /**
  * Prose per block. Only the text-bearing block types render this — an image block
- * renders MediaFigure and never reads its own `text`, which is why the assertions
+ * renders MediaAssetFigure and never reads its own `text`, which is why the assertions
  * below check the image block's alt text rather than this.
  */
 const BLOCK_TEXT: Record<number, string> = {
@@ -220,9 +220,9 @@ const ARTICLE_COPY: CopySpec[] = [
 // so they are asserted first to keep a failure readable.
 
 describe('leaf Camp 2 components resolve their own copy', () => {
-  it('SectionLabel', () => {
+  it('SectionLink', () => {
     const { html, missing } = renderWithCopy(
-      SectionLabel,
+      SectionLink,
       { section, locale: LOCALE },
       ARTICLE_COPY
     );
@@ -230,15 +230,15 @@ describe('leaf Camp 2 components resolve their own copy', () => {
     expect(html).toContain(SECTION_NAME);
   });
 
-  it('TopicTag', () => {
-    const { html, missing } = renderWithCopy(TopicTag, { topic, locale: LOCALE }, ARTICLE_COPY);
+  it('TopicLink', () => {
+    const { html, missing } = renderWithCopy(TopicLink, { topic, locale: LOCALE }, ARTICLE_COPY);
     expect(missing).toEqual([]);
     expect(html).toContain(TOPIC_NAME);
   });
 
-  it('BylineList', () => {
+  it('ArticleBylineList', () => {
     const { html, missing } = renderWithCopy(
-      BylineList,
+      ArticleBylineList,
       { bylines: [author], locale: LOCALE },
       ARTICLE_COPY
     );
@@ -246,9 +246,9 @@ describe('leaf Camp 2 components resolve their own copy', () => {
     expect(html).toContain(AUTHOR_NAME);
   });
 
-  it('MediaFigure', () => {
+  it('MediaAssetFigure', () => {
     const { html, missing } = renderWithCopy(
-      MediaFigure,
+      MediaAssetFigure,
       { asset: heroImage, locale: LOCALE, storageBaseUrl: STORAGE },
       ARTICLE_COPY
     );
@@ -257,7 +257,7 @@ describe('leaf Camp 2 components resolve their own copy', () => {
     expect(html).toContain(CAPTION);
   });
 
-  it('LiveUpdateItem', () => {
+  it('LiveUpdateCard', () => {
     const update = {
       id: 3,
       liveCoverageId: 1,
@@ -267,7 +267,7 @@ describe('leaf Camp 2 components resolve their own copy', () => {
       createdAt: '2026-09-30T05:00:00.000Z',
       text: '',
     };
-    const { html, missing } = renderWithCopy(LiveUpdateItem, { update, locale: LOCALE }, [
+    const { html, missing } = renderWithCopy(LiveUpdateCard, { liveUpdate: update, locale: LOCALE }, [
       ['text', 'live_update', 3, 'Baghdad has not yet issued a statement.'],
     ]);
     expect(missing).toEqual([]);
@@ -280,7 +280,7 @@ describe('leaf Camp 2 components resolve their own copy', () => {
 // each assertion below fails if the `dictionary` prop is not forwarded to them.
 
 describe('composite components forward `dictionary` to their children', () => {
-  it('ArticleBlockRenderer renders every block type, and its MediaFigure', () => {
+  it('ArticleBlockRenderer renders every block type, and its MediaAssetFigure', () => {
     for (const block of blocks) {
       const { html, missing } = renderWithCopy(
         ArticleBlockRenderer,
@@ -291,7 +291,7 @@ describe('composite components forward `dictionary` to their children', () => {
       expect(html, `block ${block.id} (${block.blockType})`).not.toContain('[missing:');
     }
 
-    // The image block reaches MediaFigure, whose copy only resolves if the block
+    // The image block reaches MediaAssetFigure, whose copy only resolves if the block
     // renderer forwarded the dictionary to it.
     const imageBlock = blocks.find((block) => block.blockType === 'image')!;
     const { html } = renderWithCopy(
@@ -322,16 +322,16 @@ describe('composite components forward `dictionary` to their children', () => {
       expect(missing, `variant ${variant}`).toEqual([]);
       expect(html, `variant ${variant}`).not.toContain('[missing:');
       expect(html, `variant ${variant}`).toContain(HEADLINE);
-      // Resolved by children: SectionLabel, BylineList, and the status Badge.
+      // Resolved by children: SectionLink, ArticleBylineList, and the status Badge.
       expect(html, `variant ${variant}`).toContain(SECTION_NAME);
       expect(html, `variant ${variant}`).toContain(AUTHOR_NAME);
       expect(html, `variant ${variant}`).toContain(STATUS_NAME);
     }
   });
 
-  it('ArticleView renders the whole article without a sentinel', () => {
+  it('ArticleDetail renders the whole article without a sentinel', () => {
     const { html, missing } = renderWithCopy(
-      ArticleView,
+      ArticleDetail,
       {
         article: { ...article, status, bylines: [author], sections: [section], blocks },
         mediaAssets,
@@ -344,20 +344,20 @@ describe('composite components forward `dictionary` to their children', () => {
     expect(missing).toEqual([]);
     expect(html).not.toContain('[missing:');
     expect(html).toContain(HEADLINE);
-    // Resolved by children: SectionLabel, BylineList, MediaFigure, and one
+    // Resolved by children: SectionLink, ArticleBylineList, MediaAssetFigure, and one
     // ArticleBlockRenderer per block. Every paragraph of the body is in this list.
     expect(html).toContain(SECTION_NAME);
     expect(html).toContain(AUTHOR_NAME);
     for (const id of PROSE_BLOCK_IDS) {
       expect(html, `block ${id} prose`).toContain(BLOCK_TEXT[id]);
     }
-    // The image block reaches MediaFigure two levels down: ArticleView →
-    // ArticleBlockRenderer → MediaFigure. Both forwards have to hold for this.
+    // The image block reaches MediaAssetFigure two levels down: ArticleDetail →
+    // ArticleBlockRenderer → MediaAssetFigure. Both forwards have to hold for this.
     expect(html).toContain(ALT_TEXT);
     expect(html).toContain(CAPTION);
   });
 
-  it('LiveCoverageView renders each update', () => {
+  it('LiveCoverageDetail renders each update', () => {
     const coverage: LiveCoverageWithUpdates = {
       id: 1,
       articleId: article.id,
@@ -384,14 +384,14 @@ describe('composite components forward `dictionary` to their children', () => {
     ];
 
     const { html, missing } = renderWithCopy(
-      LiveCoverageView,
+      LiveCoverageDetail,
       { coverage, locale: LOCALE },
       updateCopy
     );
 
     expect(missing).toEqual([]);
     expect(html).not.toContain('[missing:');
-    // Pinned and unpinned updates render through separate LiveUpdateItem call sites.
+    // Pinned and unpinned updates render through separate LiveUpdateCard call sites.
     expect(html).toContain('The Pentagon confirms the withdrawal is complete.');
     expect(html).toContain('Baghdad has not yet issued a statement.');
   });

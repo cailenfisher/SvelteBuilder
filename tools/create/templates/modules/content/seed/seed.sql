@@ -165,7 +165,7 @@ insert into local_text_link (slug, scope, entity_id)
 select 'name', 'author_profile', p.id from author_profile p
 on conflict do nothing;
 
--- An article's headline, its dek and the body of each block. The slugs are what ArticleView
+-- An article's headline, its dek and the body of each block. The slugs are what ArticleDetail
 -- reads — 'headline' and 'dek' — so they are spelled out one statement each rather than
 -- generated from a values list: a literal slug beside its literal scope is the form the
 -- screen-bundle suite can read back, and a seed it cannot parse is a seed nothing checks.
@@ -399,25 +399,25 @@ on conflict (link, locale) do nothing;
 
 insert into local_text_link (slug, scope, entity_id)
 values
-  ('content.comments.heading',        'content', null),
-  ('content.comments.leave',          'content', null),
-  ('content.comments.name',           'content', null),
-  ('content.comments.email',          'content', null),
-  ('content.comments.body',           'content', null),
-  ('content.comments.submit',         'content', null),
-  ('content.comments.pending',        'content', null)
+  ('content.comment.heading',        'content', null),
+  ('content.comment.leave',          'content', null),
+  ('content.comment.name',           'content', null),
+  ('content.comment.email',          'content', null),
+  ('content.comment.body',           'content', null),
+  ('content.comment.submit',         'content', null),
+  ('content.comment.pending',        'content', null)
 on conflict do nothing;
 
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'en'), v.content
 from (values
-  ('content.comments.heading',        'Comments'),
-  ('content.comments.leave',          'Leave a comment'),
-  ('content.comments.name',           'Name'),
-  ('content.comments.email',          'Email'),
-  ('content.comments.body',           'Comment'),
-  ('content.comments.submit',         'Submit comment'),
-  ('content.comments.pending',        'Your comment has been submitted and is awaiting moderation.')
+  ('content.comment.heading',        'Comments'),
+  ('content.comment.leave',          'Leave a comment'),
+  ('content.comment.name',           'Name'),
+  ('content.comment.email',          'Email'),
+  ('content.comment.body',           'Comment'),
+  ('content.comment.submit',         'Submit comment'),
+  ('content.comment.pending',        'Your comment has been submitted and is awaiting moderation.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -425,13 +425,13 @@ on conflict (link, locale) do nothing;
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'fr'), v.content
 from (values
-  ('content.comments.heading',        'Commentaires'),
-  ('content.comments.leave',          'Laisser un commentaire'),
-  ('content.comments.name',           'Nom'),
-  ('content.comments.email',          'Courriel'),
-  ('content.comments.body',           'Commentaire'),
-  ('content.comments.submit',         'Envoyer'),
-  ('content.comments.pending',        'Votre commentaire a été envoyé et attend la modération.')
+  ('content.comment.heading',        'Commentaires'),
+  ('content.comment.leave',          'Laisser un commentaire'),
+  ('content.comment.name',           'Nom'),
+  ('content.comment.email',          'Courriel'),
+  ('content.comment.body',           'Commentaire'),
+  ('content.comment.submit',         'Envoyer'),
+  ('content.comment.pending',        'Votre commentaire a été envoyé et attend la modération.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -443,35 +443,35 @@ on conflict (link, locale) do nothing;
 
 insert into local_text_link (slug, scope, entity_id)
 values
-  ('action.submit_for_review',        'content', null),
-  ('action.approve',                  'content', null),
-  ('action.send_back',                'content', null),
-  ('action.publish',                  'content', null),
-  ('action.unpublish',                'content', null),
-  ('newsletter.signup_heading',       'content', null),
-  ('newsletter.signup_description',   'content', null),
-  ('newsletter.email_label',          'content', null),
-  ('newsletter.email_placeholder',    'content', null),
-  ('newsletter.submit_label',         'content', null),
-  ('newsletter.success_message',      'content', null),
-  ('newsletter.error_message',        'content', null)
+  ('content.article_workflow.submit_for_review',        'content', null),
+  ('content.article_workflow.approve',                  'content', null),
+  ('content.article_workflow.send_back',                'content', null),
+  ('content.article_workflow.publish',                  'content', null),
+  ('content.article_workflow.unpublish',                'content', null),
+  ('content.newsletter_subscription_form.signup_heading',       'content', null),
+  ('content.newsletter_subscription_form.signup_description',   'content', null),
+  ('content.newsletter_subscription_form.email_label',          'content', null),
+  ('content.newsletter_subscription_form.email_placeholder',    'content', null),
+  ('content.newsletter_subscription_form.submit_label',         'content', null),
+  ('content.newsletter_subscription_form.success_message',      'content', null),
+  ('content.newsletter_subscription_form.error_message',        'content', null)
 on conflict do nothing;
 
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'en'), v.content
 from (values
-  ('action.submit_for_review',        'Submit for review'),
-  ('action.approve',                  'Approve'),
-  ('action.send_back',                'Send back to draft'),
-  ('action.publish',                  'Publish'),
-  ('action.unpublish',                'Unpublish'),
-  ('newsletter.signup_heading',       'Get the newsletter'),
-  ('newsletter.signup_description',   'The day''s most important stories, in your inbox.'),
-  ('newsletter.email_label',          'Email address'),
-  ('newsletter.email_placeholder',    'you@example.com'),
-  ('newsletter.submit_label',         'Subscribe'),
-  ('newsletter.success_message',      'Check your inbox to confirm your subscription.'),
-  ('newsletter.error_message',        'We could not subscribe that address. Please try again.')
+  ('content.article_workflow.submit_for_review',        'Submit for review'),
+  ('content.article_workflow.approve',                  'Approve'),
+  ('content.article_workflow.send_back',                'Send back to draft'),
+  ('content.article_workflow.publish',                  'Publish'),
+  ('content.article_workflow.unpublish',                'Unpublish'),
+  ('content.newsletter_subscription_form.signup_heading',       'Get the newsletter'),
+  ('content.newsletter_subscription_form.signup_description',   'The day''s most important stories, in your inbox.'),
+  ('content.newsletter_subscription_form.email_label',          'Email address'),
+  ('content.newsletter_subscription_form.email_placeholder',    'you@example.com'),
+  ('content.newsletter_subscription_form.submit_label',         'Subscribe'),
+  ('content.newsletter_subscription_form.success_message',      'Check your inbox to confirm your subscription.'),
+  ('content.newsletter_subscription_form.error_message',        'We could not subscribe that address. Please try again.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -479,18 +479,18 @@ on conflict (link, locale) do nothing;
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'fr'), v.content
 from (values
-  ('action.submit_for_review',        'Soumettre pour relecture'),
-  ('action.approve',                  'Approuver'),
-  ('action.send_back',                'Renvoyer en brouillon'),
-  ('action.publish',                  'Publier'),
-  ('action.unpublish',                'Dépublier'),
-  ('newsletter.signup_heading',       'Recevoir l''infolettre'),
-  ('newsletter.signup_description',   'L''essentiel de l''actualité du jour, dans votre boîte de réception.'),
-  ('newsletter.email_label',          'Adresse courriel'),
-  ('newsletter.email_placeholder',    'vous@exemple.com'),
-  ('newsletter.submit_label',         'S''abonner'),
-  ('newsletter.success_message',      'Consultez votre boîte de réception pour confirmer votre abonnement.'),
-  ('newsletter.error_message',        'Nous n''avons pas pu abonner cette adresse. Veuillez réessayer.')
+  ('content.article_workflow.submit_for_review',        'Soumettre pour relecture'),
+  ('content.article_workflow.approve',                  'Approuver'),
+  ('content.article_workflow.send_back',                'Renvoyer en brouillon'),
+  ('content.article_workflow.publish',                  'Publier'),
+  ('content.article_workflow.unpublish',                'Dépublier'),
+  ('content.newsletter_subscription_form.signup_heading',       'Recevoir l''infolettre'),
+  ('content.newsletter_subscription_form.signup_description',   'L''essentiel de l''actualité du jour, dans votre boîte de réception.'),
+  ('content.newsletter_subscription_form.email_label',          'Adresse courriel'),
+  ('content.newsletter_subscription_form.email_placeholder',    'vous@exemple.com'),
+  ('content.newsletter_subscription_form.submit_label',         'S''abonner'),
+  ('content.newsletter_subscription_form.success_message',      'Consultez votre boîte de réception pour confirmer votre abonnement.'),
+  ('content.newsletter_subscription_form.error_message',        'Nous n''avons pas pu abonner cette adresse. Veuillez réessayer.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -793,15 +793,15 @@ on conflict (link, locale) do nothing;
 
 insert into local_text_link (slug, scope, entity_id)
 values
-  ('content.preview.title_prefix',      'content', null),
-  ('content.preview.banner',            'content', null)
+  ('content.article_preview.title_prefix',      'content', null),
+  ('content.article_preview.banner',            'content', null)
 on conflict do nothing;
 
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'en'), v.content
 from (values
-  ('content.preview.title_prefix',      '[Preview]'),
-  ('content.preview.banner',            'Preview mode — this article is not published.')
+  ('content.article_preview.title_prefix',      '[Preview]'),
+  ('content.article_preview.banner',            'Preview mode — this article is not published.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -809,65 +809,65 @@ on conflict (link, locale) do nothing;
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'fr'), v.content
 from (values
-  ('content.preview.title_prefix',      '[Aperçu]'),
-  ('content.preview.banner',            'Mode aperçu — cet article nest pas publié.')
+  ('content.article_preview.title_prefix',      '[Aperçu]'),
+  ('content.article_preview.banner',            'Mode aperçu — cet article nest pas publié.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
 
 -- ──────────────────────────────────────────────────────────────────────────────
--- Screen copy — admin-article bundle
+-- Screen copy — article-admin bundle
 -- ──────────────────────────────────────────────────────────────────────────────
 
 insert into local_text_link (slug, scope, entity_id)
 values
-  ('content.admin.articles',            'content', null),
-  ('content.admin.new',                 'content', null),
-  ('content.admin.create',              'content', null),
-  ('content.admin.empty',               'content', null),
-  ('content.admin.headline',            'content', null),
-  ('content.admin.slug',                'content', null),
-  ('content.admin.status',              'content', null),
-  ('content.admin.created',             'content', null),
-  ('content.admin.filter_all',          'content', null),
-  ('content.admin.filter_status',       'content', null),
-  ('content.admin.body',                'content', null),
-  ('content.admin.body_empty',          'content', null),
-  ('content.admin.block_type',          'content', null),
-  ('content.admin.block_text',          'content', null),
-  ('content.admin.filing',              'content', null),
-  ('content.admin.sections',            'content', null),
-  ('content.admin.bylines',             'content', null),
-  ('content.admin.workflow',            'content', null),
-  ('content.admin.checklist',           'content', null),
-  ('content.admin.required',            'content', null),
-  ('content.admin.publish_blocked',     'content', null)
+  ('content.article_admin.article',            'content', null),
+  ('content.article_admin.new',                 'content', null),
+  ('content.article_admin.create',              'content', null),
+  ('content.article_admin.empty',               'content', null),
+  ('content.article_admin.headline',            'content', null),
+  ('content.article_admin.slug',                'content', null),
+  ('content.article_admin.status',              'content', null),
+  ('content.article_admin.created',             'content', null),
+  ('content.article_admin.filter_all',          'content', null),
+  ('content.article_admin.filter_status',       'content', null),
+  ('content.article_admin.body',                'content', null),
+  ('content.article_admin.body_empty',          'content', null),
+  ('content.article_admin.block_type',          'content', null),
+  ('content.article_admin.block_text',          'content', null),
+  ('content.article_admin.filing',              'content', null),
+  ('content.article_admin.section',            'content', null),
+  ('content.article_admin.article_byline',             'content', null),
+  ('content.article_admin.workflow',            'content', null),
+  ('content.article_admin.checklist',           'content', null),
+  ('content.article_admin.required',            'content', null),
+  ('content.article_admin.publish_blocked',     'content', null)
 on conflict do nothing;
 
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'en'), v.content
 from (values
-  ('content.admin.articles',            'Articles'),
-  ('content.admin.new',                 'New article'),
-  ('content.admin.create',              'Create article'),
-  ('content.admin.empty',               'No articles yet.'),
-  ('content.admin.headline',            'Headline'),
-  ('content.admin.slug',                'URL slug'),
-  ('content.admin.status',              'Status'),
-  ('content.admin.created',             'Created'),
-  ('content.admin.filter_all',          'All'),
-  ('content.admin.filter_status',       'Filter articles by status'),
-  ('content.admin.body',                'Body'),
-  ('content.admin.body_empty',          'No blocks yet.'),
-  ('content.admin.block_type',          'Type'),
-  ('content.admin.block_text',          'Text'),
-  ('content.admin.filing',              'Filing'),
-  ('content.admin.sections',            'Sections'),
-  ('content.admin.bylines',             'Bylines'),
-  ('content.admin.workflow',            'Workflow'),
-  ('content.admin.checklist',           'Publish checklist'),
-  ('content.admin.required',            'Required'),
-  ('content.admin.publish_blocked',     'Publishing is blocked until every required item is ticked.')
+  ('content.article_admin.article',            'Articles'),
+  ('content.article_admin.new',                 'New article'),
+  ('content.article_admin.create',              'Create article'),
+  ('content.article_admin.empty',               'No articles yet.'),
+  ('content.article_admin.headline',            'Headline'),
+  ('content.article_admin.slug',                'URL slug'),
+  ('content.article_admin.status',              'Status'),
+  ('content.article_admin.created',             'Created'),
+  ('content.article_admin.filter_all',          'All'),
+  ('content.article_admin.filter_status',       'Filter articles by status'),
+  ('content.article_admin.body',                'Body'),
+  ('content.article_admin.body_empty',          'No blocks yet.'),
+  ('content.article_admin.block_type',          'Type'),
+  ('content.article_admin.block_text',          'Text'),
+  ('content.article_admin.filing',              'Filing'),
+  ('content.article_admin.section',            'Sections'),
+  ('content.article_admin.article_byline',             'Bylines'),
+  ('content.article_admin.workflow',            'Workflow'),
+  ('content.article_admin.checklist',           'Publish checklist'),
+  ('content.article_admin.required',            'Required'),
+  ('content.article_admin.publish_blocked',     'Publishing is blocked until every required item is ticked.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -875,27 +875,27 @@ on conflict (link, locale) do nothing;
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'fr'), v.content
 from (values
-  ('content.admin.articles',            'Articles'),
-  ('content.admin.new',                 'Nouvel article'),
-  ('content.admin.create',              'Créer l''article'),
-  ('content.admin.empty',               'Aucun article.'),
-  ('content.admin.headline',            'Titre'),
-  ('content.admin.slug',                'Identifiant d''URL'),
-  ('content.admin.status',              'Statut'),
-  ('content.admin.created',             'Créé'),
-  ('content.admin.filter_all',          'Tous'),
-  ('content.admin.filter_status',       'Filtrer les articles par statut'),
-  ('content.admin.body',                'Corps'),
-  ('content.admin.body_empty',          'Aucun bloc.'),
-  ('content.admin.block_type',          'Type'),
-  ('content.admin.block_text',          'Texte'),
-  ('content.admin.filing',              'Classement'),
-  ('content.admin.sections',            'Rubriques'),
-  ('content.admin.bylines',             'Signatures'),
-  ('content.admin.workflow',            'Flux de publication'),
-  ('content.admin.checklist',           'Liste de contrôle'),
-  ('content.admin.required',            'Obligatoire'),
-  ('content.admin.publish_blocked',     'La publication est bloquée tant que tous les éléments obligatoires ne sont pas cochés.')
+  ('content.article_admin.article',            'Articles'),
+  ('content.article_admin.new',                 'Nouvel article'),
+  ('content.article_admin.create',              'Créer l''article'),
+  ('content.article_admin.empty',               'Aucun article.'),
+  ('content.article_admin.headline',            'Titre'),
+  ('content.article_admin.slug',                'Identifiant d''URL'),
+  ('content.article_admin.status',              'Statut'),
+  ('content.article_admin.created',             'Créé'),
+  ('content.article_admin.filter_all',          'Tous'),
+  ('content.article_admin.filter_status',       'Filtrer les articles par statut'),
+  ('content.article_admin.body',                'Corps'),
+  ('content.article_admin.body_empty',          'Aucun bloc.'),
+  ('content.article_admin.block_type',          'Type'),
+  ('content.article_admin.block_text',          'Texte'),
+  ('content.article_admin.filing',              'Classement'),
+  ('content.article_admin.section',            'Rubriques'),
+  ('content.article_admin.article_byline',             'Signatures'),
+  ('content.article_admin.workflow',            'Flux de publication'),
+  ('content.article_admin.checklist',           'Liste de contrôle'),
+  ('content.article_admin.required',            'Obligatoire'),
+  ('content.article_admin.publish_blocked',     'La publication est bloquée tant que tous les éléments obligatoires ne sont pas cochés.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;

@@ -93,7 +93,7 @@
   <Table>
     <TableHead>
       <TableRow>
-        <TableHeaderCell>{t('logistic.field.location')}</TableHeaderCell>
+        <TableHeaderCell>{t('logistic.field.storage_location')}</TableHeaderCell>
         <TableHeaderCell>{t('logistic.field.sku')}</TableHeaderCell>
         <TableHeaderCell>{t('logistic.cycle_count.expected')}</TableHeaderCell>
         <TableHeaderCell>{t('logistic.cycle_count.counted')}</TableHeaderCell>

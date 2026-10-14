@@ -1,13 +1,13 @@
 /**
- * MediaFigure attribution links, and ArticleCard's picture per layout variant.
+ * MediaAssetFigure attribution links, and ArticleCard's picture per layout variant.
  */
 import { describe, expect, it } from 'vitest';
 import { render } from 'svelte/server';
 import { createDictionary } from 'diglossia';
 
 import ArticleCard from '../src/lib/Article/ArticleCard.svelte';
-import ArticleView from '../src/lib/Article/ArticleView.svelte';
-import MediaFigure from '../src/lib/MediaAsset/MediaFigure.svelte';
+import ArticleDetail from '../src/lib/Article/ArticleDetail.svelte';
+import MediaAssetFigure from '../src/lib/MediaAsset/MediaAssetFigure.svelte';
 import type {
   Article,
   ArticleBlock,
@@ -64,9 +64,9 @@ const attribution = (overrides: Partial<MediaAssetAttribution> = {}): MediaAsset
   ...overrides,
 });
 
-describe('MediaFigure attribution', () => {
+describe('MediaAssetFigure attribution', () => {
   it('links the credit to its source and names the license, linked', () => {
-    const out = html(MediaFigure as never, {
+    const out = html(MediaAssetFigure as never, {
       asset: asset(4),
       storageBaseUrl: STORAGE,
       attribution: attribution(),
@@ -79,13 +79,13 @@ describe('MediaFigure attribution', () => {
   });
 
   it('renders the credit as plain text without attribution', () => {
-    const out = html(MediaFigure as never, { asset: asset(4), storageBaseUrl: STORAGE });
+    const out = html(MediaAssetFigure as never, { asset: asset(4), storageBaseUrl: STORAGE });
     expect(out).toContain('Jane Doe');
     expect(out).not.toContain('<a ');
   });
 
   it('never renders a non-http link', () => {
-    const out = html(MediaFigure as never, {
+    const out = html(MediaAssetFigure as never, {
       asset: asset(4),
       storageBaseUrl: STORAGE,
       attribution: attribution({
@@ -98,7 +98,7 @@ describe('MediaFigure attribution', () => {
   });
 
   it('shows no caption when captioned is false', () => {
-    const out = html(MediaFigure as never, {
+    const out = html(MediaAssetFigure as never, {
       asset: asset(4),
       storageBaseUrl: STORAGE,
       captioned: false,
@@ -107,7 +107,7 @@ describe('MediaFigure attribution', () => {
   });
 });
 
-describe('ArticleView passes attribution to the hero and the body', () => {
+describe('ArticleDetail passes attribution to the hero and the body', () => {
   it('links the license on an in-body image too', () => {
     const block = (id: number, mediaAssetId: number): ArticleBlock => ({
       id,
@@ -127,7 +127,7 @@ describe('ArticleView passes attribution to the hero and the body', () => {
       sections: [],
       blocks: [block(1, 3), block(2, 4)],
     };
-    const out = html(ArticleView as never, {
+    const out = html(ArticleDetail as never, {
       article,
       mediaAssets: new Map([3, 4].map((id) => [id, asset(id)])),
       attributions: new Map([[4, attribution()]]),

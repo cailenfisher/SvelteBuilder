@@ -73,13 +73,13 @@ export type StockLevelRow = StockLevel & {
   storageLocation: Pick<StorageLocation, 'id' | 'slug' | 'locationType'>;
 };
 
-/** `/admin/logistic/stock` */
-export type StockListView = ScreenCopy &
+/** `/admin/logistic/stock-level` */
+export type StockLevelListView = ScreenCopy &
   ScreenLocale & {
-    levels: StockLevelRow[];
+    stockLevels: StockLevelRow[];
     /** The adjustment log for one level, when the screen is showing its history. */
-    history: StockAdjustment[];
-    historyId: number | null;
+    stockAdjustments: StockAdjustment[];
+    historyStockLevelId: number | null;
     lowOnly: boolean;
     /**
      * Reasons a human may pick. The operational ones — inbound_receipt, pick,
@@ -102,18 +102,18 @@ export type EntityOption = {
   slug: string;
 };
 
-export type LocationOption = EntityOption & {
+export type StorageLocationOption = EntityOption & {
   locationType: StorageLocationType;
 };
 
 // ── Inbound receipts ─────────────────────────────────────────────────────────
 
 export type InboundReceiptLineRow = InboundReceiptLine & {
-  storageLocation: LocationOption;
+  storageLocation: StorageLocationOption;
 };
 
 /**
- * A receipt as a list row, shaped for `ReceiptCard`.
+ * A receipt as a list row, shaped for `InboundReceiptCard`.
  *
  * It carries its lines because the card shows expected-versus-received totals and flags a
  * discrepancy, which cannot be known without them — and because a module's own components
@@ -127,22 +127,22 @@ export type InboundReceiptRow = InboundReceipt & {
   lines: InboundReceiptLine[];
 };
 
-/** `/admin/logistic/receipt` */
+/** `/admin/logistic/inbound-receipt` */
 export type InboundReceiptListView = ScreenCopy &
   ScreenLocale &
   ScreenPage & {
-    receipts: InboundReceiptRow[];
+    inboundReceipts: InboundReceiptRow[];
     /** Null means unfiltered, which is not the same as any particular status. */
     status: InboundReceiptStatus | null;
     /** Active suppliers, for the create form. Empty is valid — blind receiving. */
     suppliers: EntityOption[];
   };
 
-/** `/admin/logistic/receipt/[id]` */
+/** `/admin/logistic/inbound-receipt/[id]` */
 export type InboundReceiptDetailView = ScreenCopy &
   ScreenLocale & {
-    receipt: InboundReceipt & { lines: InboundReceiptLineRow[] };
-    locations: LocationOption[];
+    inboundReceipt: InboundReceipt & { lines: InboundReceiptLineRow[] };
+    storageLocations: StorageLocationOption[];
   };
 
 // ── Shipments ────────────────────────────────────────────────────────────────
@@ -183,22 +183,22 @@ export type ReturnAuthorizationRow = ReturnAuthorization & {
   lineCount: number;
 };
 
-/** `/admin/logistic/return` */
-export type ReturnListView = ScreenCopy &
+/** `/admin/logistic/return-authorization` */
+export type ReturnAuthorizationListView = ScreenCopy &
   ScreenLocale &
   ScreenPage & {
-    returns: ReturnAuthorizationRow[];
+    returnAuthorizations: ReturnAuthorizationRow[];
     status: ReturnAuthorizationStatus | null;
     /** Filterable statuses, from the loader — see ShipmentListView for why. */
     statuses: readonly ReturnAuthorizationStatus[];
   };
 
-/** `/admin/logistic/return/[id]` */
-export type ReturnDetailView = ScreenCopy &
+/** `/admin/logistic/return-authorization/[id]` */
+export type ReturnAuthorizationDetailView = ScreenCopy &
   ScreenLocale & {
     returnAuthorization: ReturnAuthorization & { lines: ReturnAuthorizationLine[] };
     /** Where restocked returns may go — bins only, since nothing else holds stock. */
-    locations: LocationOption[];
+    storageLocations: StorageLocationOption[];
     /**
      * The grading vocabulary, from the loader rather than spelled out in the screen. The
      * original listed all eight values as literal markup, which is how a screen and an
@@ -211,7 +211,7 @@ export type ReturnDetailView = ScreenCopy &
 // ── Cycle counts ─────────────────────────────────────────────────────────────
 
 export type CycleCountLineRow = CycleCountLine & {
-  storageLocation: LocationOption;
+  storageLocation: StorageLocationOption;
 };
 
 export type CycleCountRow = CycleCount & {
@@ -224,12 +224,12 @@ export type CycleCountRow = CycleCount & {
 export type CycleCountListView = ScreenCopy &
   ScreenLocale &
   ScreenPage & {
-    counts: CycleCountRow[];
+    cycleCounts: CycleCountRow[];
     status: CycleCountStatus | null;
     /** Filterable statuses, from the loader — see ShipmentListView for why. */
     statuses: readonly CycleCountStatus[];
     /** Locations a new count can be opened against — bins only, since stock lives there. */
-    locations: LocationOption[];
+    storageLocations: StorageLocationOption[];
   };
 
 /** `/admin/logistic/cycle-count/[id]` */
@@ -254,55 +254,55 @@ export type CycleCountDetailView = ScreenCopy &
 export type WarehouseShellView = ScreenCopy;
 
 export type PickTaskLineRow = PickTaskLine & {
-  storageLocation: LocationOption;
+  storageLocation: StorageLocationOption;
 };
 
-/** `/warehouse/pick` */
-export type PickQueueView = ScreenCopy &
+/** `/warehouse/pick-task` */
+export type PickTaskWarehouseQueueView = ScreenCopy &
   ScreenLocale & {
     /** In progress and assigned to the signed-in worker. */
-    myTasks: PickTask[];
+    myPickTasks: PickTask[];
     /** Unassigned and open to anyone. */
-    openTasks: PickTask[];
-    openTotal: number;
+    openPickTasks: PickTask[];
+    openPickTaskTotal: number;
   };
 
-/** `/warehouse/pick/[id]` */
-export type PickTaskDetailView = ScreenCopy &
+/** `/warehouse/pick-task/[id]` */
+export type PickTaskWarehouseDetailView = ScreenCopy &
   ScreenLocale & {
-    task: PickTask & { lines: PickTaskLineRow[] };
+    pickTask: PickTask & { lines: PickTaskLineRow[] };
   };
 
-/** `/warehouse/receive` */
-export type ReceiveQueueView = ScreenCopy &
+/** `/warehouse/inbound-receipt` */
+export type InboundReceiptWarehouseQueueView = ScreenCopy &
   ScreenLocale & {
     /** Still pending or partial — the work. */
-    active: InboundReceiptRow[];
+    activeInboundReceipts: InboundReceiptRow[];
     /** Recently completed, for orientation rather than action. */
-    recent: InboundReceiptRow[];
+    recentInboundReceipts: InboundReceiptRow[];
   };
 
 /**
- * `/warehouse/receive/[id]`
+ * `/warehouse/inbound-receipt/[id]`
  *
  * Narrower than InboundReceiptDetailView, which also carries the storage locations its add
  * a line form needs. A worker receives against lines someone else planned, so shipping
  * those locations here would be data the screen cannot use.
  */
-export type ReceiveDetailView = ScreenCopy &
+export type InboundReceiptWarehouseDetailView = ScreenCopy &
   ScreenLocale & {
-    receipt: InboundReceipt & { lines: InboundReceiptLineRow[] };
+    inboundReceipt: InboundReceipt & { lines: InboundReceiptLineRow[] };
   };
 
-/** `/warehouse/count` */
-export type CountQueueView = ScreenCopy &
+/** `/warehouse/cycle-count` */
+export type CycleCountWarehouseQueueView = ScreenCopy &
   ScreenLocale & {
-    myCounts: CycleCountRow[];
-    openCounts: CycleCountRow[];
+    myCycleCounts: CycleCountRow[];
+    openCycleCounts: CycleCountRow[];
   };
 
-/** `/warehouse/count/[id]` */
-export type CountDetailView = ScreenCopy &
+/** `/warehouse/cycle-count/[id]` */
+export type CycleCountWarehouseDetailView = ScreenCopy &
   ScreenLocale & {
     cycleCount: CycleCount & { lines: CycleCountLineRow[] };
   };
@@ -314,8 +314,8 @@ export type CountDetailView = ScreenCopy &
  */
 export type LogisticMetrics = {
   openPickTaskCount: number;
-  pendingReceiptCount: number;
-  openReturnCount: number;
+  pendingInboundReceiptCount: number;
+  openReturnAuthorizationCount: number;
   openCycleCountCount: number;
   lowStockCount: number;
 };
@@ -326,8 +326,8 @@ export type LogisticDashboardView = ScreenCopy &
     metrics: LogisticMetrics;
     /** Short previews — the metric says how many there are, these say which. */
     lowStockLevels: StockLevelRow[];
-    pendingReceipts: InboundReceiptRow[];
+    pendingInboundReceipts: InboundReceiptRow[];
     openPickTasks: PickTask[];
-    openReturns: ReturnAuthorizationRow[];
+    openReturnAuthorizations: ReturnAuthorizationRow[];
   };
 

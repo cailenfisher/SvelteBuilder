@@ -112,7 +112,7 @@
 
   <DataTable
     {columns}
-    rows={data.counts}
+    rows={data.cycleCounts}
     rowKey={(row) => row.id}
     cell={countCell}
     page={data.page}
@@ -133,11 +133,11 @@
     <form method="POST" action="?/create" class="cycle-count-new-form">
       <fieldset class="cycle-count-new-form__locations">
         <legend>{t('logistic.cycle_count.choose_locations')}</legend>
-        {#each data.locations as location (location.id)}
+        {#each data.storageLocations as location (location.id)}
           <!-- Checkbox is self-labelling, so it is not wrapped in a Field: that would
                nest one label inside another and leave the outer for= dangling. -->
           <Checkbox
-            name="location_ids"
+            name="storage_location_ids"
             value={String(location.id)}
             label={scoped.localText('name', 'storage_location', location.id)}
           />

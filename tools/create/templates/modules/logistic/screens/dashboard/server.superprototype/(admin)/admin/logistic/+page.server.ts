@@ -101,7 +101,7 @@ export const load: PageServerLoad = async ({ locals }): Promise<LogisticDashboar
     });
   }
 
-  const pendingReceipts: InboundReceiptRow[] = (receiptsResult.data ?? []).map((row) => {
+  const pendingInboundReceipts: InboundReceiptRow[] = (receiptsResult.data ?? []).map((row) => {
     const supplier = toOne(row.supplier);
     return {
       id: row.id,
@@ -144,7 +144,7 @@ export const load: PageServerLoad = async ({ locals }): Promise<LogisticDashboar
     updatedAt: row.updated_at,
   }));
 
-  const openReturns: ReturnAuthorizationRow[] = (returnsResult.data ?? []).map((row) => ({
+  const openReturnAuthorizations: ReturnAuthorizationRow[] = (returnsResult.data ?? []).map((row) => ({
     id: row.id,
     shipmentId: row.shipment_id,
     userAccountId: row.user_account_id,
@@ -159,17 +159,17 @@ export const load: PageServerLoad = async ({ locals }): Promise<LogisticDashboar
   return {
     metrics: {
       openPickTaskCount: tasksResult.count ?? openPickTasks.length,
-      pendingReceiptCount: receiptsResult.count ?? pendingReceipts.length,
-      openReturnCount: returnsResult.count ?? openReturns.length,
+      pendingInboundReceiptCount: receiptsResult.count ?? pendingInboundReceipts.length,
+      openReturnAuthorizationCount: returnsResult.count ?? openReturnAuthorizations.length,
       openCycleCountCount: cycleCountResult.count ?? 0,
       // Counted from the filtered set rather than a separate query, since the filter is the
       // part PostgREST cannot express.
       lowStockCount: lowStockLevels.length,
     },
     lowStockLevels: lowStockLevels.slice(0, PREVIEW),
-    pendingReceipts,
+    pendingInboundReceipts,
     openPickTasks,
-    openReturns,
+    openReturnAuthorizations,
     localeCode: locals.locale.code,
     copy,
   };

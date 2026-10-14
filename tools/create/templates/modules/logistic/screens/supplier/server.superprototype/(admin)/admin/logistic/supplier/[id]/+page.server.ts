@@ -89,7 +89,7 @@ export const actions: Actions = {
     return { success: true as const };
   },
 
-  addContact: async ({ locals, params, request }) => {
+  addSupplierContact: async ({ locals, params, request }) => {
     const supplierId = Number(params.id);
     if (!Number.isInteger(supplierId)) throw error(404, 'Not found.');
 
@@ -112,10 +112,10 @@ export const actions: Actions = {
     return { success: true as const };
   },
 
-  deleteContact: async ({ locals, params, request }) => {
+  deleteSupplierContact: async ({ locals, params, request }) => {
     const supplierId = Number(params.id);
     const form = await request.formData();
-    const contactId = Number(form.get('contact_id'));
+    const contactId = Number(form.get('supplier_contact_id'));
 
     if (!Number.isInteger(contactId)) return fail(422, { error: 'Invalid contact.' });
 

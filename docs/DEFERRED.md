@@ -67,10 +67,11 @@ and gate admin through `public.current_user_admin()`, and `pnpm sql:check` asser
 Outstanding for the package: a vitest suite (it still runs `--passWithNoTests` with no test files).
 All 9 components now render in `apps/dev-kitchen`, including the 3 no screen bundle uses.
 
-No admin navigation reaches the module's screens. The seed carried eight `logistic.admin.nav.*`
-slugs that no `navigation_item` row ever rendered; the conformance plan deletes them (2026-10-13).
-Seeding nav rows is not the fix: seeds are per module but screens are per bundle, so a row for an
-unselected bundle is a dead link. It needs the create CLI to emit nav rows per selected bundle.
+No admin navigation reaches the module's screens: the admin layout's `navigation_item` rows come
+only from the base seed, so the logistic screens are reachable from the dashboard's section links
+(`logistic.admin.nav.*`) and nowhere else. Seeding nav rows is not the fix: seeds are per module but
+screens are per bundle, so a row for an unselected bundle is a dead link. It needs the create CLI to
+emit nav rows per selected bundle.
 
 ---
 

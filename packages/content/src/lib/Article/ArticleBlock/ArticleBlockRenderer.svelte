@@ -4,13 +4,13 @@
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
-  import MediaFigure from '../../MediaAsset/MediaFigure.svelte';
+  import MediaAssetFigure from '../../MediaAsset/MediaAssetFigure.svelte';
   import type { ArticleBlock, MediaAsset, MediaAssetAttribution } from '../../schema/index.js';
 
   type Props = {
     block: ArticleBlock;
     mediaAssets: Map<number, MediaAsset>;
-    /** Public provenance by asset id, passed through to MediaFigure. */
+    /** Public provenance by asset id, passed through to MediaAssetFigure. */
     attributions?: Map<number, MediaAssetAttribution>;
     storageBaseUrl: string;
     locale: string;
@@ -42,78 +42,78 @@
 </script>
 
 <div
-  class={['article-block', `article-block--${block.blockType}`, extraClass ?? '']
+  class={['article-block-renderer', `article-block-renderer--${block.blockType}`, extraClass ?? '']
     .filter(Boolean)
     .join(' ')}
 >
   {#if block.blockType === 'paragraph'}
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-    <p class="article-block__paragraph">{@html text}</p>
+    <p class="article-block-renderer__paragraph">{@html text}</p>
   {:else if block.blockType === 'heading'}
     {#if level === 2}
-      <h2 class="article-block__heading">{text}</h2>
+      <h2 class="article-block-renderer__heading">{text}</h2>
     {:else if level === 3}
-      <h3 class="article-block__heading">{text}</h3>
+      <h3 class="article-block-renderer__heading">{text}</h3>
     {:else if level === 4}
-      <h4 class="article-block__heading">{text}</h4>
+      <h4 class="article-block-renderer__heading">{text}</h4>
     {:else}
-      <h2 class="article-block__heading">{text}</h2>
+      <h2 class="article-block-renderer__heading">{text}</h2>
     {/if}
   {:else if block.blockType === 'pullquote'}
-    <blockquote class="article-block__pullquote">
+    <blockquote class="article-block-renderer__pullquote">
       <p>{text}</p>
     </blockquote>
   {:else if block.blockType === 'image' && asset}
-    <MediaFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
+    <MediaAssetFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
   {:else if block.blockType === 'gallery'}
-    <div class="article-block__gallery" role="region" aria-label="Photo gallery">
+    <div class="article-block-renderer__gallery" role="region" aria-label="Photo gallery">
       {#if asset}
-        <MediaFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
+        <MediaAssetFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
       {/if}
       {#if text}
-        <p class="article-block__gallery-caption">{text}</p>
+        <p class="article-block-renderer__gallery-caption">{text}</p>
       {/if}
     </div>
   {:else if block.blockType === 'video' && asset}
-    <MediaFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
+    <MediaAssetFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
   {:else if block.blockType === 'embed' && embedSrc}
-    <div class="article-block__embed" data-provider={provider || undefined}>
+    <div class="article-block-renderer__embed" data-provider={provider || undefined}>
       <iframe src={embedSrc} title={text || `${provider} embed`} loading="lazy" allowfullscreen
       ></iframe>
     </div>
   {:else if block.blockType === 'live_update'}
-    <aside class="article-block__live-update" aria-label="Live update">
+    <aside class="article-block-renderer__live-update" aria-label="Live update">
       <p>{text}</p>
     </aside>
   {/if}
 </div>
 
 <style>
-  .article-block {
+  .article-block-renderer {
     width: 100%;
   }
 
-  .article-block__paragraph {
+  .article-block-renderer__paragraph {
     margin: 0;
     font-size: var(--text-lg);
     line-height: var(--leading-relaxed);
     color: var(--text);
   }
 
-  .article-block__heading {
+  .article-block-renderer__heading {
     margin: 0;
     font-weight: var(--weight-semibold);
     line-height: var(--leading-tight);
     color: var(--text);
   }
 
-  .article-block__pullquote {
+  .article-block-renderer__pullquote {
     margin: 0;
     padding: var(--space-4) var(--space-6);
     border-inline-start: 4px solid var(--brand);
   }
 
-  .article-block__pullquote p {
+  .article-block-renderer__pullquote p {
     margin: 0;
     font-size: var(--text-xl);
     font-style: italic;
@@ -121,20 +121,20 @@
     color: var(--text);
   }
 
-  .article-block__gallery {
+  .article-block-renderer__gallery {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
   }
 
-  .article-block__gallery-caption {
+  .article-block-renderer__gallery-caption {
     margin: 0;
     font-size: var(--text-sm);
     color: var(--text-soft);
     font-style: italic;
   }
 
-  .article-block__embed {
+  .article-block-renderer__embed {
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -143,7 +143,7 @@
     overflow: hidden;
   }
 
-  .article-block__embed iframe {
+  .article-block-renderer__embed iframe {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -151,14 +151,14 @@
     border: none;
   }
 
-  .article-block__live-update {
+  .article-block-renderer__live-update {
     padding: var(--space-3) var(--space-4);
     background: color-mix(in srgb, var(--brand), white 92%);
     border-inline-start: 3px solid var(--brand);
     border-radius: 0 var(--radius) var(--radius) 0;
   }
 
-  .article-block__live-update p {
+  .article-block-renderer__live-update p {
     margin: 0;
     font-size: var(--text-base);
     color: var(--text);

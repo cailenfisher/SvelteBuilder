@@ -29,19 +29,19 @@ export type {
   Comment,
   CommentStatus,
   CommentWithReplies,
-  EmbedBlockContent,
+  ArticleBlockEmbedContent,
   Front,
   FrontLayoutVariant,
   FrontSlot,
   FrontSlotWithArticle,
   FrontWithSlots,
-  GalleryBlockContent,
-  HeadingBlockContent,
-  ImageBlockContent,
+  ArticleBlockGalleryContent,
+  ArticleBlockHeadingContent,
+  ArticleBlockImageContent,
   LiveCoverage,
   LiveCoverageWithUpdates,
   LiveUpdate,
-  LiveUpdateBlockContent,
+  ArticleBlockLiveUpdateContent,
   LiveUpdateWithCopy,
   MediaAsset,
   MediaAssetAttribution,
@@ -53,11 +53,11 @@ export type {
   Newsletter,
   NewsletterSubscription,
   NewsletterWithCopy,
-  ParagraphBlockContent,
+  ArticleBlockParagraphContent,
   PublishChecklistItem,
   PublisherProfile,
   PublisherProfileWithCopy,
-  PullquoteBlockContent,
+  ArticleBlockPullquoteContent,
   Section,
   SectionWithCopy,
   Subscriber,
@@ -66,7 +66,7 @@ export type {
   TagWithCopy,
   Topic,
   TopicWithCopy,
-  VideoBlockContent,
+  ArticleBlockVideoContent,
 } from './schema/index.js';
 
 // Enum values, declared once in modules that do not import drizzle-orm, so screens can use them
@@ -80,7 +80,7 @@ export { MEDIA_ASSET_TYPES } from './schema/media-asset-type.js';
 
 // Camp 1 components (no hermes dependency)
 export { default as ArticleList } from './Article/ArticleList.svelte';
-export { default as AssignmentQueue } from './Article/ArticleAssignment/AssignmentQueue.svelte';
+export { default as ArticleAssignmentQueue } from './Article/ArticleAssignment/ArticleAssignmentQueue.svelte';
 export { default as FrontCurationBoard } from './Front/FrontCurationBoard.svelte';
 export { default as SubscriberList } from './Subscriber/SubscriberList.svelte';
 
@@ -89,14 +89,14 @@ export { default as ArticleBlockEditor } from './Article/ArticleBlock/ArticleBlo
 export type { ArticleBlockDraft } from './Article/ArticleBlock/ArticleBlockEditor.svelte';
 export { default as ArticleBlockRenderer } from './Article/ArticleBlock/ArticleBlockRenderer.svelte';
 export { default as ArticleCard } from './Article/ArticleCard.svelte';
-export { default as ArticleView } from './Article/ArticleView.svelte';
+export { default as ArticleDetail } from './Article/ArticleDetail.svelte';
 export { default as ArticleWorkflowPanel } from './Article/ArticleWorkflowPanel.svelte';
-export { default as AuthorProfileView } from './AuthorProfile/AuthorProfileView.svelte';
-export { default as BylineList } from './Article/ArticleByline/BylineList.svelte';
-export { default as LiveCoverageView } from './LiveCoverage/LiveCoverageView.svelte';
-export { default as LiveUpdateItem } from './LiveUpdate/LiveUpdateItem.svelte';
-export { default as MediaFigure } from './MediaAsset/MediaFigure.svelte';
-export { default as NewsletterSignup } from './Newsletter/NewsletterSubscription/NewsletterSignup.svelte';
-export { default as SectionFront } from './Front/SectionFront.svelte';
-export { default as SectionLabel } from './Section/SectionLabel.svelte';
-export { default as TopicTag } from './Topic/TopicTag.svelte';
+export { default as AuthorProfileDetail } from './AuthorProfile/AuthorProfileDetail.svelte';
+export { default as ArticleBylineList } from './Article/ArticleByline/ArticleBylineList.svelte';
+export { default as LiveCoverageDetail } from './LiveCoverage/LiveCoverageDetail.svelte';
+export { default as LiveUpdateCard } from './LiveUpdate/LiveUpdateCard.svelte';
+export { default as MediaAssetFigure } from './MediaAsset/MediaAssetFigure.svelte';
+export { default as NewsletterSubscriptionForm } from './Newsletter/NewsletterSubscription/NewsletterSubscriptionForm.svelte';
+export { default as FrontDetail } from './Front/FrontDetail.svelte';
+export { default as SectionLink } from './Section/SectionLink.svelte';
+export { default as TopicLink } from './Topic/TopicLink.svelte';

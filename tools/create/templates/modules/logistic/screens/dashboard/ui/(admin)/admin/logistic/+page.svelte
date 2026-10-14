@@ -24,11 +24,11 @@
   // `requires`, so none of these can be a dead link in a scaffolded project.
   const sections = [
     { href: '/admin/logistic/supplier', slug: 'logistic.admin.nav.supplier' },
-    { href: '/admin/logistic/receipt', slug: 'logistic.admin.nav.inbound_receipt' },
-    { href: '/admin/logistic/stock', slug: 'logistic.admin.nav.stock_level' },
+    { href: '/admin/logistic/inbound-receipt', slug: 'logistic.admin.nav.inbound_receipt' },
+    { href: '/admin/logistic/stock-level', slug: 'logistic.admin.nav.stock_level' },
     { href: '/admin/logistic/shipment', slug: 'logistic.admin.nav.shipment' },
     { href: '/admin/logistic/cycle-count', slug: 'logistic.admin.nav.cycle_count' },
-    { href: '/admin/logistic/return', slug: 'logistic.admin.nav.return_authorization' },
+    { href: '/admin/logistic/return-authorization', slug: 'logistic.admin.nav.return_authorization' },
   ];
 
   const formatDate = (iso: string | null) =>
@@ -38,15 +38,15 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.admin.dashboard.title')}</title>
+  <title>{t('logistic.dashboard.title')}</title>
 </svelte:head>
 
 <div class="logistic-dashboard">
-  <h1 class="logistic-dashboard__title">{t('logistic.admin.dashboard.title')}</h1>
+  <h1 class="logistic-dashboard__title">{t('logistic.dashboard.title')}</h1>
 
   <div class="logistic-dashboard__metrics">
     <MetricCard
-      value={data.metrics.pendingReceiptCount}
+      value={data.metrics.pendingInboundReceiptCount}
       label={t('logistic.admin.nav.inbound_receipt')}
       description={t('logistic.dashboard.pending')}
     />
@@ -56,7 +56,7 @@
       description={t('logistic.dashboard.open')}
     />
     <MetricCard
-      value={data.metrics.openReturnCount}
+      value={data.metrics.openReturnAuthorizationCount}
       label={t('logistic.admin.nav.return_authorization')}
       description={t('logistic.dashboard.open')}
     />
@@ -76,7 +76,7 @@
     <section class="logistic-dashboard__section">
       <div class="logistic-dashboard__section-header">
         <h2 class="logistic-dashboard__section-title">{t('logistic.dashboard.low_stock')}</h2>
-        <Button href="/admin/logistic/stock" variant="ghost" size="sm">
+        <Button href="/admin/logistic/stock-level" variant="ghost" size="sm">
           {dictionary.localText('action.view_all')}
         </Button>
       </div>
@@ -85,7 +85,7 @@
         <TableHead>
           <TableRow>
             <TableHeaderCell>{t('logistic.field.sku')}</TableHeaderCell>
-            <TableHeaderCell>{t('logistic.field.location')}</TableHeaderCell>
+            <TableHeaderCell>{t('logistic.field.storage_location')}</TableHeaderCell>
             <TableHeaderCell>{t('logistic.field.available')}</TableHeaderCell>
             <TableHeaderCell>{t('logistic.field.reorder_point')}</TableHeaderCell>
           </TableRow>
@@ -94,7 +94,7 @@
           {#each data.lowStockLevels as level (level.id)}
             <TableRow>
               <TableCell>
-                <a href="/admin/logistic/stock?history={level.id}" class="logistic-dashboard__link">
+                <a href="/admin/logistic/stock-level?history={level.id}" class="logistic-dashboard__link">
                   <code>{level.sku}</code>
                 </a>
               </TableCell>
@@ -110,22 +110,22 @@
     </section>
   {/if}
 
-  {#if data.pendingReceipts.length > 0}
+  {#if data.pendingInboundReceipts.length > 0}
     <section class="logistic-dashboard__section">
       <div class="logistic-dashboard__section-header">
         <h2 class="logistic-dashboard__section-title">
-          {t('logistic.dashboard.pending_receipts')}
+          {t('logistic.dashboard.pending_inbound_receipt')}
         </h2>
-        <Button href="/admin/logistic/receipt" variant="ghost" size="sm">
+        <Button href="/admin/logistic/inbound-receipt" variant="ghost" size="sm">
           {dictionary.localText('action.view_all')}
         </Button>
       </div>
 
       <ul class="logistic-dashboard__list">
-        {#each data.pendingReceipts as receipt (receipt.id)}
+        {#each data.pendingInboundReceipts as receipt (receipt.id)}
           <li class="logistic-dashboard__list-item">
-            <a href="/admin/logistic/receipt/{receipt.id}" class="logistic-dashboard__link">
-              {t('logistic.receipt.one')} #{receipt.id}
+            <a href="/admin/logistic/inbound-receipt/{receipt.id}" class="logistic-dashboard__link">
+              {t('logistic.inbound_receipt.one')} #{receipt.id}
             </a>
             <span class="logistic-dashboard__muted">
               {receipt.supplierId !== null
@@ -142,10 +142,10 @@
   {#if data.openPickTasks.length > 0}
     <section class="logistic-dashboard__section">
       <div class="logistic-dashboard__section-header">
-        <h2 class="logistic-dashboard__section-title">{t('logistic.dashboard.open_picks')}</h2>
+        <h2 class="logistic-dashboard__section-title">{t('logistic.dashboard.open_pick_task')}</h2>
         <!-- The pick queue lives in the warehouse app, which is why the dashboard requires
              that bundle as well as the admin ones. -->
-        <Button href="/warehouse/pick" variant="ghost" size="sm">
+        <Button href="/warehouse/pick-task" variant="ghost" size="sm">
           {dictionary.localText('action.view_all')}
         </Button>
       </div>
@@ -153,8 +153,8 @@
       <ul class="logistic-dashboard__list">
         {#each data.openPickTasks as task (task.id)}
           <li class="logistic-dashboard__list-item">
-            <a href="/warehouse/pick/{task.id}" class="logistic-dashboard__link">
-              {t('logistic.pick.task')} #{task.id}
+            <a href="/warehouse/pick-task/{task.id}" class="logistic-dashboard__link">
+              {t('logistic.pick_task.one')} #{task.id}
             </a>
             <span class="logistic-dashboard__muted">{formatDate(task.createdAt)}</span>
           </li>
@@ -163,23 +163,23 @@
     </section>
   {/if}
 
-  {#if data.openReturns.length > 0}
+  {#if data.openReturnAuthorizations.length > 0}
     <section class="logistic-dashboard__section">
       <div class="logistic-dashboard__section-header">
-        <h2 class="logistic-dashboard__section-title">{t('logistic.dashboard.open_returns')}</h2>
-        <Button href="/admin/logistic/return" variant="ghost" size="sm">
+        <h2 class="logistic-dashboard__section-title">{t('logistic.dashboard.open_return_authorization')}</h2>
+        <Button href="/admin/logistic/return-authorization" variant="ghost" size="sm">
           {dictionary.localText('action.view_all')}
         </Button>
       </div>
 
       <ul class="logistic-dashboard__list">
-        {#each data.openReturns as returnAuthorization (returnAuthorization.id)}
+        {#each data.openReturnAuthorizations as returnAuthorization (returnAuthorization.id)}
           <li class="logistic-dashboard__list-item">
             <a
-              href="/admin/logistic/return/{returnAuthorization.id}"
+              href="/admin/logistic/return-authorization/{returnAuthorization.id}"
               class="logistic-dashboard__link"
             >
-              {t('logistic.return.one')} #{returnAuthorization.id}
+              {t('logistic.return_authorization.one')} #{returnAuthorization.id}
             </a>
             <span class="logistic-dashboard__muted">
               {returnAuthorization.reason ?? formatDate(returnAuthorization.createdAt)}

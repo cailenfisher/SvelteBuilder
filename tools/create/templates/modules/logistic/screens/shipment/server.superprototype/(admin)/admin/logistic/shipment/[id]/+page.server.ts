@@ -116,7 +116,7 @@ export const actions: Actions = {
     return { success: true as const };
   },
 
-  addEvent: async ({ locals, params, request }) => {
+  addTrackingEvent: async ({ locals, params, request }) => {
     const id = Number(params.id);
     if (!Number.isInteger(id)) throw error(404, 'Not found.');
 

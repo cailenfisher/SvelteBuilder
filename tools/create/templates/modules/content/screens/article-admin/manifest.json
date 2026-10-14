@@ -1,0 +1,47 @@
+{
+  "id": "article-admin",
+  "module": "content",
+  "label": "Article admin",
+  "hint": "The newsroom side: every article at every status, the publish checklist, and workflow transitions",
+  "routes": ["/admin/content/article", "/admin/content/article/[id]"],
+  "requires": [],
+  "views": ["ArticleAdminListView", "ArticleAdminDetailView", "ArticleChecklistEntry", "ArticleRow"],
+  "actions": {
+    "/admin/content/article": {
+      "create": ["headline", "canonical_slug"]
+    },
+    "/admin/content/article/[id]": {
+      "transition": ["status_slug"],
+      "checklist": ["item_id", "satisfied"]
+    }
+  },
+  "copySlugs": [
+    "content.article_admin.article",
+    "content.article_admin.new",
+    "content.article_admin.create",
+    "content.article_admin.empty",
+    "content.article_admin.headline",
+    "content.article_admin.slug",
+    "content.article_admin.status",
+    "content.article_admin.created",
+    "content.article_admin.filter_all",
+    "content.article_admin.filter_status",
+    "content.article_admin.body",
+    "content.article_admin.body_empty",
+    "content.article_admin.block_type",
+    "content.article_admin.block_text",
+    "content.article_admin.filing",
+    "content.article_admin.section",
+    "content.article_admin.article_byline",
+    "content.article_admin.workflow",
+    "content.article_admin.checklist",
+    "content.article_admin.required",
+    "content.article_admin.publish_blocked",
+    "action.cancel",
+    "action.save",
+    "action.close",
+    "pagination.previous",
+    "pagination.next",
+    "nav.pagination"
+  ]
+}

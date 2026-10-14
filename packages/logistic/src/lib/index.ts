@@ -2,7 +2,7 @@
 export { default as SupplierCard } from './Supplier/SupplierCard.svelte';
 export { default as StorageLocationPath } from './StorageLocation/StorageLocationPath.svelte';
 export { default as PickTaskCard } from './PickTask/PickTaskCard.svelte';
-export { default as ReceiptCard } from './InboundReceipt/ReceiptCard.svelte';
+export { default as InboundReceiptCard } from './InboundReceipt/InboundReceiptCard.svelte';
 
 // Components — Camp 1 (i18n-agnostic, no hermes import)
 export { default as PickTaskStatusBadge } from './PickTask/PickTaskStatusBadge.svelte';

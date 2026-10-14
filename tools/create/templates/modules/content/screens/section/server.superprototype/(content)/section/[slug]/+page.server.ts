@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { loadEntityCopy, loadScopedCopy } from '$lib/server/scoped-copy';
 import { selectLeadMediaAssetId } from '@sveltebuilder/content/publishing';
-import type { ArticleRow, SectionPageView } from '@sveltebuilder/content/views';
+import type { ArticleRow, SectionDetailView } from '@sveltebuilder/content/views';
 import type { PageServerLoad } from './$types';
 
 // A public page with no auth guard: which articles a reader sees is decided entirely by the
@@ -15,7 +15,7 @@ const STORAGE_BASE_URL = `${PUBLIC_SUPABASE_URL}/storage/v1/object/public`;
 const toOne = <T>(embed: T | T[] | null): T | null =>
   embed === null ? null : Array.isArray(embed) ? (embed[0] ?? null) : embed;
 
-export const load: PageServerLoad = async ({ locals, params, url }): Promise<SectionPageView> => {
+export const load: PageServerLoad = async ({ locals, params, url }): Promise<SectionDetailView> => {
   const pageParam = Number(url.searchParams.get('page') ?? '1');
   const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
   const from = (page - 1) * PER_PAGE;

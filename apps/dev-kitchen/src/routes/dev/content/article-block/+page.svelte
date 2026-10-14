@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArticleBlockRenderer, MediaFigure } from '@sveltebuilder/content';
+  import { ArticleBlockRenderer, MediaAssetFigure } from '@sveltebuilder/content';
   import Example from '$lib/Example/Example.svelte';
   import {
     ATTRIBUTIONS,
@@ -28,9 +28,9 @@
   </Example>
 {/each}
 
-<Example title="MediaFigure with caption, credit and license">
+<Example title="MediaAssetFigure with caption, credit and license">
   <div style:inline-size="min(100%, 32rem)">
-    <MediaFigure
+    <MediaAssetFigure
       asset={MEDIA[0]}
       attribution={ATTRIBUTIONS.get(MEDIA[0].id)}
       locale="en"
@@ -40,9 +40,9 @@
   </div>
 </Example>
 
-<Example title="MediaFigure, uncaptioned and decorative">
+<Example title="MediaAssetFigure, uncaptioned and decorative">
   <div style:inline-size="min(100%, 20rem)">
-    <MediaFigure
+    <MediaAssetFigure
       asset={MEDIA[1]}
       captioned={false}
       locale="en"
@@ -51,7 +51,7 @@
     />
   </div>
   <div style:inline-size="min(100%, 20rem)">
-    <MediaFigure
+    <MediaAssetFigure
       asset={MEDIA[1]}
       decorative
       locale="en"

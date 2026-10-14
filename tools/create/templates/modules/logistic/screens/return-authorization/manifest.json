@@ -1,0 +1,65 @@
+{
+  "id": "return-authorization",
+  "module": "logistic",
+  "label": "Returns",
+  "hint": "Return authorizations, per-line grading by condition and disposition, restocking what is salable",
+  "routes": ["/admin/logistic/return-authorization", "/admin/logistic/return-authorization/[id]"],
+  "requires": [],
+  "views": ["ReturnAuthorizationListView", "ReturnAuthorizationDetailView", "ReturnAuthorizationRow"],
+  "actions": {
+    "/admin/logistic/return-authorization": {
+      "create": ["sku", "expected_quantity", "reason", "note"]
+    },
+    "/admin/logistic/return-authorization/[id]": {
+      "gradeReturnAuthorizationLine": [
+        "return_authorization_line_id",
+        "received_quantity",
+        "condition",
+        "disposition",
+        "storage_location_id"
+      ],
+      "process": []
+    }
+  },
+  "copySlugs": [
+    "logistic.return_authorization.title",
+    "logistic.return_authorization.one",
+    "logistic.return_authorization.new",
+    "logistic.return_authorization.create",
+    "logistic.return_authorization.empty",
+    "logistic.return_authorization.filter_all",
+    "logistic.return_authorization.filter_status",
+    "logistic.return_authorization.status_label",
+    "logistic.return_authorization.reason",
+    "logistic.return_authorization.lines",
+    "logistic.return_authorization.lines_empty",
+    "logistic.return_authorization.created_at",
+    "logistic.return_authorization.expected_quantity",
+    "logistic.return_authorization.received_quantity",
+    "logistic.return_authorization.grade",
+    "logistic.return_authorization.no_location",
+    "logistic.return_authorization.process",
+    "logistic.return_authorization.process_confirm",
+    "logistic.return_authorization.condition",
+    "logistic.return_authorization.disposition",
+    "logistic.return_authorization.condition.salable",
+    "logistic.return_authorization.condition.damaged",
+    "logistic.return_authorization.condition.defective",
+    "logistic.return_authorization.condition.wrong_item",
+    "logistic.return_authorization.disposition.restock",
+    "logistic.return_authorization.disposition.quarantine",
+    "logistic.return_authorization.disposition.scrap",
+    "logistic.return_authorization.disposition.refurbish",
+    "logistic.return_authorization.status.pending",
+    "logistic.return_authorization.status.received",
+    "logistic.return_authorization.status.processed",
+    "logistic.return_authorization.status.cancelled",
+    "logistic.field.sku",
+    "logistic.field.note",
+    "action.cancel",
+    "action.close",
+    "pagination.previous",
+    "pagination.next",
+    "nav.pagination"
+  ]
+}

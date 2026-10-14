@@ -7,41 +7,41 @@ import type { MediaAssetWithCopy } from './media-asset.js';
 
 export const articleBlockType = pgEnum('article_block_type', ARTICLE_BLOCK_TYPES);
 
-export type ParagraphBlockContent = Record<string, never>;
+export type ArticleBlockParagraphContent = Record<string, never>;
 
-export type HeadingBlockContent = { level: 2 | 3 | 4 };
+export type ArticleBlockHeadingContent = { level: 2 | 3 | 4 };
 
-export type ImageBlockContent = { altOverride: boolean };
+export type ArticleBlockImageContent = { altOverride: boolean };
 
-export type GalleryBlockContent = {
+export type ArticleBlockGalleryContent = {
   layout: 'grid' | 'carousel';
   captionPosition: 'below' | 'overlay';
 };
 
-export type VideoBlockContent = {
+export type ArticleBlockVideoContent = {
   provider: 'youtube' | 'vimeo' | 'self';
   aspect: '16/9' | '4/3';
 };
 
-export type EmbedBlockContent = {
+export type ArticleBlockEmbedContent = {
   provider: string;
   url: string;
   aspect?: string;
 };
 
-export type PullquoteBlockContent = Record<string, never>;
+export type ArticleBlockPullquoteContent = Record<string, never>;
 
-export type LiveUpdateBlockContent = Record<string, never>;
+export type ArticleBlockLiveUpdateContent = Record<string, never>;
 
 export type ArticleBlockContent =
-  | ParagraphBlockContent
-  | HeadingBlockContent
-  | ImageBlockContent
-  | GalleryBlockContent
-  | VideoBlockContent
-  | EmbedBlockContent
-  | PullquoteBlockContent
-  | LiveUpdateBlockContent;
+  | ArticleBlockParagraphContent
+  | ArticleBlockHeadingContent
+  | ArticleBlockImageContent
+  | ArticleBlockGalleryContent
+  | ArticleBlockVideoContent
+  | ArticleBlockEmbedContent
+  | ArticleBlockPullquoteContent
+  | ArticleBlockLiveUpdateContent;
 
 export const articleBlock = pgTable(
   'article_block',

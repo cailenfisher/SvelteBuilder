@@ -3,10 +3,10 @@
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import { Pagination } from '@sveltebuilder/coreui';
-  import { ArticleCard, SectionLabel } from '@sveltebuilder/content';
-  import type { SectionPageView } from '@sveltebuilder/content/views';
+  import { ArticleCard, SectionLink } from '@sveltebuilder/content';
+  import type { SectionDetailView } from '@sveltebuilder/content/views';
 
-  let { data }: { data: SectionPageView } = $props();
+  let { data }: { data: SectionDetailView } = $props();
 
   const dictionary = getDictionary();
 
@@ -34,7 +34,7 @@
       <nav class="section-page__children" aria-label={t('content.section.subsections')}>
         {#each data.childSections as child (child.id)}
           <!-- Camp 2 component: it resolves the section's name from the dictionary itself. -->
-          <SectionLabel
+          <SectionLink
             section={child}
             locale={data.localeCode}
             href="/section/{child.slug}"

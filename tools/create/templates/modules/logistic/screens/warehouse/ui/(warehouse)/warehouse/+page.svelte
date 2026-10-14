@@ -11,22 +11,22 @@
 
   const flows = [
     {
-      href: '/warehouse/pick',
+      href: '/warehouse/pick-task',
       icon: '📦',
-      slug: 'logistic.warehouse.pick',
-      desc: 'logistic.warehouse.pick.hint',
+      slug: 'logistic.warehouse.pick_task.title',
+      desc: 'logistic.warehouse.pick_task.hint',
     },
     {
-      href: '/warehouse/receive',
+      href: '/warehouse/inbound-receipt',
       icon: '🚚',
-      slug: 'logistic.warehouse.receive',
-      desc: 'logistic.warehouse.receive.hint',
+      slug: 'logistic.warehouse.inbound_receipt.title',
+      desc: 'logistic.warehouse.inbound_receipt.hint',
     },
     {
-      href: '/warehouse/count',
+      href: '/warehouse/cycle-count',
       icon: '📋',
-      slug: 'logistic.warehouse.count',
-      desc: 'logistic.warehouse.count.hint',
+      slug: 'logistic.warehouse.cycle_count.title',
+      desc: 'logistic.warehouse.cycle_count.hint',
     },
   ];
 </script>
