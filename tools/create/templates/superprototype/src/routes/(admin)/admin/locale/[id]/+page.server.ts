@@ -1,28 +1,17 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
+import { deleteLocale, getLocale, updateLocale } from '$lib/server/locale';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
   if (isNaN(id)) throw error(404, 'Not found');
 
-  const { data, error: queryError } = await locals.supabase
-    .from('locale')
-    .select('id, code, name, native_name, dir')
-    .eq('id', id)
-    .maybeSingle();
+  const { data: locale, error: queryError } = await getLocale(locals.supabase, id);
 
   if (queryError) throw error(500, 'Failed to load locale.');
-  if (!data) throw error(404, 'Locale not found');
+  if (!locale) throw error(404, 'Locale not found');
 
-  return {
-    locale: {
-      id: data.id,
-      code: data.code,
-      name: data.name,
-      nativeName: data.native_name,
-      dir: data.dir,
-    },
-  };
+  return { locale };
 };
 
 export const actions: Actions = {
@@ -39,10 +28,12 @@ export const actions: Actions = {
       return fail(422, { error: 'Code, name, and native name are required.' });
     }
 
-    const { error: updateError } = await locals.supabase
-      .from('locale')
-      .update({ code, name, native_name: nativeName, dir })
-      .eq('id', id);
+    const { error: updateError } = await updateLocale(locals.supabase, id, {
+      code,
+      name,
+      nativeName,
+      dir,
+    });
 
     if (updateError) return fail(500, { error: 'Failed to update locale.' });
 
@@ -53,10 +44,7 @@ export const actions: Actions = {
     const id = parseInt(params.id);
     if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    const { error: deleteError } = await locals.supabase
-      .from('locale')
-      .delete()
-      .eq('id', id);
+    const { error: deleteError } = await deleteLocale(locals.supabase, id);
 
     if (deleteError) return fail(500, { error: 'Failed to delete locale.' });
 

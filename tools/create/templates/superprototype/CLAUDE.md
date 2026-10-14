@@ -50,10 +50,10 @@ Use whichever package manager the project uses (check for a lockfile). Examples 
 Each of these has a reason further down. If a request seems to require breaking one, stop and
 say so instead of working around it.
 
-1. **All database access goes through `event.locals.supabase`**, in `+page.server.ts`,
-   `+layout.server.ts`, `+server.ts` or `hooks.server.ts`. Never open a direct Postgres
-   connection, never add a `DATABASE_URL`, never import `drizzle-orm` at runtime, never use
-   the service-role or secret key.
+1. **All database access goes through `event.locals.supabase`**, passed by a route or hook to
+   the table's data module in `src/lib/server/`. Never open a direct Postgres connection, never
+   add a `DATABASE_URL`, never import `drizzle-orm` at runtime, never use the service-role or
+   secret key.
 2. **Every table in `public` has RLS enabled and explicit policies**, written in
    `supabase/supplemental/`. A table without RLS is readable and writable by anyone holding the
    public key.
@@ -87,7 +87,10 @@ src/
 │   ├── schema.ts            this project's tables (Drizzle; build-time only)
 │   ├── supabase.ts          createSupabaseServerClient (do not create clients elsewhere)
 │   ├── auth-resolver.ts     session → user_account.id via ensure_user_account()
-│   ├── postgrest.ts         toOne(), toLocale(), LOCALE_COLUMNS, toDictionaryPayload()
+│   ├── postgrest.ts         QueryResult, toOne(): what every data module shares
+│   ├── locale.ts, local-text.ts, navigation-item.ts, user-account.ts
+│   │                        data modules: one per table, every query the routes make
+│   ├── <module>/            each installed module's data modules, one per table
 │   └── scoped-copy.ts       loadScopedCopy(), loadEntityCopy()
 └── routes/
     ├── +layout.server.ts    loads the global dictionary + locale list
@@ -108,7 +111,8 @@ supabase/
 **Examples to copy from.** If a module was installed, its screens and SQL are the best
 reference for every pattern in this file:
 
-- `src/routes/(admin)/admin/<module>/**/+page.server.ts`: loaders, form actions, RPC calls, copy loading
+- `src/lib/server/<module>/*.ts`: data modules, one per table: queries, RPC calls, the camelCase boundary
+- `src/routes/(admin)/admin/<module>/**/+page.server.ts`: loaders and form actions calling them, copy loading
 - `src/routes/(admin)/admin/<module>/**/+page.svelte`: screens using coreui and scoped dictionaries
 - `supabase/supplemental/05-<module>-*.sql`: RLS policies and RPCs
 - `supabase/seeds/<module>.sql`: seed data with en/fr copy
@@ -131,31 +135,62 @@ which is why rule 1 exists.
 Components never query. Load in `+page.server.ts` or `+layout.server.ts`, mutate in form
 actions, and pass plain data to components.
 
-### The serialization boundary
+### Data modules
 
-The database is `snake_case`, and everything after the loader is `camelCase`. Convert once, in
-the loader, and nothing downstream sees a snake_case key:
+Routes don't query either. Every query lives in the data module of the table it starts from,
+`src/lib/server/<table>.ts` with the table's name in kebab case (`ticket.ts`,
+`ticket-comment.ts`), or `src/lib/server/<module>/<table>.ts` for an installed module's tables.
+A route calls `listTicket(locals.supabase, …)`, never `locals.supabase.from('ticket')`.
 
 ```ts
-const tickets: Ticket[] = (result.data ?? []).map((row) => ({
+// src/lib/server/ticket.ts
+export async function listTicket(supabase: SupabaseClient): Promise<QueryResult<Ticket[]>> {
+  const { data, error } = await supabase
+    .from('ticket')
+    .select('id, status, assigned_user_account_id, created_at')
+    .order('created_at', { ascending: false });
+  if (error) return { data: null, error };
+  return { data: data.map(toTicket), error: null };
+}
+
+// +page.server.ts
+const { data: tickets, error: ticketError } = await listTicket(locals.supabase);
+if (ticketError) throw error(500, 'Failed to load tickets.');
+```
+
+- Each function takes the `SupabaseClient` as its first argument, so RLS still applies.
+- It returns `QueryResult<T>` from `$lib/server/postgrest`: supabase-js's own `{ data, error }`,
+  with the data already converted to camelCase. The route checks `error` and decides what it
+  means: a 500 in a load, a `fail()` in an action, or a logged fallback.
+- A function that reads a parent with its children embedded belongs to the parent's file;
+  one that writes only a child table belongs to the child's.
+
+### The serialization boundary
+
+The database is `snake_case`, and everything after the data module is `camelCase`. Convert once,
+in the data module, and nothing downstream sees a snake_case key:
+
+```ts
+const toTicket = (row: TicketRecord): Ticket => ({
   id: row.id,
   status: row.status,
   assignedUserAccountId: row.assigned_user_account_id,
   createdAt: row.created_at,
-}));
+});
 ```
 
-- The project does not generate Supabase database types, so query results are untyped. Make
-  the loader's **return type** explicit (a view type, see below) so a mismatch fails
-  `pnpm check` instead of rendering `undefined`.
+- The project does not generate Supabase database types. supabase-js still checks column names
+  against the `.select()` string, but every value is `any`. Make each data module function's and
+  each loader's **return type** explicit (a domain or view type, see below) so a mismatch fails
+  `pnpm check` instead of rendering `undefined`. To name the row type a select produces, put the
+  select in a small function and take `NonNullable<Awaited<ReturnType<typeof selectTicket>>['data']>[number]`,
+  as the installed modules do, rather than writing the row type by hand.
 - supabase-js types every embedded relation as an array. For a to-one embed
   (`navigation_item → local_text_link`), unwrap it with `toOne()` from `$lib/server/postgrest`.
   To-many embeds really are arrays.
 - `bigint` values returned from SQL functions can arrive as strings. Convert with `Number()` at
-  the boundary (`toDictionaryPayload` does this for dictionary rows).
+  the boundary (`getDictionaryPayload` in `local-text.ts` does this for dictionary rows).
 - Select the columns you need, not `*`.
-- Put a query used by more than one route in a typed helper in `src/lib/server/<entity>.ts`
-  that takes the `SupabaseClient` as an argument. Don't copy query strings between routes.
 
 If the user asks for generated types, run `pnpm supabase gen types typescript --local >
 src/lib/database.types.ts`, then type the client in `supabase.ts` and `app.d.ts` as
@@ -180,7 +215,7 @@ Check `error` on every Supabase result, every time.
 
 | Write                                                                 | How                                                                 |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| One statement (insert, update, delete, upsert on a unique constraint) | Plain supabase-js call in the form action                           |
+| One statement (insert, update, delete, upsert on a unique constraint) | Plain supabase-js call in the table's data module                   |
 | Several statements that must succeed or fail together                 | `SECURITY INVOKER` function in `supabase/supplemental/`, `.rpc()`   |
 | Something RLS cannot express safely (rare)                            | `SECURITY DEFINER` function, following the rules under Auth below   |
 
@@ -414,8 +449,9 @@ grant execute on function public.create_ticket(text, text, bigint, integer) to a
   `public`.
 - Changing a function's parameters creates a new overload. `drop function if exists` the old
   signature first.
-- Call it from the action:
-  `await locals.supabase.rpc('create_ticket', { p_slug, p_name, p_locale_id: locals.locale.id })`.
+- Call it from the data module of the table it writes first (`createTicket` in
+  `src/lib/server/ticket.ts`), and call that from the action:
+  `await createTicket(locals.supabase, { slug, name, localeId: locals.locale.id })`.
 
 `SECURITY DEFINER` is for the rare case where the caller must not have the privilege directly
 (see `admin_set_user_admin()` in `05-user-account-hardening.sql`). A definer function must check
@@ -683,13 +719,14 @@ starting the next.
 6. **Generate and apply:** `pnpm sveltebuilder sync:supabase` → read the generated migration →
    `pnpm db:reset`.
 7. **Types:** the domain type and view type.
-8. **Loader and actions** in `+page.server.ts`, with the return type annotated, the boundary
-   mapped to camelCase, every error checked, and copy loaded with `loadScopedCopy` or
-   `loadEntityCopy`.
-9. **Page and components** using coreui, entity components resolving their own copy.
-10. **Link it in:** an admin feature needs a navigation entry (`/admin/navigation-item`, or a
+8. **Data module** in `src/lib/server/<table>.ts`: the queries, the RPC calls and the
+   camelCase boundary, each function returning `QueryResult<T>`.
+9. **Loader and actions** in `+page.server.ts`, calling the data module, with the return type
+   annotated, every error checked, and copy loaded with `loadScopedCopy` or `loadEntityCopy`.
+10. **Page and components** using coreui, entity components resolving their own copy.
+11. **Link it in:** an admin feature needs a navigation entry (`/admin/navigation-item`, or a
     seed row in `navigation_item` with menu `'admin'`).
-11. **Verify** (below).
+12. **Verify** (below).
 
 Show the user the schema and the policies (steps 1 to 3) before building UI on top of them when
 the access rules are not obvious. They are the most expensive part to change later.
@@ -717,7 +754,7 @@ Don't call a change finished until:
 
 - [ ] `DATABASE_URL`, `postgres(…)`, `drizzle(…)`, or `drizzle-orm` imported outside `schema.ts`
 - [ ] A Supabase client created anywhere but `src/lib/server/supabase.ts`, or the service-role key in use
-- [ ] A query in a `.svelte` file
+- [ ] A query in a `.svelte` file, or a `.from(` or `.rpc(` in a route file instead of a data module
 - [ ] A Supabase result used without checking `error`
 - [ ] A new table without `enable row level security`, or a policy without `to <role>`
 - [ ] `auth.uid()` in a policy, or a helper called without `(select …)`

@@ -356,3 +356,23 @@ Applied in Phase 8 because they follow from approved rules; listed for review.
 | D14: `newsletter.*` and `action.submit_for_review` … `action.unpublish` in scope `content` | `content.newsletter_subscription_form.*`, `content.article_workflow.*` | D14 prefix, grouped by the component that renders them, like `content.article_block_editor.*` |
 | dev-kitchen `/dev/content/taxonomy` | `/dev/content/article-byline`, `/dev/content/section`, `/dev/content/topic` | the page also showed `ArticleBylineList`, so it splits three ways |
 | page-local CSS `admin-article`, `admin-article-list` | `article-admin`, `article-admin-list` | follows the screen id |
+
+## Added during Phase 9 (pending approval)
+
+New names, not renames. Data module functions follow `<verb><Table>` with the table's full name
+(`listInboundReceipt`, `getPickTaskLine`, `receiveInboundReceiptLine`) and are not listed one by
+one; the files are one per table, named like the schema file. The rest:
+
+| Name | What it is | Rule |
+| --- | --- | --- |
+| file per table, not per concept (`inbound-receipt-line.ts` beside `inbound-receipt.ts`) | data module layout; amends the D5 wording in `CLAUDE.md` and `MODULE-ROUTES.md`, whose example put `addInboundReceiptLine` in `inbound-receipt.ts` | layers mirror each other: a query's file follows from its table's name, as the schema file does |
+| `QueryResult<T>` | every data module function's return: supabase-js's `{ data, error }`, data in camelCase | one way to report a failure; the route decides what it means |
+| `QueryRange` (`offset`, `limit`), `CountedRows<T>` (`rows`, `total`) | a list function's slice argument and its counted result | generic names, allowed because `postgrest.ts` is shared infrastructure, not domain code |
+| `LocaleFields`, `NavigationItemFields`, `SupplierFields`, `SupplierContactFields`, `LocalTextEntryFields` | what an administrator edits, as a data module argument | `<Table>Fields`; a new suffix for an argument type, to be confirmed |
+| `NavigationItemWithLocalTextLink` | a navigation item with its copy link embedded | composite types are `<Concept>With<Concept>` |
+| `listActiveInboundReceipt`, `listRecentInboundReceipt`, `listAssignedPickTask`, `listOpenPickTask`, `listAssignedCycleCount`, `listOpenCycleCount`, `countOpenCycleCount`, `listActiveSection`, `listActiveTopic`, `listLatestArticle`, `getInitialArticleStatus` | lists named for what they select, where one table has several | qualifier before the table, as the view fields they fill (`activeInboundReceipts`) already do |
+| `getDictionaryPayload` | the `get_dictionary` RPC, in `local-text.ts` | avoids `getDictionary`, which diglossia/svelte already exports |
+| `getArticleByPreviewToken` | the two preview RPCs, in `article-preview-token.ts` | a function lives in the file of the table its query starts from |
+
+Drift noticed, not changed (out of this phase): the base admin screens' data keys `navItems` and
+`navItem` abbreviate `navigationItem`.

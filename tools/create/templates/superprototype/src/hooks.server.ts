@@ -3,6 +3,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { PUBLIC_DEFAULT_LOCALE } from '$env/static/public';
 import { resolveAuthenticatedUserId } from '$lib/server/auth-resolver';
 import { providerHandle } from '$lib/server/auth-handle';
+import { listLocale } from '$lib/server/locale';
 
 // Translates the provider's user identity to a public.user_account.id and attaches
 // it to locals. Route code reads locals.userAccountId for guards and gets its data
@@ -17,22 +18,13 @@ const populateLocals: Handle = async ({ event, resolve }) => {
 const localeHook: Handle = async ({ event, resolve }) => {
   const defaultCode = PUBLIC_DEFAULT_LOCALE ?? 'en';
 
-  const { data, error } = await event.locals.supabase
-    .from('locale')
-    .select('id, code, name, native_name, dir')
-    .order('code');
+  const { data, error } = await listLocale(event.locals.supabase);
 
   // Degrade to the hardcoded default rather than 500 the whole site, but say so —
   // an empty locale list is otherwise a confusing thing to debug.
   if (error) console.error('[locale] query error:', error);
 
-  const available = (data ?? []).map((row) => ({
-    id: row.id,
-    code: row.code,
-    name: row.name,
-    nativeName: row.native_name,
-    dir: row.dir as 'ltr' | 'rtl',
-  }));
+  const available = data ?? [];
 
   const defaultLocale = available.find((l) => l.code === defaultCode)
     ?? available[0]

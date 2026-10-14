@@ -1,6 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
-import { toOne } from '$lib/server/postgrest';
+import { listMenuNavigationItem } from '$lib/server/navigation-item';
+import { getUserAccountAdmin } from '$lib/server/user-account';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
   if (!locals.userAccountId) throw redirect(303, '/sign-in');
@@ -9,11 +10,10 @@ export const load: LayoutServerLoad = async ({ locals }) => {
   // and writes, but without this check they would reach the admin UI and see it
   // half-populated instead of being told no. user_account_owner_read is what lets
   // a caller read their own row here.
-  const { data: account, error: accountError } = await locals.supabase
-    .from('user_account')
-    .select('admin')
-    .eq('id', locals.userAccountId)
-    .maybeSingle();
+  const { data: account, error: accountError } = await getUserAccountAdmin(
+    locals.supabase,
+    locals.userAccountId
+  );
 
   if (accountError) throw error(500, 'Failed to verify admin access.');
   if (!account?.admin) throw error(403, 'Admin access required.');
@@ -23,20 +23,12 @@ export const load: LayoutServerLoad = async ({ locals }) => {
   // layer and is not something a cached token payload should be trusted for.
   const { data: { user } } = await locals.supabase.auth.getUser();
 
-  const { data, error: queryError } = await locals.supabase
-    .from('navigation_item')
-    .select('id, href, local_text_link(slug, scope)')
-    .eq('menu', 'admin')
-    .eq('active', true)
-    .order('position');
+  const { data: navItems, error: queryError } = await listMenuNavigationItem(
+    locals.supabase,
+    'admin'
+  );
 
   if (queryError) throw error(500, 'Failed to load admin navigation.');
-
-  const navItems = (data ?? []).map((row) => ({
-    id: row.id,
-    href: row.href,
-    localTextLink: toOne(row.local_text_link),
-  }));
 
   return { navItems, user };
 };

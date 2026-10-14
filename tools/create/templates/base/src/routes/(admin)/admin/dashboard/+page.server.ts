@@ -1,8 +1,8 @@
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ locals }) => {
-  // Replace these stubs with real queries using locals.supabase
-  // e.g. const { count } = await locals.supabase.from('user_account').select('id', { count: 'exact', head: true })
+  // Replace these stubs with calls to the tables' data modules in $lib/server, passing
+  // locals.supabase: e.g. a countUserAccount(locals.supabase) in $lib/server/user-account.ts
   return {
     stats: {
       totalUsers: null as number | null,

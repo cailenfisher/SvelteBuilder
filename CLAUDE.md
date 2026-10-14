@@ -138,14 +138,22 @@ bundle share goes in an ordinary module beside them in the routes tree (SvelteKi
 `+layout`, `+server` and `+error` as special), not in `$lib`, which a scaffold without that module
 would also receive.
 
-**Data access goes through one data module per concept.** A module's template directory carries a
+**Data access goes through one data module per table.** A module's template directory carries a
 module-level `server.<flavour>/` overlay, which the create CLI copies to `src/lib/server/<module>/`
-whenever the module is selected, with or without any of its screens. It holds one file per concept
-(`inbound-receipt.ts` exporting `listInboundReceipt`, `getInboundReceipt`, `addInboundReceiptLine`,
-…). Each function takes the request's `supabase` client as its first argument, so every query still
-runs through `event.locals.supabase` (guardrail 8) with RLS applied, and handles its own errors.
-Route files call these functions and never `.from(` directly. Helpers every module needs, such as
-`toOne`, live once in the flavour's own `src/lib/server/`.
+whenever the module is selected, with or without any of its screens. It holds one file per table,
+named like that table's schema file, and each function lives in the file of the table its query
+starts from: `inbound-receipt.ts` exports `listInboundReceipt` and `getInboundReceipt` (which embeds
+the lines), while `inbound-receipt-line.ts` exports `addInboundReceiptLine`. The scaffold's own
+tables follow the same rule in the flavour's `src/lib/server/` (`locale.ts`, `navigation-item.ts`).
+
+Each function takes the request's `supabase` client as its first argument, so every query still
+runs through `event.locals.supabase` (guardrail 8) with RLS applied. It owns the table, the columns,
+the embeds and the `snake_case` → `camelCase` conversion, and returns supabase-js's own
+`{ data, error }` shape (`QueryResult<T>`) with the data already converted. The route checks `error`
+where it calls and decides what a failure means to the person on the other end: a 500, a form
+error, or a logged fallback. Route files never call `.from(` or `.rpc(` themselves, which
+`tools/create/test/data-module.test.ts` enforces. Helpers every data module needs (`toOne`,
+`QueryResult`) live once in the flavour's `src/lib/server/postgrest.ts`.
 
 **Where a screen's extracted components go.** A sub-block of a screen that names a concept becomes
 its own component. If it is presentational (props in, markup out), it goes in the module package's
@@ -423,7 +431,7 @@ One word per idea, across every module:
   nothing when omitted. A component with many strings takes one typed `labels` prop.
 - **Snippets** (`{#snippet}` / `{@render}`) replace slots in all new code.
 - **Data loading:** `+page.server.ts` / `+layout.server.ts` load functions. Keep components
-  presentational. Loaders and actions call the concept's data module rather than building queries
+  presentational. Loaders and actions call the table's data module rather than building queries
   inline (see _Screen bundles_).
 - **Mutations:** form actions in `+page.server.ts`, not ad hoc `fetch`, unless the interaction
   is genuinely client-only.
@@ -457,7 +465,7 @@ One word per idea, across every module:
   `hooks.server.ts`). The browser client uses the anon key.
 - `snake_case` → `camelCase` conversion happens once, at the serialization boundary. DB code
   stays `snake_case` end to end. Nothing downstream of the boundary sees `snake_case`.
-- One data module per concept holds that concept's queries; loaders never build queries inline
+- One data module per table holds that table's queries; loaders never build queries inline
   (see _Screen bundles_).
 
 ### Schema file layout (per module)

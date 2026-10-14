@@ -1,24 +1,15 @@
 import { error, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { toOne } from '$lib/server/postgrest';
+import {
+  createNavigationItem,
+  deleteNavigationItem,
+  listNavigationItem,
+} from '$lib/server/navigation-item';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const { data, error: queryError } = await locals.supabase
-    .from('navigation_item')
-    .select('id, href, menu, position, active, local_text_link(id, slug, scope)')
-    .order('menu')
-    .order('position');
+  const { data: navItems, error: queryError } = await listNavigationItem(locals.supabase);
 
   if (queryError) throw error(500, 'Failed to load navigation items.');
-
-  const navItems = (data ?? []).map((row) => ({
-    id: row.id,
-    href: row.href,
-    menu: row.menu,
-    position: row.position,
-    active: row.active,
-    localTextLink: toOne(row.local_text_link),
-  }));
 
   return { navItems };
 };
@@ -36,13 +27,11 @@ export const actions: Actions = {
       return fail(422, { error: 'Slug, URL, and menu are required.' });
     }
 
-    // One RPC: the copy link and the nav item have to land together or a failure
-    // leaves an orphaned link behind.
-    const { error: rpcError } = await locals.supabase.rpc('create_navigation_item', {
-      p_slug: slug,
-      p_href: href,
-      p_menu: menu,
-      p_position: position,
+    const { error: rpcError } = await createNavigationItem(locals.supabase, {
+      slug,
+      href,
+      menu,
+      position,
     });
 
     if (rpcError) return fail(500, { error: 'Failed to create navigation item.' });
@@ -56,9 +45,7 @@ export const actions: Actions = {
 
     if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    const { error: rpcError } = await locals.supabase.rpc('delete_navigation_item', {
-      p_id: id,
-    });
+    const { error: rpcError } = await deleteNavigationItem(locals.supabase, id);
 
     if (rpcError) return fail(500, { error: 'Failed to delete navigation item.' });
 

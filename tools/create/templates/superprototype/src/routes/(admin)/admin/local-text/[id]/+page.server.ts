@@ -1,25 +1,21 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { LOCALE_COLUMNS, toLocale } from '$lib/server/postgrest';
+import { listLocale } from '$lib/server/locale';
+import {
+  deleteLocalTextEntry,
+  getLocalTextLink,
+  listLocalText,
+  saveLocalText,
+} from '$lib/server/local-text';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
   if (isNaN(id)) throw error(404, 'Not found');
 
   const [entryResult, translationResult, localeResult] = await Promise.all([
-    locals.supabase
-      .from('local_text_link')
-      .select('id, slug, scope, entity_id')
-      .eq('id', id)
-      .maybeSingle(),
-    locals.supabase
-      .from('local_text')
-      .select('id, link, locale, content')
-      .eq('link', id),
-    locals.supabase
-      .from('locale')
-      .select(LOCALE_COLUMNS)
-      .order('code'),
+    getLocalTextLink(locals.supabase, id),
+    listLocalText(locals.supabase, id),
+    listLocale(locals.supabase),
   ]);
 
   if (entryResult.error || translationResult.error || localeResult.error) {
@@ -28,14 +24,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (!entryResult.data) throw error(404, 'Entry not found');
 
   return {
-    entry: {
-      id: entryResult.data.id,
-      slug: entryResult.data.slug,
-      scope: entryResult.data.scope,
-      entityId: entryResult.data.entity_id,
-    },
-    translations: translationResult.data ?? [],
-    locales: (localeResult.data ?? []).map(toLocale),
+    entry: entryResult.data,
+    translations: translationResult.data,
+    locales: localeResult.data,
   };
 };
 
@@ -49,11 +40,11 @@ export const actions: Actions = {
 
     if (isNaN(linkId) || isNaN(localeId)) return fail(422, { error: 'Invalid parameters.' });
 
-    // uq_local_text_entry (link, locale) is what makes this an upsert rather than
-    // a read-then-write.
-    const { error: upsertError } = await locals.supabase
-      .from('local_text')
-      .upsert({ link: linkId, locale: localeId, content }, { onConflict: 'link,locale' });
+    const { error: upsertError } = await saveLocalText(locals.supabase, {
+      link: linkId,
+      locale: localeId,
+      content,
+    });
 
     if (upsertError) return fail(500, { error: 'Failed to save translation.' });
 
@@ -64,9 +55,7 @@ export const actions: Actions = {
     const id = parseInt(params.id);
     if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    const { error: rpcError } = await locals.supabase.rpc('delete_local_text_entry', {
-      p_link_id: id,
-    });
+    const { error: rpcError } = await deleteLocalTextEntry(locals.supabase, id);
 
     if (rpcError) return fail(500, { error: 'Failed to delete copy entry.' });
 

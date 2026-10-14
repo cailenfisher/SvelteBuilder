@@ -48,16 +48,19 @@ produced are stated here. Read alongside `CLAUDE.md`'s _Template Status_ and `do
 
 Added 2026-10-13 with the conformance plan (`docs/CONFORMANCE-PLAN.md`, decisions D5 and D6):
 
-9. **Queries live in one data module per concept, shipped per module, not per bundle.** A module's
+9. **Queries live in one data module per table, shipped per module, not per bundle.** A module's
    template directory gains a module-level `server.<flavor>/` overlay, which the CLI copies to
    `src/lib/server/<module>/` whenever the module is selected, exactly as it already copies the
-   module's `supplemental/` and `seed/`. Each file is one concept (`inbound-receipt.ts`), each
-   function takes the request's `supabase` client, and route files call these instead of
+   module's `supplemental/` and `seed/`. Each file is named like a schema file of the module
+   (`inbound-receipt.ts`, `inbound-receipt-line.ts`) and holds the functions whose query starts from
+   that table. Each function takes the request's `supabase` client and returns supabase-js's
+   `{ data, error }` with the rows already in camelCase; route files call these instead of
    `.from(…)`. This keeps decision 1 intact (the package still ships no queries) and fixes what
    decision 6 left open: code two bundles share had nowhere to live, because a bundle-local module
    is invisible to its siblings and `$lib` would reach scaffolds without the module. Rejected
    alternative: bundle-local `<concept>.server.ts` files, which duplicate across bundles that read
-   the same concept.
+   the same concept. One file per table rather than per concept (amended 2026-10-14, Phase 9) so
+   that a query's location follows from its table's name alone, as the schema's does.
 
 10. **A screen's extracted components go where their dependencies point.** Presentational ones
     (props in, markup out) go in the module package's concept folder and get a dev-kitchen

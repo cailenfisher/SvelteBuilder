@@ -1,119 +1,40 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { loadEntityCopy, loadScopedCopy } from '$lib/server/scoped-copy';
-import type { ArticleAdminListView, ArticleRow } from '@sveltebuilder/content/views';
+import { createLocalTextEntry } from '$lib/server/local-text';
+import { createArticle, listArticle } from '$lib/server/content/article';
+import { getInitialArticleStatus, listArticleStatus } from '$lib/server/content/article-status';
+import type { ArticleAdminListView } from '@sveltebuilder/content/views';
 import type { Actions, PageServerLoad } from './$types';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin regardless.
 // Note what this means for the list: an admin sees every article at every status, because the
 // article admin policy is `for all`, while the public read policy only admits published ones.
-// The same query run by a reader would return a different set, which is the point.
 
 const PER_PAGE = 20;
-
-const toOne = <T>(embed: T | T[] | null): T | null =>
-  embed === null ? null : Array.isArray(embed) ? (embed[0] ?? null) : embed;
-
-const ARTICLE_COLUMNS =
-  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_expires_at, comment_allowed, lead_media_asset_id, created_at, article_status!inner(id, slug, position), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, position, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
 
 export const load: PageServerLoad = async ({ locals, url }): Promise<ArticleAdminListView> => {
   const statusSlug = url.searchParams.get('status');
 
   const pageParam = Number(url.searchParams.get('page') ?? '1');
   const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
-  const from = (page - 1) * PER_PAGE;
 
-  const statusesResult = await locals.supabase
-    .from('article_status')
-    .select('id, slug, position')
-    .order('position');
-
+  const statusesResult = await listArticleStatus(locals.supabase);
   if (statusesResult.error) throw error(500, 'Failed to load statuses.');
 
-  const statuses = (statusesResult.data ?? []).map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    position: row.position,
-  }));
+  const statuses = statusesResult.data;
 
   // An unknown status in the query string filters to nothing rather than silently showing
   // everything, which would be the more confusing of the two.
   const status = statusSlug === null ? null : (statuses.find((s) => s.slug === statusSlug) ?? null);
 
-  let query = locals.supabase
-    .from('article')
-    .select(ARTICLE_COLUMNS, { count: 'exact' })
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-    .range(from, from + PER_PAGE - 1);
-
-  if (status !== null) query = query.eq('article_status_id', status.id);
-
-  const articlesResult = await query;
+  const articlesResult = await listArticle(
+    locals.supabase,
+    { articleStatusId: status?.id ?? null },
+    { offset: (page - 1) * PER_PAGE, limit: PER_PAGE }
+  );
   if (articlesResult.error) throw error(500, 'Failed to load articles.');
 
-  const articles: ArticleRow[] = [];
-  for (const row of articlesResult.data ?? []) {
-    const rowStatus = toOne(row.article_status);
-    if (rowStatus === null) continue;
-
-    articles.push({
-      id: row.id,
-      articleStatusId: row.article_status_id,
-      canonicalSlug: row.canonical_slug,
-      publishedAt: row.published_at,
-      updatedAt: row.updated_at,
-      deletedAt: row.deleted_at,
-      embargoExpiresAt: row.embargo_expires_at,
-      commentAllowed: row.comment_allowed,
-      leadMediaAssetId: row.lead_media_asset_id,
-      createdAt: row.created_at,
-      status: { id: rowStatus.id, slug: rowStatus.slug, position: rowStatus.position },
-      bylines: (row.article_byline ?? [])
-        .map((byline) => ({ position: byline.position, author: toOne(byline.author_profile) }))
-        .filter(
-          (byline): byline is { position: number; author: NonNullable<typeof byline.author> } =>
-            byline.author !== null
-        )
-        .sort((a, b) => a.position - b.position)
-        .map(({ author }) => ({
-          id: author.id,
-          userAccountId: author.user_account_id,
-          slug: author.slug,
-          active: author.active,
-          createdAt: author.created_at,
-        })),
-      sections: (row.article_section ?? [])
-        .map((entry) => toOne(entry.section))
-        .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
-        .map((entry) => ({
-          id: entry.id,
-          parentSectionId: entry.parent_section_id,
-          slug: entry.slug,
-          position: entry.position,
-          active: entry.active,
-          createdAt: entry.created_at,
-        })),
-      topics: (row.article_topic ?? [])
-        .map((entry) => toOne(entry.topic))
-        .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
-        .map((entry) => ({
-          id: entry.id,
-          slug: entry.slug,
-          active: entry.active,
-          createdAt: entry.created_at,
-        })),
-      tags: (row.article_tag ?? [])
-        .map((entry) => toOne(entry.tag))
-        .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
-        .map((entry) => ({
-          id: entry.id,
-          slug: entry.slug,
-          active: entry.active,
-          createdAt: entry.created_at,
-        })),
-    });
-  }
+  const articles = articlesResult.data.rows;
 
   const [uiCopy, entityCopy] = await Promise.all([
     loadScopedCopy(locals.supabase, ['content'], locals.locale.code, locals.defaultLocale.code),
@@ -140,7 +61,7 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<ArticleAdmi
     articles,
     statuses,
     statusSlug: status?.slug ?? null,
-    total: articlesResult.count ?? articles.length,
+    total: articlesResult.data.total,
     page,
     perPage: PER_PAGE,
     localeCode: locals.locale.code,
@@ -161,41 +82,31 @@ export const actions: Actions = {
     if (!canonicalSlug) return fail(422, { error: 'A URL slug is required.' });
     if (!headline) return fail(422, { error: 'A headline is required.' });
 
-    // New articles start at the first workflow status by position rather than a hardcoded slug,
-    // so renaming or reordering the workflow does not strand this action.
-    const statusResult = await locals.supabase
-      .from('article_status')
-      .select('id')
-      .order('position')
-      .limit(1)
-      .maybeSingle();
+    const statusResult = await getInitialArticleStatus(locals.supabase);
 
     if (statusResult.error || !statusResult.data) {
       return fail(500, { error: 'No article statuses are configured.' });
     }
 
-    const insertResult = await locals.supabase
-      .from('article')
-      .insert({ article_status_id: statusResult.data.id, canonical_slug: canonicalSlug })
-      .select('id')
-      .single();
+    const { data: articleId, error: insertError } = await createArticle(locals.supabase, {
+      articleStatusId: statusResult.data.id,
+      canonicalSlug,
+    });
 
-    if (insertResult.error || insertResult.data === null) {
+    if (insertError) {
       // 23505 is unique_violation on canonical_slug, which is a user error rather than a fault.
-      if (insertResult.error?.code === '23505') {
+      if (insertError.code === '23505') {
         return fail(409, { error: 'That URL slug is already in use.' });
       }
       return fail(500, { error: 'Failed to create the article.' });
     }
 
-    const articleId = insertResult.data.id;
-
-    const { error: copyError } = await locals.supabase.rpc('create_local_text_entry', {
-      p_slug: 'headline',
-      p_scope: 'article',
-      p_entity_id: articleId,
-      p_locale_ids: [locals.locale.id],
-      p_contents: [headline],
+    const { error: copyError } = await createLocalTextEntry(locals.supabase, {
+      slug: 'headline',
+      scope: 'article',
+      entityId: articleId,
+      localeIds: [locals.locale.id],
+      contents: [headline],
     });
 
     if (copyError) {

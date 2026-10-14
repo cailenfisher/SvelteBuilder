@@ -1,5 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
+import { addSupplierContact, deleteSupplierContact } from '$lib/server/logistic/supplier-contact';
+import { getSupplier, updateSupplier } from '$lib/server/logistic/supplier';
 import type { SupplierDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -11,13 +13,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<Supplier
   if (!Number.isInteger(id)) throw error(404, 'Not found.');
 
   const [supplierResult, copy] = await Promise.all([
-    locals.supabase
-      .from('supplier')
-      .select(
-        'id, slug, lead_time_day, active, created_at, supplier_contact(id, supplier_id, role, name, email, phone, created_at)'
-      )
-      .eq('id', id)
-      .maybeSingle(),
+    getSupplier(locals.supabase, id),
     loadScopedCopy(
       locals.supabase,
       ['logistic', 'supplier'],
@@ -27,30 +23,14 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<Supplier
   ]);
 
   if (supplierResult.error) throw error(500, 'Failed to load supplier.');
-  // Null here also covers "RLS refused the row", which is the correct response to
-  // give either way: a caller who may not read it should not learn it exists.
   if (!supplierResult.data) throw error(404, 'Supplier not found.');
 
-  const row = supplierResult.data;
+  const supplier = supplierResult.data;
 
   return {
     supplier: {
-      id: row.id,
-      slug: row.slug,
-      leadTimeDay: row.lead_time_day,
-      active: row.active,
-      createdAt: row.created_at,
-      contacts: (row.supplier_contact ?? [])
-        .map((contact) => ({
-          id: contact.id,
-          supplierId: contact.supplier_id,
-          role: contact.role,
-          name: contact.name,
-          email: contact.email,
-          phone: contact.phone,
-          createdAt: contact.created_at,
-        }))
-        .sort((a, b) => a.role.localeCompare(b.role)),
+      ...supplier,
+      contacts: [...supplier.contacts].sort((a, b) => a.role.localeCompare(b.role)),
     },
     copy,
   };
@@ -75,14 +55,11 @@ export const actions: Actions = {
       return fail(422, { error: 'Lead time must be a whole number of days.' });
     }
 
-    const { error: updateError } = await locals.supabase
-      .from('supplier')
-      .update({
-        slug,
-        lead_time_day: leadTimeDay,
-        active: form.get('active') === 'true',
-      })
-      .eq('id', id);
+    const { error: updateError } = await updateSupplier(locals.supabase, id, {
+      slug,
+      leadTimeDay,
+      active: form.get('active') === 'true',
+    });
 
     if (updateError) return fail(500, { error: 'Failed to save the supplier.' });
 
@@ -99,8 +76,7 @@ export const actions: Actions = {
 
     if (!role || !name) return fail(422, { error: 'Role and name are required.' });
 
-    const { error: insertError } = await locals.supabase.from('supplier_contact').insert({
-      supplier_id: supplierId,
+    const { error: insertError } = await addSupplierContact(locals.supabase, supplierId, {
       role,
       name,
       email: (form.get('email') as string | null)?.trim() || null,
@@ -119,14 +95,11 @@ export const actions: Actions = {
 
     if (!Number.isInteger(contactId)) return fail(422, { error: 'Invalid contact.' });
 
-    // Scoped to this supplier as well as the contact id: without it, a crafted form
-    // post could delete a contact belonging to a different supplier. RLS permits the
-    // delete for any admin, so narrowing it is this route's job.
-    const { error: deleteError } = await locals.supabase
-      .from('supplier_contact')
-      .delete()
-      .eq('id', contactId)
-      .eq('supplier_id', supplierId);
+    const { error: deleteError } = await deleteSupplierContact(
+      locals.supabase,
+      supplierId,
+      contactId
+    );
 
     if (deleteError) return fail(500, { error: 'Failed to remove the contact.' });
 

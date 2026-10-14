@@ -1,20 +1,18 @@
 import { error, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { LOCALE_COLUMNS, toLocale } from '$lib/server/postgrest';
+import { listLocale } from '$lib/server/locale';
+import {
+  createLocalTextEntry,
+  deleteLocalTextEntry,
+  listLocalText,
+  listLocalTextLink,
+} from '$lib/server/local-text';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const [entryResult, translationResult, localeResult] = await Promise.all([
-    locals.supabase
-      .from('local_text_link')
-      .select('id, slug, scope, entity_id')
-      .order('slug'),
-    locals.supabase
-      .from('local_text')
-      .select('id, link, locale, content'),
-    locals.supabase
-      .from('locale')
-      .select(LOCALE_COLUMNS)
-      .order('code'),
+    listLocalTextLink(locals.supabase),
+    listLocalText(locals.supabase),
+    listLocale(locals.supabase),
   ]);
 
   if (entryResult.error || translationResult.error || localeResult.error) {
@@ -22,14 +20,9 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   return {
-    entries: (entryResult.data ?? []).map((row) => ({
-      id: row.id,
-      slug: row.slug,
-      scope: row.scope,
-      entityId: row.entity_id,
-    })),
-    translations: translationResult.data ?? [],
-    locales: (localeResult.data ?? []).map(toLocale),
+    entries: entryResult.data,
+    translations: translationResult.data,
+    locales: localeResult.data,
   };
 };
 
@@ -47,13 +40,12 @@ export const actions: Actions = {
 
     if (localeIds.some(isNaN)) return fail(422, { error: 'Invalid locale.' });
 
-    // One RPC, not an insert followed by a second insert: the link and its copy
-    // have to land in the same transaction or a failure leaves an orphaned slug.
-    const { error: rpcError } = await locals.supabase.rpc('create_local_text_entry', {
-      p_slug: slug,
-      p_scope: scope,
-      p_locale_ids: localeIds,
-      p_contents: contents,
+    const { error: rpcError } = await createLocalTextEntry(locals.supabase, {
+      slug,
+      scope,
+      entityId: null,
+      localeIds,
+      contents,
     });
 
     if (rpcError) return fail(500, { error: 'Failed to create copy entry.' });
@@ -67,9 +59,7 @@ export const actions: Actions = {
 
     if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    const { error: rpcError } = await locals.supabase.rpc('delete_local_text_entry', {
-      p_link_id: id,
-    });
+    const { error: rpcError } = await deleteLocalTextEntry(locals.supabase, id);
 
     if (rpcError) return fail(500, { error: 'Failed to delete copy entry.' });
 

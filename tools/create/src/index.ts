@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { syncSupabase } from '@sveltebuilder/cli/api';
+import { copyModuleTemplate } from './module-template.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -422,36 +423,12 @@ async function main() {
 
   // ── Step 3: Copy module templates ─────────────────────────────────────────
   for (const mod of modules) {
-    const modDir = path.join(TEMPLATES_DIR, 'modules', mod);
-
-    // Copy module supplemental SQL (RLS, triggers, cross-FK constraints) to supabase/supplemental/
-    const supplementalDir = path.join(modDir, 'supplemental');
-    if (await fs.pathExists(supplementalDir)) {
-      await fs.copy(supplementalDir, path.join(targetDir, 'supabase', 'supplemental'), {
-        overwrite: true,
-      });
-    }
-
-    // Copy module manifest to .sveltebuilder/registry/
-    const manifestSrc = path.join(modDir, 'manifest.json');
-    if (await fs.pathExists(manifestSrc)) {
-      const manifestDest = path.join(
-        targetDir,
-        '.sveltebuilder',
-        'registry',
-        `@sveltebuilder-${mod}.json`
-      );
-      await fs.copy(manifestSrc, manifestDest, { overwrite: true });
-    }
-
-    // Copy module seed SQL to supabase/seeds/<mod>.sql
-    // sync:supabase will append these to the generated seed.sql
-    const modSeedPath = path.join(modDir, 'seed', 'seed.sql');
-    if (await fs.pathExists(modSeedPath)) {
-      const seedDestDir = path.join(targetDir, 'supabase', 'seeds');
-      await fs.ensureDir(seedDestDir);
-      await fs.copy(modSeedPath, path.join(seedDestDir, `${mod}.sql`), { overwrite: true });
-    }
+    await copyModuleTemplate({
+      templatesDir: TEMPLATES_DIR,
+      module: mod,
+      scaffoldTemplate,
+      targetDir,
+    });
   }
 
   // ── Step 3b: Copy selected screen bundles ─────────────────────────────────

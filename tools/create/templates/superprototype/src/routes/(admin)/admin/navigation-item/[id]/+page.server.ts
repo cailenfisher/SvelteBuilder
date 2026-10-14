@@ -1,21 +1,20 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { LOCALE_COLUMNS, toLocale, toOne } from '$lib/server/postgrest';
+import { listLocale } from '$lib/server/locale';
+import { listLocalText, saveLocalText } from '$lib/server/local-text';
+import {
+  deleteNavigationItem,
+  getNavigationItem,
+  updateNavigationItem,
+} from '$lib/server/navigation-item';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
   if (isNaN(id)) throw error(404, 'Not found');
 
   const [navResult, localeResult] = await Promise.all([
-    locals.supabase
-      .from('navigation_item')
-      .select('id, href, menu, position, active, local_text_link(id, slug, scope)')
-      .eq('id', id)
-      .maybeSingle(),
-    locals.supabase
-      .from('locale')
-      .select(LOCALE_COLUMNS)
-      .order('code'),
+    getNavigationItem(locals.supabase, id),
+    listLocale(locals.supabase),
   ]);
 
   if (navResult.error || localeResult.error) {
@@ -23,28 +22,18 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
   if (!navResult.data) throw error(404, 'Navigation item not found');
 
-  const linkId = toOne(navResult.data.local_text_link)?.id ?? null;
+  const linkId = navResult.data.localTextLink?.id ?? null;
 
   const { data: translations, error: translationError } = linkId
-    ? await locals.supabase
-        .from('local_text')
-        .select('id, link, locale, content')
-        .eq('link', linkId)
+    ? await listLocalText(locals.supabase, linkId)
     : { data: [], error: null };
 
   if (translationError) throw error(500, 'Failed to load translations.');
 
   return {
-    navItem: {
-      id: navResult.data.id,
-      href: navResult.data.href,
-      menu: navResult.data.menu,
-      position: navResult.data.position,
-      active: navResult.data.active,
-      localTextLink: toOne(navResult.data.local_text_link),
-    },
-    translations: translations ?? [],
-    locales: (localeResult.data ?? []).map(toLocale),
+    navItem: navResult.data,
+    translations,
+    locales: localeResult.data,
   };
 };
 
@@ -62,10 +51,12 @@ export const actions: Actions = {
       return fail(422, { error: 'URL and menu are required.' });
     }
 
-    const { error: updateError } = await locals.supabase
-      .from('navigation_item')
-      .update({ href, menu, position, active })
-      .eq('id', id);
+    const { error: updateError } = await updateNavigationItem(locals.supabase, id, {
+      href,
+      menu,
+      position,
+      active,
+    });
 
     if (updateError) return fail(500, { error: 'Failed to update navigation item.' });
 
@@ -82,21 +73,16 @@ export const actions: Actions = {
     if (isNaN(navId) || isNaN(localeId)) return fail(422, { error: 'Invalid parameters.' });
 
     // Read-then-write needs no transaction: if the upsert fails nothing changed.
-    const { data: navItem, error: readError } = await locals.supabase
-      .from('navigation_item')
-      .select('local_text_link_id')
-      .eq('id', navId)
-      .maybeSingle();
+    const { data: navItem, error: readError } = await getNavigationItem(locals.supabase, navId);
 
     if (readError) return fail(500, { error: 'Failed to load navigation item.' });
-    if (!navItem?.local_text_link_id) return fail(404, { error: 'Navigation item not found.' });
+    if (!navItem) return fail(404, { error: 'Navigation item not found.' });
 
-    const { error: upsertError } = await locals.supabase
-      .from('local_text')
-      .upsert(
-        { link: navItem.local_text_link_id, locale: localeId, content },
-        { onConflict: 'link,locale' },
-      );
+    const { error: upsertError } = await saveLocalText(locals.supabase, {
+      link: navItem.localTextLinkId,
+      locale: localeId,
+      content,
+    });
 
     if (upsertError) return fail(500, { error: 'Failed to save translation.' });
 
@@ -107,9 +93,7 @@ export const actions: Actions = {
     const id = parseInt(params.id);
     if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
 
-    const { error: rpcError } = await locals.supabase.rpc('delete_navigation_item', {
-      p_id: id,
-    });
+    const { error: rpcError } = await deleteNavigationItem(locals.supabase, id);
 
     if (rpcError) return fail(500, { error: 'Failed to delete navigation item.' });
 

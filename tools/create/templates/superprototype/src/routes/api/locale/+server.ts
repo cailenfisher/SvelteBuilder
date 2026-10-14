@@ -1,28 +1,18 @@
 import { json, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { Locale } from 'diglossia';
+import { getLocaleByCode, listLocale } from '$lib/server/locale';
 
 // public.locale is world-readable (locale_public_read), so these run fine with no
 // session on the publishable key.
 
 export const GET: RequestHandler = async ({ locals }) => {
-  const { data, error } = await locals.supabase
-    .from('locale')
-    .select('id, code, name, native_name, dir')
-    .order('name');
+  const { data: locales, error } = await listLocale(locals.supabase, 'name');
 
   if (error) {
     console.error('[locale] query error:', error);
     return json([] satisfies Locale[], { status: 200 });
   }
-
-  const locales: Locale[] = (data ?? []).map((row) => ({
-    id: row.id,
-    code: row.code,
-    name: row.name,
-    nativeName: row.native_name,
-    dir: row.dir as 'ltr' | 'rtl',
-  }));
 
   return json(locales);
 };
@@ -35,13 +25,12 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
     return json({ error: 'Invalid locale code' }, { status: 400 });
   }
 
-  const { data } = await locals.supabase
-    .from('locale')
-    .select('code')
-    .eq('code', code)
-    .maybeSingle();
+  // An unknown code, or a failed lookup, falls back to the default locale rather than
+  // refusing the switch; the failure is logged so it is not silent.
+  const { data: locale, error } = await getLocaleByCode(locals.supabase, code);
+  if (error) console.error('[locale] lookup error:', error);
 
-  const resolvedCode = data?.code ?? locals.defaultLocale.code;
+  const resolvedCode = locale?.code ?? locals.defaultLocale.code;
 
   cookies.set('locale', resolvedCode, {
     path: '/',

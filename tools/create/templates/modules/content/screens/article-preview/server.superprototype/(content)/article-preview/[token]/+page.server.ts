@@ -1,71 +1,24 @@
 import { error } from '@sveltejs/kit';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { loadEntityCopy, loadScopedCopy } from '$lib/server/scoped-copy';
-import type { ArticleBlock } from '@sveltebuilder/content';
+import { getArticleByPreviewToken } from '$lib/server/content/article-preview-token';
+import { getArticleStatus } from '$lib/server/content/article-status';
+import { listMediaAsset, listMediaAssetAttribution } from '$lib/server/content/media-asset';
 import type { ArticlePreviewDetailView } from '@sveltebuilder/content/views';
 import type { PageServerLoad } from './$types';
 
-// The token is the credential, and this route presents it to two SECURITY DEFINER functions
-// rather than reading the article directly. RLS hides an unpublished article, and a policy
-// cannot see which token a request carried — admitting "any article with a live token" would
-// make every draft with an outstanding preview link world-readable. See the module's
-// supabase/supplemental/02-content-rls.sql.
-//
-// Nothing here checks expiry or existence: both functions return no rows for a token that is
-// unknown or expired, which is why an invalid token and a missing article are the same 404.
+// The token is the credential; see getArticleByPreviewToken for why it never reads the article
+// directly. An invalid token and a missing article are the same 404.
 
 const STORAGE_BASE_URL = `${PUBLIC_SUPABASE_URL}/storage/v1/object/public`;
 
-// supabase-js infers a row type from a `.select()` string literal, but an `.rpc()` call is just
-// a function name — it has no way to know what comes back without generated database types, so
-// it types the result as `{}`. These two shapes mirror what the functions return, which is
-// `setof article` and `setof article_block`: the tables' own columns, snake_case.
-type PreviewArticleRow = {
-  id: number;
-  article_status_id: number;
-  canonical_slug: string;
-  published_at: string | null;
-  updated_at: string;
-  deleted_at: string | null;
-  embargo_expires_at: string | null;
-  comment_allowed: boolean;
-  lead_media_asset_id: number | null;
-  created_at: string;
-};
-
-type PreviewBlockRow = {
-  id: number;
-  article_id: number;
-  block_type: ArticleBlock['blockType'];
-  position: number;
-  content: ArticleBlock['content'];
-  media_asset_id: number | null;
-  created_at: string;
-};
-
 export const load: PageServerLoad = async ({ locals, params }): Promise<ArticlePreviewDetailView> => {
-  const [articleResult, blocksResult] = await Promise.all([
-    locals.supabase.rpc('content_preview_article', { p_token: params.token }).maybeSingle(),
-    locals.supabase.rpc('content_preview_blocks', { p_token: params.token }),
-  ]);
+  const previewResult = await getArticleByPreviewToken(locals.supabase, params.token);
 
-  if (articleResult.error) throw error(500, 'Failed to load the preview.');
-  if (blocksResult.error) throw error(500, 'Failed to load the preview.');
-  if (!articleResult.data) throw error(404, 'Preview not found, or the link has expired.');
+  if (previewResult.error) throw error(500, 'Failed to load the preview.');
+  if (!previewResult.data) throw error(404, 'Preview not found, or the link has expired.');
 
-  const row = articleResult.data as PreviewArticleRow;
-
-  const blocks = ((blocksResult.data ?? []) as PreviewBlockRow[])
-    .map((block) => ({
-      id: block.id,
-      articleId: block.article_id,
-      blockType: block.block_type,
-      position: block.position,
-      content: block.content,
-      mediaAssetId: block.media_asset_id,
-      createdAt: block.created_at,
-    }))
-    .sort((a, b) => a.position - b.position);
+  const { article, blocks } = previewResult.data;
 
   // The relations are read normally rather than through the token, because none of them is
   // secret: a status, a byline and a section leak nothing about an unpublished story's content.
@@ -73,32 +26,16 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<ArticleP
   // these come back empty — a preview shows the body, not the filing.
   const mediaAssetIds = [
     ...new Set(
-      [...blocks.map((b) => b.mediaAssetId), row.lead_media_asset_id].filter(
+      [...blocks.map((b) => b.mediaAssetId), article.leadMediaAssetId].filter(
         (id): id is number => id !== null
       )
     ),
   ];
 
   const [statusResult, mediaResult, attributionResult, uiCopy] = await Promise.all([
-    locals.supabase
-      .from('article_status')
-      .select('id, slug, position')
-      .eq('id', row.article_status_id)
-      .maybeSingle(),
-    mediaAssetIds.length > 0
-      ? locals.supabase
-          .from('media_asset')
-          .select('id, media_type, storage_key, width, height, mime_type, user_account_id, created_at')
-          .in('id', mediaAssetIds)
-      : Promise.resolve({ data: [], error: null }),
-    // Public provenance for the credit lines: license and source URLs, for the asset kinds that
-    // are credited in public. A view, because the rights tables behind it are admin-only.
-    mediaAssetIds.length > 0
-      ? locals.supabase
-          .from('media_asset_attribution')
-          .select('media_asset_id, license, source_url, license_url')
-          .in('media_asset_id', mediaAssetIds)
-      : Promise.resolve({ data: [], error: null }),
+    getArticleStatus(locals.supabase, article.articleStatusId),
+    listMediaAsset(locals.supabase, mediaAssetIds),
+    listMediaAssetAttribution(locals.supabase, mediaAssetIds),
     loadScopedCopy(locals.supabase, ['content'], locals.locale.code, locals.defaultLocale.code),
   ]);
 
@@ -109,13 +46,10 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<ArticleP
   const entityCopy = await loadEntityCopy(
     locals.supabase,
     [
-      { scope: 'article', ids: [row.id] },
+      { scope: 'article', ids: [article.id] },
       { scope: 'article_block', ids: blocks.map((block) => block.id) },
       { scope: 'article_status', ids: statusResult.data ? [statusResult.data.id] : [] },
-      {
-        scope: 'media_asset',
-        ids: (mediaResult.data ?? []).map((asset) => asset.id),
-      },
+      { scope: 'media_asset', ids: mediaResult.data.map((asset) => asset.id) },
     ],
     locals.locale.code,
     locals.defaultLocale.code
@@ -123,48 +57,19 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<ArticleP
 
   return {
     article: {
-      id: row.id,
-      articleStatusId: row.article_status_id,
-      canonicalSlug: row.canonical_slug,
-      publishedAt: row.published_at,
-      updatedAt: row.updated_at,
-      deletedAt: row.deleted_at,
-      embargoExpiresAt: row.embargo_expires_at,
-      commentAllowed: row.comment_allowed,
-      leadMediaAssetId: row.lead_media_asset_id,
-      createdAt: row.created_at,
-      status: statusResult.data
-        ? {
-            id: statusResult.data.id,
-            slug: statusResult.data.slug,
-            position: statusResult.data.position,
-          }
-        : // article_status is world-readable, so this is unreachable in practice; the shape is
-          // satisfied rather than asserted so a missing row cannot crash a preview.
-          { id: row.article_status_id, slug: 'draft', position: 0 },
+      ...article,
+      // article_status is world-readable, so a missing row is unreachable in practice; the
+      // shape is satisfied rather than asserted so a missing row cannot crash a preview.
+      status: statusResult.data ?? { id: article.articleStatusId, slug: 'draft', position: 0 },
       blocks,
       bylines: [],
       sections: [],
       topics: [],
       tags: [],
     },
-    attributions: (attributionResult.data ?? []).map((row) => ({
-      mediaAssetId: row.media_asset_id,
-      license: row.license,
-      sourceUrl: row.source_url,
-      licenseUrl: row.license_url,
-    })),
+    attributions: attributionResult.data,
     storageBaseUrl: STORAGE_BASE_URL,
-    mediaAssets: (mediaResult.data ?? []).map((asset) => ({
-      id: asset.id,
-      mediaType: asset.media_type,
-      storageKey: asset.storage_key,
-      width: asset.width,
-      height: asset.height,
-      mimeType: asset.mime_type,
-      userAccountId: asset.user_account_id,
-      createdAt: asset.created_at,
-    })),
+    mediaAssets: mediaResult.data,
     localeCode: locals.locale.code,
     copy: [...uiCopy, ...entityCopy],
   };
