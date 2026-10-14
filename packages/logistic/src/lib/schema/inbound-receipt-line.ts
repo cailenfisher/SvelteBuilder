@@ -19,7 +19,7 @@ export const inboundReceiptLine = pgTable(
     discrepancy: integer('discrepancy')
       .generatedAlwaysAs(sql`received_quantity - expected_quantity`)
       .notNull(),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_inbound_receipt_line_receipt').on(table.inboundReceiptId)],
 );

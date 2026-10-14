@@ -251,6 +251,21 @@ other than `BarcodeInput` consumes it.
 
 ---
 
+## Styling a class passed to a child component: revisit (open, 2026-10-13)
+
+The base template's local-text admin page gives `TableCell` the class
+`local-text-admin__content-cell` and styles it in its own `<style>` block. Svelte scopes that block
+to elements the page renders itself, so the rule never matched, and `svelte-check` reported it as
+unused. The fix applied is `:global(.local-text-admin__content-cell)`.
+
+That is a stopgap. `:global` escapes scoping for a page-specific class, and the same pattern will
+recur anywhere a screen styles a coreui component it composes. Decide the real mechanism: a page
+wrapper element with `.wrapper :global(.cell)`, an unlayered page stylesheet, or a coreui prop for
+the specific need (truncation here). Settle it before Phase 10 extracts screen sub-components,
+which will multiply the cases.
+
+---
+
 ## Changesets: a coreui minor forces a major on every module (open, 2026-10-08)
 
 `@sveltebuilder/content` and `@sveltebuilder/logistic` declare coreui as a peer dependency with

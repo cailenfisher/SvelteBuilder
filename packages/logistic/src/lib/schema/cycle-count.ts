@@ -12,8 +12,8 @@ export const cycleCount = pgTable(
     // FK to user_account(id) — cross-package ref added via supplemental SQL
     userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
     status: cycleCountStatus('status').notNull().default('open'),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_cycle_count_status').on(table.status, table.createdAt)],
 );

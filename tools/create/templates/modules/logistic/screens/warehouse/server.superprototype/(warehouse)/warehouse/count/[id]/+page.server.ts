@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<CountDet
 
   const row = countResult.data;
   if (row.user_account_id !== userAccountId) throw error(403, 'That count is not yours.');
-  if (row.status === 'complete') redirect(303, '/warehouse/count');
+  if (row.status === 'completed') redirect(303, '/warehouse/count');
   if (row.status === 'cancelled') throw error(410, 'That count has been cancelled.');
 
   const toOne = <T>(embed: T | T[] | null): T | null =>

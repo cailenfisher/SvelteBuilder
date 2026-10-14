@@ -348,7 +348,7 @@ Write changesets. Gate, including `pnpm sql:check`. Pause for review.
 1. Enter pre mode: `pnpm changeset pre enter rc`.
 2. Confirm with `pnpm changeset status --verbose` that the plan is exactly: coreui `1.0.0-rc.0`, content `2.0.0-rc.0`, logistic `2.0.0-rc.0`, and only minors or patches for everything else. Stop if not.
 3. Confirm content and logistic peer on coreui `^1.0.0-rc.0` (which also admits `1.0.0` and every later 1.x).
-4. Write `docs/MIGRATION-2.0.md`: every old → new export, component, prop, callback, route, view type, copy slug, CSS class, enum value and column, with the SQL for existing databases.
+4. Complete `docs/MIGRATION-2.0.md` (drafted from Phase 5 on): every old → new export, component, prop, callback, route, view type, copy slug, CSS class, enum value and column, with the SQL for existing databases. **Validate the SQL**: build a database from the last 1.x scaffold, run the upgrade, re-apply the supplemental files, and confirm `pnpm sql:check`'s assertions pass against it.
 5. Update `docs/COREUI-1.0.md` to show stages 1, 2 (partial) and 4 (policy) done, and stages 3 and 5 in progress.
 6. Pause. The release itself is the maintainer's call: merging `dev` to `main` publishes the RC.
 

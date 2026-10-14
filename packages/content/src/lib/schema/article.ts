@@ -20,8 +20,8 @@ export const article = pgTable(
     publishedAt: timestamp('published_at', { withTimezone: true, mode: 'string' }),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'string' }),
-    embargoUntil: timestamp('embargo_until', { withTimezone: true, mode: 'string' }),
-    allowComment: boolean('allow_comment').notNull().default(true),
+    embargoExpiresAt: timestamp('embargo_expires_at', { withTimezone: true, mode: 'string' }),
+    commentAllowed: boolean('comment_allowed').notNull().default(true),
     // The image og:image, the JSON-LD image, the article page's hero and its cards lead with.
     // Null means "the first image block", the rule that applied before this column existed —
     // see selectLeadMediaAssetId in publishing/lead-image.ts. Set null on delete so removing an
@@ -36,7 +36,7 @@ export const article = pgTable(
     index('idx_article_lead_media').on(table.leadMediaAssetId),
     index('idx_article_status').on(table.articleStatusId),
     index('idx_article_canonical_slug').on(table.canonicalSlug),
-    index('idx_article_embargo').on(table.embargoUntil),
+    index('idx_article_embargo').on(table.embargoExpiresAt),
   ]
 );
 

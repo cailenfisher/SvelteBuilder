@@ -27,7 +27,7 @@
   );
 
   const statusVariant = $derived(
-    receipt.status === 'complete'  ? 'success'
+    receipt.status === 'completed' ? 'success'
     : receipt.status === 'partial'  ? 'warning'
     : receipt.status === 'cancelled'? 'danger'
     : 'default'

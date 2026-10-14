@@ -15,11 +15,11 @@ export const inboundReceipt = pgTable(
     // FK to user_account(id) — cross-package ref added via supplemental SQL
     userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
     status: inboundReceiptStatus('status').notNull().default('pending'),
-    expectedAt: timestamp('expected_at', { mode: 'string' }),
-    receivedAt: timestamp('received_at', { mode: 'string' }),
+    expectedAt: timestamp('expected_at', { withTimezone: true, mode: 'string' }),
+    receivedAt: timestamp('received_at', { withTimezone: true, mode: 'string' }),
     note: text('note'),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_inbound_receipt_supplier').on(table.supplierId),

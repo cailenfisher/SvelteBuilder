@@ -36,7 +36,7 @@
   // Badge takes a variant, not a domain status: mapping the one to the other is the
   // caller's job by design, since only the domain knows which states are good news.
   const statusVariant = (status: CycleCountStatus) =>
-    status === 'complete'
+    status === 'completed'
       ? 'success'
       : status === 'in_progress'
         ? 'warning'

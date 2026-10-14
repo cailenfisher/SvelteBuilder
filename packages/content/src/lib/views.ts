@@ -181,7 +181,7 @@ export type AdminArticleListView = ScreenCopy &
   ScreenLocale &
   ScreenPage & {
     articles: ArticleRow[];
-    /** Every workflow status, in ordinal order, for the filter and the create form. */
+    /** Every workflow status, in position order, for the filter and the create form. */
     statuses: ArticleStatus[];
     /** Null means unfiltered, which is not the same as any particular status. */
     statusSlug: string | null;
@@ -203,7 +203,7 @@ export type AdminArticleDetailView = ScreenCopy &
 export type ChecklistEntry = {
   id: number;
   slug: string;
-  ordinal: number;
+  position: number;
   required: boolean;
   completed: boolean;
 };

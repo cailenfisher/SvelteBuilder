@@ -24,7 +24,7 @@ const asset = (id: number): MediaAsset => ({
   width: 800,
   height: 600,
   mimeType: 'image/jpeg',
-  uploadedBy: 1,
+  userAccountId: 1,
   createdAt: '2026-09-29T00:00:00.000Z',
 });
 
@@ -145,11 +145,11 @@ describe('ArticleCard picture', () => {
     publishedAt: null,
     updatedAt: '2026-09-30T00:00:00.000Z',
     deletedAt: null,
-    embargoUntil: null,
-    allowComment: true,
+    embargoExpiresAt: null,
+    commentAllowed: true,
     createdAt: '2026-09-29T00:00:00.000Z',
   } as Article;
-  const status = { id: 1, slug: 'published', ordinal: 1 };
+  const status = { id: 1, slug: 'published', position: 1 };
   const mediaAssets = new Map([[4, asset(4)]]);
   const blocks = [{ id: 1, blockType: 'image' as const, mediaAssetId: 4 }];
 

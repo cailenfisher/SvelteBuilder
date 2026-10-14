@@ -92,18 +92,18 @@ const article: Article = {
   publishedAt: '2026-09-30T04:03:54.000Z',
   updatedAt: '2026-09-30T06:03:54.000Z',
   deletedAt: null,
-  embargoUntil: null,
-  allowComment: true,
+  embargoExpiresAt: null,
+  commentAllowed: true,
   createdAt: '2026-09-29T04:03:54.000Z',
 };
 
-const status: ArticleStatus = { id: 5, slug: 'published', ordinal: 50 };
+const status: ArticleStatus = { id: 5, slug: 'published', position: 50 };
 
 const section: Section = {
   id: 13,
   parentSectionId: 1,
   slug: 'local',
-  ordinal: 13,
+  position: 13,
   active: true,
   createdAt: '2026-09-01T00:00:00.000Z',
 };
@@ -130,7 +130,7 @@ const heroImage: MediaAsset = {
   width: 1600,
   height: 900,
   mimeType: 'image/jpeg',
-  uploadedBy: 1,
+  userAccountId: 1,
   createdAt: '2026-09-29T00:00:00.000Z',
 };
 

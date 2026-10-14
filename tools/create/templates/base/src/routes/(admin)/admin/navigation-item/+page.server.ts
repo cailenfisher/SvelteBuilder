@@ -5,8 +5,8 @@ import type { PageServerLoad } from './$types'
 type NavItem = {
   id: number
   href: string
-  scope: string
-  sortOrder: number
+  menu: string
+  position: number
   active: boolean
   localTextLink: { id: number; slug: string; scope: string | null } | null
 }

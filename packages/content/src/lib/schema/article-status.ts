@@ -5,9 +5,9 @@ export const articleStatus = pgTable(
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     slug: text('slug').notNull().unique(),
-    ordinal: integer('ordinal').notNull().default(0),
+    position: integer('position').notNull().default(0),
   },
-  (table) => [index('idx_article_status_ordinal').on(table.ordinal)]
+  (table) => [index('idx_article_status_position').on(table.position)]
 );
 
 export type ArticleStatus = typeof articleStatus.$inferSelect;

@@ -26,9 +26,9 @@ export const load: LayoutServerLoad = async ({ locals }) => {
   const { data, error: queryError } = await locals.supabase
     .from('navigation_item')
     .select('id, href, local_text_link(slug, scope)')
-    .eq('scope', 'admin')
+    .eq('menu', 'admin')
     .eq('active', true)
-    .order('sort_order');
+    .order('position');
 
   if (queryError) throw error(500, 'Failed to load admin navigation.');
 

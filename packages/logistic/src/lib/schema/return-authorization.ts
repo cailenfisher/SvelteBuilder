@@ -17,8 +17,8 @@ export const returnAuthorization = pgTable(
     status: returnAuthorizationStatus('status').notNull().default('pending'),
     reason: text('reason'),
     note: text('note'),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_return_authorization_status').on(table.status, table.createdAt),

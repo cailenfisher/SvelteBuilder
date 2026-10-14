@@ -6,7 +6,8 @@ export const subscriber = pgTable(
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     // SCOPE DEVIATION: email_address is PII/runtime data, not translated copy
     emailAddress: text('email_address').notNull().unique(),
-    locale: text('locale').notNull().default('en'),
+    // FK to locale(id) — cross-package ref added via supplemental SQL
+    localeId: bigint('locale_id', { mode: 'number' }).notNull(),
     confirmedAt: timestamp('confirmed_at', { withTimezone: true, mode: 'string' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
@@ -17,3 +18,8 @@ export const subscriber = pgTable(
 );
 
 export type Subscriber = typeof subscriber.$inferSelect;
+
+/** A subscriber with the code of the locale they chose, for listing. */
+export type SubscriberWithLocale = Subscriber & {
+  localeCode: string;
+};

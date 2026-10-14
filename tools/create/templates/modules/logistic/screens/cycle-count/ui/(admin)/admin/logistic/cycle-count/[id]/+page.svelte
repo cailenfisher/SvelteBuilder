@@ -24,7 +24,7 @@
   const count = $derived(data.cycleCount);
 
   const statusVariant = $derived(
-    count.status === 'complete'
+    count.status === 'completed'
       ? 'success'
       : count.status === 'in_progress'
         ? 'warning'
@@ -41,7 +41,7 @@
   // Approvable while still open, and only once something has actually been counted:
   // approving a count nobody has touched would close it having corrected nothing.
   const approvable = $derived(
-    count.status !== 'complete' && count.status !== 'cancelled' && countedLines.length > 0
+    count.status !== 'completed' && count.status !== 'cancelled' && countedLines.length > 0
   );
 
   let approveConfirmOpen = $state(false);

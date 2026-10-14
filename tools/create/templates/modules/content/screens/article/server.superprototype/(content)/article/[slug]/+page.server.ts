@@ -10,7 +10,7 @@ import type { Actions, PageServerLoad } from './$types';
 // supabase/supplemental/02-content-rls.sql.
 
 const ARTICLE_COLUMNS =
-  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, lead_media_asset_id, created_at, article_status!inner(id, slug, ordinal), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
+  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_expires_at, comment_allowed, lead_media_asset_id, created_at, article_status!inner(id, slug, position), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, position, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
 
 const toOne = <T>(embed: T | T[] | null): T | null =>
   embed === null ? null : Array.isArray(embed) ? (embed[0] ?? null) : embed;
@@ -69,11 +69,11 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
       id: section.id,
       parentSectionId: section.parent_section_id,
       slug: section.slug,
-      ordinal: section.ordinal,
+      position: section.position,
       active: section.active,
       createdAt: section.created_at,
     }))
-    .sort((a, b) => a.ordinal - b.ordinal);
+    .sort((a, b) => a.position - b.position);
 
   const topics = (row.article_topic ?? [])
     .map((link) => toOne(link.topic))
@@ -102,11 +102,11 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
     publishedAt: row.published_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
-    embargoUntil: row.embargo_until,
-    allowComment: row.allow_comment,
+    embargoExpiresAt: row.embargo_expires_at,
+    commentAllowed: row.comment_allowed,
     leadMediaAssetId: row.lead_media_asset_id,
     createdAt: row.created_at,
-    status: { id: status.id, slug: status.slug, ordinal: status.ordinal },
+    status: { id: status.id, slug: status.slug, position: status.position },
     blocks,
     bylines,
     sections,
@@ -127,7 +127,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
     await Promise.all([
       // RLS already restricts this to approved comments on publicly visible articles, so the
       // only filter here is the article, and the status predicate is not repeated.
-      article.allowComment
+      article.commentAllowed
         ? locals.supabase
             .from('comment')
             .select(
@@ -146,7 +146,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
         ? locals.supabase
             .from('media_asset')
             .select(
-              'id, media_type, storage_key, width, height, mime_type, uploaded_by, created_at'
+              'id, media_type, storage_key, width, height, mime_type, user_account_id, created_at'
             )
             .in('id', mediaAssetIds)
         : Promise.resolve({ data: [], error: null }),
@@ -221,7 +221,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Art
       width: asset.width,
       height: asset.height,
       mimeType: asset.mime_type,
-      uploadedBy: asset.uploaded_by,
+      userAccountId: asset.user_account_id,
       createdAt: asset.created_at,
     })),
     attributions: (attributionResult.data ?? []).map((row) => ({

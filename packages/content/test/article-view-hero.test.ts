@@ -19,7 +19,7 @@ const imageAsset = (id: number): MediaAsset => ({
   width: 1600,
   height: 900,
   mimeType: 'image/jpeg',
-  uploadedBy: 1,
+  userAccountId: 1,
   createdAt: '2026-09-29T00:00:00.000Z',
 });
 
@@ -46,8 +46,8 @@ const articleWith = (blocks: ArticleBlock[]): ArticleRenderable =>
     publishedAt: null,
     updatedAt: '2026-09-30T06:03:54.000Z',
     deletedAt: null,
-    embargoUntil: null,
-    allowComment: true,
+    embargoExpiresAt: null,
+    commentAllowed: true,
     createdAt: '2026-09-29T04:03:54.000Z',
     bylines: [],
     sections: [],

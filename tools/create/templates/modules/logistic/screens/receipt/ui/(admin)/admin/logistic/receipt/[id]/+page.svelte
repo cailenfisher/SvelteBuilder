@@ -31,7 +31,7 @@
   );
 
   const statusVariant = $derived(
-    data.receipt.status === 'complete'
+    data.receipt.status === 'completed'
       ? 'success'
       : data.receipt.status === 'partial'
         ? 'warning'
@@ -43,7 +43,7 @@
   // Receiving is only offered while the receipt is still open. The same rule is enforced
   // by the worker RLS policy and by the RPC, so hiding the control is a courtesy to the
   // operator rather than the thing that makes it safe.
-  const open = $derived(data.receipt.status !== 'complete' && data.receipt.status !== 'cancelled');
+  const open = $derived(data.receipt.status !== 'completed' && data.receipt.status !== 'cancelled');
 
   let showAddLine = $state(false);
 

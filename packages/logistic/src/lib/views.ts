@@ -1,6 +1,6 @@
 import type { DictionaryPayload } from 'diglossia';
 import type {
-  AdjustmentReason,
+  StockAdjustmentReason,
   CycleCount,
   CycleCountLine,
   CycleCountStatus,
@@ -111,7 +111,7 @@ export type StockListView = ScreenCopy &
      * would be a lie if chosen by hand, so the loader decides this rather than the
      * screen enumerating the enum.
      */
-    manualReasons: AdjustmentReason[];
+    manualReasons: StockAdjustmentReason[];
   };
 
 /**

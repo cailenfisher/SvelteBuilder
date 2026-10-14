@@ -6,8 +6,8 @@ export const localText = pgTable(
   'local_text',
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     link: bigint('link', { mode: 'number' })
       .notNull()
       .references(() => localTextLink.id, { onDelete: 'restrict' }),

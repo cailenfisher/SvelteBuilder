@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<ReturnDe
       .select('id, slug, location_type')
       .eq('active', true)
       .eq('location_type', 'bin')
-      .order('sort_order'),
+      .order('position'),
     loadScopedCopy(
       locals.supabase,
       ['logistic', 'storage_location'],

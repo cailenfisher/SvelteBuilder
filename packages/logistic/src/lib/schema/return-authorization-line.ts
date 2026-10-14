@@ -24,7 +24,7 @@ export const returnAuthorizationLine = pgTable(
     receivedQuantity: integer('received_quantity').notNull().default(0),
     condition: returnCondition('condition'),
     disposition: returnDisposition('disposition'),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_return_authorization_line_return').on(table.returnAuthorizationId),

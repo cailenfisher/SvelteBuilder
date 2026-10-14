@@ -14,8 +14,8 @@
   const title       = $derived(dictionary.localText('admin.navigation_item.title'))
   const newLabel    = $derived(dictionary.localText('admin.navigation_item.new'))
   const hrefLabel   = $derived(dictionary.localText('admin.navigation_item.href'))
-  const scopeLabel  = $derived(dictionary.localText('admin.navigation_item.scope'))
-  const sortLabel   = $derived(dictionary.localText('admin.navigation_item.sort_order'))
+  const menuLabel   = $derived(dictionary.localText('admin.navigation_item.menu'))
+  const positionLabel   = $derived(dictionary.localText('admin.navigation_item.position'))
   const slugLabel   = $derived(dictionary.localText('admin.local_text.slug'))
   const deleteLabel = $derived(dictionary.localText('action.delete'))
   const editLabel   = $derived(dictionary.localText('action.edit'))
@@ -44,11 +44,11 @@
         <Field label={hrefLabel} id="nav-href" required>
           <Input id="nav-href" name="href" placeholder="/admin/example" required />
         </Field>
-        <Field label={scopeLabel} id="nav-scope" required>
-          <Input id="nav-scope" name="nav_scope" placeholder="admin" required />
+        <Field label={menuLabel} id="nav-menu" required>
+          <Input id="nav-menu" name="menu" placeholder="admin" required />
         </Field>
-        <Field label={sortLabel} id="nav-sort">
-          <Input id="nav-sort" name="sort_order" type="number" value="0" />
+        <Field label={positionLabel} id="nav-position">
+          <Input id="nav-position" name="position" type="number" value="0" />
         </Field>
       </div>
 
@@ -62,8 +62,8 @@
         <TableRow>
           <TableHeader>{slugLabel}</TableHeader>
           <TableHeader>{hrefLabel}</TableHeader>
-          <TableHeader>{scopeLabel}</TableHeader>
-          <TableHeader>{sortLabel}</TableHeader>
+          <TableHeader>{menuLabel}</TableHeader>
+          <TableHeader>{positionLabel}</TableHeader>
           <TableHeader>{activeLabel}</TableHeader>
           <TableHeader>
             <span class="sr-only">{dictionary.localText('table.actions')}</span>
@@ -82,8 +82,8 @@
               <code class="nav-item-admin__slug">{item.localTextLink?.slug ?? '—'}</code>
             </TableCell>
             <TableCell>{item.href}</TableCell>
-            <TableCell>{item.scope}</TableCell>
-            <TableCell>{item.sortOrder}</TableCell>
+            <TableCell>{item.menu}</TableCell>
+            <TableCell>{item.position}</TableCell>
             <TableCell>{item.active ? '✓' : '—'}</TableCell>
             <TableCell>
               <div class="nav-item-admin__row-actions">

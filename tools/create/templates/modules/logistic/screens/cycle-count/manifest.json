@@ -36,7 +36,7 @@
     "logistic.cycle_count.approve_confirm",
     "logistic.cycle_count.status.open",
     "logistic.cycle_count.status.in_progress",
-    "logistic.cycle_count.status.complete",
+    "logistic.cycle_count.status.completed",
     "logistic.cycle_count.status.cancelled",
     "logistic.field.location",
     "logistic.field.sku",

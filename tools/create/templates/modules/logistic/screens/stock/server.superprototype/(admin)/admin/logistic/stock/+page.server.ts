@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
-import type { AdjustmentReason, StockAdjustment } from '@sveltebuilder/logistic';
+import type { StockAdjustmentReason, StockAdjustment } from '@sveltebuilder/logistic';
 import type { StockListView, StockLevelRow } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -10,7 +10,7 @@ import type { Actions, PageServerLoad } from './$types';
 // Reasons a human may choose. The operational ones — inbound_receipt, pick,
 // return_restock, cycle_count_variance — are written by the workflows that cause them,
 // so offering them here would let an operator record a movement that never happened.
-const MANUAL_REASONS: AdjustmentReason[] = [
+const MANUAL_REASONS: StockAdjustmentReason[] = [
   'damage',
   'theft',
   'receiving_error',
@@ -125,7 +125,7 @@ export const actions: Actions = {
     const form = await request.formData();
     const stockLevelId = Number(form.get('stock_level_id'));
     const delta = Number(form.get('delta'));
-    const reason = form.get('reason') as AdjustmentReason | null;
+    const reason = form.get('reason') as StockAdjustmentReason | null;
     const note = (form.get('note') as string | null)?.trim() || null;
 
     if (!Number.isInteger(stockLevelId)) return fail(422, { error: 'Invalid stock level.' });

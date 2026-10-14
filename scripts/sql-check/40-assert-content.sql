@@ -70,7 +70,7 @@ begin
 
   -- An embargoed-but-published article: published status, embargo in the future. It must be
   -- as invisible as a draft, which is the whole reason the column exists.
-  insert into public.article (article_status_id, canonical_slug, published_at, embargo_until)
+  insert into public.article (article_status_id, canonical_slug, published_at, embargo_expires_at)
   values (
     (select id from public.article_status where slug = 'published'),
     'sqlcheck-embargoed',
@@ -161,8 +161,8 @@ begin
 
   -- Seed a row to delete, as the owner, so the delete check has something to destroy. Without
   -- this the table could be empty and "nothing was deleted" would prove nothing.
-  insert into public.subscriber (email_address, locale)
-  values ('canary@example.test', 'en')
+  insert into public.subscriber (email_address, locale_id)
+  values ('canary@example.test', (select id from public.locale where code = 'en'))
   on conflict (email_address) do nothing;
 
   select count(*) into v_before from public.subscriber;
@@ -173,7 +173,8 @@ begin
   set local role anon;
 
   begin
-    insert into public.subscriber (email_address, locale) values ('attacker@example.test', 'en');
+    insert into public.subscriber (email_address, locale_id)
+      values ('attacker@example.test', (select id from public.locale where code = 'en'));
     raise exception 'anon INSERTED into subscriber — the PII table is writable';
   exception when insufficient_privilege then
     null; -- refused, as intended
@@ -196,7 +197,7 @@ begin
 
   set local role anon;
   begin
-    insert into public.section (slug, ordinal) values ('anon-owned', 999);
+    insert into public.section (slug, position) values ('anon-owned', 999);
     raise exception 'anon INSERTED a section — public taxonomy is writable';
   exception when insufficient_privilege then
     null;
@@ -249,7 +250,9 @@ end $$;
 -- ── Newsletter signup works without granting anon the PII table ──────────────
 
 do $$
-declare v_subscriber bigint;
+declare
+  v_subscriber bigint;
+  v_refused    boolean := false;
 begin
   if to_regclass('public.subscriber') is null then return; end if;
 
@@ -271,15 +274,34 @@ begin
     raise exception 'content_subscribe did not create exactly one subscription';
   end if;
 
+  -- The language is stored as a locale row, the one the reader chose.
+  if (select l.code from public.subscriber s join public.locale l on l.id = s.locale_id
+      where s.id = v_subscriber) is distinct from 'fr' then
+    raise exception 'content_subscribe did not store the chosen locale';
+  end if;
+
+  -- A code the project does not have falls back to English instead of failing the signup.
+  set local role anon;
+  perform public.content_subscribe('reader@example.test', 'daily-briefing', 'xx');
+  reset role;
+  if (select l.code from public.subscriber s join public.locale l on l.id = s.locale_id
+      where s.id = v_subscriber) is distinct from 'en' then
+    raise exception 'content_subscribe did not fall back to en for an unknown locale code';
+  end if;
+
   -- An unknown newsletter is an error rather than a silent no-op, so a typo in a form does
-  -- not look like a successful signup.
+  -- not look like a successful signup. The flag, not a raise inside the block, records the
+  -- outcome: a raise there would be caught by the handler meant for the function's own error.
   set local role anon;
   begin
     perform public.content_subscribe('reader@example.test', 'no-such-newsletter', 'en');
-    raise exception 'content_subscribe accepted an unknown newsletter';
   exception when raise_exception then
-    null;
+    v_refused := true;
   end;
+  reset role;
+  if not v_refused then
+    raise exception 'content_subscribe accepted an unknown newsletter';
+  end if;
 end $$;
 
 -- ── Preview by token shows a draft, and only to whoever holds the token ──────
@@ -349,9 +371,9 @@ begin
   select id into v_locale from public.locale where code = 'en';
 
   -- Arranged as the owner; the assertions below run as the roles under test.
-  insert into public.media_asset (media_type, storage_key, mime_type, uploaded_by)
+  insert into public.media_asset (media_type, storage_key, mime_type, user_account_id)
   values ('image', 'sqlcheck/cc.jpg', 'image/jpeg', v_admin) returning id into v_cc;
-  insert into public.media_asset (media_type, storage_key, mime_type, uploaded_by)
+  insert into public.media_asset (media_type, storage_key, mime_type, user_account_id)
   values ('image', 'sqlcheck/reserved.jpg', 'image/jpeg', v_admin) returning id into v_reserved;
 
   insert into public.media_asset_rights (media_asset_id, license) values (v_cc, 'creative_commons');

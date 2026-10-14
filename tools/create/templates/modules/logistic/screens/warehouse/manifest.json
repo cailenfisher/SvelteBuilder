@@ -79,7 +79,7 @@
     "logistic.inbound_receipt.blind",
     "logistic.inbound_receipt.status.pending",
     "logistic.inbound_receipt.status.partial",
-    "logistic.inbound_receipt.status.complete",
+    "logistic.inbound_receipt.status.completed",
     "logistic.inbound_receipt.status.cancelled",
     "logistic.count.mine",
     "logistic.count.open",

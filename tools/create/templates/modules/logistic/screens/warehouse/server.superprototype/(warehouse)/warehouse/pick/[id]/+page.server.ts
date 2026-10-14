@@ -62,7 +62,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<PickTask
     });
   }
   // Walk order, which is what `sequence` is for: it was snapshotted from the location's
-  // sort_order when the task was built, so the picker walks the aisle once.
+  // position when the task was built, so the picker walks the aisle once.
   lines.sort((a, b) => a.sequence - b.sequence || a.id - b.id);
 
   return {

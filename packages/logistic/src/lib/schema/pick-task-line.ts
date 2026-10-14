@@ -19,9 +19,9 @@ export const pickTaskLine = pgTable(
     sku: text('sku').notNull(),
     requestedQuantity: integer('requested_quantity').notNull(),
     pickedQuantity: integer('picked_quantity').notNull().default(0),
-    // Walk order within the task, snapshotted from storage_location.sort_order at creation.
+    // Walk order within the task, snapshotted from storage_location.position at creation.
     sequence: integer('sequence').notNull().default(0),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_pick_task_line_task').on(table.pickTaskId, table.sequence)],
 );

@@ -654,7 +654,7 @@ One concept, one name, at every layer: `ticket` table → `Ticket` type → `Tic
 | Svelte component       | `PascalCase.svelte`                            | `TicketCard.svelte`                  |
 | Other module           | `kebab-case.ts`                                | `format-date.ts`                     |
 | Route directory        | `kebab-case`, singular                         | `user-account/[id]/`                 |
-| REST endpoint          | plural `kebab-case` (the only plural)          | `/api/user-accounts`                 |
+| REST endpoint          | singular `kebab-case`                          | `/api/user-account`                  |
 | JSON key               | `camelCase`                                    | `emailAddress`                       |
 | CSS class / property   | `kebab-case` / `--kebab-case`                  | `.ticket-card__title`                |
 
@@ -687,7 +687,7 @@ starting the next.
    `loadEntityCopy`.
 9. **Page and components** using coreui, entity components resolving their own copy.
 10. **Link it in:** an admin feature needs a navigation entry (`/admin/navigation-item`, or a
-    seed row in `navigation_item` with scope `'admin'`).
+    seed row in `navigation_item` with menu `'admin'`).
 11. **Verify** (below).
 
 Show the user the schema and the policies (steps 1 to 3) before building UI on top of them when

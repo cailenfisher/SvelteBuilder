@@ -23,7 +23,7 @@ export const cycleCountLine = pgTable(
     variance: integer('variance').generatedAlwaysAs(
       sql`counted_quantity - expected_quantity`,
     ),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_cycle_count_line_count').on(table.cycleCountId)],
 );

@@ -15,7 +15,7 @@ const toOne = <T>(embed: T | T[] | null): T | null =>
   embed === null ? null : Array.isArray(embed) ? (embed[0] ?? null) : embed;
 
 const ARTICLE_COLUMNS =
-  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, lead_media_asset_id, created_at, article_status!inner(id, slug, ordinal), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
+  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_expires_at, comment_allowed, lead_media_asset_id, created_at, article_status!inner(id, slug, position), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, position, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
 
 /**
  * The most recently published articles, newest first, with the copy needed to render them.
@@ -65,11 +65,11 @@ export async function loadFeedArticles(
       publishedAt: row.published_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      embargoUntil: row.embargo_until,
-      allowComment: row.allow_comment,
+      embargoExpiresAt: row.embargo_expires_at,
+      commentAllowed: row.comment_allowed,
       leadMediaAssetId: row.lead_media_asset_id,
       createdAt: row.created_at,
-      status: { id: status.id, slug: status.slug, ordinal: status.ordinal },
+      status: { id: status.id, slug: status.slug, position: status.position },
       bylines: (row.article_byline ?? [])
         .map((byline) => ({ position: byline.position, author: toOne(byline.author_profile) }))
         .filter(
@@ -91,7 +91,7 @@ export async function loadFeedArticles(
           id: entry.id,
           parentSectionId: entry.parent_section_id,
           slug: entry.slug,
-          ordinal: entry.ordinal,
+          position: entry.position,
           active: entry.active,
           createdAt: entry.created_at,
         })),

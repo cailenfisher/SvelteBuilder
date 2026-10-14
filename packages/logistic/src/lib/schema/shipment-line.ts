@@ -15,7 +15,7 @@ export const shipmentLine = pgTable(
     ),
     sku: text('sku').notNull(),
     quantity: integer('quantity').notNull(),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_shipment_line_shipment').on(table.shipmentId)],
 );

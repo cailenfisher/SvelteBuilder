@@ -27,8 +27,8 @@ type PreviewArticleRow = {
   published_at: string | null;
   updated_at: string;
   deleted_at: string | null;
-  embargo_until: string | null;
-  allow_comment: boolean;
+  embargo_expires_at: string | null;
+  comment_allowed: boolean;
   lead_media_asset_id: number | null;
   created_at: string;
 };
@@ -82,13 +82,13 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<PreviewP
   const [statusResult, mediaResult, attributionResult, uiCopy] = await Promise.all([
     locals.supabase
       .from('article_status')
-      .select('id, slug, ordinal')
+      .select('id, slug, position')
       .eq('id', row.article_status_id)
       .maybeSingle(),
     mediaAssetIds.length > 0
       ? locals.supabase
           .from('media_asset')
-          .select('id, media_type, storage_key, width, height, mime_type, uploaded_by, created_at')
+          .select('id, media_type, storage_key, width, height, mime_type, user_account_id, created_at')
           .in('id', mediaAssetIds)
       : Promise.resolve({ data: [], error: null }),
     // Public provenance for the credit lines: license and source URLs, for the asset kinds that
@@ -129,19 +129,19 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<PreviewP
       publishedAt: row.published_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      embargoUntil: row.embargo_until,
-      allowComment: row.allow_comment,
+      embargoExpiresAt: row.embargo_expires_at,
+      commentAllowed: row.comment_allowed,
       leadMediaAssetId: row.lead_media_asset_id,
       createdAt: row.created_at,
       status: statusResult.data
         ? {
             id: statusResult.data.id,
             slug: statusResult.data.slug,
-            ordinal: statusResult.data.ordinal,
+            position: statusResult.data.position,
           }
         : // article_status is world-readable, so this is unreachable in practice; the shape is
           // satisfied rather than asserted so a missing row cannot crash a preview.
-          { id: row.article_status_id, slug: 'draft', ordinal: 0 },
+          { id: row.article_status_id, slug: 'draft', position: 0 },
       blocks,
       bylines: [],
       sections: [],
@@ -162,7 +162,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<PreviewP
       width: asset.width,
       height: asset.height,
       mimeType: asset.mime_type,
-      uploadedBy: asset.uploaded_by,
+      userAccountId: asset.user_account_id,
       createdAt: asset.created_at,
     })),
     localeCode: locals.locale.code,

@@ -1,8 +1,8 @@
 import { pgEnum, pgTable, bigint, boolean, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
-import { MEDIA_LICENSES } from './media-license.js';
+import { MEDIA_ASSET_LICENSES } from './media-asset-license.js';
 import { mediaAsset } from './media-asset.js';
 
-export const mediaLicense = pgEnum('media_license', MEDIA_LICENSES);
+export const mediaAssetLicense = pgEnum('media_asset_license', MEDIA_ASSET_LICENSES);
 
 export const mediaAssetRights = pgTable(
   'media_asset_rights',
@@ -11,7 +11,7 @@ export const mediaAssetRights = pgTable(
     mediaAssetId: bigint('media_asset_id', { mode: 'number' })
       .notNull()
       .references(() => mediaAsset.id, { onDelete: 'cascade' }),
-    license: mediaLicense('license').notNull().default('all_rights_reserved'),
+    license: mediaAssetLicense('license').notNull().default('all_rights_reserved'),
     creditRequired: boolean('credit_required').notNull().default(true),
     expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'string' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),

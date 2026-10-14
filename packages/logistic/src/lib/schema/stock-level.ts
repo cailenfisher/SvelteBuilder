@@ -15,8 +15,8 @@ export const stockLevel = pgTable(
     reserved: integer('reserved').notNull().default(0),
     // Low-stock threshold compared against available (on_hand - reserved). Null = no alerting.
     reorderPoint: integer('reorder_point'),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex('uq_stock_level_location_sku').on(table.storageLocationId, table.sku),

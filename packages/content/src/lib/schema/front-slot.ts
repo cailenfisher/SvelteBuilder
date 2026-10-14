@@ -18,13 +18,13 @@ export const frontSlot = pgTable(
       .references(() => article.id, { onDelete: 'cascade' }),
     position: integer('position').notNull(),
     layoutVariant: frontLayoutVariant('layout_variant').notNull().default('river'),
-    pinnedUntil: timestamp('pinned_until', { withTimezone: true, mode: 'string' }),
+    pinExpiresAt: timestamp('pin_expires_at', { withTimezone: true, mode: 'string' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_front_slot_front').on(table.frontId, table.position),
     index('idx_front_slot_article').on(table.articleId),
-    index('idx_front_slot_pinned').on(table.pinnedUntil),
+    index('idx_front_slot_pin_expires_at').on(table.pinExpiresAt),
   ]
 );
 

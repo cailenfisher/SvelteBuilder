@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   const [navResult, localeResult] = await Promise.all([
     locals.supabase
       .from('navigation_item')
-      .select('id, href, scope, sort_order, active, local_text_link(id, slug, scope)')
+      .select('id, href, menu, position, active, local_text_link(id, slug, scope)')
       .eq('id', id)
       .maybeSingle(),
     locals.supabase
@@ -38,8 +38,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     navItem: {
       id: navResult.data.id,
       href: navResult.data.href,
-      scope: navResult.data.scope,
-      sortOrder: navResult.data.sort_order,
+      menu: navResult.data.menu,
+      position: navResult.data.position,
       active: navResult.data.active,
       localTextLink: toOne(navResult.data.local_text_link),
     },
@@ -54,17 +54,17 @@ export const actions: Actions = {
     const form = await request.formData();
 
     const href = (form.get('href') as string | null)?.trim();
-    const scope = (form.get('scope') as string | null)?.trim();
-    const sortOrder = parseInt((form.get('sort_order') as string | null) ?? '0') || 0;
+    const menu = (form.get('menu') as string | null)?.trim();
+    const position = parseInt((form.get('position') as string | null) ?? '0') || 0;
     const active = form.get('active') === 'on';
 
-    if (isNaN(id) || !href || !scope) {
-      return fail(422, { error: 'URL and scope are required.' });
+    if (isNaN(id) || !href || !menu) {
+      return fail(422, { error: 'URL and menu are required.' });
     }
 
     const { error: updateError } = await locals.supabase
       .from('navigation_item')
-      .update({ href, scope, sort_order: sortOrder, active })
+      .update({ href, menu, position, active })
       .eq('id', id);
 
     if (updateError) return fail(500, { error: 'Failed to update navigation item.' });

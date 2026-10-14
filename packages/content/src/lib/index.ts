@@ -48,8 +48,8 @@ export type {
   MediaAssetRights,
   MediaAssetSource,
   MediaAssetWithCopy,
-  MediaLicense,
-  MediaType,
+  MediaAssetLicense,
+  MediaAssetType,
   Newsletter,
   NewsletterSubscription,
   NewsletterWithCopy,
@@ -61,6 +61,7 @@ export type {
   Section,
   SectionWithCopy,
   Subscriber,
+  SubscriberWithLocale,
   Tag,
   TagWithCopy,
   Topic,
@@ -74,8 +75,8 @@ export { ARTICLE_ASSIGNMENT_ROLES } from './schema/article-assignment-role.js';
 export { ARTICLE_BLOCK_TYPES } from './schema/article-block-type.js';
 export { COMMENT_STATUSES } from './schema/comment-status.js';
 export { FRONT_LAYOUT_VARIANTS } from './schema/front-layout-variant.js';
-export { MEDIA_LICENSES } from './schema/media-license.js';
-export { MEDIA_TYPES } from './schema/media-type.js';
+export { MEDIA_ASSET_LICENSES } from './schema/media-asset-license.js';
+export { MEDIA_ASSET_TYPES } from './schema/media-asset-type.js';
 
 // Camp 1 components (no hermes dependency)
 export { default as ArticleList } from './components/ArticleList.svelte';

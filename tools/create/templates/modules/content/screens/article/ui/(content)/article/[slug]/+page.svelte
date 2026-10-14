@@ -75,7 +75,7 @@
     dictionary={scoped}
   >
     {#snippet after()}
-      {#if data.article.allowComment}
+      {#if data.article.commentAllowed}
         <section class="article-page__comments" aria-label={t('content.comments.heading')}>
           <h2 class="article-page__comments-heading">{t('content.comments.heading')}</h2>
 

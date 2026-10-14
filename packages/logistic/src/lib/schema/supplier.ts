@@ -6,7 +6,7 @@ export const supplier = pgTable('supplier', {
   slug: text('slug').notNull().unique(),
   leadTimeDay: integer('lead_time_day'),
   active: boolean('active').notNull().default(true),
-  createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
 });
 
 export type Supplier = typeof supplier.$inferSelect;

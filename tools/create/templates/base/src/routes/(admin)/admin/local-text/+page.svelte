@@ -186,7 +186,9 @@
     text-decoration: underline;
   }
 
-  .local-text-admin__content-cell {
+  /* The class is passed to TableCell, a child component, so a scoped selector never matches it.
+     :global is a stopgap; see docs/DEFERRED.md, "Styling a class passed to a child component". */
+  :global(.local-text-admin__content-cell) {
     max-width: 16rem;
     overflow: hidden;
     text-overflow: ellipsis;

@@ -6,37 +6,37 @@
 -- Inserted level by level so parent slugs are resolvable at each step.
 -- ──────────────────────────────────────────────────────────────────────────────
 
-insert into storage_location (slug, location_type, parent_storage_location_id, active, sort_order) values
+insert into storage_location (slug, location_type, parent_storage_location_id, active, position) values
   ('warehouse-main', 'warehouse', null, true, 10)
 on conflict (slug) do nothing;
 
-insert into storage_location (slug, location_type, parent_storage_location_id, active, sort_order)
+insert into storage_location (slug, location_type, parent_storage_location_id, active, position)
 select v.slug, v.location_type::storage_location_type,
        (select id from storage_location where slug = 'warehouse-main'),
-       v.active, v.sort_order
+       v.active, v.position
 from (values
   ('zone-a',         'zone', true, 10),
   ('zone-b',         'zone', true, 20),
   ('receiving-dock', 'zone', true, 100),
   ('returns-area',   'zone', true, 110)
-) as v(slug, location_type, active, sort_order)
+) as v(slug, location_type, active, position)
 on conflict (slug) do nothing;
 
-insert into storage_location (slug, location_type, parent_storage_location_id, active, sort_order)
+insert into storage_location (slug, location_type, parent_storage_location_id, active, position)
 select v.slug, 'aisle'::storage_location_type,
        (select id from storage_location where slug = v.parent_slug),
-       v.active, v.sort_order
+       v.active, v.position
 from (values
   ('aisle-a1', 'zone-a', true, 10),
   ('aisle-a2', 'zone-a', true, 20),
   ('aisle-b1', 'zone-b', true, 10)
-) as v(slug, parent_slug, active, sort_order)
+) as v(slug, parent_slug, active, position)
 on conflict (slug) do nothing;
 
-insert into storage_location (slug, location_type, parent_storage_location_id, active, sort_order)
+insert into storage_location (slug, location_type, parent_storage_location_id, active, position)
 select v.slug, 'bin'::storage_location_type,
        (select id from storage_location where slug = v.parent_slug),
-       v.active, v.sort_order
+       v.active, v.position
 from (values
   ('bin-a1-01', 'aisle-a1', true, 10),
   ('bin-a1-02', 'aisle-a1', true, 20),
@@ -45,7 +45,7 @@ from (values
   ('bin-a2-02', 'aisle-a2', true, 20),
   ('bin-b1-01', 'aisle-b1', true, 10),
   ('bin-b1-02', 'aisle-b1', true, 20)
-) as v(slug, parent_slug, active, sort_order)
+) as v(slug, parent_slug, active, position)
 on conflict (slug) do nothing;
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ insert into local_text_link (slug, scope, entity_id) values
   -- Inbound receipt status
   ('logistic.inbound_receipt.status.pending',           'logistic', null),
   ('logistic.inbound_receipt.status.partial',           'logistic', null),
-  ('logistic.inbound_receipt.status.complete',          'logistic', null),
+  ('logistic.inbound_receipt.status.completed',          'logistic', null),
   ('logistic.inbound_receipt.status.cancelled',         'logistic', null),
   ('logistic.inbound_receipt.blind',                    'logistic', null),
   -- Pick task status
@@ -158,18 +158,18 @@ insert into local_text_link (slug, scope, entity_id) values
   -- Cycle count status
   ('logistic.cycle_count.status.open',                  'logistic', null),
   ('logistic.cycle_count.status.in_progress',           'logistic', null),
-  ('logistic.cycle_count.status.complete',              'logistic', null),
+  ('logistic.cycle_count.status.completed',              'logistic', null),
   ('logistic.cycle_count.status.cancelled',             'logistic', null),
   -- Adjustment reason
-  ('logistic.adjustment_reason.damage',                 'logistic', null),
-  ('logistic.adjustment_reason.theft',                  'logistic', null),
-  ('logistic.adjustment_reason.receiving_error',        'logistic', null),
-  ('logistic.adjustment_reason.cycle_count_variance',   'logistic', null),
-  ('logistic.adjustment_reason.system_correction',      'logistic', null),
-  ('logistic.adjustment_reason.other',                  'logistic', null),
-  ('logistic.adjustment_reason.inbound_receipt',        'logistic', null),
-  ('logistic.adjustment_reason.pick',                   'logistic', null),
-  ('logistic.adjustment_reason.return_restock',         'logistic', null),
+  ('logistic.stock_adjustment_reason.damage',                 'logistic', null),
+  ('logistic.stock_adjustment_reason.theft',                  'logistic', null),
+  ('logistic.stock_adjustment_reason.receiving_error',        'logistic', null),
+  ('logistic.stock_adjustment_reason.cycle_count_variance',   'logistic', null),
+  ('logistic.stock_adjustment_reason.system_correction',      'logistic', null),
+  ('logistic.stock_adjustment_reason.other',                  'logistic', null),
+  ('logistic.stock_adjustment_reason.inbound_receipt',        'logistic', null),
+  ('logistic.stock_adjustment_reason.pick',                   'logistic', null),
+  ('logistic.stock_adjustment_reason.return_restock',         'logistic', null),
   -- Admin navigation
   ('logistic.admin.nav.storage_location',               'logistic', null),
   ('logistic.admin.nav.supplier',                       'logistic', null),
@@ -250,7 +250,7 @@ from (values
   ('logistic.location_type.bin',                        'logistic', 'Bin'),
   ('logistic.inbound_receipt.status.pending',           'logistic', 'Pending'),
   ('logistic.inbound_receipt.status.partial',           'logistic', 'Partial'),
-  ('logistic.inbound_receipt.status.complete',          'logistic', 'Complete'),
+  ('logistic.inbound_receipt.status.completed',          'logistic', 'Completed'),
   ('logistic.inbound_receipt.status.cancelled',         'logistic', 'Cancelled'),
   ('logistic.inbound_receipt.blind',                    'logistic', 'Blind receipt'),
   ('logistic.pick_task.status.open',                    'logistic', 'Open'),
@@ -277,17 +277,17 @@ from (values
   ('logistic.return_authorization.status.cancelled',    'logistic', 'Cancelled'),
   ('logistic.cycle_count.status.open',                  'logistic', 'Open'),
   ('logistic.cycle_count.status.in_progress',           'logistic', 'In progress'),
-  ('logistic.cycle_count.status.complete',              'logistic', 'Complete'),
+  ('logistic.cycle_count.status.completed',              'logistic', 'Completed'),
   ('logistic.cycle_count.status.cancelled',             'logistic', 'Cancelled'),
-  ('logistic.adjustment_reason.damage',                 'logistic', 'Damage'),
-  ('logistic.adjustment_reason.theft',                  'logistic', 'Theft'),
-  ('logistic.adjustment_reason.receiving_error',        'logistic', 'Receiving error'),
-  ('logistic.adjustment_reason.cycle_count_variance',   'logistic', 'Cycle count variance'),
-  ('logistic.adjustment_reason.system_correction',      'logistic', 'System correction'),
-  ('logistic.adjustment_reason.other',                  'logistic', 'Other'),
-  ('logistic.adjustment_reason.inbound_receipt',        'logistic', 'Inbound receipt'),
-  ('logistic.adjustment_reason.pick',                   'logistic', 'Pick'),
-  ('logistic.adjustment_reason.return_restock',         'logistic', 'Return restock'),
+  ('logistic.stock_adjustment_reason.damage',                 'logistic', 'Damage'),
+  ('logistic.stock_adjustment_reason.theft',                  'logistic', 'Theft'),
+  ('logistic.stock_adjustment_reason.receiving_error',        'logistic', 'Receiving error'),
+  ('logistic.stock_adjustment_reason.cycle_count_variance',   'logistic', 'Cycle count variance'),
+  ('logistic.stock_adjustment_reason.system_correction',      'logistic', 'System correction'),
+  ('logistic.stock_adjustment_reason.other',                  'logistic', 'Other'),
+  ('logistic.stock_adjustment_reason.inbound_receipt',        'logistic', 'Inbound receipt'),
+  ('logistic.stock_adjustment_reason.pick',                   'logistic', 'Pick'),
+  ('logistic.stock_adjustment_reason.return_restock',         'logistic', 'Return restock'),
   ('logistic.admin.nav.storage_location',               'logistic', 'Locations'),
   ('logistic.admin.nav.supplier',                       'logistic', 'Suppliers'),
   ('logistic.admin.nav.stock_level',                    'logistic', 'Stock'),
@@ -368,7 +368,7 @@ from (values
   ('logistic.location_type.bin',                        'logistic', 'Casier'),
   ('logistic.inbound_receipt.status.pending',           'logistic', 'En attente'),
   ('logistic.inbound_receipt.status.partial',           'logistic', 'Partiel'),
-  ('logistic.inbound_receipt.status.complete',          'logistic', 'Complet'),
+  ('logistic.inbound_receipt.status.completed',          'logistic', 'Terminé'),
   ('logistic.inbound_receipt.status.cancelled',         'logistic', 'Annulé'),
   ('logistic.inbound_receipt.blind',                    'logistic', 'Réception à l''aveugle'),
   ('logistic.pick_task.status.open',                    'logistic', 'Ouvert'),
@@ -395,17 +395,17 @@ from (values
   ('logistic.return_authorization.status.cancelled',    'logistic', 'Annulé'),
   ('logistic.cycle_count.status.open',                  'logistic', 'Ouvert'),
   ('logistic.cycle_count.status.in_progress',           'logistic', 'En cours'),
-  ('logistic.cycle_count.status.complete',              'logistic', 'Complet'),
+  ('logistic.cycle_count.status.completed',              'logistic', 'Terminé'),
   ('logistic.cycle_count.status.cancelled',             'logistic', 'Annulé'),
-  ('logistic.adjustment_reason.damage',                 'logistic', 'Dommage'),
-  ('logistic.adjustment_reason.theft',                  'logistic', 'Vol'),
-  ('logistic.adjustment_reason.receiving_error',        'logistic', 'Erreur de réception'),
-  ('logistic.adjustment_reason.cycle_count_variance',   'logistic', 'Écart d''inventaire tournant'),
-  ('logistic.adjustment_reason.system_correction',      'logistic', 'Correction système'),
-  ('logistic.adjustment_reason.other',                  'logistic', 'Autre'),
-  ('logistic.adjustment_reason.inbound_receipt',        'logistic', 'Réception entrante'),
-  ('logistic.adjustment_reason.pick',                   'logistic', 'Prélèvement'),
-  ('logistic.adjustment_reason.return_restock',         'logistic', 'Remise en stock (retour)'),
+  ('logistic.stock_adjustment_reason.damage',                 'logistic', 'Dommage'),
+  ('logistic.stock_adjustment_reason.theft',                  'logistic', 'Vol'),
+  ('logistic.stock_adjustment_reason.receiving_error',        'logistic', 'Erreur de réception'),
+  ('logistic.stock_adjustment_reason.cycle_count_variance',   'logistic', 'Écart d''inventaire tournant'),
+  ('logistic.stock_adjustment_reason.system_correction',      'logistic', 'Correction système'),
+  ('logistic.stock_adjustment_reason.other',                  'logistic', 'Autre'),
+  ('logistic.stock_adjustment_reason.inbound_receipt',        'logistic', 'Réception entrante'),
+  ('logistic.stock_adjustment_reason.pick',                   'logistic', 'Prélèvement'),
+  ('logistic.stock_adjustment_reason.return_restock',         'logistic', 'Remise en stock (retour)'),
   ('logistic.admin.nav.storage_location',               'logistic', 'Emplacements'),
   ('logistic.admin.nav.supplier',                       'logistic', 'Fournisseurs'),
   ('logistic.admin.nav.stock_level',                    'logistic', 'Stock'),

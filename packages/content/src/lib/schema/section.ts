@@ -10,13 +10,13 @@ export const section = pgTable(
       { onDelete: 'set null' }
     ),
     slug: text('slug').notNull().unique(),
-    ordinal: integer('ordinal').notNull().default(0),
+    position: integer('position').notNull().default(0),
     active: boolean('active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_section_parent').on(table.parentSectionId),
-    index('idx_section_ordinal').on(table.ordinal),
+    index('idx_section_position').on(table.position),
   ]
 );
 

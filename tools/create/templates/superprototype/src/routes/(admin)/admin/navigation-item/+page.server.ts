@@ -5,17 +5,17 @@ import { toOne } from '$lib/server/postgrest';
 export const load: PageServerLoad = async ({ locals }) => {
   const { data, error: queryError } = await locals.supabase
     .from('navigation_item')
-    .select('id, href, scope, sort_order, active, local_text_link(id, slug, scope)')
-    .order('scope')
-    .order('sort_order');
+    .select('id, href, menu, position, active, local_text_link(id, slug, scope)')
+    .order('menu')
+    .order('position');
 
   if (queryError) throw error(500, 'Failed to load navigation items.');
 
   const navItems = (data ?? []).map((row) => ({
     id: row.id,
     href: row.href,
-    scope: row.scope,
-    sortOrder: row.sort_order,
+    menu: row.menu,
+    position: row.position,
     active: row.active,
     localTextLink: toOne(row.local_text_link),
   }));
@@ -29,11 +29,11 @@ export const actions: Actions = {
 
     const slug = (form.get('slug') as string | null)?.trim();
     const href = (form.get('href') as string | null)?.trim();
-    const navScope = (form.get('nav_scope') as string | null)?.trim();
-    const sortOrder = parseInt((form.get('sort_order') as string | null) ?? '0') || 0;
+    const menu = (form.get('menu') as string | null)?.trim();
+    const position = parseInt((form.get('position') as string | null) ?? '0') || 0;
 
-    if (!slug || !href || !navScope) {
-      return fail(422, { error: 'Slug, URL, and scope are required.' });
+    if (!slug || !href || !menu) {
+      return fail(422, { error: 'Slug, URL, and menu are required.' });
     }
 
     // One RPC: the copy link and the nav item have to land together or a failure
@@ -41,8 +41,8 @@ export const actions: Actions = {
     const { error: rpcError } = await locals.supabase.rpc('create_navigation_item', {
       p_slug: slug,
       p_href: href,
-      p_scope: navScope,
-      p_sort_order: sortOrder,
+      p_menu: menu,
+      p_position: position,
     });
 
     if (rpcError) return fail(500, { error: 'Failed to create navigation item.' });

@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ locals }): Promise<ReceiveQueueView
     locals.supabase
       .from('inbound_receipt')
       .select(columns)
-      .eq('status', 'complete')
+      .eq('status', 'completed')
       .order('received_at', { ascending: false })
       .limit(5),
     loadScopedCopy(

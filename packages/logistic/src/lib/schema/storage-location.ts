@@ -16,8 +16,8 @@ export const storageLocation = pgTable(
       { onDelete: 'set null' },
     ),
     active: boolean('active').notNull().default(true),
-    sortOrder: integer('sort_order').notNull().default(0),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    position: integer('position').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_storage_location_parent').on(table.parentStorageLocationId),

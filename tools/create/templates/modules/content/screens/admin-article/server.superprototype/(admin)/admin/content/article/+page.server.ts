@@ -14,7 +14,7 @@ const toOne = <T>(embed: T | T[] | null): T | null =>
   embed === null ? null : Array.isArray(embed) ? (embed[0] ?? null) : embed;
 
 const ARTICLE_COLUMNS =
-  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, lead_media_asset_id, created_at, article_status!inner(id, slug, ordinal), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
+  'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_expires_at, comment_allowed, lead_media_asset_id, created_at, article_status!inner(id, slug, position), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, position, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))';
 
 export const load: PageServerLoad = async ({ locals, url }): Promise<AdminArticleListView> => {
   const statusSlug = url.searchParams.get('status');
@@ -25,15 +25,15 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<AdminArticl
 
   const statusesResult = await locals.supabase
     .from('article_status')
-    .select('id, slug, ordinal')
-    .order('ordinal');
+    .select('id, slug, position')
+    .order('position');
 
   if (statusesResult.error) throw error(500, 'Failed to load statuses.');
 
   const statuses = (statusesResult.data ?? []).map((row) => ({
     id: row.id,
     slug: row.slug,
-    ordinal: row.ordinal,
+    position: row.position,
   }));
 
   // An unknown status in the query string filters to nothing rather than silently showing
@@ -64,11 +64,11 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<AdminArticl
       publishedAt: row.published_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      embargoUntil: row.embargo_until,
-      allowComment: row.allow_comment,
+      embargoExpiresAt: row.embargo_expires_at,
+      commentAllowed: row.comment_allowed,
       leadMediaAssetId: row.lead_media_asset_id,
       createdAt: row.created_at,
-      status: { id: rowStatus.id, slug: rowStatus.slug, ordinal: rowStatus.ordinal },
+      status: { id: rowStatus.id, slug: rowStatus.slug, position: rowStatus.position },
       bylines: (row.article_byline ?? [])
         .map((byline) => ({ position: byline.position, author: toOne(byline.author_profile) }))
         .filter(
@@ -90,7 +90,7 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<AdminArticl
           id: entry.id,
           parentSectionId: entry.parent_section_id,
           slug: entry.slug,
-          ordinal: entry.ordinal,
+          position: entry.position,
           active: entry.active,
           createdAt: entry.created_at,
         })),
@@ -161,12 +161,12 @@ export const actions: Actions = {
     if (!canonicalSlug) return fail(422, { error: 'A URL slug is required.' });
     if (!headline) return fail(422, { error: 'A headline is required.' });
 
-    // New articles start at the first workflow status by ordinal rather than a hardcoded slug,
+    // New articles start at the first workflow status by position rather than a hardcoded slug,
     // so renaming or reordering the workflow does not strand this action.
     const statusResult = await locals.supabase
       .from('article_status')
       .select('id')
-      .order('ordinal')
+      .order('position')
       .limit(1)
       .maybeSingle();
 

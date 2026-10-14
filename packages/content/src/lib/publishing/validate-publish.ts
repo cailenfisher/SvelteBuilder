@@ -179,11 +179,11 @@ export function validateArticleForPublish(
   }
 
   // Embargo sanity check — embargo cannot be in the past on first publish
-  if (article.embargoUntil && !article.publishedAt) {
-    const embargoDate = new Date(article.embargoUntil);
+  if (article.embargoExpiresAt && !article.publishedAt) {
+    const embargoDate = new Date(article.embargoExpiresAt);
     if (embargoDate < new Date()) {
       errors.push({
-        field: 'embargoUntil',
+        field: 'embargoExpiresAt',
         message:
           'Embargo date has already passed. Remove the embargo or extend it before publishing.',
       });

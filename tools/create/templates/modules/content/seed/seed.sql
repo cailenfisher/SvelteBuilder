@@ -18,7 +18,7 @@
 -- for it by name — so it must exist under exactly this spelling.
 -- ──────────────────────────────────────────────────────────────────────────────
 
-insert into article_status (slug, ordinal) values
+insert into article_status (slug, position) values
   ('pitch',     10),
   ('draft',     20),
   ('in_review', 30),
@@ -34,7 +34,7 @@ on conflict (slug) do nothing;
 -- reminder; an editor can publish past an unticked optional item.
 -- ──────────────────────────────────────────────────────────────────────────────
 
-insert into publish_checklist_item (slug, ordinal, required) values
+insert into publish_checklist_item (slug, position, required) values
   ('headline_approved',   10, true),
   ('copy_edited',         20, true),
   ('legal_reviewed',      30, false),
@@ -58,7 +58,7 @@ where not exists (select 1 from publisher_profile);
 -- Sections and topics
 -- ──────────────────────────────────────────────────────────────────────────────
 
-insert into section (slug, ordinal, active) values
+insert into section (slug, position, active) values
   ('news',     10, true),
   ('opinion',  20, true),
   ('business', 30, true),

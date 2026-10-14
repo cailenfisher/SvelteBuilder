@@ -159,6 +159,7 @@ declare
   v_sub     uuid;
   v_level   bigint;
   v_on_hand integer;
+  v_refused boolean;
 begin
   if to_regclass('public.stock_level') is null then return; end if;
 
@@ -190,12 +191,16 @@ begin
 
   -- The check constraints are the real guardrail: reserved may never exceed on_hand,
   -- and on_hand may never go negative.
+  -- The outcome goes into a flag: a raise inside the block would be caught by its own handler.
+  v_refused := false;
   begin
     perform public.logistic_reserve_stock(v_level, 100000);
-    raise exception 'reserved more stock than exists';
   exception when others then
-    null; -- refused, by constraint or by the function's own guard
+    v_refused := true; -- refused, by constraint or by the function's own guard
   end;
+  if not v_refused then
+    raise exception 'reserved more stock than exists';
+  end if;
 end $$;
 
 -- ── Receiving a line moves stock, updates the line, and derives the status ───
@@ -259,7 +264,7 @@ begin
     raise exception 'receiving the rest moved the wrong delta';
   end if;
   select status into v_status from public.inbound_receipt where id = v_receipt;
-  if v_status <> 'complete' then
+  if v_status <> 'completed' then
     raise exception 'fully received receipt should be complete, got %', v_status;
   end if;
   if (select received_at from public.inbound_receipt where id = v_receipt) is null then
@@ -351,6 +356,7 @@ declare
   v_line       bigint;
   v_on_hand    integer;
   v_reserved   integer;
+  v_refused    boolean;
 begin
   if to_regclass('public.pick_task') is null then return; end if;
 
@@ -402,12 +408,15 @@ begin
 
   -- More than requested is a mistake, not an over-pick: the reservation only covers the
   -- requested quantity.
+  v_refused := false;
   begin
     perform public.logistic_record_picked_quantity(v_line, 99, v_worker);
-    raise exception 'picked more than the line requested';
   exception when raise_exception then
-    null; -- refused, as intended
+    v_refused := true; -- refused, as intended
   end;
+  if not v_refused then
+    raise exception 'picked more than the line requested';
+  end if;
 
   -- Completing short: 3 of 8 picked, so 5 must come back off the reservation.
   perform public.logistic_complete_pick_task(v_task, v_worker);

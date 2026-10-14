@@ -90,7 +90,7 @@ $$;
 -- publish validation reads as "no source recorded".
 create or replace function public.set_media_asset_rights(
   p_media_asset_id bigint,
-  p_license        public.media_license,
+  p_license        public.media_asset_license,
   p_credit_required boolean default true,
   p_expires_at     timestamptz default null,
   p_source_url     text default null,
@@ -135,10 +135,10 @@ $$;
 -- A new asset with its rights, provenance and copy in one transaction. The uploader is the
 -- caller's principal, never a parameter.
 create or replace function public.create_media_asset(
-  p_media_type      public.media_type,
+  p_media_type      public.media_asset_type,
   p_storage_key     text,
   p_mime_type       text,
-  p_license         public.media_license,
+  p_license         public.media_asset_license,
   p_width           integer default null,
   p_height          integer default null,
   p_credit_required boolean default true,
@@ -164,7 +164,7 @@ begin
     raise exception 'no signed-in principal to record as the uploader' using errcode = '42501';
   end if;
 
-  insert into public.media_asset (media_type, storage_key, width, height, mime_type, uploaded_by)
+  insert into public.media_asset (media_type, storage_key, width, height, mime_type, user_account_id)
   values (p_media_type, p_storage_key, p_width, p_height, p_mime_type, v_uploader)
   returning id into v_id;
 

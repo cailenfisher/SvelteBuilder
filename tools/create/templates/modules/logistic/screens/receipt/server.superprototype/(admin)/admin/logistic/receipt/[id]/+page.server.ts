@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({
       .select('id, slug, location_type')
       .eq('active', true)
       .eq('location_type', 'bin')
-      .order('sort_order'),
+      .order('position'),
     loadScopedCopy(
       locals.supabase,
       ['logistic', 'supplier', 'storage_location'],

@@ -3,10 +3,10 @@
 <script lang="ts">
   import { DataTable } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
-  import type { Subscriber, NewsletterWithCopy } from '../schema/index.js';
+  import type { NewsletterWithCopy, SubscriberWithLocale } from '../schema/index.js';
 
   type Props = {
-    subscribers: Subscriber[];
+    subscribers: SubscriberWithLocale[];
     newsletter: NewsletterWithCopy;
     total: number;
     page: number;
@@ -29,11 +29,11 @@
   }
 </script>
 
-{#snippet subscriberCell(subscriber: Subscriber, column: DataTableColumn)}
+{#snippet subscriberCell(subscriber: SubscriberWithLocale, column: DataTableColumn)}
   {#if column.key === 'emailAddress'}
     {subscriber.emailAddress}
   {:else if column.key === 'subscriberLocale'}
-    {subscriber.locale}
+    {subscriber.localeCode}
   {:else if column.key === 'confirmedAt'}
     {subscriber.confirmedAt ? formatDate(subscriber.confirmedAt) : 'Pending'}
   {:else if column.key === 'joinedAt'}

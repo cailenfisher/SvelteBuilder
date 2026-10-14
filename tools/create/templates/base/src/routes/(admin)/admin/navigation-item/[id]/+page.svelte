@@ -10,8 +10,8 @@
 
   const editLabel  = $derived(dictionary.localText('admin.navigation_item.edit'))
   const hrefLabel  = $derived(dictionary.localText('admin.navigation_item.href'))
-  const scopeLabel = $derived(dictionary.localText('admin.navigation_item.scope'))
-  const sortLabel  = $derived(dictionary.localText('admin.navigation_item.sort_order'))
+  const menuLabel  = $derived(dictionary.localText('admin.navigation_item.menu'))
+  const positionLabel  = $derived(dictionary.localText('admin.navigation_item.position'))
   const slugLabel  = $derived(dictionary.localText('admin.local_text.slug'))
 
   function translationFor(localeId: number): string {
@@ -46,11 +46,11 @@
         <Field label={hrefLabel} id="nav-href" required>
           <Input id="nav-href" name="href" value={data.navItem.href} required />
         </Field>
-        <Field label={scopeLabel} id="nav-scope" required>
-          <Input id="nav-scope" name="scope" value={data.navItem.scope} required />
+        <Field label={menuLabel} id="nav-menu" required>
+          <Input id="nav-menu" name="menu" value={data.navItem.menu} required />
         </Field>
-        <Field label={sortLabel} id="nav-sort">
-          <Input id="nav-sort" name="sort_order" type="number" value={String(data.navItem.sortOrder)} />
+        <Field label={positionLabel} id="nav-position">
+          <Input id="nav-position" name="position" type="number" value={String(data.navItem.position)} />
         </Field>
       </div>
       <!-- Checkbox is self-labelling: it renders its own <label> around the control,

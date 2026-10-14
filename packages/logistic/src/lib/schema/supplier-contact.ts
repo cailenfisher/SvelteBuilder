@@ -13,7 +13,7 @@ export const supplierContact = pgTable(
     name: text('name').notNull(),
     email: text('email'),
     phone: text('phone'),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_supplier_contact_supplier').on(table.supplierId)],
 );

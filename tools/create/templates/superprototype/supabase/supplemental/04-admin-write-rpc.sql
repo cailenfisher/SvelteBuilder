@@ -79,8 +79,8 @@ $$;
 create or replace function public.create_navigation_item(
   p_slug       text,
   p_href       text,
-  p_scope      text,
-  p_sort_order integer default 0
+  p_menu       text,
+  p_position   integer default 0
 )
 returns bigint
 language plpgsql
@@ -93,16 +93,16 @@ declare
 begin
   if p_slug is null or btrim(p_slug) = ''
      or p_href is null or btrim(p_href) = ''
-     or p_scope is null or btrim(p_scope) = '' then
-    raise exception 'slug, href, and scope are required';
+     or p_menu is null or btrim(p_menu) = '' then
+    raise exception 'slug, href, and menu are required';
   end if;
 
   insert into public.local_text_link (slug, scope, entity_id)
   values (btrim(p_slug), null, null)
   returning id into v_link_id;
 
-  insert into public.navigation_item (local_text_link_id, href, scope, sort_order)
-  values (v_link_id, btrim(p_href), btrim(p_scope), coalesce(p_sort_order, 0))
+  insert into public.navigation_item (local_text_link_id, href, menu, position)
+  values (v_link_id, btrim(p_href), btrim(p_menu), coalesce(p_position, 0))
   returning id into v_id;
 
   return v_id;

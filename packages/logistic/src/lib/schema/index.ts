@@ -12,8 +12,6 @@
 // One module per concept: each table with its pgEnums and inferred types, and each enum's
 // values in a module of their own. See CLAUDE.md, "Schema file layout".
 // =============================================================================
-
-export * from './adjustment-reason.js';
 export * from './cycle-count-line.js';
 export * from './cycle-count-status.js';
 export * from './cycle-count.js';
@@ -31,6 +29,7 @@ export * from './return-disposition.js';
 export * from './shipment-line.js';
 export * from './shipment-status.js';
 export * from './shipment.js';
+export * from './stock-adjustment-reason.js';
 export * from './stock-adjustment.js';
 export * from './stock-level.js';
 export * from './storage-location-type.js';

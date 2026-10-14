@@ -11,8 +11,8 @@ export const trackingEvent = pgTable(
     status: text('status').notNull(),
     eventLocation: text('event_location'),
     description: text('description'),
-    occurredAt: timestamp('occurred_at', { mode: 'string' }).notNull().defaultNow(),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [index('idx_tracking_event_shipment').on(table.shipmentId, table.occurredAt)],
 );

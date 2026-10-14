@@ -49,14 +49,14 @@ const location = (
   slug: string,
   locationType: StorageLocation['locationType'],
   parentStorageLocationId: number | null,
-  sortOrder: number
+  position: number
 ): StorageLocation => ({
   id,
   slug,
   locationType,
   parentStorageLocationId,
   active: true,
-  sortOrder,
+  position,
   createdAt: CREATED_AT,
 });
 
@@ -126,7 +126,7 @@ const receipt = (
 export const RECEIPTS = [
   receipt(41, 1, 'partial', '2026-10-07T09:40:00.000Z'),
   receipt(42, 1, 'pending', null),
-  receipt(43, null, 'complete', '2026-10-06T15:10:00.000Z'),
+  receipt(43, null, 'completed', '2026-10-06T15:10:00.000Z'),
 ];
 
 export const RECEIPT_LINES: InboundReceiptLine[] = [
@@ -194,7 +194,7 @@ const COPY: CopyRow[] = [
   ['name', 'storage_location', 5, 'Bin A-04-3'],
   ['logistic.inbound_receipt.status.pending', 'logistic', null, 'Pending'],
   ['logistic.inbound_receipt.status.partial', 'logistic', null, 'Partial'],
-  ['logistic.inbound_receipt.status.complete', 'logistic', null, 'Complete'],
+  ['logistic.inbound_receipt.status.completed', 'logistic', null, 'Completed'],
   ['logistic.inbound_receipt.status.cancelled', 'logistic', null, 'Cancelled'],
   ['logistic.inbound_receipt.blind', 'logistic', null, 'Blind receipt'],
   ['logistic.pick_task.status.open', 'logistic', null, 'Open'],

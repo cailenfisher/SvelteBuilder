@@ -5,10 +5,10 @@ export const publishChecklistItem = pgTable(
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
     slug: text('slug').notNull().unique(),
-    ordinal: integer('ordinal').notNull().default(0),
+    position: integer('position').notNull().default(0),
     required: boolean('required').notNull().default(true),
   },
-  (table) => [index('idx_publish_checklist_item_ordinal').on(table.ordinal)]
+  (table) => [index('idx_publish_checklist_item_position').on(table.position)]
 );
 
 export type PublishChecklistItem = typeof publishChecklistItem.$inferSelect;

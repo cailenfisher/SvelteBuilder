@@ -29,7 +29,7 @@ import type {
   NewsletterWithCopy,
   PublishChecklistItem,
   Section,
-  Subscriber,
+  SubscriberWithLocale,
   Topic,
 } from '@sveltebuilder/content';
 
@@ -41,14 +41,14 @@ const CREATED_AT = '2026-09-01T08:00:00.000Z';
 // ── Taxonomy and people ──────────────────────────────────────────────────────
 
 export const STATUS = {
-  draft: { id: 1, slug: 'draft', ordinal: 20 },
-  inReview: { id: 2, slug: 'in_review', ordinal: 30 },
-  published: { id: 5, slug: 'published', ordinal: 50 },
+  draft: { id: 1, slug: 'draft', position: 20 },
+  inReview: { id: 2, slug: 'in_review', position: 30 },
+  published: { id: 5, slug: 'published', position: 50 },
 } as const satisfies Record<string, ArticleStatus>;
 
 export const SECTIONS = [
-  { id: 1, parentSectionId: null, slug: 'news', ordinal: 10, active: true, createdAt: CREATED_AT },
-  { id: 2, parentSectionId: 1, slug: 'local', ordinal: 11, active: true, createdAt: CREATED_AT },
+  { id: 1, parentSectionId: null, slug: 'news', position: 10, active: true, createdAt: CREATED_AT },
+  { id: 2, parentSectionId: 1, slug: 'local', position: 11, active: true, createdAt: CREATED_AT },
 ] satisfies Section[];
 
 export const TOPICS = [
@@ -71,7 +71,7 @@ export const MEDIA = [
     width: 1600,
     height: 900,
     mimeType: 'image/svg+xml',
-    uploadedBy: 1,
+    userAccountId: 1,
     createdAt: CREATED_AT,
   },
   {
@@ -81,7 +81,7 @@ export const MEDIA = [
     width: 1600,
     height: 900,
     mimeType: 'image/svg+xml',
-    uploadedBy: 1,
+    userAccountId: 1,
     createdAt: CREATED_AT,
   },
 ] satisfies MediaAsset[];
@@ -110,8 +110,8 @@ export const ARTICLES = [
     publishedAt: '2026-09-30T04:03:54.000Z',
     updatedAt: '2026-09-30T06:03:54.000Z',
     deletedAt: null,
-    embargoUntil: null,
-    allowComment: true,
+    embargoExpiresAt: null,
+    commentAllowed: true,
     leadMediaAssetId: 10,
     createdAt: '2026-09-29T04:03:54.000Z',
   },
@@ -122,8 +122,8 @@ export const ARTICLES = [
     publishedAt: null,
     updatedAt: '2026-10-02T10:00:00.000Z',
     deletedAt: null,
-    embargoUntil: null,
-    allowComment: false,
+    embargoExpiresAt: null,
+    commentAllowed: false,
     leadMediaAssetId: null,
     createdAt: '2026-10-02T09:00:00.000Z',
   },
@@ -134,8 +134,8 @@ export const ARTICLES = [
     publishedAt: null,
     updatedAt: '2026-10-03T10:00:00.000Z',
     deletedAt: null,
-    embargoUntil: '2026-10-08T06:00:00.000Z',
-    allowComment: true,
+    embargoExpiresAt: '2026-10-08T06:00:00.000Z',
+    commentAllowed: true,
     leadMediaAssetId: null,
     createdAt: '2026-10-03T09:00:00.000Z',
   },
@@ -348,7 +348,7 @@ const slot = (
   articleId: article.id,
   position,
   layoutVariant,
-  pinnedUntil: null,
+  pinExpiresAt: null,
   createdAt: CREATED_AT,
   article,
   overrideHeadline: '',
@@ -410,25 +410,28 @@ export const NEWSLETTER: NewsletterWithCopy = {
   description: "The day's most important stories.",
 };
 
-export const SUBSCRIBERS: Subscriber[] = [
+export const SUBSCRIBERS: SubscriberWithLocale[] = [
   {
     id: 1,
     emailAddress: 'ada@example.com',
-    locale: 'en',
+    localeId: 1,
+    localeCode: 'en',
     confirmedAt: '2026-09-02T10:00:00.000Z',
     createdAt: CREATED_AT,
   },
   {
     id: 2,
     emailAddress: 'marie@example.fr',
-    locale: 'fr',
+    localeId: 2,
+    localeCode: 'fr',
     confirmedAt: null,
     createdAt: CREATED_AT,
   },
   {
     id: 3,
     emailAddress: 'kenji@example.jp',
-    locale: 'ja',
+    localeId: 3,
+    localeCode: 'ja',
     confirmedAt: '2026-09-04T10:00:00.000Z',
     createdAt: CREATED_AT,
   },
@@ -456,9 +459,9 @@ export const ASSIGNMENTS: ArticleAssignment[] = [
 ];
 
 export const CHECKLIST_ITEMS: PublishChecklistItem[] = [
-  { id: 1, slug: 'headline_approved', ordinal: 10, required: true },
-  { id: 2, slug: 'copy_edited', ordinal: 20, required: true },
-  { id: 3, slug: 'images_credited', ordinal: 40, required: false },
+  { id: 1, slug: 'headline_approved', position: 10, required: true },
+  { id: 2, slug: 'copy_edited', position: 20, required: true },
+  { id: 3, slug: 'images_credited', position: 40, required: false },
 ];
 
 export const CHECKLIST_STATES: ArticleChecklistState[] = [

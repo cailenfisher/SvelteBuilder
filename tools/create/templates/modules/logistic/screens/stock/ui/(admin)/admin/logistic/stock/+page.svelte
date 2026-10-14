@@ -130,7 +130,7 @@
                 {adjustment.delta > 0 ? '+' : ''}{adjustment.delta}
               </span>
               <span class="stock-page__history-reason">
-                {t(`logistic.adjustment_reason.${adjustment.reason}`)}
+                {t(`logistic.stock_adjustment_reason.${adjustment.reason}`)}
               </span>
               <!-- Interpolated through MF2 rather than concatenated, so a locale can put
                    the number wherever its grammar needs it. -->
@@ -195,7 +195,7 @@
                itself takes no such prop. SelectItem is self-labelling. -->
           <Select name="reason">
             {#each data.manualReasons as reason (reason)}
-              <SelectItem value={reason} label={t(`logistic.adjustment_reason.${reason}`)} />
+              <SelectItem value={reason} label={t(`logistic.stock_adjustment_reason.${reason}`)} />
             {/each}
           </Select>
         </Field>

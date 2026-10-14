@@ -1,8 +1,8 @@
 import { pgEnum, pgTable, bigint, index, integer, text, timestamp } from 'drizzle-orm/pg-core';
-import { ADJUSTMENT_REASONS } from './adjustment-reason.js';
+import { STOCK_ADJUSTMENT_REASONS } from './stock-adjustment-reason.js';
 import { stockLevel } from './stock-level.js';
 
-export const adjustmentReason = pgEnum('adjustment_reason', ADJUSTMENT_REASONS);
+export const stockAdjustmentReason = pgEnum('stock_adjustment_reason', STOCK_ADJUSTMENT_REASONS);
 
 export const stockAdjustment = pgTable(
   'stock_adjustment',
@@ -16,9 +16,9 @@ export const stockAdjustment = pgTable(
     delta: integer('delta').notNull(),
     onHandBefore: integer('on_hand_before').notNull(),
     onHandAfter: integer('on_hand_after').notNull(),
-    reason: adjustmentReason('reason').notNull(),
+    reason: stockAdjustmentReason('reason').notNull(),
     note: text('note'),
-    createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
     index('idx_stock_adjustment_stock_level').on(table.stockLevelId, table.createdAt),

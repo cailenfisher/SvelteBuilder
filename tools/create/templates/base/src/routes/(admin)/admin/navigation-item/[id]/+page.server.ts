@@ -4,8 +4,8 @@ import type { PageServerLoad } from './$types'
 type NavItem = {
   id: number
   href: string
-  scope: string
-  sortOrder: number
+  menu: string
+  position: number
   active: boolean
   localTextLink: { id: number; slug: string; scope: string | null } | null
 }
@@ -20,8 +20,8 @@ export const load: PageServerLoad = async ({ params }) => {
     navItem: {
       id,
       href: '',
-      scope: '',
-      sortOrder: 0,
+      menu: '',
+      position: 0,
       active: true,
       localTextLink: null,
     } as NavItem,

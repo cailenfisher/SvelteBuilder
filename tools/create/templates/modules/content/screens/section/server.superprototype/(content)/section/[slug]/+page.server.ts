@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
 
   const sectionResult = await locals.supabase
     .from('section')
-    .select('id, parent_section_id, slug, ordinal, active, created_at')
+    .select('id, parent_section_id, slug, position, active, created_at')
     .eq('slug', params.slug)
     .maybeSingle();
 
@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
     id: sectionResult.data.id,
     parentSectionId: sectionResult.data.parent_section_id,
     slug: sectionResult.data.slug,
-    ordinal: sectionResult.data.ordinal,
+    position: sectionResult.data.position,
     active: sectionResult.data.active,
     createdAt: sectionResult.data.created_at,
   };
@@ -45,7 +45,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
     locals.supabase
       .from('article_section')
       .select(
-        'article!inner(id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, lead_media_asset_id, created_at, article_status!inner(id, slug, ordinal), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at)))',
+        'article!inner(id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_expires_at, comment_allowed, lead_media_asset_id, created_at, article_status!inner(id, slug, position), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, position, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at)))',
         { count: 'exact' }
       )
       .eq('section_id', section.id)
@@ -56,10 +56,10 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
       .range(from, from + PER_PAGE - 1),
     locals.supabase
       .from('section')
-      .select('id, parent_section_id, slug, ordinal, active, created_at')
+      .select('id, parent_section_id, slug, position, active, created_at')
       .eq('parent_section_id', section.id)
       .eq('active', true)
-      .order('ordinal'),
+      .order('position'),
   ]);
 
   if (articlesResult.error) throw error(500, 'Failed to load the section’s articles.');
@@ -82,8 +82,8 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
       publishedAt: row.published_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      embargoUntil: row.embargo_until,
-      allowComment: row.allow_comment,
+      embargoExpiresAt: row.embargo_expires_at,
+      commentAllowed: row.comment_allowed,
       leadMediaAssetId: row.lead_media_asset_id,
       createdAt: row.created_at,
       blocks: (row.article_block ?? [])
@@ -97,7 +97,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
           createdAt: block.created_at,
         }))
         .sort((a, b) => a.position - b.position),
-      status: { id: status.id, slug: status.slug, ordinal: status.ordinal },
+      status: { id: status.id, slug: status.slug, position: status.position },
       bylines: (row.article_byline ?? [])
         .map((byline) => ({ position: byline.position, author: toOne(byline.author_profile) }))
         .filter(
@@ -119,7 +119,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
           id: entry.id,
           parentSectionId: entry.parent_section_id,
           slug: entry.slug,
-          ordinal: entry.ordinal,
+          position: entry.position,
           active: entry.active,
           createdAt: entry.created_at,
         })),
@@ -148,7 +148,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
     id: child.id,
     parentSectionId: child.parent_section_id,
     slug: child.slug,
-    ordinal: child.ordinal,
+    position: child.position,
     active: child.active,
     createdAt: child.created_at,
   }));
@@ -167,7 +167,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
     leadAssetIds.length > 0
       ? await locals.supabase
           .from('media_asset')
-          .select('id, media_type, storage_key, width, height, mime_type, uploaded_by, created_at')
+          .select('id, media_type, storage_key, width, height, mime_type, user_account_id, created_at')
           .in('id', leadAssetIds)
       : { data: [], error: null };
   if (mediaResult.error) throw error(500, 'Failed to load media.');
@@ -215,7 +215,7 @@ export const load: PageServerLoad = async ({ locals, params, url }): Promise<Sec
       width: asset.width,
       height: asset.height,
       mimeType: asset.mime_type,
-      uploadedBy: asset.uploaded_by,
+      userAccountId: asset.user_account_id,
       createdAt: asset.created_at,
     })),
     total: articlesResult.count ?? articles.length,

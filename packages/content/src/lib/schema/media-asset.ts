@@ -1,26 +1,26 @@
 import { pgEnum, pgTable, bigint, index, integer, text, timestamp } from 'drizzle-orm/pg-core';
-import { MEDIA_TYPES } from './media-type.js';
+import { MEDIA_ASSET_TYPES } from './media-asset-type.js';
 import type { MediaAssetRights } from './media-asset-rights.js';
 import type { MediaAssetSource } from './media-asset-source.js';
-import type { MediaLicense } from './media-license.js';
+import type { MediaAssetLicense } from './media-asset-license.js';
 
-export const mediaType = pgEnum('media_type', MEDIA_TYPES);
+export const mediaAssetType = pgEnum('media_asset_type', MEDIA_ASSET_TYPES);
 
 export const mediaAsset = pgTable(
   'media_asset',
   {
     id: bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey(),
-    mediaType: mediaType('media_type').notNull(),
+    mediaType: mediaAssetType('media_type').notNull(),
     storageKey: text('storage_key').notNull().unique(),
     width: integer('width'),
     height: integer('height'),
     mimeType: text('mime_type').notNull(),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
-    uploadedBy: bigint('uploaded_by', { mode: 'number' }).notNull(),
+    userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
   },
   (table) => [
-    index('idx_media_asset_uploader').on(table.uploadedBy),
+    index('idx_media_asset_user_account').on(table.userAccountId),
     index('idx_media_asset_type').on(table.mediaType),
   ]
 );
@@ -37,7 +37,7 @@ export type MediaAsset = typeof mediaAsset.$inferSelect;
  */
 export type MediaAssetAttribution = {
   mediaAssetId: number;
-  license: MediaLicense;
+  license: MediaAssetLicense;
   sourceUrl: string;
   licenseUrl: string | null;
 };

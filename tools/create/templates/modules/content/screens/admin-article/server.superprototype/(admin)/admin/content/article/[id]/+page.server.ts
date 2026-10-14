@@ -17,15 +17,15 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<AdminArt
       locals.supabase
         .from('article')
         .select(
-          'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, lead_media_asset_id, created_at, article_status!inner(id, slug, ordinal), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))'
+          'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_expires_at, comment_allowed, lead_media_asset_id, created_at, article_status!inner(id, slug, position), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, position, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))'
         )
         .eq('id', id)
         .maybeSingle(),
-      locals.supabase.from('article_status').select('id, slug, ordinal').order('ordinal'),
+      locals.supabase.from('article_status').select('id, slug, position').order('position'),
       locals.supabase
         .from('publish_checklist_item')
-        .select('id, slug, ordinal, required')
-        .order('ordinal'),
+        .select('id, slug, position, required')
+        .order('position'),
       locals.supabase
         .from('article_checklist_state')
         .select('publish_checklist_item_id, satisfied')
@@ -33,9 +33,9 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<AdminArt
       Promise.all([
         locals.supabase
           .from('section')
-          .select('id, parent_section_id, slug, ordinal, active, created_at')
+          .select('id, parent_section_id, slug, position, active, created_at')
           .eq('active', true)
-          .order('ordinal'),
+          .order('position'),
         locals.supabase.from('topic').select('id, slug, active, created_at').eq('active', true),
         locals.supabase.from('tag').select('id, slug, active, created_at'),
       ]),
@@ -90,7 +90,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<AdminArt
       id: entry.id,
       parentSectionId: entry.parent_section_id,
       slug: entry.slug,
-      ordinal: entry.ordinal,
+      position: entry.position,
       active: entry.active,
       createdAt: entry.created_at,
     }));
@@ -124,7 +124,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<AdminArt
   const checklist: ChecklistEntry[] = (checklistResult.data ?? []).map((item) => ({
     id: item.id,
     slug: item.slug,
-    ordinal: item.ordinal,
+    position: item.position,
     required: item.required,
     completed: satisfied.get(item.id) ?? false,
   }));
@@ -159,11 +159,11 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<AdminArt
       publishedAt: row.published_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      embargoUntil: row.embargo_until,
-      allowComment: row.allow_comment,
+      embargoExpiresAt: row.embargo_expires_at,
+      commentAllowed: row.comment_allowed,
       leadMediaAssetId: row.lead_media_asset_id,
       createdAt: row.created_at,
-      status: { id: status.id, slug: status.slug, ordinal: status.ordinal },
+      status: { id: status.id, slug: status.slug, position: status.position },
       blocks,
       bylines,
       sections,
@@ -173,14 +173,14 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<AdminArt
     statuses: (statusesResult.data ?? []).map((s) => ({
       id: s.id,
       slug: s.slug,
-      ordinal: s.ordinal,
+      position: s.position,
     })),
     checklist,
     availableSections: (sectionsResult.data ?? []).map((section) => ({
       id: section.id,
       parentSectionId: section.parent_section_id,
       slug: section.slug,
-      ordinal: section.ordinal,
+      position: section.position,
       active: section.active,
       createdAt: section.created_at,
     })),
@@ -294,7 +294,7 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
     locals.supabase
       .from('article')
       .select(
-        'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, lead_media_asset_id, created_at, article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))'
+        'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_expires_at, comment_allowed, lead_media_asset_id, created_at, article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, position, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))'
       )
       .eq('id', id)
       .maybeSingle(),
@@ -330,8 +330,8 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
     publishedAt: row.published_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
-    embargoUntil: row.embargo_until,
-    allowComment: row.allow_comment,
+    embargoExpiresAt: row.embargo_expires_at,
+    commentAllowed: row.comment_allowed,
     leadMediaAssetId: row.lead_media_asset_id,
     createdAt: row.created_at,
     blocks,
@@ -352,7 +352,7 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
         id: entry.id,
         parentSectionId: entry.parent_section_id,
         slug: entry.slug,
-        ordinal: entry.ordinal,
+        position: entry.position,
         active: entry.active,
         createdAt: entry.created_at,
       })),
