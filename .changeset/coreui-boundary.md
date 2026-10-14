@@ -14,7 +14,8 @@ coreui now holds only domain-agnostic components. Breaking: four things left it.
   props are gone. Its classes are `.article-block-editor` and `.article-block-editor__*`. The
   content seed adds its copy, and a name for each `article_block_type`, in English and French.
 - **`LocaleEdit`, `LocalTextEdit` and `LocalTextLinkEdit` moved into the base scaffold** as
-  `LocaleForm`, `LocalTextForm` and `LocalTextLinkForm` under `src/lib/`. They now generate their
+  `LocaleFieldset`, `LocalTextFieldset` and `LocalTextLinkFieldset` under `src/lib/`, each a
+  `<fieldset>` the page places inside its own form. They now generate their
   field ids, so several on one page no longer collide, and no longer show English placeholders.
 - **`BarcodeInput` moved to logistic**, and composes with coreui's `Field`: wrap it in a `Field`,
   which supplies the label, hint and error. Its `label` and `error` props are removed, and

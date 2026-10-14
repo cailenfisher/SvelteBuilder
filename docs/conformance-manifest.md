@@ -193,7 +193,7 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | --- | --- | --- |
 | `RadioItem` | `RadioGroupItem` | proposed |
 | `TableHead` (`<thead>`), `TableHeader` (`<th>`) | `TableHead` kept; `TableHeader` → `TableHeaderCell` | proposed |
-| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit` | moved to the base template as `LocaleForm`, `LocalTextForm`, `LocalTextLinkForm` | proposed (A-2) |
+| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit` | moved to the base template as `LocaleFieldset`, `LocalTextFieldset`, `LocalTextLinkFieldset` | approved 2026-10-13 (A-2). First approved as `…Form`; renamed because none owns a `<form>`, they group inputs inside the page's form |
 | `LocaleSwitcher` | `LocalePicker` | proposed |
 | `StatusBadge` | removed | proposed (A-3) |
 | `BlockEditor`, type `EditorBlock` | moved to content as `ArticleBlockEditor`; type `ArticleBlockDraft` | approved |
@@ -223,7 +223,7 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | `.checkbox-wrap`, `.switch-wrap` | `.checkbox`, `.switch` become the wrapping root; the inputs become `.checkbox__control`, `.switch__control` |
 | `.table-wrap` | `.table` becomes the scroll root; `<table>` becomes `.table__element` |
 | `.block-editor`, `.block-*`, `.add-block-btn`, `.embed-*`, `.heading-level-select` | move with the component as `.article-block-editor__*` |
-| `.locale-edit`, `.local-text-edit`, `.local-text-link-edit` | move with the components as `.locale-form`, `.local-text-form`, `.local-text-link-form` |
+| `.locale-edit`, `.local-text-edit`, `.local-text-link-edit` | move with the components as `.locale-fieldset`, `.local-text-fieldset`, `.local-text-link-fieldset` |
 
 **Internal elements that become `__part`:**
 

@@ -107,7 +107,7 @@ Add `pnpm sql:check` (needs Docker) whenever a phase touches SQL, migrations, se
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------ | -------------------------- |
 | `RadioItem`                                         | `RadioGroupItem`                                                                           | parent-first               |
 | `TableHead` vs `TableHeader`                        | e.g. keep `TableHead` (thead), `TableHeader` → `TableHeaderCell` (th)                      |                            |
-| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit`  | move to the base template (audit B2) as `LocaleForm`, `LocalTextForm`, `LocalTextLinkForm` |                            |
+| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit`  | move to the base template (audit B2) as `LocaleFieldset`, `LocalTextFieldset`, `LocalTextLinkFieldset` |                            |
 | `LocaleSwitcher`                                    | `LocalePicker`                                                                             | stays in coreui (audit B2) |
 | `StatusBadge`                                       | removed                                                                                    | audit B4                   |
 | `MessageAriaLive`, `SelectItemCollector`            | verify; propose names                                                                      |                            |

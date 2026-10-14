@@ -1,10 +1,14 @@
-<!-- The fields that describe one locale's copy for a slug. The page supplies the <form>, its
-     action and its submit button; a page editing several locales renders one per locale. -->
+<!-- The inputs that describe one locale's copy for a slug, grouped in a <fieldset>. The page owns
+     the <form>, its action and its submit button; a page editing several locales renders one per
+     locale, and names each with `legend`. -->
 <script lang="ts">
   import type { Locale } from 'diglossia';
   import { Field, Input, Select, SelectItem, Textarea } from '@sveltebuilder/coreui';
 
   type Props = {
+    /** Names the group for assistive technology and shows as its caption. Omit when the
+        surrounding form or section already names it. */
+    legend?: string;
     slugLabel: string;
     localeLabel: string;
     contentLabel: string;
@@ -16,6 +20,7 @@
   };
 
   let {
+    legend,
     slugLabel,
     localeLabel,
     contentLabel,
@@ -32,7 +37,10 @@
   let selectedLocale = $state(localeId !== undefined ? String(localeId) : '');
 </script>
 
-<div class="local-text-form">
+<fieldset class="local-text-fieldset">
+  {#if legend}
+    <legend class="local-text-fieldset__legend">{legend}</legend>
+  {/if}
   <Field label={slugLabel} id="{id}-slug">
     <Input name="slug" value={slug} readonly={slugReadonly} />
   </Field>
@@ -46,12 +54,22 @@
   <Field label={contentLabel} id="{id}-content">
     <Textarea name="content" value={content} rows={4} />
   </Field>
-</div>
+</fieldset>
 
 <style>
-  .local-text-form {
+  .local-text-fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-inline-size: 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+  }
+
+  .local-text-fieldset__legend {
+    padding: 0;
+    margin-block-end: var(--space-2);
+    font-weight: var(--weight-semibold);
   }
 </style>

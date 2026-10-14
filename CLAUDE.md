@@ -374,8 +374,16 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
   component they serve.
 - **Role suffixes** are the global list (`Form`, `List`, `Table`, `Row`, `Card`, `Detail`,
   `Summary`, `Drawer`, `Modal`, `Header`, `Footer`, `Search`, `Filter`, `Picker`, `Field`, `Badge`,
-  `Link`, `Empty`, `Skeleton`) plus, in this repo: `Queue`, `Board`, `Panel`, `Renderer`, `Figure`,
-  `Bar`, `Path`, `Editor`, `Region`, and `Option` (a view-model type for one `<Select>` option).
+  `Link`, `Empty`, `Skeleton`) plus, in this repo: `Fieldset`, `Queue`, `Board`, `Panel`,
+  `Renderer`, `Figure`, `Bar`, `Path`, `Editor`, `Region`, and `Option` (a view-model type for one
+  `<Select>` option).
+- **Inputs are `Field`s and `Fieldset`s; only a component that owns the `<form>` is a `Form`.** A
+  `…Form` renders the `<form>` element itself, with its action and submit button, and is the clear
+  parent of everything inside it. A component holding one input with its label is a `…Field`. One
+  grouping several related inputs, to be placed inside a form someone else owns, is a
+  `…Fieldset` and renders a real `<fieldset>`, with an optional `<legend>` when nothing around it
+  already names the group. So `LocaleFieldset` sits inside the locale page's form, while
+  `NewsletterSubscriptionForm` posts its own.
 - **`View` means a view-model type**, never a component: `InboundReceiptDetailView` is the type a
   loader returns; the component showing one is `…Detail`.
 - **`Item`** is allowed where the domain itself uses the word (`navigation_item`,

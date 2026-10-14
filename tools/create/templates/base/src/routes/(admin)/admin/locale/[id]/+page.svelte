@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte'
   import { Button } from '@sveltebuilder/coreui'
-  import LocaleForm from '$lib/Locale/LocaleForm.svelte'
+  import LocaleFieldset from '$lib/Locale/LocaleFieldset.svelte'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
@@ -31,7 +31,7 @@
   {/if}
 
   <form method="post" action="?/update" class="locale-edit-page__form">
-    <LocaleForm
+    <LocaleFieldset
       {codeLabel}
       {nameLabel}
       nativeNameLabel={nativeLabel}

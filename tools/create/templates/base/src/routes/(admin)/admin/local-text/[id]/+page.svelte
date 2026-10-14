@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte'
   import { Button } from '@sveltebuilder/coreui'
-  import LocalTextForm from '$lib/LocalText/LocalTextForm.svelte'
+  import LocalTextFieldset from '$lib/LocalText/LocalTextFieldset.svelte'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
@@ -40,7 +40,7 @@
   <div class="local-text-edit-page__translations">
     {#each data.locales as locale (locale.id)}
       <form method="post" action="?/update" class="local-text-edit-page__locale-form">
-        <LocalTextForm
+        <LocalTextFieldset
           {slugLabel}
           localeLabel={locale.nativeName}
           contentLabel={dictionary.localText('admin.local_text.content')}
