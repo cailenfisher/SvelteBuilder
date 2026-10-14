@@ -2,6 +2,7 @@
      inside a larger form, such as the one creating a navigation item, which owns the <form> and its
      submit button. -->
 <script lang="ts">
+  import './local-text-link.css';
   import { Field, Input } from '@sveltebuilder/coreui';
 
   type Props = {
@@ -30,21 +31,3 @@
     <Input name="scope" value={scope ?? ''} />
   </Field>
 </fieldset>
-
-<style>
-  .local-text-link-fieldset {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    min-inline-size: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-  }
-
-  .local-text-link-fieldset__legend {
-    padding: 0;
-    margin-block-end: var(--space-2);
-    font-weight: var(--weight-semibold);
-  }
-</style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './warehouse-layout.css';
   import type { Snippet } from 'svelte';
   import { page } from '$app/state';
   import { createDictionary } from 'diglossia';
@@ -42,55 +43,3 @@
     {@render children()}
   </main>
 </div>
-
-<style>
-  .warehouse-layout {
-    display: flex;
-    flex-direction: column;
-    min-height: 100dvh;
-  }
-
-  .warehouse-layout__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-3) var(--space-4);
-    background-color: var(--surface);
-    border-block-end: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  .warehouse-layout__wordmark {
-    font-size: var(--text-base);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    text-decoration: none;
-  }
-
-  .warehouse-layout__navigation {
-    display: flex;
-    gap: var(--space-1);
-  }
-
-  .warehouse-layout__navigation-link {
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-    text-decoration: none;
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-sm);
-  }
-
-  .warehouse-layout__navigation-link[aria-current='page'] {
-    color: var(--text);
-    font-weight: var(--weight-semibold);
-    background-color: var(--surface-raised);
-  }
-
-  .warehouse-layout__main {
-    flex: 1;
-    display: flex;
-  }
-</style>

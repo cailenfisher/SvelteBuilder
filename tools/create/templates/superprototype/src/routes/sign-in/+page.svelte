@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './sign-in-screen.css';
   import { Button } from '@sveltebuilder/coreui'
   import { getDictionary } from 'diglossia/svelte'
   import type { ActionData } from './$types'
@@ -12,15 +13,15 @@
   const signInWithGoogle = $derived(dictionary.localText('user.sign_in_with_google'))
 </script>
 
-<div class="sign-in-page">
-  <div class="sign-in-card">
-    <header class="sign-in-card__header">
-      <h1 class="sign-in-card__title">{title}</h1>
-      <p class="sign-in-card__subtitle">{subtitle}</p>
+<div class="sign-in-screen">
+  <div class="sign-in-screen__card">
+    <header class="sign-in-screen__card-header">
+      <h1 class="sign-in-screen__card-title">{title}</h1>
+      <p class="sign-in-screen__card-subtitle">{subtitle}</p>
     </header>
 
     {#if form?.error}
-      <p class="sign-in-card__error" role="alert">{form.error}</p>
+      <p class="sign-in-screen__card-error" role="alert">{form.error}</p>
     {/if}
 
     <form method="post">
@@ -28,51 +29,3 @@
     </form>
   </div>
 </div>
-
-<style>
-  .sign-in-page {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-    min-height: 100dvh;
-  }
-
-  .sign-in-card {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 2rem;
-    border: 1px solid var(--border-color, currentColor);
-    border-radius: var(--radius-xl);
-    background-color: var(--surface, transparent);
-  }
-
-  .sign-in-card__header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .sign-in-card__title {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-    line-height: 1.25;
-  }
-
-  .sign-in-card__subtitle {
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--text-soft, inherit);
-  }
-
-  .sign-in-card__error {
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--danger-text, red);
-  }
-</style>

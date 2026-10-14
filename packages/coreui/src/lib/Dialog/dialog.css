@@ -1,0 +1,135 @@
+/* =============================================================================
+   Dialog
+   ============================================================================= */
+
+.dialog__overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  z-index: var(--z-overlay);
+  animation: overlay-in var(--duration-slow) var(--ease);
+}
+.dialog__overlay[data-state='closed'] {
+  animation: overlay-out var(--duration) var(--ease);
+}
+@keyframes overlay-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes overlay-out { from { opacity: 1; } to { opacity: 0; } }
+
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 4rem);
+  width: calc(100% - 2rem);
+  animation: dialog-in var(--duration-slow) var(--ease-spring);
+}
+.dialog[data-state='closed'] {
+  animation: dialog-out var(--duration) var(--ease);
+}
+@keyframes dialog-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes dialog-out {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  to   { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+}
+
+.dialog--sm   { max-width: 24rem; }
+.dialog--md   { max-width: 32rem; }
+.dialog--lg   { max-width: 40rem; }
+.dialog--xl   { max-width: 48rem; }
+.dialog--full {
+  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  max-height: 100dvh;
+  border-radius: 0;
+  top: 0;
+  left: 0;
+  transform: none;
+}
+
+/* The trigger is a real <button> wrapping the caller's snippet; it is styled away so the
+   snippet decides the look, but it must keep a box. display: contents would take a button
+   out of the focus order in Chromium, so the overlay could not be opened from the keyboard
+   (WCAG 2.1.1). Drawer, Menu, Popover and Tooltip triggers carry the same rule. Focus rings
+   come from base.css's :focus-visible. */
+.dialog__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-6) 0;
+  flex-shrink: 0;
+}
+
+.dialog__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  line-height: var(--leading-snug);
+  margin: 0;
+}
+
+.dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--duration) var(--ease), color var(--duration) var(--ease);
+}
+.dialog__close:hover { background: var(--surface-raised); color: var(--text); }
+
+.dialog__description {
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+  line-height: var(--leading-normal);
+  padding: var(--space-2) var(--space-6) 0;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.dialog__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.dialog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: 0 var(--space-6) var(--space-6);
+  flex-shrink: 0;
+  border-top: var(--border);
+}

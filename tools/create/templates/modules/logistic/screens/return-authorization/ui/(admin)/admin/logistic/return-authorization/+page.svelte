@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './return-authorization-list-screen.css';
   import { goto } from '$app/navigation';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
@@ -56,7 +57,7 @@
 
 {#snippet returnCell(row: ReturnAuthorizationRow, column: DataTableColumn)}
   {#if column.key === 'id'}
-    <a href="/admin/logistic/return-authorization/{row.id}" class="return-list__link">#{row.id}</a>
+    <a href="/admin/logistic/return-authorization/{row.id}" class="return-authorization-list-screen__link">#{row.id}</a>
   {:else if column.key === 'status'}
     <Badge variant={statusVariant(row.status)}>
       {t(`logistic.return_authorization.status.${row.status}`)}
@@ -74,9 +75,9 @@
   <title>{t('logistic.return_authorization.title')}</title>
 </svelte:head>
 
-<div class="return-list">
-  <header class="return-list__header">
-    <h1 class="return-list__title">{t('logistic.return_authorization.title')}</h1>
+<div class="return-authorization-list-screen">
+  <header class="return-authorization-list-screen__header">
+    <h1 class="return-authorization-list-screen__title">{t('logistic.return_authorization.title')}</h1>
     <Button variant="primary" onclick={() => (newReturnOpen = true)}>
       {t('logistic.return_authorization.new')}
     </Button>
@@ -86,7 +87,7 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <nav class="return-list__filters" aria-label={t('logistic.return_authorization.filter_status')}>
+  <nav class="return-authorization-list-screen__filters" aria-label={t('logistic.return_authorization.filter_status')}>
     <Button
       href={href(null)}
       variant={data.status === null ? 'secondary' : 'ghost'}
@@ -127,7 +128,7 @@
 
 <Dialog bind:open={newReturnOpen} title={t('logistic.return_authorization.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
-    <form method="POST" action="?/create" class="return-new-form">
+    <form method="POST" action="?/create" class="return-authorization-list-screen__new-form">
       <Field label={t('logistic.field.sku')} id="return-sku" required>
         <Input name="sku" required />
       </Field>
@@ -141,7 +142,7 @@
         <Textarea name="note" rows={3} />
       </Field>
 
-      <div class="return-new-form__actions">
+      <div class="return-authorization-list-screen__new-form-actions">
         <Button variant="ghost" onclick={() => (newReturnOpen = false)}>
           {dictionary.localText('action.cancel')}
         </Button>
@@ -150,52 +151,3 @@
     </form>
   {/snippet}
 </Dialog>
-
-<style>
-  .return-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .return-list__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .return-list__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .return-list__filters {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-  }
-
-  .return-list__link {
-    color: var(--text);
-    font-weight: var(--weight-medium);
-  }
-
-  .return-new-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .return-new-form__actions {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-end;
-  }
-</style>

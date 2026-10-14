@@ -28,19 +28,3 @@
 >
   {name}
 </a>
-
-<style>
-  .section-link {
-    display: inline-block;
-    font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--brand-text);
-    text-decoration: none;
-  }
-
-  .section-link:hover {
-    color: color-mix(in srgb, var(--brand), black 20%);
-  }
-</style>

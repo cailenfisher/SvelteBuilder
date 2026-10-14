@@ -1,0 +1,28 @@
+/* =============================================================================
+   DateTimePicker
+   ============================================================================= */
+
+.date-time-picker {
+  height: var(--input-height, 2.5rem);
+  padding-inline: var(--space-3);
+  border: var(--input-border, 1px solid var(--border-color));
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: var(--text-sm);
+  color: var(--text);
+  background: var(--surface);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.date-time-picker:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 20%, transparent);
+}
+
+.date-time-picker:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--surface-raised);
+}

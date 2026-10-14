@@ -12,14 +12,24 @@ Typically installed via `npm create sveltebuilder@latest`, which also copies the
 
 ## Usage
 
+Import the module's stylesheet once, in your app's `app.css`, after coreui's and in the same
+layer. Its components carry no `<style>` blocks, so without it they render unstyled. A project
+made with `npm create sveltebuilder` already has this line.
+
+```css
+@import '@sveltebuilder/coreui/styles/components.css' layer(components);
+@import '@sveltebuilder/logistic/styles/components.css' layer(components);
+```
+
 ```ts
 import { PickTaskCard, ShipmentStatusBadge, StockLevelBar } from '@sveltebuilder/logistic';
-import { getStockLevels, createPickTask, receiveReceiptLine } from '@sveltebuilder/logistic/server';
+import type { InboundReceiptDetailView } from '@sveltebuilder/logistic/views';
 import { stockLevel, pickTask, shipment } from '@sveltebuilder/logistic/schema';
 ```
 
 - **`@sveltebuilder/logistic`** — Svelte components, split into Camp 1 (`PickTaskStatusBadge`, `ShipmentStatusBadge`, `ReturnConditionBadge`, `StockLevelBar`, `TrackingEventList`, `BarcodeInput` — no diglossia dependency) and Camp 2 (`SupplierCard`, `StorageLocationPath`, `PickTaskCard`, `InboundReceiptCard` — call `getDictionary()` from `diglossia/svelte`, with an optional `dictionary` prop for overriding context). Also re-exports all schema types.
-- **`@sveltebuilder/logistic/server`** — query and mutation helpers covering the full warehouse workflow: `getStockLevels`/`adjustStock`, `createInboundReceipt`/`receiveReceiptLine`, `createPickTask`/`assignPickTask`/`recordPickedQuantity`/`completePickTask`, `createShipment`/`updateShipmentTracking`, `createReturnAuthorization`/`gradeReturnLine`, `createCycleCount`/`recordCycleCountLine`/`approveCycleCount`, and `getLogisticMetrics`.
+- **`@sveltebuilder/logistic/views`** — the view-model types a screen and its loader share. The module ships no queries (guardrail 11); a scaffolded project's data modules in `src/lib/server/logistic/` hold them.
+- **`@sveltebuilder/logistic/styles/components.css`** — every component's styles, for the `components` layer.
 - **`@sveltebuilder/logistic/schema`** — Drizzle table definitions and TypeScript types (`Supplier`, `StorageLocation`, `StockLevel`, `InboundReceipt`, `PickTask`, `Shipment`, `ReturnAuthorization`, `CycleCount`, and their line/item types).
 
 Like all SvelteBuilder domain modules, logistic carries no `name`/`title`/`description` copy columns on its entities — user-facing copy is linked via `diglossia` (`scope` = table name, `entityId` = the row's bigint PK).

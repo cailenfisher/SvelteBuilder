@@ -1,0 +1,74 @@
+.logistic-dashboard-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-6);
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.logistic-dashboard-screen__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  margin: 0;
+}
+
+.logistic-dashboard-screen__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-4);
+}
+
+.logistic-dashboard-screen__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.logistic-dashboard-screen__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.logistic-dashboard-screen__section-title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  margin: 0;
+}
+
+.logistic-dashboard-screen__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.logistic-dashboard-screen__list-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.logistic-dashboard-screen__link {
+  color: var(--text);
+  font-weight: var(--weight-medium);
+}
+
+.logistic-dashboard-screen__muted {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+}
+
+.logistic-dashboard-screen__sections {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}

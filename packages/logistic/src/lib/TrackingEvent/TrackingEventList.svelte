@@ -38,22 +38,3 @@
     <li class="tracking-event-list__empty">No tracking events yet.</li>
   {/each}
 </Timeline>
-
-<style>
-  .tracking-event-list__description {
-    margin: 0;
-  }
-
-  .tracking-event-list__location {
-    font-size: var(--text-xs);
-    color: var(--text-soft);
-    margin: var(--space-1) 0 0;
-  }
-
-  .tracking-event-list__empty {
-    list-style: none;
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-    padding: var(--space-3) 0;
-  }
-</style>

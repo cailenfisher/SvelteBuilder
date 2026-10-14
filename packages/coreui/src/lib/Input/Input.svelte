@@ -55,11 +55,3 @@
     {...restProps}
   />
 </div>
-
-<style>
-  .input__wrap {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-  }
-</style>

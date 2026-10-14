@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './shipment-list-screen.css';
   import { goto } from '$app/navigation';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
@@ -47,7 +48,7 @@
 
 {#snippet shipmentCell(row: ShipmentRow, column: DataTableColumn)}
   {#if column.key === 'id'}
-    <a href="/admin/logistic/shipment/{row.id}" class="shipment-list__link">#{row.id}</a>
+    <a href="/admin/logistic/shipment/{row.id}" class="shipment-list-screen__link">#{row.id}</a>
   {:else if column.key === 'status'}
     <!-- Camp 1 component: it takes the label as a plain string and imports no dictionary. -->
     <ShipmentStatusBadge status={row.status} label={t(`logistic.shipment.status.${row.status}`)} />
@@ -55,7 +56,7 @@
     {row.carrier ?? '—'}
   {:else if column.key === 'trackingNumber'}
     {#if row.trackingNumber}
-      <span class="shipment-list__mono">{row.trackingNumber}</span>
+      <span class="shipment-list-screen__mono">{row.trackingNumber}</span>
     {:else}
       —
     {/if}
@@ -70,9 +71,9 @@
   <title>{t('logistic.shipment.title')}</title>
 </svelte:head>
 
-<div class="shipment-list">
-  <header class="shipment-list__header">
-    <h1 class="shipment-list__title">{t('logistic.shipment.title')}</h1>
+<div class="shipment-list-screen">
+  <header class="shipment-list-screen__header">
+    <h1 class="shipment-list-screen__title">{t('logistic.shipment.title')}</h1>
     <Button variant="primary" onclick={() => (newShipmentOpen = true)}>
       {t('logistic.shipment.new')}
     </Button>
@@ -82,7 +83,7 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <nav class="shipment-list__filters" aria-label={t('logistic.shipment.filter_status')}>
+  <nav class="shipment-list-screen__filters" aria-label={t('logistic.shipment.filter_status')}>
     <Button
       href={href(null)}
       variant={data.status === null ? 'secondary' : 'ghost'}
@@ -123,7 +124,7 @@
 
 <Dialog bind:open={newShipmentOpen} title={t('logistic.shipment.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
-    <form method="POST" action="?/create" class="shipment-new-form">
+    <form method="POST" action="?/create" class="shipment-list-screen__new-form">
       <!-- Field renders the <label for>; the control inherits its id from field context. -->
       <Field label={t('logistic.field.carrier')} id="shipment-carrier">
         <Input name="carrier" />
@@ -141,7 +142,7 @@
         <Input name="quantity" type="number" min="1" value="1" required />
       </Field>
 
-      <div class="shipment-new-form__actions">
+      <div class="shipment-list-screen__new-form-actions">
         <Button variant="ghost" onclick={() => (newShipmentOpen = false)}>
           {dictionary.localText('action.cancel')}
         </Button>
@@ -150,56 +151,3 @@
     </form>
   {/snippet}
 </Dialog>
-
-<style>
-  .shipment-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .shipment-list__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .shipment-list__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .shipment-list__filters {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-  }
-
-  .shipment-list__link {
-    color: var(--text);
-    font-weight: var(--weight-medium);
-  }
-
-  .shipment-list__mono {
-    font-family: var(--font-mono);
-  }
-
-  .shipment-new-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .shipment-new-form__actions {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-end;
-  }
-</style>

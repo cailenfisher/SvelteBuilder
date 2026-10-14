@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './locale-admin-list-screen.css';
   import { getDictionary } from 'diglossia/svelte'
   import {
     Button,
@@ -23,22 +24,22 @@
   const editLabel   = $derived(dictionary.localText('action.edit'))
 </script>
 
-<div class="locale-admin">
-  <header class="locale-admin__header">
-    <h1 class="locale-admin__title">{title}</h1>
+<div class="locale-admin-list-screen">
+  <header class="locale-admin-list-screen__header">
+    <h1 class="locale-admin-list-screen__title">{title}</h1>
   </header>
 
-  <section class="locale-admin__add">
-    <h2 class="locale-admin__section-title">{newLabel}</h2>
+  <section class="locale-admin-list-screen__add">
+    <h2 class="locale-admin-list-screen__section-title">{newLabel}</h2>
 
     {#if form?.error}
-      <p class="locale-admin__error" role="alert">{form.error}</p>
+      <p class="locale-admin-list-screen__error" role="alert">{form.error}</p>
     {/if}
     {#if form?.success}
-      <p class="locale-admin__success" role="status">{dictionary.localText('feedback.saved')}</p>
+      <p class="locale-admin-list-screen__success" role="status">{dictionary.localText('feedback.saved')}</p>
     {/if}
 
-    <form method="post" action="?/create" class="locale-admin__form">
+    <form method="post" action="?/create" class="locale-admin-list-screen__form">
       <LocaleFieldset
         {codeLabel}
         {nameLabel}
@@ -51,7 +52,7 @@
     </form>
   </section>
 
-  <div class="locale-admin__table-wrap">
+  <div class="locale-admin-list-screen__table-wrap">
     <Table>
       <TableHead>
         <TableRow>
@@ -60,7 +61,7 @@
           <TableHeaderCell>{nativeLabel}</TableHeaderCell>
           <TableHeaderCell>{dirLabel}</TableHeaderCell>
           <TableHeaderCell>
-            <span class="sr-only">{dictionary.localText('table.actions')}</span>
+            <span class="visually-hidden">{dictionary.localText('table.actions')}</span>
           </TableHeaderCell>
         </TableRow>
       </TableHead>
@@ -72,12 +73,12 @@
         {/if}
         {#each data.locales as locale (locale.id)}
           <TableRow>
-            <TableCell><code class="locale-admin__code">{locale.code}</code></TableCell>
+            <TableCell><code class="locale-admin-list-screen__code">{locale.code}</code></TableCell>
             <TableCell>{locale.name}</TableCell>
             <TableCell>{locale.nativeName}</TableCell>
             <TableCell>{locale.dir}</TableCell>
             <TableCell>
-              <div class="locale-admin__row-actions">
+              <div class="locale-admin-list-screen__row-actions">
                 <Button href="/admin/locale/{locale.id}" variant="ghost" size="sm">
                   {editLabel}
                 </Button>
@@ -93,88 +94,3 @@
     </Table>
   </div>
 </div>
-
-<style>
-  .locale-admin {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-    max-width: 56rem;
-    margin-inline: auto;
-  }
-
-  .locale-admin__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .locale-admin__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .locale-admin__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0 0 var(--space-4);
-  }
-
-  .locale-admin__add {
-    padding: var(--space-6);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    background-color: var(--surface-raised);
-  }
-
-  .locale-admin__error {
-    color: var(--danger-text);
-    font-size: var(--text-sm);
-    margin: 0 0 var(--space-4);
-  }
-
-  .locale-admin__success {
-    color: var(--success-text);
-    font-size: var(--text-sm);
-    margin: 0 0 var(--space-4);
-  }
-
-  .locale-admin__form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .locale-admin__table-wrap {
-    overflow-x: auto;
-  }
-
-  .locale-admin__code {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    background-color: var(--surface-overlay);
-    padding: 0 var(--space-1);
-    border-radius: var(--radius-sm);
-  }
-
-  .locale-admin__row-actions {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-</style>

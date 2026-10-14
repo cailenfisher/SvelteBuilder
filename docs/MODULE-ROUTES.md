@@ -71,6 +71,12 @@ Added 2026-10-13 with the conformance plan (`docs/CONFORMANCE-PLAN.md`, decision
     `inbound-receipt`, `return-authorization`, `article-admin`, `article-preview`, `feed`. The
     bundle names in _What this became_ below are the ones the port shipped with, before this rule.
 
+12. **A screen's styles are a plain stylesheet beside it**, named after its root block and
+    imported by the page (`import './supplier-list-screen.css';`), so it ships in the bundle's
+    `ui/` half with the markup it styles. The root block is the view type with `View` replaced by
+    `Screen`. Added 2026-10-14 (Phase 10), when every `<style>` block became a stylesheet; see
+    CLAUDE.md, _Plain stylesheets_.
+
 ## Flagged for later
 
 | Severity                       | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |

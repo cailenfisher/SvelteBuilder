@@ -1,0 +1,52 @@
+/* =============================================================================
+   SvelteBuilder CoreUI — Component Styles
+   components.css
+
+   The coreui stylesheet a scaffold imports, as
+     @import '@sveltebuilder/coreui/styles/components.css' layer(components);
+   Each component's rules live beside it, in its concept folder; this file only
+   lists them. The order is the cascade order within the layer, so a later file
+   wins a tie of equal specificity. Keep it unless a change means to reorder.
+
+   All rules here live in @layer components (set by the import, not these files).
+   Layer order: base < chrome < components < unlayered app styles.
+
+   Token reference: @sveltebuilder/coreui/styles/tokens.css
+   ============================================================================= */
+
+@import './Accordion/accordion.css';
+@import './Alert/alert.css';
+@import './Avatar/avatar.css';
+@import './Badge/badge.css';
+@import './Banner/banner.css';
+@import './Button/button.css';
+@import './Card/card.css';
+@import './Checkbox/checkbox.css';
+@import './Dialog/dialog.css';
+@import './Divider/divider.css';
+@import './Field/field.css';
+@import './InlineNotification/inline-notification.css';
+@import './Input/input.css';
+@import './Label/label.css';
+@import './LocalePicker/locale-picker.css';
+@import './Message/message.css';
+@import './Menu/menu.css';
+@import './MetricCard/metric-card.css';
+@import './Pagination/pagination.css';
+@import './Popover/popover.css';
+@import './ProgressBar/progress-bar.css';
+@import './RadioGroup/radio-group.css';
+@import './Select/select.css';
+@import './Skeleton/skeleton.css';
+@import './Spinner/spinner.css';
+@import './Switch/switch.css';
+@import './Table/table.css';
+@import './DataTable/data-table.css';
+@import './Tabs/tabs.css';
+@import './Tag/tag.css';
+@import './Textarea/textarea.css';
+@import './Timeline/timeline.css';
+@import './Toast/toast.css';
+@import './Tooltip/tooltip.css';
+@import './Drawer/drawer.css';
+@import './DateTimePicker/date-time-picker.css';

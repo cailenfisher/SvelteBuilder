@@ -85,19 +85,3 @@
   onPageChange={onPageChange ?? (() => {})}
   labels={tableLabels}
 />
-
-<style>
-  .article-list__row-link {
-    background: transparent;
-    border: none;
-    padding: 0;
-    font: inherit;
-    color: var(--link-text);
-    cursor: pointer;
-    text-align: left;
-  }
-
-  .article-list__row-link:hover {
-    text-decoration: underline;
-  }
-</style>

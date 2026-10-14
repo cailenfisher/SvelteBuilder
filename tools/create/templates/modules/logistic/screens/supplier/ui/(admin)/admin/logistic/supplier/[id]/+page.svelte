@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './supplier-detail-screen.css';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import { Button, Field, Input, Switch, Divider, InlineNotification } from '@sveltebuilder/coreui';
@@ -23,19 +24,19 @@
   <title>{supplierName}</title>
 </svelte:head>
 
-<div class="supplier-detail">
-  <header class="supplier-detail__header">
-    <a href="/admin/logistic/supplier" class="supplier-detail__back">
+<div class="supplier-detail-screen">
+  <header class="supplier-detail-screen__header">
+    <a href="/admin/logistic/supplier" class="supplier-detail-screen__back">
       ← {dictionary.localText('action.back')}
     </a>
-    <h1 class="supplier-detail__title">{supplierName}</h1>
+    <h1 class="supplier-detail-screen__title">{supplierName}</h1>
   </header>
 
   {#if form?.error}
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <form method="POST" action="?/update" class="supplier-detail__form">
+  <form method="POST" action="?/update" class="supplier-detail-screen__form">
     <!-- Field renders the <label for>; Input inherits the id from it through field
          context, so it is not repeated here. -->
     <Field label={t('logistic.field.slug')} id="supplier-slug" required>
@@ -64,9 +65,9 @@
 
   <Divider />
 
-  <section class="supplier-detail__contacts">
-    <div class="supplier-detail__contacts-header">
-      <h2 class="supplier-detail__section-title">{t('logistic.supplier.contacts')}</h2>
+  <section class="supplier-detail-screen__contacts">
+    <div class="supplier-detail-screen__contacts-header">
+      <h2 class="supplier-detail-screen__section-title">{t('logistic.supplier.contacts')}</h2>
       <Button variant="ghost" size="sm" onclick={() => (showContactForm = !showContactForm)}>
         {showContactForm
           ? dictionary.localText('action.cancel')
@@ -75,8 +76,8 @@
     </div>
 
     {#if showContactForm}
-      <form method="POST" action="?/addSupplierContact" class="supplier-detail__contact-form">
-        <div class="supplier-detail__contact-fields">
+      <form method="POST" action="?/addSupplierContact" class="supplier-detail-screen__contact-form">
+        <div class="supplier-detail-screen__contact-fields">
           <Field label={t('logistic.field.role')} id="contact-role" required>
             <Input id="contact-role" name="role" required />
           </Field>
@@ -95,12 +96,12 @@
     {/if}
 
     {#if data.supplier.contacts.length > 0}
-      <ul class="supplier-detail__contact-list">
+      <ul class="supplier-detail-screen__contact-list">
         {#each data.supplier.contacts as contact (contact.id)}
-          <li class="supplier-detail__contact">
+          <li class="supplier-detail-screen__contact">
             <div>
-              <p class="supplier-detail__contact-name">{contact.name}</p>
-              <p class="supplier-detail__contact-meta">
+              <p class="supplier-detail-screen__contact-name">{contact.name}</p>
+              <p class="supplier-detail-screen__contact-meta">
                 {contact.role}{contact.email ? ` · ${contact.email}` : ''}{contact.phone
                   ? ` · ${contact.phone}`
                   : ''}
@@ -116,92 +117,7 @@
         {/each}
       </ul>
     {:else}
-      <p class="supplier-detail__empty">{t('logistic.supplier.contact_none')}</p>
+      <p class="supplier-detail-screen__empty">{t('logistic.supplier.contact_none')}</p>
     {/if}
   </section>
 </div>
-
-<style>
-  .supplier-detail {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 48rem;
-    margin-inline: auto;
-  }
-
-  .supplier-detail__back {
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-  }
-
-  .supplier-detail__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: var(--space-1) 0 0;
-  }
-
-  .supplier-detail__form,
-  .supplier-detail__contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    align-items: start;
-  }
-
-  .supplier-detail__contacts {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .supplier-detail__contacts-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-
-  .supplier-detail__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    margin: 0;
-  }
-
-  .supplier-detail__contact-fields {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-    gap: var(--space-4);
-    width: 100%;
-  }
-
-  .supplier-detail__contact-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .supplier-detail__contact {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-
-  .supplier-detail__contact-name {
-    margin: 0;
-    font-weight: var(--weight-medium);
-  }
-
-  .supplier-detail__contact-meta,
-  .supplier-detail__empty {
-    margin: 0;
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-  }
-</style>

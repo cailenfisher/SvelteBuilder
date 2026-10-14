@@ -436,7 +436,11 @@ source into its layer:
 @import '@sveltebuilder/coreui/styles/base.css' layer(base);
 @import './chrome.css' layer(chrome);
 @import '@sveltebuilder/coreui/styles/components.css' layer(components);
+@import './utilities.css' layer(utilities);
 ```
+
+Each domain module you selected adds its own line after coreui's
+(`@import '@sveltebuilder/logistic/styles/components.css' layer(components);`).
 
 Anything you write **after the imports, outside a layer**, beats every layered rule regardless
 of selector specificity. That is the override mechanism: no `!important`, no specificity fights.
@@ -527,7 +531,8 @@ Write unlayered rules against those:
 
 Reading the internal tokens (`var(--brand-soft)`, `var(--text-soft)`) inside your own rules is
 fine; it is overriding them that is unsupported. To find a component's classes, look in
-`node_modules/@sveltebuilder/coreui/styles/components.css`.
+the stylesheet beside it in `node_modules/@sveltebuilder/coreui/dist/<Component>/` (for example
+`dist/Button/button.css`), or in `docs/COREUI-COMPATIBILITY.md`, which lists the public ones.
 
 ### 8.5 Dark mode
 

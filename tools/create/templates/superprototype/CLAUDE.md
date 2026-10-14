@@ -81,6 +81,7 @@ say so instead of working around it.
 src/
 ├── app.css                  CSS layer order + design token overrides
 ├── chrome.css               structural styles for .button, .input, .card (project-owned)
+├── utilities.css            single-purpose classes such as .visually-hidden (utilities layer)
 ├── app.d.ts                 App.Locals: supabase, userAccountId, locale, defaultLocale
 ├── hooks.server.ts          per-request Supabase client → userAccountId → locale
 ├── lib/server/
@@ -650,13 +651,25 @@ it might belong in coreui. Group components by concept, never by kind: no `compo
   `--danger`, `--warning`, `--success`, `--info`, `--font`, `--font-mono`, `--font-size-base`,
   `--leading-base`, `--radius`. Never assign the derived tokens (`--brand-hover`,
   `--surface-raised`, …).
-- In component styles, use tokens (`var(--space-4)`, `var(--text-soft)`, `var(--radius)`) rather
+- **No `<style>` blocks and no `:global`.** Styles are plain CSS files. A screen, layout or
+  component imports its own stylesheet, named after its root block and placed beside it:
+  `import './ticket-list-screen.css';` in `src/routes/ticket/+page.svelte`, or
+  `src/lib/Ticket/ticket.css` (one per concept folder) imported by the components in that folder.
+  They stay unlayered, so they override coreui's layered rules.
+- **Every selector names the file's own block, and every element it reaches has a class.** The
+  stylesheet applies to the whole app, so `.ticket-card__body p` would also hit the paragraphs of
+  any component rendered inside; write `.ticket-card__summary` on the element instead. Reach into a
+  coreui component only through its public classes (`.ticket-card .badge`).
+- A screen's root block is its view type with `View` replaced by `Screen`
+  (`TicketListView` → `.ticket-list-screen`), so it never collides with a component's block.
+- In stylesheets, use tokens (`var(--space-4)`, `var(--text-soft)`, `var(--radius)`) rather
   than raw colors and pixel values, so dark mode and re-theming keep working.
 - Global overrides of coreui components are unlayered rules at the bottom of `app.css`,
   targeting coreui's classes and data attributes. No `!important`.
 - Interactive state is expressed in data attributes (`[data-state='open']`, `[data-disabled]`),
   never toggled classes. Dark mode is `data-color-scheme` on `<html>`.
-- CSS classes are `kebab-case` BEM: `.ticket-list__header`.
+- CSS classes are `kebab-case` BEM: `.ticket-list-screen__header`. Hide text visually but keep
+  it for screen readers with `.visually-hidden` from `src/utilities.css`.
 
 ### Accessibility (WCAG 2.2 AA)
 
@@ -773,7 +786,8 @@ Don't call a change finished until:
 - [ ] `export let`, `$:`, `<slot>`, `createEventDispatcher`
 - [ ] `$effect` that writes `$state` that could have been `$derived`
 - [ ] A hand-built component that duplicates one in coreui
-- [ ] Raw hex colors or pixel spacing in component styles instead of tokens
+- [ ] A `<style>` block, `:global`, or a bare element selector (`.x p`) in a stylesheet
+- [ ] Raw hex colors or pixel spacing in stylesheets instead of tokens
 - [ ] `<div onclick>` where a `<button>` or `<a>` belongs
 - [ ] `isActive`/`hasAccess` naming, `I`/`T` type prefixes, abbreviations
 - [ ] Hand edits to `supabase/migrations/*` or `supabase/seed.sql`

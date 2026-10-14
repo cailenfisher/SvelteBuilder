@@ -33,6 +33,7 @@
       "svelte": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./styles/components.css": "./dist/components.css",
     "./schema": {
       "types": "./dist/schema/index.d.ts",
       "default": "./dist/schema/index.js"

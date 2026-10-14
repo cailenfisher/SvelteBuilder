@@ -1,0 +1,48 @@
+/* =============================================================================
+   Tooltip
+   ============================================================================= */
+
+/* A real <button> wrapping the caller's snippet, styled away but keeping a box: see
+   .dialog__trigger in dialog.css for why it is not display: contents. */
+.tooltip__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.tooltip {
+  background: var(--surface-invert);
+  color: var(--text-invert);
+  font-size: var(--text-xs);
+  font-family: var(--font);
+  line-height: var(--leading-snug);
+  padding: var(--space-1-5) var(--space-2-5);
+  border-radius: var(--radius);
+  max-width: 16rem;
+  z-index: var(--z-tooltip);
+  pointer-events: none;
+  animation: tooltip-in var(--duration) var(--ease);
+}
+
+.tooltip[data-state='closed'] {
+  animation: tooltip-out var(--duration) var(--ease);
+}
+
+@keyframes tooltip-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tooltip-out { from { opacity: 1; } to { opacity: 0; } }
+
+@media (hover: none) {
+  .tooltip { display: none; }
+}
+
+.tooltip__arrow {
+  fill: var(--surface-invert);
+}

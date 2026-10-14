@@ -1,0 +1,48 @@
+/* =============================================================================
+   MetricCard
+   ============================================================================= */
+
+.metric-card {
+  background: var(--surface-raised);
+  border: var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.metric-card__label {
+  line-height: var(--leading-snug);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-soft);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-card__value {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  margin: 0;
+  line-height: 1;
+}
+
+.metric-card__description {
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.metric-card__trend {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  margin: 0;
+}
+
+.metric-card__trend--positive { color: var(--success-text); }
+.metric-card__trend--negative { color: var(--danger-text); }
+.metric-card__trend--neutral  { color: var(--text-soft); }

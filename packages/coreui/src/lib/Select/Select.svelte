@@ -133,7 +133,3 @@
     </Select.Portal>
   </Select.Root>
 </div>
-
-<style>
-  .select { position: relative; width: 100%; }
-</style>

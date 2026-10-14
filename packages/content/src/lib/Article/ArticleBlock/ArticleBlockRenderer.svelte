@@ -61,7 +61,7 @@
     {/if}
   {:else if block.blockType === 'pullquote'}
     <blockquote class="article-block-renderer__pullquote">
-      <p>{text}</p>
+      <p class="article-block-renderer__pullquote-text">{text}</p>
     </blockquote>
   {:else if block.blockType === 'image' && asset}
     <MediaAssetFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
@@ -78,89 +78,12 @@
     <MediaAssetFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
   {:else if block.blockType === 'embed' && embedSrc}
     <div class="article-block-renderer__embed" data-provider={provider || undefined}>
-      <iframe src={embedSrc} title={text || `${provider} embed`} loading="lazy" allowfullscreen
+      <iframe class="article-block-renderer__embed-frame" src={embedSrc} title={text || `${provider} embed`} loading="lazy" allowfullscreen
       ></iframe>
     </div>
   {:else if block.blockType === 'live_update'}
     <aside class="article-block-renderer__live-update" aria-label="Live update">
-      <p>{text}</p>
+      <p class="article-block-renderer__live-update-text">{text}</p>
     </aside>
   {/if}
 </div>
-
-<style>
-  .article-block-renderer {
-    width: 100%;
-  }
-
-  .article-block-renderer__paragraph {
-    margin: 0;
-    font-size: var(--text-lg);
-    line-height: var(--leading-relaxed);
-    color: var(--text);
-  }
-
-  .article-block-renderer__heading {
-    margin: 0;
-    font-weight: var(--weight-semibold);
-    line-height: var(--leading-tight);
-    color: var(--text);
-  }
-
-  .article-block-renderer__pullquote {
-    margin: 0;
-    padding: var(--space-4) var(--space-6);
-    border-inline-start: 4px solid var(--brand);
-  }
-
-  .article-block-renderer__pullquote p {
-    margin: 0;
-    font-size: var(--text-xl);
-    font-style: italic;
-    line-height: var(--leading-snug);
-    color: var(--text);
-  }
-
-  .article-block-renderer__gallery {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .article-block-renderer__gallery-caption {
-    margin: 0;
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-    font-style: italic;
-  }
-
-  .article-block-renderer__embed {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: var(--surface-raised);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-
-  .article-block-renderer__embed iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
-
-  .article-block-renderer__live-update {
-    padding: var(--space-3) var(--space-4);
-    background: color-mix(in srgb, var(--brand), white 92%);
-    border-inline-start: 3px solid var(--brand);
-    border-radius: 0 var(--radius) var(--radius) 0;
-  }
-
-  .article-block-renderer__live-update p {
-    margin: 0;
-    font-size: var(--text-base);
-    color: var(--text);
-  }
-</style>

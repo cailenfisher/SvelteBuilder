@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './section-detail-screen.css';
   import { goto } from '$app/navigation';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
@@ -26,12 +27,12 @@
   <title>{sectionName}</title>
 </svelte:head>
 
-<main class="section-page">
-  <header class="section-page__header">
-    <h1 class="section-page__title">{sectionName}</h1>
+<main class="section-detail-screen">
+  <header class="section-detail-screen__header">
+    <h1 class="section-detail-screen__title">{sectionName}</h1>
 
     {#if data.childSections.length > 0}
-      <nav class="section-page__children" aria-label={t('content.section.subsections')}>
+      <nav class="section-detail-screen__children" aria-label={t('content.section.subsections')}>
         {#each data.childSections as child (child.id)}
           <!-- Camp 2 component: it resolves the section's name from the dictionary itself. -->
           <SectionLink
@@ -46,7 +47,7 @@
   </header>
 
   {#if data.articles.length > 0}
-    <div class="section-page__river">
+    <div class="section-detail-screen__river">
       {#each data.articles as article, index (article.id)}
         <!-- The first article leads the page; the rest run as a river. This is the one piece
              of editorial judgement a listing makes without a curated front. -->
@@ -68,7 +69,7 @@
     </div>
 
     {#if data.total > data.perPage}
-      <nav class="section-page__pagination" aria-label={t('content.section.pagination')}>
+      <nav class="section-detail-screen__pagination" aria-label={t('content.section.pagination')}>
         <!-- Server-side paging, so a page change is a navigation: the loader owns the slice and
              a shared URL has to land on the same one. -->
         <Pagination
@@ -83,47 +84,6 @@
       </nav>
     {/if}
   {:else}
-    <p class="section-page__empty">{t('content.section.empty')}</p>
+    <p class="section-detail-screen__empty">{t('content.section.empty')}</p>
   {/if}
 </main>
-
-<style>
-  .section-page {
-    max-width: 80rem;
-    margin-inline: auto;
-    padding: var(--space-8) var(--space-4);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-  }
-
-  .section-page__header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .section-page__title {
-    margin: 0;
-    font-size: var(--text-3xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-  }
-
-  .section-page__children {
-    display: flex;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-  }
-
-  .section-page__river {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-  }
-
-  .section-page__empty {
-    margin: 0;
-    color: var(--text-soft);
-  }
-</style>

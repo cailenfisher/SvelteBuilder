@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './navigation-item-admin-list-screen.css';
   import { getDictionary } from 'diglossia/svelte'
   import {
     Button, Field, Input,
@@ -22,25 +23,25 @@
   const activeLabel = $derived(dictionary.localText('admin.navigation_item.active'))
 </script>
 
-<div class="nav-item-admin">
-  <header class="nav-item-admin__header">
-    <h1 class="nav-item-admin__title">{title}</h1>
+<div class="navigation-item-admin-list-screen">
+  <header class="navigation-item-admin-list-screen__header">
+    <h1 class="navigation-item-admin-list-screen__title">{title}</h1>
   </header>
 
-  <section class="nav-item-admin__add">
-    <h2 class="nav-item-admin__section-title">{newLabel}</h2>
+  <section class="navigation-item-admin-list-screen__add">
+    <h2 class="navigation-item-admin-list-screen__section-title">{newLabel}</h2>
 
     {#if form?.error}
-      <p class="nav-item-admin__error" role="alert">{form.error}</p>
+      <p class="navigation-item-admin-list-screen__error" role="alert">{form.error}</p>
     {/if}
     {#if form?.success}
-      <p class="nav-item-admin__success" role="status">{dictionary.localText('feedback.saved')}</p>
+      <p class="navigation-item-admin-list-screen__success" role="status">{dictionary.localText('feedback.saved')}</p>
     {/if}
 
-    <form method="post" action="?/create" class="nav-item-admin__form">
+    <form method="post" action="?/create" class="navigation-item-admin-list-screen__form">
       <LocalTextLinkFieldset {slugLabel} scopeLabel={dictionary.localText('admin.local_text.scope')} />
 
-      <div class="nav-item-admin__form-row">
+      <div class="navigation-item-admin-list-screen__form-row">
         <Field label={hrefLabel} id="navigation-item-href" required>
           <Input id="navigation-item-href" name="href" placeholder="/admin/example" required />
         </Field>
@@ -56,7 +57,7 @@
     </form>
   </section>
 
-  <div class="nav-item-admin__table-wrap">
+  <div class="navigation-item-admin-list-screen__table-wrap">
     <Table>
       <TableHead>
         <TableRow>
@@ -66,7 +67,7 @@
           <TableHeaderCell>{positionLabel}</TableHeaderCell>
           <TableHeaderCell>{activeLabel}</TableHeaderCell>
           <TableHeaderCell>
-            <span class="sr-only">{dictionary.localText('table.actions')}</span>
+            <span class="visually-hidden">{dictionary.localText('table.actions')}</span>
           </TableHeaderCell>
         </TableRow>
       </TableHead>
@@ -79,14 +80,14 @@
         {#each data.navigationItems as item (item.id)}
           <TableRow>
             <TableCell>
-              <code class="nav-item-admin__slug">{item.localTextLink?.slug ?? '—'}</code>
+              <code class="navigation-item-admin-list-screen__slug">{item.localTextLink?.slug ?? '—'}</code>
             </TableCell>
             <TableCell>{item.href}</TableCell>
             <TableCell>{item.menu}</TableCell>
             <TableCell>{item.position}</TableCell>
             <TableCell>{item.active ? '✓' : '—'}</TableCell>
             <TableCell>
-              <div class="nav-item-admin__row-actions">
+              <div class="navigation-item-admin-list-screen__row-actions">
                 <Button href="/admin/navigation-item/{item.id}" variant="ghost" size="sm">
                   {editLabel}
                 </Button>
@@ -102,94 +103,3 @@
     </Table>
   </div>
 </div>
-
-<style>
-  .nav-item-admin {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-    max-width: 64rem;
-    margin-inline: auto;
-  }
-
-  .nav-item-admin__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .nav-item-admin__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .nav-item-admin__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0 0 var(--space-4);
-  }
-
-  .nav-item-admin__add {
-    padding: var(--space-6);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    background-color: var(--surface-raised);
-  }
-
-  .nav-item-admin__error {
-    color: var(--danger-text);
-    font-size: var(--text-sm);
-    margin: 0 0 var(--space-4);
-  }
-
-  .nav-item-admin__success {
-    color: var(--success-text);
-    font-size: var(--text-sm);
-    margin: 0 0 var(--space-4);
-  }
-
-  .nav-item-admin__form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .nav-item-admin__form-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: var(--space-4);
-  }
-
-  .nav-item-admin__table-wrap {
-    overflow-x: auto;
-  }
-
-  .nav-item-admin__slug {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    background-color: var(--surface-overlay);
-    padding: 0 var(--space-1);
-    border-radius: var(--radius-sm);
-  }
-
-  .nav-item-admin__row-actions {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-</style>

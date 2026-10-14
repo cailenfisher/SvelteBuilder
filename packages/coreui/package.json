@@ -34,7 +34,7 @@
     },
     "./styles/tokens.css": "./styles/tokens.css",
     "./styles/base.css": "./styles/base.css",
-    "./styles/components.css": "./styles/components.css"
+    "./styles/components.css": "./dist/components.css"
   },
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",

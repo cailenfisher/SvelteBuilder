@@ -43,36 +43,3 @@
     {/each}
   </ol>
 </nav>
-
-<style>
-  .storage-location-path__list {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    gap: 0;
-  }
-
-  .storage-location-path__segment {
-    display: flex;
-    align-items: center;
-  }
-
-  .storage-location-path__name {
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-  }
-
-  .storage-location-path__name--current {
-    font-weight: var(--weight-medium);
-    color: var(--text);
-  }
-
-  .storage-location-path__separator {
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-    padding-inline: var(--space-1);
-  }
-</style>

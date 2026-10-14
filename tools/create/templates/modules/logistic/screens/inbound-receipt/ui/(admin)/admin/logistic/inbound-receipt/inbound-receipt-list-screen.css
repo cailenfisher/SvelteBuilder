@@ -1,0 +1,58 @@
+.inbound-receipt-list-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.inbound-receipt-list-screen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.inbound-receipt-list-screen__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  margin: 0;
+}
+
+.inbound-receipt-list-screen__filters {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.inbound-receipt-list-screen__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-block-start: var(--space-4);
+}
+
+.inbound-receipt-list-screen__empty {
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+  margin: var(--space-8) 0 0;
+}
+
+.inbound-receipt-list-screen__pagination {
+  margin-block-start: var(--space-4);
+}
+
+.inbound-receipt-list-screen__new-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.inbound-receipt-list-screen__new-form-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}

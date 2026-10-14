@@ -1,0 +1,116 @@
+/* =============================================================================
+   Button — @layer chrome provides base display/layout structure
+   ============================================================================= */
+
+.button--sm { height: 2rem;   padding: 0 var(--space-3); font-size: var(--text-xs); letter-spacing: var(--tracking-wide); }
+.button--md { height: 2.5rem; padding: 0 var(--space-4); font-size: var(--text-sm); }
+.button--lg { height: 3rem;   padding: 0 var(--space-6); font-size: var(--text-base); }
+
+.button--full { width: 100%; }
+
+.button--primary {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-fg);
+}
+.button--primary:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--brand-hover);
+  border-color: var(--brand-hover);
+}
+.button--primary:active:not(:disabled):not([aria-disabled='true']) {
+  background: var(--brand-active);
+  border-color: var(--brand-active);
+}
+
+.button--secondary {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--text);
+}
+.button--secondary:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+}
+.button--secondary:active:not(:disabled):not([aria-disabled='true']) {
+  background: var(--surface-overlay);
+}
+
+.button--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+}
+.button--ghost:hover:not(:disabled):not([aria-disabled='true']) { background: var(--surface-raised); }
+.button--ghost:active:not(:disabled):not([aria-disabled='true']) { background: var(--surface-overlay); }
+
+.button--danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--danger-fg);
+}
+.button--danger:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
+}
+
+.button--link {
+  background: transparent;
+  border-color: transparent;
+  color: var(--link-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  height: auto;
+  padding: 0;
+}
+.button--link:hover:not(:disabled):not([aria-disabled='true']) { color: var(--brand-hover); }
+
+.button:disabled,
+.button[aria-disabled='true'] {
+  background: var(--disabled-bg);
+  border-color: var(--disabled-border);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.button--link:disabled,
+.button--link[aria-disabled='true'] {
+  background: transparent;
+  border-color: transparent;
+  text-decoration: none;
+}
+
+.button--loading { cursor: wait; pointer-events: none; }
+
+.button__spinner {
+  display: block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  animation: btn-spin 0.75s linear infinite;
+}
+
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .button__spinner {
+    animation: btn-pulse 1.5s ease-in-out infinite;
+    border-top-color: currentColor;
+    opacity: 0.5;
+  }
+  @keyframes btn-pulse {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
+  }
+}
+
+.button__leading,
+.button__trailing {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 1.125em;
+  height: 1.125em;
+}

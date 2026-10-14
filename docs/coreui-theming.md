@@ -26,6 +26,7 @@ coreui's stylesheets into their layers, and has a `:root` block for your overrid
 @import '@sveltebuilder/coreui/styles/base.css' layer(base);
 @import './chrome.css' layer(chrome);
 @import '@sveltebuilder/coreui/styles/components.css' layer(components);
+@import './utilities.css' layer(utilities);
 
 /* ---- Token overrides ---- */
 :root {

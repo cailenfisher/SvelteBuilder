@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './logistic-dashboard-screen.css';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import {
@@ -41,10 +42,10 @@
   <title>{t('logistic.dashboard.title')}</title>
 </svelte:head>
 
-<div class="logistic-dashboard">
-  <h1 class="logistic-dashboard__title">{t('logistic.dashboard.title')}</h1>
+<div class="logistic-dashboard-screen">
+  <h1 class="logistic-dashboard-screen__title">{t('logistic.dashboard.title')}</h1>
 
-  <div class="logistic-dashboard__metrics">
+  <div class="logistic-dashboard-screen__metrics">
     <MetricCard
       value={data.metrics.pendingInboundReceiptCount}
       label={t('logistic.admin.navigation.inbound_receipt')}
@@ -73,9 +74,9 @@
   </div>
 
   {#if data.lowStockLevels.length > 0}
-    <section class="logistic-dashboard__section">
-      <div class="logistic-dashboard__section-header">
-        <h2 class="logistic-dashboard__section-title">{t('logistic.dashboard.low_stock')}</h2>
+    <section class="logistic-dashboard-screen__section">
+      <div class="logistic-dashboard-screen__section-header">
+        <h2 class="logistic-dashboard-screen__section-title">{t('logistic.dashboard.low_stock')}</h2>
         <Button href="/admin/logistic/stock-level" variant="ghost" size="sm">
           {dictionary.localText('action.view_all')}
         </Button>
@@ -94,7 +95,7 @@
           {#each data.lowStockLevels as level (level.id)}
             <TableRow>
               <TableCell>
-                <a href="/admin/logistic/stock-level?history={level.id}" class="logistic-dashboard__link">
+                <a href="/admin/logistic/stock-level?history={level.id}" class="logistic-dashboard-screen__link">
                   <code>{level.sku}</code>
                 </a>
               </TableCell>
@@ -111,9 +112,9 @@
   {/if}
 
   {#if data.pendingInboundReceipts.length > 0}
-    <section class="logistic-dashboard__section">
-      <div class="logistic-dashboard__section-header">
-        <h2 class="logistic-dashboard__section-title">
+    <section class="logistic-dashboard-screen__section">
+      <div class="logistic-dashboard-screen__section-header">
+        <h2 class="logistic-dashboard-screen__section-title">
           {t('logistic.dashboard.pending_inbound_receipt')}
         </h2>
         <Button href="/admin/logistic/inbound-receipt" variant="ghost" size="sm">
@@ -121,13 +122,13 @@
         </Button>
       </div>
 
-      <ul class="logistic-dashboard__list">
+      <ul class="logistic-dashboard-screen__list">
         {#each data.pendingInboundReceipts as receipt (receipt.id)}
-          <li class="logistic-dashboard__list-item">
-            <a href="/admin/logistic/inbound-receipt/{receipt.id}" class="logistic-dashboard__link">
+          <li class="logistic-dashboard-screen__list-item">
+            <a href="/admin/logistic/inbound-receipt/{receipt.id}" class="logistic-dashboard-screen__link">
               {t('logistic.inbound_receipt.one')} #{receipt.id}
             </a>
-            <span class="logistic-dashboard__muted">
+            <span class="logistic-dashboard-screen__muted">
               {receipt.supplierId !== null
                 ? scoped.localText('name', 'supplier', receipt.supplierId)
                 : t('logistic.inbound_receipt.blind')}
@@ -140,9 +141,9 @@
   {/if}
 
   {#if data.openPickTasks.length > 0}
-    <section class="logistic-dashboard__section">
-      <div class="logistic-dashboard__section-header">
-        <h2 class="logistic-dashboard__section-title">{t('logistic.dashboard.open_pick_task')}</h2>
+    <section class="logistic-dashboard-screen__section">
+      <div class="logistic-dashboard-screen__section-header">
+        <h2 class="logistic-dashboard-screen__section-title">{t('logistic.dashboard.open_pick_task')}</h2>
         <!-- The pick queue lives in the warehouse app, which is why the dashboard requires
              that bundle as well as the admin ones. -->
         <Button href="/warehouse/pick-task" variant="ghost" size="sm">
@@ -150,13 +151,13 @@
         </Button>
       </div>
 
-      <ul class="logistic-dashboard__list">
+      <ul class="logistic-dashboard-screen__list">
         {#each data.openPickTasks as task (task.id)}
-          <li class="logistic-dashboard__list-item">
-            <a href="/warehouse/pick-task/{task.id}" class="logistic-dashboard__link">
+          <li class="logistic-dashboard-screen__list-item">
+            <a href="/warehouse/pick-task/{task.id}" class="logistic-dashboard-screen__link">
               {t('logistic.pick_task.one')} #{task.id}
             </a>
-            <span class="logistic-dashboard__muted">{formatDate(task.createdAt)}</span>
+            <span class="logistic-dashboard-screen__muted">{formatDate(task.createdAt)}</span>
           </li>
         {/each}
       </ul>
@@ -164,24 +165,24 @@
   {/if}
 
   {#if data.openReturnAuthorizations.length > 0}
-    <section class="logistic-dashboard__section">
-      <div class="logistic-dashboard__section-header">
-        <h2 class="logistic-dashboard__section-title">{t('logistic.dashboard.open_return_authorization')}</h2>
+    <section class="logistic-dashboard-screen__section">
+      <div class="logistic-dashboard-screen__section-header">
+        <h2 class="logistic-dashboard-screen__section-title">{t('logistic.dashboard.open_return_authorization')}</h2>
         <Button href="/admin/logistic/return-authorization" variant="ghost" size="sm">
           {dictionary.localText('action.view_all')}
         </Button>
       </div>
 
-      <ul class="logistic-dashboard__list">
+      <ul class="logistic-dashboard-screen__list">
         {#each data.openReturnAuthorizations as returnAuthorization (returnAuthorization.id)}
-          <li class="logistic-dashboard__list-item">
+          <li class="logistic-dashboard-screen__list-item">
             <a
               href="/admin/logistic/return-authorization/{returnAuthorization.id}"
-              class="logistic-dashboard__link"
+              class="logistic-dashboard-screen__link"
             >
               {t('logistic.return_authorization.one')} #{returnAuthorization.id}
             </a>
-            <span class="logistic-dashboard__muted">
+            <span class="logistic-dashboard-screen__muted">
               {returnAuthorization.reason ?? formatDate(returnAuthorization.createdAt)}
             </span>
           </li>
@@ -190,86 +191,9 @@
     </section>
   {/if}
 
-  <nav class="logistic-dashboard__sections" aria-label={t('logistic.dashboard.sections')}>
+  <nav class="logistic-dashboard-screen__sections" aria-label={t('logistic.dashboard.sections')}>
     {#each sections as section (section.href)}
       <Button href={section.href} variant="ghost">{t(section.slug)}</Button>
     {/each}
   </nav>
 </div>
-
-<style>
-  .logistic-dashboard {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-    padding: var(--space-6);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .logistic-dashboard__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .logistic-dashboard__metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-    gap: var(--space-4);
-  }
-
-  .logistic-dashboard__section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .logistic-dashboard__section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-
-  .logistic-dashboard__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .logistic-dashboard__list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .logistic-dashboard__list-item {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .logistic-dashboard__link {
-    color: var(--text);
-    font-weight: var(--weight-medium);
-  }
-
-  .logistic-dashboard__muted {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-  }
-
-  .logistic-dashboard__sections {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-  }
-</style>

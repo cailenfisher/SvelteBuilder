@@ -1,0 +1,24 @@
+/* =============================================================================
+   Skeleton
+   ============================================================================= */
+
+.skeleton {
+  display: block;
+  border-radius: var(--radius);
+  background-color: var(--surface-overlay);
+  background-image: linear-gradient(
+    90deg,
+    var(--surface-overlay) 0%,
+    color-mix(in srgb, var(--chrome), white 55%) 50%,
+    var(--surface-overlay) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton--inline { display: inline-block; }
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

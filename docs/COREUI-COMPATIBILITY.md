@@ -81,6 +81,17 @@ The scaffold imports coreui's stylesheets into cascade layers, and application C
 unlayered (see [`coreui-theming.md`](./coreui-theming.md)). These are the names such overrides may
 target.
 
+**The stylesheet.** `@sveltebuilder/coreui/styles/components.css` is the one entry point, imported
+`layer(components)`. It lists one stylesheet per component folder, which ship in `dist/` beside
+the components; those file paths are not public, and neither is the order of the list beyond
+"coreui before any domain module". Components carry no `<style>` blocks, so a page that does not
+import the stylesheet renders them unstyled.
+
+**Table parts are styled through their components.** Row borders, hover and cell padding target
+`.table-row`, `.table-cell` and `.table-header-cell`, not `tr`, `td` and `th`, so a row or cell
+written as a plain element inside `TableBody` is unstyled. Use `TableRow`, `TableCell` and
+`TableHeaderCell`.
+
 ### Naming rule
 
 - **Root:** each exported component's root element carries the component's name in kebab case

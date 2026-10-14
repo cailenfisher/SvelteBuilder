@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './supplier-list-screen.css';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import { Button, Field, Input, InlineNotification } from '@sveltebuilder/coreui';
@@ -26,9 +27,9 @@
   <title>{t('logistic.supplier.title')}</title>
 </svelte:head>
 
-<div class="supplier-list">
-  <header class="supplier-list__header">
-    <h1 class="supplier-list__title">{t('logistic.supplier.title')}</h1>
+<div class="supplier-list-screen">
+  <header class="supplier-list-screen__header">
+    <h1 class="supplier-list-screen__title">{t('logistic.supplier.title')}</h1>
     <Button variant="primary" onclick={() => (showCreateForm = !showCreateForm)}>
       {showCreateForm ? dictionary.localText('action.cancel') : t('logistic.supplier.add')}
     </Button>
@@ -42,8 +43,8 @@
     <!-- Creating a supplier is three statements — the row, its local_text_link, its
          local_text — so it posts to an RPC rather than an insert. The name is captured
          in the active locale only; further translations are the local-text admin's job. -->
-    <form method="POST" action="?/create" class="supplier-list__form">
-      <div class="supplier-list__form-fields">
+    <form method="POST" action="?/create" class="supplier-list-screen__form">
+      <div class="supplier-list-screen__form-fields">
         <Field label={t('logistic.field.slug')} id="new-supplier-slug" required>
           <Input name="slug" required />
         </Field>
@@ -59,7 +60,7 @@
   {/if}
 
   {#if data.suppliers.length > 0}
-    <div class="supplier-list__grid">
+    <div class="supplier-list-screen__grid">
       {#each data.suppliers as supplier (supplier.id)}
         <!-- Camp 2 component: it reads the supplier's own name from the dictionary,
              so it takes this screen's instance rather than the page context. -->
@@ -72,58 +73,6 @@
       {/each}
     </div>
   {:else}
-    <p class="supplier-list__empty">{t('logistic.supplier.empty')}</p>
+    <p class="supplier-list-screen__empty">{t('logistic.supplier.empty')}</p>
   {/if}
 </div>
-
-<style>
-  .supplier-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .supplier-list__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-
-  .supplier-list__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .supplier-list__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--space-4);
-  }
-
-  .supplier-list__form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    align-items: flex-start;
-  }
-
-  .supplier-list__form-fields {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-    gap: var(--space-4);
-    width: 100%;
-  }
-
-  .supplier-list__empty {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-    margin: 0;
-    padding: var(--space-8) 0;
-  }
-</style>

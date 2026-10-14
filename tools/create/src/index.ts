@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { syncSupabase } from '@sveltebuilder/cli/api';
-import { copyModuleTemplate } from './module-template.js';
+import { addModuleStylesheet, copyModuleTemplate } from './module-template.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -429,6 +429,7 @@ async function main() {
       scaffoldTemplate,
       targetDir,
     });
+    await addModuleStylesheet(targetDir, mod);
   }
 
   // ── Step 3b: Copy selected screen bundles ─────────────────────────────────

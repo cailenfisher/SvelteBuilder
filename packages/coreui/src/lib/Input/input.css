@@ -1,0 +1,32 @@
+/* =============================================================================
+   Input — @layer chrome + state provide base structure and interactive states
+   ============================================================================= */
+
+.input {
+  transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+}
+
+.input--sm { height: 2rem;   font-size: var(--text-xs); }
+.input--md { height: 2.5rem; }
+.input--lg { height: 3rem;   font-size: var(--text-base); }
+
+.input::placeholder { color: var(--text-muted); }
+.input:disabled::placeholder { color: var(--disabled-text); }
+
+/* Remove number spinner arrows */
+.input[type='number'] { -moz-appearance: textfield; }
+.input[type='number']::-webkit-outer-spin-button,
+.input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Remove search clear button */
+.input[type='search']::-webkit-search-decoration,
+.input[type='search']::-webkit-search-cancel-button,
+.input[type='search']::-webkit-search-results-button,
+.input[type='search']::-webkit-search-results-decoration { -webkit-appearance: none; }
+
+/* Structural wrapper: layout only, no visual properties. */
+.input__wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}

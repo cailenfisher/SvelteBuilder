@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './inbound-receipt-list-screen.css';
   import { goto } from '$app/navigation';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
@@ -35,9 +36,9 @@
   <title>{t('logistic.inbound_receipt.title')}</title>
 </svelte:head>
 
-<div class="receipt-list">
-  <header class="receipt-list__header">
-    <h1 class="receipt-list__title">{t('logistic.inbound_receipt.title')}</h1>
+<div class="inbound-receipt-list-screen">
+  <header class="inbound-receipt-list-screen__header">
+    <h1 class="inbound-receipt-list-screen__title">{t('logistic.inbound_receipt.title')}</h1>
     <Button variant="primary" onclick={() => (newReceiptOpen = true)}>
       {t('logistic.inbound_receipt.new')}
     </Button>
@@ -51,7 +52,7 @@
        navigation to a different URL, not a panel swap. Tab semantics (role="tab" with
        aria-controls) would claim there are panels on this page to switch between, and
        aria-current="page" is what actually tells a screen reader which filter is on. -->
-  <nav class="receipt-list__filters" aria-label={t('logistic.inbound_receipt.filter_status')}>
+  <nav class="inbound-receipt-list-screen__filters" aria-label={t('logistic.inbound_receipt.filter_status')}>
     <Button
       href={filterHref(null)}
       variant={data.status === null ? 'secondary' : 'ghost'}
@@ -72,9 +73,9 @@
     {/each}
   </nav>
 
-  <div class="receipt-list__results">
+  <div class="inbound-receipt-list-screen__results">
     {#if data.inboundReceipts.length > 0}
-      <div class="receipt-list__cards">
+      <div class="inbound-receipt-list-screen__cards">
         {#each data.inboundReceipts as receipt (receipt.id)}
           <!-- Camp 2 component: it reads the supplier's name and the status label from
                  the dictionary, so it takes this screen's instance rather than context. -->
@@ -90,7 +91,7 @@
       </div>
 
       {#if data.total > data.perPage}
-        <nav class="receipt-list__pagination" aria-label={t('logistic.inbound_receipt.pagination')}>
+        <nav class="inbound-receipt-list-screen__pagination" aria-label={t('logistic.inbound_receipt.pagination')}>
           <!-- Paging is server-side, so a page change is a navigation rather than local
                  state: the loader owns the slice, and a reload or a shared URL has to land
                  on the same one. goto keeps the status filter, which is the other half of
@@ -111,14 +112,14 @@
         </nav>
       {/if}
     {:else}
-      <p class="receipt-list__empty">{t('logistic.inbound_receipt.empty')}</p>
+      <p class="inbound-receipt-list-screen__empty">{t('logistic.inbound_receipt.empty')}</p>
     {/if}
   </div>
 </div>
 
 <Dialog bind:open={newReceiptOpen} title={t('logistic.inbound_receipt.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
-    <form method="POST" action="?/create" class="receipt-new-form">
+    <form method="POST" action="?/create" class="inbound-receipt-list-screen__new-form">
       <!-- Field renders the <label for>; the control inherits its id from field context. -->
       <Field label={t('logistic.inbound_receipt.supplier')} id="supplier-id">
         <Select name="supplier_id">
@@ -141,7 +142,7 @@
         <Textarea name="note" rows={3} />
       </Field>
 
-      <div class="receipt-new-form__actions">
+      <div class="inbound-receipt-list-screen__new-form-actions">
         <Button variant="ghost" onclick={() => (newReceiptOpen = false)}>
           {dictionary.localText('action.cancel')}
         </Button>
@@ -150,64 +151,3 @@
     </form>
   {/snippet}
 </Dialog>
-
-<style>
-  .receipt-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .receipt-list__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .receipt-list__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .receipt-list__filters {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-  }
-
-  .receipt-list__cards {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    margin-block-start: var(--space-4);
-  }
-
-  .receipt-list__empty {
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-    margin: var(--space-8) 0 0;
-  }
-
-  .receipt-list__pagination {
-    margin-block-start: var(--space-4);
-  }
-
-  .receipt-new-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .receipt-new-form__actions {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-end;
-  }
-</style>

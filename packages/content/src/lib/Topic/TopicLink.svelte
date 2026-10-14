@@ -28,27 +28,3 @@
 >
   {name}
 </a>
-
-<style>
-  .topic-link {
-    display: inline-block;
-    padding: 0.2em 0.65em;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-full, 9999px);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-    color: var(--text-soft);
-    text-decoration: none;
-    transition:
-      background var(--duration) var(--ease),
-      color var(--duration) var(--ease),
-      border-color var(--duration) var(--ease);
-    white-space: nowrap;
-  }
-
-  .topic-link:hover {
-    background: var(--surface-raised);
-    color: var(--text);
-    border-color: var(--border-strong);
-  }
-</style>

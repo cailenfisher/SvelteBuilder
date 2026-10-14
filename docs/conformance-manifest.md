@@ -385,3 +385,17 @@ one; the files are one per table, named like the schema file. The rest:
 | locals `msg`, `imgError`, `str`, `e` (multi-line or non-lambda), `urlEls`, field `desc` | `message`, `imageError`, `text`, `entry`/`event`, `urlElements`, `hint` |
 
 Kept: `src`, `params` and `e` in one-line lambdas, which are platform names or allowed by `CLAUDE.md`.
+
+## Added during Phase 10 (pending approval)
+
+| Old | New | Rule |
+| --- | --- | --- |
+| screen root blocks named freely (`.receipt-list`, `.count-detail`, `.pick-task`, `.article-page`, `.preview-page`, `.stock-page`, `.dashboard`, …) | the view type with `View` → `Screen`: `.inbound-receipt-list-screen`, `.cycle-count-detail-screen`, `.pick-task-warehouse-detail-screen`, `.article-detail-screen`, `.article-preview-detail-screen`, `.stock-level-list-screen`; base screens by concept and role: `.admin-dashboard-screen`, `.locale-admin-list-screen`, `.local-text-admin-detail-screen`, `.navigation-item-admin-list-screen`, `.sign-in-screen`; `.warehouse-home-screen` (the home page has no view type of its own) | amends the plan's "view type without `View`", which made the article page `.article-detail`, colliding with the `ArticleDetail` component it renders |
+| sub-blocks of a screen: `.cycle-count-new-form`, `.receipt-new-form`, `.return-new-form`, `.shipment-new-form`, `.sign-in-card`, `.stat` | `.<screen>__new-form`, `.sign-in-screen__card`, `.admin-dashboard-screen__stat` | elements of the screen until Phase 11 extracts them |
+| root layout `.app`, `.full-page` | `.app-layout`, `.full-page-layout` | layouts are `<group>-layout`, like `.admin-layout` |
+| `.sr-only` (three copies) | `.visually-hidden` in `src/utilities.css`, `layer(utilities)` | no abbreviations; one helper, in the reserved utilities layer |
+| bare elements under a block (`__pullquote p`, `__embed iframe`, `__live-update p`, `__detail dt`/`dd`, `__meta dt`/`code`, `__filing dt`/`dd`, `__meta-item dt`/`dd`, `__logo a`, `kitchen__pages a`) | `__pullquote-text`, `__embed-frame`, `__live-update-text`, `__detail-term`/`-value`, `__meta-term`/`-code`, `__filing-term`/`-value`, `__meta-term`/`-value`, `__logo-link`, `__page-link` | every element a rule reaches has a class |
+| coreui table rules on `tr`, `td`, `th`, `thead` | `.table-row`, `.table-cell`, `.table-header-cell`, `.table-head` | same |
+| dev-kitchen `.kitchen`, `.theme` | `.kitchen-layout`, `.theme-screen` | same naming as the templates |
+| — | `src/lib/components.css` in each package (the stylesheet index, exported as `styles/components.css`), `src/utilities.css`, `scripts/css-check.mjs`, `pnpm css:check` | new files |
+

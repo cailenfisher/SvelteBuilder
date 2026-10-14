@@ -14,6 +14,9 @@
 @import '@sveltebuilder/coreui/styles/base.css' layer(base);
 @import './chrome.css' layer(chrome);
 @import '@sveltebuilder/coreui/styles/components.css' layer(components);
+/* Each domain module's stylesheet, in the same layer after coreui's: create-sveltebuilder adds
+   one line per module selected. Add a module's line here when installing it by hand. */
+@import './utilities.css' layer(utilities);
 
 /* ---- Token overrides ---- */
 :root {

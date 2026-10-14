@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './stock-level-list-screen.css';
   import { enhance } from '$app/forms';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
@@ -59,7 +60,7 @@
 
 {#snippet stockCell(row: StockLevelRow, column: DataTableColumn)}
   {#if column.key === 'sku'}
-    <span class="stock-page__mono">{row.sku}</span>
+    <span class="stock-level-list-screen__mono">{row.sku}</span>
   {:else if column.key === 'location'}
     {locationName(row)}
   {:else if column.key === 'onHand'}
@@ -75,7 +76,7 @@
   {:else if column.key === 'reorderPoint'}
     {row.reorderPoint ?? '—'}
   {:else if column.key === 'actions'}
-    <span class="stock-page__actions">
+    <span class="stock-level-list-screen__actions">
       <Button variant="ghost" size="sm" onclick={() => openAdjust(row)}>
         {t('logistic.stock_level.adjust')}
       </Button>
@@ -90,10 +91,10 @@
   <title>{t('logistic.stock_level.title')}</title>
 </svelte:head>
 
-<div class="stock-page">
-  <header class="stock-page__header">
-    <h1 class="stock-page__title">{t('logistic.stock_level.title')}</h1>
-    <nav class="stock-page__filters" aria-label={t('logistic.stock_level.filters')}>
+<div class="stock-level-list-screen">
+  <header class="stock-level-list-screen__header">
+    <h1 class="stock-level-list-screen__title">{t('logistic.stock_level.title')}</h1>
+    <nav class="stock-level-list-screen__filters" aria-label={t('logistic.stock_level.filters')}>
       <Button href="/admin/logistic/stock-level" variant={data.lowOnly ? 'ghost' : 'secondary'} size="sm">
         {t('logistic.stock_level.filter_all')}
       </Button>
@@ -108,10 +109,10 @@
   {/if}
 
   {#if historyLevel !== null}
-    <section class="stock-page__history" aria-label={t('logistic.stock_level.history')}>
-      <div class="stock-page__history-header">
-        <h2 class="stock-page__history-title">
-          {t('logistic.stock_level.history')} — <span class="stock-page__mono">{historyLevel.sku}</span>
+    <section class="stock-level-list-screen__history" aria-label={t('logistic.stock_level.history')}>
+      <div class="stock-level-list-screen__history-header">
+        <h2 class="stock-level-list-screen__history-title">
+          {t('logistic.stock_level.history')} — <span class="stock-level-list-screen__mono">{historyLevel.sku}</span>
           · {locationName(historyLevel)}
         </h2>
         <Button href="/admin/logistic/stock-level" variant="ghost" size="sm">
@@ -120,33 +121,33 @@
       </div>
 
       {#if data.stockAdjustments.length > 0}
-        <ul class="stock-page__history-list">
+        <ul class="stock-level-list-screen__history-list">
           {#each data.stockAdjustments as adjustment (adjustment.id)}
-            <li class="stock-page__history-item">
-              <span class="stock-page__history-delta" class:negative={adjustment.delta < 0}>
+            <li class="stock-level-list-screen__history-item">
+              <span class="stock-level-list-screen__history-delta" class:negative={adjustment.delta < 0}>
                 {adjustment.delta > 0 ? '+' : ''}{adjustment.delta}
               </span>
-              <span class="stock-page__history-reason">
+              <span class="stock-level-list-screen__history-reason">
                 {t(`logistic.stock_adjustment_reason.${adjustment.reason}`)}
               </span>
               <!-- Interpolated through MF2 rather than concatenated, so a locale can put
                    the number wherever its grammar needs it. -->
-              <span class="stock-page__history-after">
+              <span class="stock-level-list-screen__history-after">
                 {scoped.formatText(
                   'logistic.stock_level.history_after',
                   { count: adjustment.onHandAfter },
                   'logistic'
                 )}
               </span>
-              <span class="stock-page__history-when">{formatTimestamp(adjustment.createdAt)}</span>
+              <span class="stock-level-list-screen__history-when">{formatTimestamp(adjustment.createdAt)}</span>
               {#if adjustment.note}
-                <span class="stock-page__history-note">{adjustment.note}</span>
+                <span class="stock-level-list-screen__history-note">{adjustment.note}</span>
               {/if}
             </li>
           {/each}
         </ul>
       {:else}
-        <p class="stock-page__empty">{t('logistic.stock_level.history_empty')}</p>
+        <p class="stock-level-list-screen__empty">{t('logistic.stock_level.history_empty')}</p>
       {/if}
     </section>
   {/if}
@@ -168,8 +169,8 @@
 <Dialog bind:open={adjustOpen} title={t('logistic.stock_level.adjust_title')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     {#if adjustTarget}
-      <p class="stock-page__dialog-context">
-        <span class="stock-page__mono">{adjustTarget.sku}</span>
+      <p class="stock-level-list-screen__dialog-context">
+        <span class="stock-level-list-screen__mono">{adjustTarget.sku}</span>
         · {locationName(adjustTarget)} · {adjustTarget.onHand}
         {t('logistic.field.on_hand')}
       </p>
@@ -177,7 +178,7 @@
       <form
         method="POST"
         action="?/adjust"
-        class="stock-page__form"
+        class="stock-level-list-screen__form"
         use:enhance={() =>
           ({ update }) => {
             update();
@@ -206,7 +207,7 @@
           <Textarea name="note" rows={2} />
         </Field>
 
-        <div class="stock-page__form-actions">
+        <div class="stock-level-list-screen__form-actions">
           <Button variant="ghost" onclick={() => (adjustOpen = false)}>
             {dictionary.localText('action.cancel')}
           </Button>
@@ -217,7 +218,7 @@
       <form
         method="POST"
         action="?/setReorderPoint"
-        class="stock-page__form stock-page__form--secondary"
+        class="stock-level-list-screen__form stock-level-list-screen__form--secondary"
         use:enhance={() =>
           ({ update }) => {
             update();
@@ -235,127 +236,10 @@
           />
         </Field>
 
-        <div class="stock-page__form-actions">
+        <div class="stock-level-list-screen__form-actions">
           <Button type="submit" variant="secondary">{dictionary.localText('action.save')}</Button>
         </div>
       </form>
     {/if}
   {/snippet}
 </Dialog>
-
-<style>
-  .stock-page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .stock-page__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .stock-page__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .stock-page__filters {
-    display: flex;
-    gap: var(--space-2);
-  }
-
-  .stock-page__mono {
-    font-family: var(--font-mono);
-  }
-
-  .stock-page__actions {
-    display: flex;
-    gap: var(--space-1);
-    justify-content: flex-end;
-  }
-
-  .stock-page__history {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .stock-page__history-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-
-  .stock-page__history-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .stock-page__history-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .stock-page__history-item {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-  }
-
-  .stock-page__history-delta {
-    font-family: var(--font-mono);
-    font-weight: var(--weight-semibold);
-    min-width: 3rem;
-  }
-
-  .stock-page__history-delta.negative {
-    color: var(--danger);
-  }
-
-  .stock-page__history-when,
-  .stock-page__history-note {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-  }
-
-  .stock-page__empty {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-    margin: 0;
-  }
-
-  .stock-page__dialog-context {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-    margin: 0 0 var(--space-4);
-  }
-
-  .stock-page__form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .stock-page__form-actions {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-end;
-  }
-</style>

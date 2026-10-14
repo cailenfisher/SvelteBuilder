@@ -69,17 +69,17 @@
 
   <dl class="inbound-receipt-card__details">
     <div class="inbound-receipt-card__detail">
-      <dt>Expected</dt>
-      <dd>{formatDate(receipt.expectedAt, locale)}</dd>
+      <dt class="inbound-receipt-card__detail-term">Expected</dt>
+      <dd class="inbound-receipt-card__detail-value">{formatDate(receipt.expectedAt, locale)}</dd>
     </div>
     <div class="inbound-receipt-card__detail">
-      <dt>Received</dt>
-      <dd>{formatDate(receipt.receivedAt, locale)}</dd>
+      <dt class="inbound-receipt-card__detail-term">Received</dt>
+      <dd class="inbound-receipt-card__detail-value">{formatDate(receipt.receivedAt, locale)}</dd>
     </div>
     {#if lines.length > 0}
       <div class="inbound-receipt-card__detail">
-        <dt>Lines</dt>
-        <dd>{totalReceived}/{totalExpected} units</dd>
+        <dt class="inbound-receipt-card__detail-term">Lines</dt>
+        <dd class="inbound-receipt-card__detail-value">{totalReceived}/{totalExpected} units</dd>
       </div>
     {/if}
   </dl>
@@ -94,92 +94,3 @@
     <p class="inbound-receipt-card__note">{receipt.note}</p>
   {/if}
 </article>
-
-<style>
-  .inbound-receipt-card {
-    background-color: var(--surface-raised);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-xl);
-    padding: var(--space-4);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .inbound-receipt-card__header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-  }
-
-  .inbound-receipt-card__title-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-3);
-  }
-
-  .inbound-receipt-card__id-link,
-  .inbound-receipt-card__id {
-    font-size: var(--text-base);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    text-decoration: none;
-    display: block;
-  }
-
-  .inbound-receipt-card__id-link:hover {
-    color: var(--link-text);
-  }
-
-  .inbound-receipt-card__supplier {
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-    display: block;
-    margin-block-start: var(--space-1);
-  }
-
-  .inbound-receipt-card__details {
-    display: flex;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-    margin: 0;
-  }
-
-  .inbound-receipt-card__detail {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-  }
-
-  .inbound-receipt-card__detail dt {
-    font-size: var(--text-xs);
-    color: var(--text-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .inbound-receipt-card__detail dd {
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .inbound-receipt-card__discrepancy-alert {
-    font-size: var(--text-sm);
-    color: var(--warning-text);
-    background-color: var(--warning-soft);
-    border: 1px solid var(--warning-border);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-3);
-    margin: 0;
-  }
-
-  .inbound-receipt-card__note {
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-    margin: 0;
-    font-style: italic;
-  }
-</style>

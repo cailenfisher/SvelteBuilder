@@ -1,4 +1,6 @@
 <script lang="ts">
+  import './app-layout.css';
+  import './full-page-layout.css';
   import '../app.css'
   import { page } from '$app/state'
   import { createDictionary } from 'diglossia'
@@ -51,16 +53,16 @@
 </svelte:head>
 
 {#if isFullPage}
-  <div dir={data.locale.dir} class="full-page">
+  <div dir={data.locale.dir} class="full-page-layout">
     {@render children()}
   </div>
 {:else}
-  <div class="app" dir={data.locale.dir}>
-    <header class="app__header">
-      <a href="/" class="app__brand">
+  <div class="app-layout" dir={data.locale.dir}>
+    <header class="app-layout__header">
+      <a href="/" class="app-layout__brand">
         <LocalText slug="app.name" />
       </a>
-      <nav class="app__navigation">
+      <nav class="app-layout__navigation">
         <LocalePicker
           label={dictionary.localText('locale.select')}
           current={data.locale}
@@ -69,12 +71,12 @@
       </nav>
     </header>
 
-    <main class="app__main">
+    <main class="app-layout__main">
       {@render children()}
     </main>
 
-    <footer class="app__footer">
-      <p class="app__footer-copy">
+    <footer class="app-layout__footer">
+      <p class="app-layout__footer-copy">
         <LocalText slug="app.name" />
       </p>
     </footer>
@@ -83,52 +85,3 @@
 
 <ToastRegion />
 <MessageLiveRegion />
-
-<style>
-  .full-page {
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .app {
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    min-height: 100dvh;
-  }
-
-  .app__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1.5rem;
-    border-bottom: 1px solid var(--border-color, currentColor);
-  }
-
-  .app__brand {
-    font-weight: 600;
-    text-decoration: none;
-    color: var(--text, inherit);
-  }
-
-  .app__navigation {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .app__main {
-    padding: 1.5rem;
-  }
-
-  .app__footer {
-    padding: 0.75rem 1.5rem;
-    border-top: 1px solid var(--border-color, currentColor);
-  }
-
-  .app__footer-copy {
-    margin: 0;
-    font-size: var(--text-xs, 0.75rem);
-    color: var(--text-soft, inherit);
-  }
-</style>

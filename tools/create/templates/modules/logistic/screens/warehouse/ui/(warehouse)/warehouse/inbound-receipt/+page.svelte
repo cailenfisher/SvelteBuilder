@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './inbound-receipt-warehouse-queue-screen.css';
   import { createDictionary } from 'diglossia';
   import { InboundReceiptCard } from '@sveltebuilder/logistic';
   import type { InboundReceiptWarehouseQueueView } from '@sveltebuilder/logistic/views';
@@ -13,13 +14,13 @@
   <title>{t('logistic.warehouse.inbound_receipt.title')}</title>
 </svelte:head>
 
-<div class="receive-queue">
-  <h1 class="receive-queue__title">{t('logistic.warehouse.inbound_receipt.title')}</h1>
+<div class="inbound-receipt-warehouse-queue-screen">
+  <h1 class="inbound-receipt-warehouse-queue-screen__title">{t('logistic.warehouse.inbound_receipt.title')}</h1>
 
-  <section class="receive-queue__section" aria-label={t('logistic.warehouse.inbound_receipt.active')}>
-    <h2 class="receive-queue__section-title">{t('logistic.warehouse.inbound_receipt.active')}</h2>
+  <section class="inbound-receipt-warehouse-queue-screen__section" aria-label={t('logistic.warehouse.inbound_receipt.active')}>
+    <h2 class="inbound-receipt-warehouse-queue-screen__section-title">{t('logistic.warehouse.inbound_receipt.active')}</h2>
     {#if data.activeInboundReceipts.length > 0}
-      <div class="receive-queue__cards">
+      <div class="inbound-receipt-warehouse-queue-screen__cards">
         {#each data.activeInboundReceipts as receipt (receipt.id)}
           <InboundReceiptCard
             {receipt}
@@ -32,14 +33,14 @@
         {/each}
       </div>
     {:else}
-      <p class="receive-queue__empty">{t('logistic.warehouse.inbound_receipt.empty')}</p>
+      <p class="inbound-receipt-warehouse-queue-screen__empty">{t('logistic.warehouse.inbound_receipt.empty')}</p>
     {/if}
   </section>
 
   {#if data.recentInboundReceipts.length > 0}
-    <section class="receive-queue__section" aria-label={t('logistic.warehouse.inbound_receipt.recent')}>
-      <h2 class="receive-queue__section-title">{t('logistic.warehouse.inbound_receipt.recent')}</h2>
-      <div class="receive-queue__cards">
+    <section class="inbound-receipt-warehouse-queue-screen__section" aria-label={t('logistic.warehouse.inbound_receipt.recent')}>
+      <h2 class="inbound-receipt-warehouse-queue-screen__section-title">{t('logistic.warehouse.inbound_receipt.recent')}</h2>
+      <div class="inbound-receipt-warehouse-queue-screen__cards">
         {#each data.recentInboundReceipts as receipt (receipt.id)}
           <!-- Completed receipts are orientation, not work: no href, so nothing invites a
                receiver to open a receipt there is nothing left to do on. -->
@@ -55,47 +56,3 @@
     </section>
   {/if}
 </div>
-
-<style>
-  .receive-queue {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-    padding: var(--space-6);
-    max-width: 48rem;
-    margin-inline: auto;
-    width: 100%;
-  }
-
-  .receive-queue__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .receive-queue__section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .receive-queue__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .receive-queue__cards {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .receive-queue__empty {
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-    margin: 0;
-  }
-</style>

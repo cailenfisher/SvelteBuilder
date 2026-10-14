@@ -1,0 +1,134 @@
+/* =============================================================================
+   Table
+   ============================================================================= */
+
+.table {
+  width: 100%;
+  overflow-x: auto;
+  border: var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.table__element {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  font-family: var(--font);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.table__caption {
+  caption-side: top;
+  text-align: start;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border);
+}
+
+.table__element--sticky-header .table-head .table-header-cell {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.table-body .table-row:hover {
+  background: var(--surface-raised);
+}
+
+.table-body .table-row + .table-row .table-cell {
+  border-top: var(--border);
+}
+
+.table-body .table-cell {
+  padding: var(--space-3) var(--space-4);
+  color: var(--text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.table-cell {
+  padding: var(--space-3) var(--space-4);
+  color: var(--text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.table-foot .table-row {
+  border-top: var(--border);
+  background: var(--surface-raised);
+}
+
+.table-foot .table-cell,
+.table-foot .table-header-cell {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-soft);
+}
+
+.table-head .table-row {
+  background: var(--surface-raised);
+}
+
+.table-head .table-header-cell {
+  background: var(--surface-raised);
+  color: var(--text-soft);
+  font-weight: var(--weight-medium);
+  text-align: start;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border);
+  font-size: var(--text-sm);
+}
+
+.table-header-cell {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-soft);
+  text-align: start;
+  white-space: nowrap;
+  background: var(--surface-raised);
+  border-bottom: var(--border);
+}
+
+.table-header-cell--sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.table-header-cell--sortable:hover { color: var(--text); }
+
+.table-header-cell__content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.table-header-cell__sort-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.table-header-cell__sort-trigger {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.table-header-cell__sort-trigger:focus-visible {
+  outline: 2px solid var(--brand-text);
+  outline-offset: 2px;
+}
+
+.table__element .table-cell--end {
+  text-align: end;
+}

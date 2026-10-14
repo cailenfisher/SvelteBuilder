@@ -1,0 +1,72 @@
+.pick-task-warehouse-queue-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 48rem;
+  margin-inline: auto;
+  width: 100%;
+}
+
+.pick-task-warehouse-queue-screen__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  margin: 0;
+}
+
+.pick-task-warehouse-queue-screen__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pick-task-warehouse-queue-screen__section-title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.pick-task-warehouse-queue-screen__more,
+.pick-task-warehouse-queue-screen__empty {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  color: var(--text-soft);
+}
+
+.pick-task-warehouse-queue-screen__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pick-task-warehouse-queue-screen__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  /* Generous rows: this is a touch target for someone holding a scanner. */
+  min-height: 3.5rem;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+}
+
+.pick-task-warehouse-queue-screen__link,
+.pick-task-warehouse-queue-screen__label {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+
+.pick-task-warehouse-queue-screen__empty {
+  margin: 0;
+}

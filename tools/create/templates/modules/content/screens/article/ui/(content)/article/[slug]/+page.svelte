@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './article-detail-screen.css';
   import { createDictionary } from 'diglossia';
   import { Button, Field, InlineNotification, Input, Textarea } from '@sveltebuilder/coreui';
   import { ArticleDetail } from '@sveltebuilder/content';
@@ -64,7 +65,7 @@
   {/if}
 </svelte:head>
 
-<main class="article-page">
+<main class="article-detail-screen">
   <!-- Camp 2 component: it resolves the headline, dek and every block's text from the
        dictionary by entity id, so it takes this screen's instance rather than context. -->
   <ArticleDetail
@@ -77,15 +78,15 @@
   >
     {#snippet after()}
       {#if data.article.commentAllowed}
-        <section class="article-page__comments" aria-label={t('content.comment.heading')}>
-          <h2 class="article-page__comments-heading">{t('content.comment.heading')}</h2>
+        <section class="article-detail-screen__comments" aria-label={t('content.comment.heading')}>
+          <h2 class="article-detail-screen__comments-heading">{t('content.comment.heading')}</h2>
 
           {#if data.comments.length > 0}
-            <ol class="article-page__comment-list">
+            <ol class="article-detail-screen__comment-list">
               {#each data.comments as comment (comment.id)}
-                <li class="article-page__comment">
-                  <p class="article-page__comment-author">{comment.authorName}</p>
-                  <p class="article-page__comment-body">{comment.body}</p>
+                <li class="article-detail-screen__comment">
+                  <p class="article-detail-screen__comment-author">{comment.authorName}</p>
+                  <p class="article-detail-screen__comment-body">{comment.body}</p>
                 </li>
               {/each}
             </ol>
@@ -96,8 +97,8 @@
                  not a problem, and should not interrupt a screen reader. -->
             <InlineNotification severity="success" summary={t('content.comment.pending')} />
           {:else}
-            <form class="article-page__comment-form" method="POST" action="?/comment">
-              <h3 class="article-page__comment-form-heading">{t('content.comment.leave')}</h3>
+            <form class="article-detail-screen__comment-form" method="POST" action="?/comment">
+              <h3 class="article-detail-screen__comment-form-heading">{t('content.comment.leave')}</h3>
 
               {#if form?.error}
                 <InlineNotification severity="danger" summary={form.error} />
@@ -123,58 +124,3 @@
     {/snippet}
   </ArticleDetail>
 </main>
-
-<style>
-  .article-page {
-    padding: var(--space-8) var(--space-4);
-  }
-
-  .article-page__comments {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    padding-block-start: var(--space-8);
-    max-width: 40rem;
-  }
-
-  .article-page__comments-heading {
-    margin: 0;
-    font-size: var(--text-xl);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-  }
-
-  .article-page__comment-form-heading {
-    margin: 0;
-    font-size: var(--text-base);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-  }
-
-  .article-page__comment-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .article-page__comment-author {
-    margin: 0;
-    font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-  }
-
-  .article-page__comment-body {
-    margin: var(--space-1) 0 0;
-    color: var(--text-soft);
-  }
-
-  .article-page__comment-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-</style>

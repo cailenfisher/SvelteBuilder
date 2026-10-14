@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './warehouse-home-screen.css';
   import { createDictionary } from 'diglossia';
   import type { WarehouseShellView } from '@sveltebuilder/logistic/views';
 
@@ -35,69 +36,16 @@
   <title>{t('logistic.warehouse.title')}</title>
 </svelte:head>
 
-<div class="warehouse-home">
-  <h1 class="warehouse-home__title">{t('logistic.warehouse.title')}</h1>
+<div class="warehouse-home-screen">
+  <h1 class="warehouse-home-screen__title">{t('logistic.warehouse.title')}</h1>
 
-  <nav class="warehouse-home__flows" aria-label={t('logistic.warehouse.title')}>
+  <nav class="warehouse-home-screen__flows" aria-label={t('logistic.warehouse.title')}>
     {#each flows as flow (flow.href)}
-      <a href={flow.href} class="warehouse-home__flow-card">
-        <span class="warehouse-home__flow-icon" aria-hidden="true">{flow.icon}</span>
-        <span class="warehouse-home__flow-label">{t(flow.slug)}</span>
-        <span class="warehouse-home__flow-hint">{t(flow.hint)}</span>
+      <a href={flow.href} class="warehouse-home-screen__flow-card">
+        <span class="warehouse-home-screen__flow-icon" aria-hidden="true">{flow.icon}</span>
+        <span class="warehouse-home-screen__flow-label">{t(flow.slug)}</span>
+        <span class="warehouse-home-screen__flow-hint">{t(flow.hint)}</span>
       </a>
     {/each}
   </nav>
 </div>
-
-<style>
-  .warehouse-home {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-    padding: var(--space-6);
-    max-width: 48rem;
-    margin-inline: auto;
-    width: 100%;
-  }
-
-  .warehouse-home__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .warehouse-home__flows {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-    gap: var(--space-4);
-  }
-
-  .warehouse-home__flow-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-6);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    background-color: var(--surface);
-    text-decoration: none;
-    /* Deliberately large: this is a touch target for someone holding a scanner. */
-    min-height: 9rem;
-  }
-
-  .warehouse-home__flow-icon {
-    font-size: var(--text-2xl);
-  }
-
-  .warehouse-home__flow-label {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-  }
-
-  .warehouse-home__flow-hint {
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-  }
-</style>

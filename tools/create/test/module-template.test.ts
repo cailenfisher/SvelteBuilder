@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { copyModuleTemplate } from '../src/module-template.js';
+import { addModuleStylesheet, copyModuleTemplate } from '../src/module-template.js';
 
 /**
  * What a project receives from a module before any of its screens are chosen. Runs against a
@@ -85,5 +85,53 @@ describe('copyModuleTemplate', () => {
     });
 
     expect(exists('src/lib/server/logistic')).toBe(false);
+  });
+});
+
+describe('addModuleStylesheet', () => {
+  const APP_CSS = [
+    '@layer reset, tokens, base, chrome, components, utilities;',
+    '',
+    "@import '@sveltebuilder/coreui/styles/components.css' layer(components);",
+    "/* Each domain module's stylesheet, in the same layer after coreui's: create-sveltebuilder adds",
+    '   one line per module selected. */',
+    '',
+    ':root {}',
+    '',
+  ].join('\n');
+
+  const appCss = () => fs.readFileSync(path.join(targetDir, 'src', 'app.css'), 'utf8');
+
+  beforeEach(() => write(path.join(targetDir, 'src', 'app.css'), APP_CSS));
+
+  it("imports the module's stylesheet into the components layer after coreui's comment", async () => {
+    await addModuleStylesheet(targetDir, 'content');
+
+    expect(appCss().split('\n').slice(2, 6)).toEqual([
+      "@import '@sveltebuilder/coreui/styles/components.css' layer(components);",
+      "/* Each domain module's stylesheet, in the same layer after coreui's: create-sveltebuilder adds",
+      '   one line per module selected. */',
+      "@import '@sveltebuilder/content/styles/components.css' layer(components);",
+    ]);
+  });
+
+  it('adds each module after the ones already there, once', async () => {
+    await addModuleStylesheet(targetDir, 'content');
+    await addModuleStylesheet(targetDir, 'logistic');
+    await addModuleStylesheet(targetDir, 'content');
+
+    const imports = appCss()
+      .split('\n')
+      .filter((line) => line.startsWith("@import '@sveltebuilder/"));
+    expect(imports).toEqual([
+      "@import '@sveltebuilder/coreui/styles/components.css' layer(components);",
+      "@import '@sveltebuilder/content/styles/components.css' layer(components);",
+      "@import '@sveltebuilder/logistic/styles/components.css' layer(components);",
+    ]);
+  });
+
+  it("refuses an app.css that does not import coreui's stylesheet", async () => {
+    write(path.join(targetDir, 'src', 'app.css'), ':root {}\n');
+    await expect(addModuleStylesheet(targetDir, 'content')).rejects.toThrow(/coreui/);
   });
 });

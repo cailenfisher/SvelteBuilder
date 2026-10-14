@@ -2,6 +2,7 @@
      the <form>, its action and its submit button; a page editing several locales renders one per
      locale, and names each with `legend`. -->
 <script lang="ts">
+  import './local-text.css';
   import type { Locale } from 'diglossia';
   import { Field, Input, Select, SelectItem, Textarea } from '@sveltebuilder/coreui';
 
@@ -55,21 +56,3 @@
     <Textarea name="content" value={content} rows={4} />
   </Field>
 </fieldset>
-
-<style>
-  .local-text-fieldset {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    min-inline-size: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .local-text-fieldset__legend {
-    padding: 0;
-    margin-block-end: var(--space-2);
-    font-weight: var(--weight-semibold);
-  }
-</style>

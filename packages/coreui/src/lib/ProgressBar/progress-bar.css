@@ -1,0 +1,36 @@
+/* =============================================================================
+   ProgressBar
+   ============================================================================= */
+
+.progress-bar {
+  display: block;
+  width: 100%;
+}
+
+.progress-bar__track {
+  width: 100%;
+  background: var(--surface-overlay);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-bar--sm .progress-bar__track { height: 0.25rem; }
+.progress-bar--md .progress-bar__track { height: 0.5rem; }
+.progress-bar--lg .progress-bar__track { height: 0.75rem; }
+
+.progress-bar__indicator {
+  height: 100%;
+  background: var(--brand);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--ease);
+}
+
+.progress-bar--indeterminate .progress-bar__indicator {
+  width: 40% !important;
+  animation: progress-slide 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-slide {
+  0%   { transform: translateX(-150%); }
+  100% { transform: translateX(350%); }
+}

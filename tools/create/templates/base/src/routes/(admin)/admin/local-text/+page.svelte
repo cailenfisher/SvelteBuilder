@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './local-text-admin-list-screen.css';
   import { getDictionary } from 'diglossia/svelte'
   import {
     Button, Field, Textarea,
@@ -27,27 +28,27 @@
   }
 </script>
 
-<div class="local-text-admin">
-  <header class="local-text-admin__header">
-    <h1 class="local-text-admin__title">{title}</h1>
+<div class="local-text-admin-list-screen">
+  <header class="local-text-admin-list-screen__header">
+    <h1 class="local-text-admin-list-screen__title">{title}</h1>
   </header>
 
-  <section class="local-text-admin__add">
-    <h2 class="local-text-admin__section-title">{newLabel}</h2>
+  <section class="local-text-admin-list-screen__add">
+    <h2 class="local-text-admin-list-screen__section-title">{newLabel}</h2>
 
     {#if form?.error}
-      <p class="local-text-admin__error" role="alert">{form.error}</p>
+      <p class="local-text-admin-list-screen__error" role="alert">{form.error}</p>
     {/if}
     {#if form?.success}
-      <p class="local-text-admin__success" role="status">{dictionary.localText('feedback.saved')}</p>
+      <p class="local-text-admin-list-screen__success" role="status">{dictionary.localText('feedback.saved')}</p>
     {/if}
 
-    <form method="post" action="?/create" class="local-text-admin__form">
+    <form method="post" action="?/create" class="local-text-admin-list-screen__form">
       <LocalTextLinkFieldset {slugLabel} {scopeLabel} />
 
-      <div class="local-text-admin__locales">
+      <div class="local-text-admin-list-screen__locales">
         {#each data.locales as locale (locale.id)}
-          <div class="local-text-admin__locale-field">
+          <div class="local-text-admin-list-screen__locale-field">
             <input type="hidden" name="locale_id" value={locale.id} />
             <Field label={locale.nativeName} id="content_{locale.id}">
               <Textarea id="content_{locale.id}" name="content" rows={2} />
@@ -60,7 +61,7 @@
     </form>
   </section>
 
-  <div class="local-text-admin__table-wrap">
+  <div class="local-text-admin-list-screen__table-wrap">
     <Table>
       <TableHead>
         <TableRow>
@@ -70,7 +71,7 @@
             <TableHeaderCell>{locale.nativeName}</TableHeaderCell>
           {/each}
           <TableHeaderCell>
-            <span class="sr-only">{dictionary.localText('table.actions')}</span>
+            <span class="visually-hidden">{dictionary.localText('table.actions')}</span>
           </TableHeaderCell>
         </TableRow>
       </TableHead>
@@ -85,16 +86,16 @@
         {#each data.entries as entry (entry.id)}
           <TableRow>
             <TableCell>
-              <a href="/admin/local-text/{entry.id}" class="local-text-admin__link">{entry.slug}</a>
+              <a href="/admin/local-text/{entry.id}" class="local-text-admin-list-screen__link">{entry.slug}</a>
             </TableCell>
             <TableCell>{entry.scope ?? '—'}</TableCell>
             {#each data.locales as locale (locale.id)}
-              <TableCell class="local-text-admin__content-cell">
+              <TableCell class="local-text-admin-list-screen__content-cell">
                 {truncate(translationFor(entry.id, locale.id))}
               </TableCell>
             {/each}
             <TableCell>
-              <div class="local-text-admin__row-actions">
+              <div class="local-text-admin-list-screen__row-actions">
                 <Button href="/admin/local-text/{entry.id}" variant="ghost" size="sm">
                   {editLabel}
                 </Button>
@@ -110,108 +111,3 @@
     </Table>
   </div>
 </div>
-
-<style>
-  .local-text-admin {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .local-text-admin__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .local-text-admin__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .local-text-admin__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0 0 var(--space-4);
-  }
-
-  .local-text-admin__add {
-    padding: var(--space-6);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    background-color: var(--surface-raised);
-  }
-
-  .local-text-admin__error {
-    color: var(--danger-text);
-    font-size: var(--text-sm);
-    margin: 0 0 var(--space-4);
-  }
-
-  .local-text-admin__success {
-    color: var(--success-text);
-    font-size: var(--text-sm);
-    margin: 0 0 var(--space-4);
-  }
-
-  .local-text-admin__form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .local-text-admin__locales {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-    gap: var(--space-4);
-  }
-
-  .local-text-admin__table-wrap {
-    overflow-x: auto;
-  }
-
-  .local-text-admin__link {
-    color: var(--link-text);
-    text-decoration: none;
-    font-weight: var(--weight-medium);
-    font-size: var(--text-sm);
-  }
-
-  .local-text-admin__link:hover {
-    text-decoration: underline;
-  }
-
-  /* The class is passed to TableCell, a child component, so a scoped selector never matches it.
-     :global is a stopgap; see docs/DEFERRED.md, "Styling a class passed to a child component". */
-  :global(.local-text-admin__content-cell) {
-    max-width: 16rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-  }
-
-  .local-text-admin__row-actions {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-</style>

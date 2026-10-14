@@ -1,6 +1,7 @@
 <!-- The inputs that describe a locale, grouped in a <fieldset> for the admin's create and edit
      forms. The page owns the <form>, its action and its submit button. -->
 <script lang="ts">
+  import './locale.css';
   import { Field, Input, Select, SelectItem } from '@sveltebuilder/coreui';
 
   type Props = {
@@ -63,27 +64,3 @@
     </Field>
   </div>
 </fieldset>
-
-<style>
-  .locale-fieldset {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    min-inline-size: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .locale-fieldset__row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-  }
-
-  .locale-fieldset__legend {
-    padding: 0;
-    margin-block-end: var(--space-2);
-    font-weight: var(--weight-semibold);
-  }
-</style>

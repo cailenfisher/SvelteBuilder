@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './inbound-receipt-detail-screen.css';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import {
@@ -58,42 +59,42 @@
   <title>{t('logistic.inbound_receipt.one')} #{data.inboundReceipt.id}</title>
 </svelte:head>
 
-<div class="receipt-detail">
-  <header class="receipt-detail__header">
-    <a href="/admin/logistic/inbound-receipt" class="receipt-detail__back">
+<div class="inbound-receipt-detail-screen">
+  <header class="inbound-receipt-detail-screen__header">
+    <a href="/admin/logistic/inbound-receipt" class="inbound-receipt-detail-screen__back">
       ← {t('logistic.inbound_receipt.title')}
     </a>
-    <div class="receipt-detail__title-row">
-      <h1 class="receipt-detail__title">{t('logistic.inbound_receipt.one')} #{data.inboundReceipt.id}</h1>
+    <div class="inbound-receipt-detail-screen__title-row">
+      <h1 class="inbound-receipt-detail-screen__title">{t('logistic.inbound_receipt.one')} #{data.inboundReceipt.id}</h1>
       <Badge variant={statusVariant}>
         {t(`logistic.inbound_receipt.status.${data.inboundReceipt.status}`)}
       </Badge>
     </div>
-    <p class="receipt-detail__supplier">{supplierName}</p>
+    <p class="inbound-receipt-detail-screen__supplier">{supplierName}</p>
   </header>
 
   {#if form?.error}
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <dl class="receipt-detail__meta">
-    <div class="receipt-detail__meta-item">
-      <dt>{t('logistic.inbound_receipt.expected_at')}</dt>
-      <dd>{formatDate(data.inboundReceipt.expectedAt)}</dd>
+  <dl class="inbound-receipt-detail-screen__meta">
+    <div class="inbound-receipt-detail-screen__meta-item">
+      <dt class="inbound-receipt-detail-screen__meta-term">{t('logistic.inbound_receipt.expected_at')}</dt>
+      <dd class="inbound-receipt-detail-screen__meta-value">{formatDate(data.inboundReceipt.expectedAt)}</dd>
     </div>
-    <div class="receipt-detail__meta-item">
-      <dt>{t('logistic.inbound_receipt.received_at')}</dt>
-      <dd>{formatDate(data.inboundReceipt.receivedAt)}</dd>
+    <div class="inbound-receipt-detail-screen__meta-item">
+      <dt class="inbound-receipt-detail-screen__meta-term">{t('logistic.inbound_receipt.received_at')}</dt>
+      <dd class="inbound-receipt-detail-screen__meta-value">{formatDate(data.inboundReceipt.receivedAt)}</dd>
     </div>
   </dl>
 
   {#if data.inboundReceipt.note}
-    <p class="receipt-detail__note">{data.inboundReceipt.note}</p>
+    <p class="inbound-receipt-detail-screen__note">{data.inboundReceipt.note}</p>
   {/if}
 
-  <section class="receipt-detail__lines">
-    <div class="receipt-detail__lines-header">
-      <h2 class="receipt-detail__section-title">{t('logistic.inbound_receipt.lines')}</h2>
+  <section class="inbound-receipt-detail-screen__lines">
+    <div class="inbound-receipt-detail-screen__lines-header">
+      <h2 class="inbound-receipt-detail-screen__section-title">{t('logistic.inbound_receipt.lines')}</h2>
       {#if open}
         <Button variant="ghost" size="sm" onclick={() => (showAddLine = !showAddLine)}>
           {showAddLine ? dictionary.localText('action.cancel') : t('logistic.inbound_receipt.line_add')}
@@ -102,7 +103,7 @@
     </div>
 
     {#if showAddLine}
-      <form method="POST" action="?/addInboundReceiptLine" class="receipt-detail__add-line-form">
+      <form method="POST" action="?/addInboundReceiptLine" class="inbound-receipt-detail-screen__add-line-form">
         <Field label={t('logistic.field.sku')} id="line-sku" required>
           <Input name="sku" required />
         </Field>
@@ -144,7 +145,7 @@
         <TableBody>
           {#each data.inboundReceipt.lines as line (line.id)}
             <TableRow>
-              <TableCell><code class="receipt-detail__sku">{line.sku}</code></TableCell>
+              <TableCell><code class="inbound-receipt-detail-screen__sku">{line.sku}</code></TableCell>
               <TableCell>
                 {scoped.localText('name', 'storage_location', line.storageLocationId)}
               </TableCell>
@@ -152,7 +153,7 @@
               <TableCell>{line.receivedQuantity}</TableCell>
               <TableCell>
                 {#if line.discrepancy !== 0}
-                  <span class="receipt-detail__discrepancy" class:negative={line.discrepancy < 0}>
+                  <span class="inbound-receipt-detail-screen__discrepancy" class:negative={line.discrepancy < 0}>
                     {line.discrepancy > 0 ? '+' : ''}{line.discrepancy}
                   </span>
                 {:else}
@@ -161,7 +162,7 @@
               </TableCell>
               {#if open}
                 <TableCell>
-                  <form method="POST" action="?/receiveInboundReceiptLine" class="receipt-detail__receive-form">
+                  <form method="POST" action="?/receiveInboundReceiptLine" class="inbound-receipt-detail-screen__receive-form">
                     <input type="hidden" name="inbound_receipt_line_id" value={line.id} />
                     <Input
                       name="received_quantity"
@@ -180,107 +181,7 @@
         </TableBody>
       </Table>
     {:else}
-      <p class="receipt-detail__empty">{t('logistic.inbound_receipt.lines_empty')}</p>
+      <p class="inbound-receipt-detail-screen__empty">{t('logistic.inbound_receipt.lines_empty')}</p>
     {/if}
   </section>
 </div>
-
-<style>
-  .receipt-detail {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .receipt-detail__back {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-    text-decoration: none;
-  }
-
-  .receipt-detail__title-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin-block-start: var(--space-2);
-  }
-
-  .receipt-detail__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .receipt-detail__supplier,
-  .receipt-detail__note,
-  .receipt-detail__empty {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-    margin: var(--space-1) 0 0;
-  }
-
-  .receipt-detail__meta {
-    display: flex;
-    gap: var(--space-8);
-    margin: 0;
-  }
-
-  .receipt-detail__meta-item dt {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-  }
-
-  .receipt-detail__meta-item dd {
-    margin: 0;
-    color: var(--text);
-  }
-
-  .receipt-detail__lines {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .receipt-detail__lines-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-
-  .receipt-detail__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .receipt-detail__add-line-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-    gap: var(--space-4);
-    align-items: end;
-  }
-
-  .receipt-detail__sku {
-    font-family: var(--font-mono);
-  }
-
-  .receipt-detail__discrepancy {
-    font-weight: var(--weight-semibold);
-  }
-
-  .receipt-detail__discrepancy.negative {
-    color: var(--danger);
-  }
-
-  .receipt-detail__receive-form {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-</style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './article-admin-list-screen.css';
   import { goto } from '$app/navigation';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
@@ -44,7 +45,7 @@
 
 {#snippet articleCell(row: ArticleRow, column: DataTableColumn)}
   {#if column.key === 'headline'}
-    <a href="/admin/content/article/{row.id}" class="article-admin-list__link">
+    <a href="/admin/content/article/{row.id}" class="article-admin-list-screen__link">
       {scoped.localText('headline', 'article', row.id)}
     </a>
   {:else if column.key === 'status'}
@@ -52,7 +53,7 @@
       {scoped.localText('name', 'article_status', row.status.id)}
     </Badge>
   {:else if column.key === 'slug'}
-    <code class="article-admin-list__slug">{row.canonicalSlug}</code>
+    <code class="article-admin-list-screen__slug">{row.canonicalSlug}</code>
   {:else if column.key === 'created'}
     {formatDate(row.createdAt)}
   {/if}
@@ -62,9 +63,9 @@
   <title>{t('content.article_admin.article')}</title>
 </svelte:head>
 
-<div class="article-admin-list">
-  <header class="article-admin-list__header">
-    <h1 class="article-admin-list__title">{t('content.article_admin.article')}</h1>
+<div class="article-admin-list-screen">
+  <header class="article-admin-list-screen__header">
+    <h1 class="article-admin-list-screen__title">{t('content.article_admin.article')}</h1>
     <Button variant="primary" onclick={() => (newArticleOpen = true)}>
       {t('content.article_admin.new')}
     </Button>
@@ -76,7 +77,7 @@
 
   <!-- Links in a <nav>, not tabs: the filter is server-side, so each option is a navigation to a
        different URL rather than a panel swap, and aria-current is what says which is on. -->
-  <nav class="article-admin-list__filters" aria-label={t('content.article_admin.filter_status')}>
+  <nav class="article-admin-list-screen__filters" aria-label={t('content.article_admin.filter_status')}>
     <Button
       href={href(null)}
       variant={data.statusSlug === null ? 'secondary' : 'ghost'}
@@ -117,7 +118,7 @@
 
 <Dialog bind:open={newArticleOpen} title={t('content.article_admin.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
-    <form method="POST" action="?/create" class="article-admin-list__form">
+    <form method="POST" action="?/create" class="article-admin-list-screen__form">
       <!-- Both fields are required: an article with no headline cannot be told apart from its
            siblings in the list above, which is the only place an editor will look for it. -->
       <Field label={t('content.article_admin.headline')} id="new-headline" required>
@@ -127,7 +128,7 @@
         <Input name="canonical_slug" required />
       </Field>
 
-      <div class="article-admin-list__form-actions">
+      <div class="article-admin-list-screen__form-actions">
         <Button variant="ghost" onclick={() => (newArticleOpen = false)}>
           {dictionary.localText('action.cancel')}
         </Button>
@@ -136,58 +137,3 @@
     </form>
   {/snippet}
 </Dialog>
-
-<style>
-  .article-admin-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .article-admin-list__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .article-admin-list__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .article-admin-list__filters {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-  }
-
-  .article-admin-list__link {
-    color: var(--text);
-    font-weight: var(--weight-medium);
-  }
-
-  .article-admin-list__slug {
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-  }
-
-  .article-admin-list__form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .article-admin-list__form-actions {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-end;
-  }
-</style>

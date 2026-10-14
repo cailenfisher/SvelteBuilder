@@ -355,3 +355,36 @@ where l.slug = v.old_slug and l.scope = 'content' and l.entity_id is null;
 
 commit;
 ```
+
+---
+
+## Stylesheets
+
+coreui, content and logistic components no longer carry Svelte `<style>` blocks. Every style is in a
+plain stylesheet the app imports, so an app that does not import a package's stylesheet renders its
+components unstyled.
+
+1. In `src/app.css`, after coreui's import, add one line per module you use, then the utilities
+   layer:
+
+   ```css
+   @import '@sveltebuilder/coreui/styles/components.css' layer(components);
+   @import '@sveltebuilder/content/styles/components.css' layer(components);
+   @import '@sveltebuilder/logistic/styles/components.css' layer(components);
+   @import './utilities.css' layer(utilities);
+   ```
+
+   Copy `src/utilities.css` from a freshly scaffolded project; it holds `.visually-hidden`, which
+   replaces the `.sr-only` copies the base admin screens each defined.
+2. coreui's table styles now target `.table-row`, `.table-cell` and `.table-header-cell` rather
+   than `tr`, `td` and `th`. A row or cell written as a plain element inside `TableBody` loses
+   its borders and padding; use `TableRow`, `TableCell` and `TableHeaderCell`.
+3. Module components' styles moved from unlayered (Svelte-scoped) to the `components` layer.
+   Your own unlayered CSS now overrides them without a specificity fight; a rule of yours that
+   only won before because it was more specific still wins.
+
+Your existing screens keep working: their `<style>` blocks are still yours. A screen you take from
+a 2.0 scaffold has its stylesheet beside it, and its root class renamed after its view type
+(`.receipt-list` → `.inbound-receipt-list-screen`); the full list is in
+`docs/conformance-manifest.md`, "Added during Phase 10".
+

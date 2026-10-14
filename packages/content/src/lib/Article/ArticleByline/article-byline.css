@@ -1,0 +1,24 @@
+/* ── ArticleBylineList ─────────────────────────────────────────────────────────────────────────── */
+
+.article-byline-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.article-byline-list__label {
+  margin-inline-end: 0.25ch;
+}
+
+.article-byline-list__link {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: var(--weight-medium);
+}
+
+.article-byline-list__link:hover {
+  color: var(--link-text);
+}

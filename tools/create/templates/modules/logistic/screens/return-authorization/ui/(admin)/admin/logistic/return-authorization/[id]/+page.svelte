@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './return-authorization-detail-screen.css';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import {
@@ -59,13 +60,13 @@
   <title>{t('logistic.return_authorization.one')} #{authorization.id}</title>
 </svelte:head>
 
-<div class="return-detail">
-  <header class="return-detail__header">
-    <a href="/admin/logistic/return-authorization" class="return-detail__back">
+<div class="return-authorization-detail-screen">
+  <header class="return-authorization-detail-screen__header">
+    <a href="/admin/logistic/return-authorization" class="return-authorization-detail-screen__back">
       ← {t('logistic.return_authorization.title')}
     </a>
-    <div class="return-detail__title-row">
-      <h1 class="return-detail__title">{t('logistic.return_authorization.one')} #{authorization.id}</h1>
+    <div class="return-authorization-detail-screen__title-row">
+      <h1 class="return-authorization-detail-screen__title">{t('logistic.return_authorization.one')} #{authorization.id}</h1>
       <Badge variant={statusVariant}>
         {t(`logistic.return_authorization.status.${authorization.status}`)}
       </Badge>
@@ -76,10 +77,10 @@
       {/if}
     </div>
     {#if authorization.reason}
-      <p class="return-detail__meta">{authorization.reason}</p>
+      <p class="return-authorization-detail-screen__meta">{authorization.reason}</p>
     {/if}
     {#if authorization.note}
-      <p class="return-detail__meta">{authorization.note}</p>
+      <p class="return-authorization-detail-screen__meta">{authorization.note}</p>
     {/if}
   </header>
 
@@ -87,8 +88,8 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <section class="return-detail__lines">
-    <h2 class="return-detail__section-title">{t('logistic.return_authorization.lines')}</h2>
+  <section class="return-authorization-detail-screen__lines">
+    <h2 class="return-authorization-detail-screen__section-title">{t('logistic.return_authorization.lines')}</h2>
     {#if authorization.lines.length > 0}
       <Table>
         <TableHead>
@@ -106,7 +107,7 @@
         <TableBody>
           {#each authorization.lines as line (line.id)}
             <TableRow>
-              <TableCell><code class="return-detail__mono">{line.sku}</code></TableCell>
+              <TableCell><code class="return-authorization-detail-screen__mono">{line.sku}</code></TableCell>
               <TableCell>{line.expectedQuantity}</TableCell>
               <TableCell>{line.receivedQuantity}</TableCell>
               <TableCell>
@@ -127,7 +128,7 @@
               </TableCell>
               {#if open}
                 <TableCell>
-                  <form method="POST" action="?/gradeReturnAuthorizationLine" class="return-detail__grade-form">
+                  <form method="POST" action="?/gradeReturnAuthorizationLine" class="return-authorization-detail-screen__grade-form">
                     <input type="hidden" name="return_authorization_line_id" value={line.id} />
                     <Input
                       name="received_quantity"
@@ -175,7 +176,7 @@
         </TableBody>
       </Table>
     {:else}
-      <p class="return-detail__empty">{t('logistic.return_authorization.lines_empty')}</p>
+      <p class="return-authorization-detail-screen__empty">{t('logistic.return_authorization.lines_empty')}</p>
     {/if}
   </section>
 </div>
@@ -192,66 +193,3 @@
   cancelLabel={dictionary.localText('action.cancel')}
   onConfirm={() => processForm?.requestSubmit()}
 />
-
-<style>
-  .return-detail {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 78rem;
-    margin-inline: auto;
-  }
-
-  .return-detail__back {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-    text-decoration: none;
-  }
-
-  .return-detail__title-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin-block-start: var(--space-2);
-    flex-wrap: wrap;
-  }
-
-  .return-detail__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .return-detail__meta,
-  .return-detail__empty {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-    margin: var(--space-1) 0 0;
-  }
-
-  .return-detail__lines {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .return-detail__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .return-detail__mono {
-    font-family: var(--font-mono);
-  }
-
-  .return-detail__grade-form {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-    flex-wrap: wrap;
-  }
-</style>

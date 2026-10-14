@@ -93,19 +93,3 @@
   onPageChange={onPageChange ?? (() => {})}
   labels={tableLabels}
 />
-
-<style>
-  .article-assignment-queue__row-link {
-    background: transparent;
-    border: none;
-    padding: 0;
-    font: inherit;
-    color: var(--link-text);
-    cursor: pointer;
-    text-align: left;
-  }
-
-  .article-assignment-queue__row-link:hover {
-    text-decoration: underline;
-  }
-</style>

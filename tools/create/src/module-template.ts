@@ -65,3 +65,38 @@ export async function copyModuleTemplate({
     });
   }
 }
+
+/** The line in `src/app.css` after which module stylesheets are imported. */
+const COREUI_STYLESHEET = "@import '@sveltebuilder/coreui/styles/components.css' layer(components);";
+
+/**
+ * Imports a module's stylesheet in the project's `src/app.css`, into the `components` layer
+ * after coreui's and after any module already there, so a module rule that styles a coreui part
+ * wins a tie by order. The project's own unlayered CSS still overrides both.
+ *
+ * Module components carry no `<style>` blocks, so without this line they render unstyled.
+ */
+export async function addModuleStylesheet(targetDir: string, module: string): Promise<void> {
+  const appCssPath = path.join(targetDir, 'src', 'app.css');
+  const appCss = await fs.readFile(appCssPath, 'utf8');
+  const line = `@import '@sveltebuilder/${module}/styles/components.css' layer(components);`;
+  if (appCss.includes(line)) return;
+
+  const lines = appCss.split('\n');
+  const coreui = lines.indexOf(COREUI_STYLESHEET);
+  if (coreui === -1) {
+    throw new Error(`src/app.css does not import coreui's stylesheet; cannot add ${module}'s after it`);
+  }
+  // After coreui's line, the comment that explains these lines, and any module already added.
+  let last = coreui;
+  if (lines[coreui + 1]?.startsWith('/*')) {
+    while (last + 1 < lines.length && !lines[last].includes('*/')) last += 1;
+  }
+  for (let index = last + 1; index < lines.length; index += 1) {
+    if (/^@import '@sveltebuilder\/[a-z-]+\/styles\/components\.css' layer\(components\);$/.test(lines[index])) {
+      last = index;
+    }
+  }
+  lines.splice(last + 1, 0, line);
+  await fs.writeFile(appCssPath, lines.join('\n'));
+}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './local-text-admin-detail-screen.css';
   import { getDictionary } from 'diglossia/svelte'
   import { Button } from '@sveltebuilder/coreui'
   import LocalTextFieldset from '$lib/LocalText/LocalTextFieldset.svelte'
@@ -17,29 +18,29 @@
   }
 </script>
 
-<div class="local-text-edit-page">
-  <header class="local-text-edit-page__header">
+<div class="local-text-admin-detail-screen">
+  <header class="local-text-admin-detail-screen__header">
     <Button href="/admin/local-text" variant="ghost" size="sm">← {dictionary.localText('navigation.back')}</Button>
-    <h1 class="local-text-edit-page__title">{editLabel}</h1>
+    <h1 class="local-text-admin-detail-screen__title">{editLabel}</h1>
   </header>
 
-  <dl class="local-text-edit-page__meta">
-    <dt>{slugLabel}</dt>
-    <dd><code>{data.entry.slug}</code></dd>
-    <dt>{scopeLabel}</dt>
+  <dl class="local-text-admin-detail-screen__meta">
+    <dt class="local-text-admin-detail-screen__meta-term">{slugLabel}</dt>
+    <dd><code class="local-text-admin-detail-screen__meta-code">{data.entry.slug}</code></dd>
+    <dt class="local-text-admin-detail-screen__meta-term">{scopeLabel}</dt>
     <dd>{data.entry.scope ?? '—'}</dd>
   </dl>
 
   {#if form?.error}
-    <p class="local-text-edit-page__error" role="alert">{form.error}</p>
+    <p class="local-text-admin-detail-screen__error" role="alert">{form.error}</p>
   {/if}
   {#if form?.success}
-    <p class="local-text-edit-page__success" role="status">{dictionary.localText('feedback.saved')}</p>
+    <p class="local-text-admin-detail-screen__success" role="status">{dictionary.localText('feedback.saved')}</p>
   {/if}
 
-  <div class="local-text-edit-page__translations">
+  <div class="local-text-admin-detail-screen__translations">
     {#each data.locales as locale (locale.id)}
-      <form method="post" action="?/update" class="local-text-edit-page__locale-form">
+      <form method="post" action="?/update" class="local-text-admin-detail-screen__locale-form">
         <LocalTextFieldset
           {slugLabel}
           localeLabel={locale.nativeName}
@@ -55,7 +56,7 @@
     {/each}
   </div>
 
-  <div class="local-text-edit-page__danger">
+  <div class="local-text-admin-detail-screen__danger">
     <form method="post" action="?/delete">
       <Button type="submit" variant="danger" size="sm">
         {dictionary.localText('action.delete')} {editLabel}
@@ -63,78 +64,3 @@
     </form>
   </div>
 </div>
-
-<style>
-  .local-text-edit-page {
-    max-width: 40rem;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-  }
-
-  .local-text-edit-page__header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .local-text-edit-page__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .local-text-edit-page__meta {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--space-1) var(--space-4);
-    font-size: var(--text-sm);
-    margin: 0;
-  }
-
-  .local-text-edit-page__meta dt {
-    color: var(--text-soft);
-    font-weight: var(--weight-medium);
-  }
-
-  .local-text-edit-page__meta code {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    background-color: var(--surface-overlay);
-    padding: 0 var(--space-1);
-    border-radius: var(--radius-sm);
-  }
-
-  .local-text-edit-page__error {
-    color: var(--danger-text);
-    font-size: var(--text-sm);
-    margin: 0;
-  }
-
-  .local-text-edit-page__success {
-    color: var(--success-text);
-    font-size: var(--text-sm);
-    margin: 0;
-  }
-
-  .local-text-edit-page__translations {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-  }
-
-  .local-text-edit-page__locale-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-4);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-  }
-
-  .local-text-edit-page__danger {
-    padding-block-start: var(--space-6);
-    border-block-start: 1px solid var(--border-color);
-  }
-</style>

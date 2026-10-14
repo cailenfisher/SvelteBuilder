@@ -86,31 +86,3 @@
     labels={tableLabels}
   />
 </div>
-
-<style>
-  .subscriber-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .subscriber-list__header {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .subscriber-list__newsletter-name {
-    margin: 0;
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-  }
-
-  .subscriber-list__count {
-    margin: 0;
-    font-size: var(--text-sm);
-    color: var(--text-soft);
-  }
-</style>

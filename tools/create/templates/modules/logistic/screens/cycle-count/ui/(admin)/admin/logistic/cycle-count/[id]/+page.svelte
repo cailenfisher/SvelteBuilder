@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './cycle-count-detail-screen.css';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import {
@@ -53,13 +54,13 @@
   <title>{t('logistic.cycle_count.one')} #{count.id}</title>
 </svelte:head>
 
-<div class="count-detail">
-  <header class="count-detail__header">
-    <a href="/admin/logistic/cycle-count" class="count-detail__back">
+<div class="cycle-count-detail-screen">
+  <header class="cycle-count-detail-screen__header">
+    <a href="/admin/logistic/cycle-count" class="cycle-count-detail-screen__back">
       ← {t('logistic.cycle_count.title')}
     </a>
-    <div class="count-detail__title-row">
-      <h1 class="count-detail__title">{t('logistic.cycle_count.one')} #{count.id}</h1>
+    <div class="cycle-count-detail-screen__title-row">
+      <h1 class="cycle-count-detail-screen__title">{t('logistic.cycle_count.one')} #{count.id}</h1>
       <Badge variant={statusVariant}>
         {t(`logistic.cycle_count.status.${count.status}`)}
       </Badge>
@@ -69,7 +70,7 @@
         </Button>
       {/if}
     </div>
-    <p class="count-detail__meta">
+    <p class="cycle-count-detail-screen__meta">
       {scoped.formatText(
         'logistic.cycle_count.progress_value',
         { counted: countedLines.length, total: count.lines.length },
@@ -106,13 +107,13 @@
           <TableCell>
             {scoped.localText('name', 'storage_location', line.storageLocationId)}
           </TableCell>
-          <TableCell><code class="count-detail__mono">{line.sku}</code></TableCell>
+          <TableCell><code class="cycle-count-detail-screen__mono">{line.sku}</code></TableCell>
           <TableCell>{line.expectedQuantity}</TableCell>
           <!-- Null counted is "nobody has counted this yet", which is not zero found. -->
           <TableCell>{line.countedQuantity ?? '—'}</TableCell>
           <TableCell>
             {#if line.variance !== null && line.variance !== 0}
-              <span class="count-detail__variance" class:negative={line.variance < 0}>
+              <span class="cycle-count-detail-screen__variance" class:negative={line.variance < 0}>
                 {line.variance > 0 ? '+' : ''}{line.variance}
               </span>
             {:else if line.variance === 0}
@@ -137,53 +138,3 @@
   cancelLabel={dictionary.localText('action.cancel')}
   onConfirm={() => approveForm?.requestSubmit()}
 />
-
-<style>
-  .count-detail {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .count-detail__back {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-    text-decoration: none;
-  }
-
-  .count-detail__title-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin-block-start: var(--space-2);
-    flex-wrap: wrap;
-  }
-
-  .count-detail__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .count-detail__meta {
-    color: var(--text-soft);
-    font-size: var(--text-sm);
-    margin: var(--space-1) 0 0;
-  }
-
-  .count-detail__mono {
-    font-family: var(--font-mono);
-  }
-
-  .count-detail__variance {
-    font-weight: var(--weight-semibold);
-  }
-
-  .count-detail__variance.negative {
-    color: var(--danger);
-  }
-</style>

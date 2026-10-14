@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './navigation-item-admin-detail-screen.css';
   import { getDictionary } from 'diglossia/svelte'
   import { Button, Field, Input, Checkbox } from '@sveltebuilder/coreui'
   import LocalTextFieldset from '$lib/LocalText/LocalTextFieldset.svelte'
@@ -19,30 +20,30 @@
   }
 </script>
 
-<div class="navigation-item-edit-page">
-  <header class="nav-item-edit-page__header">
+<div class="navigation-item-admin-detail-screen">
+  <header class="navigation-item-admin-detail-screen__header">
     <Button href="/admin/navigation-item" variant="ghost" size="sm">← {dictionary.localText('navigation.back')}</Button>
-    <h1 class="nav-item-edit-page__title">{editLabel}</h1>
+    <h1 class="navigation-item-admin-detail-screen__title">{editLabel}</h1>
   </header>
 
-  <dl class="nav-item-edit-page__meta">
-    <dt>{slugLabel}</dt>
-    <dd><code>{data.navigationItem.localTextLink?.slug ?? '—'}</code></dd>
-    <dt>{hrefLabel}</dt>
+  <dl class="navigation-item-admin-detail-screen__meta">
+    <dt class="navigation-item-admin-detail-screen__meta-term">{slugLabel}</dt>
+    <dd><code class="navigation-item-admin-detail-screen__meta-code">{data.navigationItem.localTextLink?.slug ?? '—'}</code></dd>
+    <dt class="navigation-item-admin-detail-screen__meta-term">{hrefLabel}</dt>
     <dd>{data.navigationItem.href}</dd>
   </dl>
 
   {#if form?.error}
-    <p class="nav-item-edit-page__error" role="alert">{form.error}</p>
+    <p class="navigation-item-admin-detail-screen__error" role="alert">{form.error}</p>
   {/if}
   {#if form?.success}
-    <p class="nav-item-edit-page__success" role="status">{dictionary.localText('feedback.saved')}</p>
+    <p class="navigation-item-admin-detail-screen__success" role="status">{dictionary.localText('feedback.saved')}</p>
   {/if}
 
-  <section class="nav-item-edit-page__section">
-    <h2 class="nav-item-edit-page__section-title">{dictionary.localText('admin.navigation_item.edit')}</h2>
-    <form method="post" action="?/update" class="nav-item-edit-page__form">
-      <div class="nav-item-edit-page__form-row">
+  <section class="navigation-item-admin-detail-screen__section">
+    <h2 class="navigation-item-admin-detail-screen__section-title">{dictionary.localText('admin.navigation_item.edit')}</h2>
+    <form method="post" action="?/update" class="navigation-item-admin-detail-screen__form">
+      <div class="navigation-item-admin-detail-screen__form-row">
         <Field label={hrefLabel} id="navigation-item-href" required>
           <Input id="navigation-item-href" name="href" value={data.navigationItem.href} required />
         </Field>
@@ -66,11 +67,11 @@
     </form>
   </section>
 
-  <section class="nav-item-edit-page__section">
-    <h2 class="nav-item-edit-page__section-title">{dictionary.localText('admin.local_text.title')}</h2>
-    <div class="nav-item-edit-page__translations">
+  <section class="navigation-item-admin-detail-screen__section">
+    <h2 class="navigation-item-admin-detail-screen__section-title">{dictionary.localText('admin.local_text.title')}</h2>
+    <div class="navigation-item-admin-detail-screen__translations">
       {#each data.locales as locale (locale.id)}
-        <form method="post" action="?/updateText" class="nav-item-edit-page__locale-form">
+        <form method="post" action="?/updateText" class="navigation-item-admin-detail-screen__locale-form">
           <LocalTextFieldset
             {slugLabel}
             localeLabel={locale.nativeName}
@@ -87,7 +88,7 @@
     </div>
   </section>
 
-  <div class="nav-item-edit-page__danger">
+  <div class="navigation-item-admin-detail-screen__danger">
     <form method="post" action="?/delete">
       <Button type="submit" variant="danger" size="sm">
         {dictionary.localText('action.delete')} {editLabel}
@@ -95,103 +96,3 @@
     </form>
   </div>
 </div>
-
-<style>
-  .navigation-item-edit-page {
-    max-width: 40rem;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-  }
-
-  .nav-item-edit-page__header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .nav-item-edit-page__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .nav-item-edit-page__meta {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--space-1) var(--space-4);
-    font-size: var(--text-sm);
-    margin: 0;
-  }
-
-  .nav-item-edit-page__meta dt {
-    color: var(--text-soft);
-    font-weight: var(--weight-medium);
-  }
-
-  .nav-item-edit-page__meta code {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    background-color: var(--surface-overlay);
-    padding: 0 var(--space-1);
-    border-radius: var(--radius-sm);
-  }
-
-  .nav-item-edit-page__section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .nav-item-edit-page__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .nav-item-edit-page__error {
-    color: var(--danger-text);
-    font-size: var(--text-sm);
-    margin: 0;
-  }
-
-  .nav-item-edit-page__success {
-    color: var(--success-text);
-    font-size: var(--text-sm);
-    margin: 0;
-  }
-
-  .nav-item-edit-page__form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .nav-item-edit-page__form-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: var(--space-4);
-  }
-
-  .nav-item-edit-page__translations {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-  }
-
-  .nav-item-edit-page__locale-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-4);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-  }
-
-  .nav-item-edit-page__danger {
-    padding-block-start: var(--space-6);
-    border-block-start: 1px solid var(--border-color);
-  }
-</style>

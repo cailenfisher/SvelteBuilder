@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './pick-task-warehouse-queue-screen.css';
   import { createDictionary } from 'diglossia';
   import { Button, InlineNotification } from '@sveltebuilder/coreui';
   import { PickTaskStatusBadge } from '@sveltebuilder/logistic';
@@ -15,20 +16,20 @@
   <title>{t('logistic.warehouse.pick_task.title')}</title>
 </svelte:head>
 
-<div class="pick-queue">
-  <h1 class="pick-queue__title">{t('logistic.warehouse.pick_task.title')}</h1>
+<div class="pick-task-warehouse-queue-screen">
+  <h1 class="pick-task-warehouse-queue-screen__title">{t('logistic.warehouse.pick_task.title')}</h1>
 
   {#if form?.error}
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   {#if data.myPickTasks.length > 0}
-    <section class="pick-queue__section" aria-label={t('logistic.warehouse.pick_task.mine')}>
-      <h2 class="pick-queue__section-title">{t('logistic.warehouse.pick_task.mine')}</h2>
-      <ul class="pick-queue__list">
+    <section class="pick-task-warehouse-queue-screen__section" aria-label={t('logistic.warehouse.pick_task.mine')}>
+      <h2 class="pick-task-warehouse-queue-screen__section-title">{t('logistic.warehouse.pick_task.mine')}</h2>
+      <ul class="pick-task-warehouse-queue-screen__list">
         {#each data.myPickTasks as task (task.id)}
-          <li class="pick-queue__item">
-            <a href="/warehouse/pick-task/{task.id}" class="pick-queue__link">
+          <li class="pick-task-warehouse-queue-screen__item">
+            <a href="/warehouse/pick-task/{task.id}" class="pick-task-warehouse-queue-screen__link">
               {t('logistic.pick_task.one')} #{task.id}
             </a>
             <!-- Camp 1 component: it takes the label as a plain string and maps the
@@ -43,11 +44,11 @@
     </section>
   {/if}
 
-  <section class="pick-queue__section" aria-label={t('logistic.warehouse.pick_task.open')}>
-    <h2 class="pick-queue__section-title">
+  <section class="pick-task-warehouse-queue-screen__section" aria-label={t('logistic.warehouse.pick_task.open')}>
+    <h2 class="pick-task-warehouse-queue-screen__section-title">
       {t('logistic.warehouse.pick_task.open')}
       {#if data.openPickTaskTotal > data.openPickTasks.length}
-        <span class="pick-queue__more">
+        <span class="pick-task-warehouse-queue-screen__more">
           {scoped.formatText(
             'logistic.warehouse.pick_task.showing',
             { showing: data.openPickTasks.length, total: data.openPickTaskTotal },
@@ -58,10 +59,10 @@
     </h2>
 
     {#if data.openPickTasks.length > 0}
-      <ul class="pick-queue__list">
+      <ul class="pick-task-warehouse-queue-screen__list">
         {#each data.openPickTasks as task (task.id)}
-          <li class="pick-queue__item">
-            <span class="pick-queue__label">{t('logistic.pick_task.one')} #{task.id}</span>
+          <li class="pick-task-warehouse-queue-screen__item">
+            <span class="pick-task-warehouse-queue-screen__label">{t('logistic.pick_task.one')} #{task.id}</span>
             <!-- A POST rather than a link: taking a task is a claim, and the loader's
                  status = open predicate is what settles a race between two workers. -->
             <form method="POST" action="?/take">
@@ -74,82 +75,7 @@
         {/each}
       </ul>
     {:else}
-      <p class="pick-queue__empty">{t('logistic.warehouse.pick_task.empty')}</p>
+      <p class="pick-task-warehouse-queue-screen__empty">{t('logistic.warehouse.pick_task.empty')}</p>
     {/if}
   </section>
 </div>
-
-<style>
-  .pick-queue {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    max-width: 48rem;
-    margin-inline: auto;
-    width: 100%;
-  }
-
-  .pick-queue__title {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-    color: var(--text);
-    margin: 0;
-  }
-
-  .pick-queue__section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .pick-queue__section-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-    margin: 0;
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-2);
-  }
-
-  .pick-queue__more,
-  .pick-queue__empty {
-    font-size: var(--text-sm);
-    font-weight: var(--weight-regular);
-    color: var(--text-soft);
-  }
-
-  .pick-queue__list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .pick-queue__item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    /* Generous rows: this is a touch target for someone holding a scanner. */
-    min-height: 3.5rem;
-    padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    background-color: var(--surface);
-  }
-
-  .pick-queue__link,
-  .pick-queue__label {
-    font-size: var(--text-base);
-    font-weight: var(--weight-medium);
-    color: var(--text);
-  }
-
-  .pick-queue__empty {
-    margin: 0;
-  }
-</style>

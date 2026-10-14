@@ -1,0 +1,20 @@
+/* =============================================================================
+   utilities.css — single-purpose classes, imported into the utilities layer
+
+   The last layer: a utility applies whatever component or chrome rule it lands on.
+   Keep each one to a single job, and add one only when several screens need it.
+   ============================================================================= */
+
+/* Hidden on screen, still read by assistive technology: a column header with no visible
+   label, an icon button's name. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

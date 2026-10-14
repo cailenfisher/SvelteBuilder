@@ -643,11 +643,9 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
 
 6. **Scope is implied, never stored as a schema column or passed as a component prop.**
 
-7. **Visual styles for coreui components live in `packages/coreui/styles/components.css`, not in
-   Svelte `<style>` blocks.** A component `<style>` block may only contain private structural
-   wrapper rules (layout/sizing with no visual properties). Any color, border, background, shadow,
-   radius, padding, or transition that a developer should be able to override belongs in
-   `components.css` under `@layer components`.
+7. **Styles are plain stylesheets, never Svelte `<style>` blocks, and never `:global`.** Every
+   rule lives in a `.css` file named after its block, beside the component or route that renders
+   it (see [Plain stylesheets](#plain-stylesheets)). `pnpm css:check` enforces this.
 
 8. **Route code accesses the database only through `event.locals.supabase`.** Never open a
    direct Postgres connection from application code, and never introduce a `DATABASE_URL`.
@@ -677,16 +675,16 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
 
 ### The scaffold is the integrator
 
-`@sveltebuilder/coreui` ships style files but never self-applies them. The scaffold `app.css`
-is responsible for importing each coreui stylesheet into the correct layer position. This is
-intentional: the scaffold controls the cascade; the library supplies the rules.
+`@sveltebuilder/coreui` and every domain module ship stylesheets but never self-apply them. The
+scaffold `app.css` imports each package's stylesheet into the correct layer position. This is
+intentional: the scaffold controls the cascade; the libraries supply the rules.
 
 ### Layer cascade
 
 All styles in a SvelteBuilder application flow through named CSS cascade layers in this order:
 
 ```
-base  →  chrome  →  components  →  unlayered (developer)
+base  →  chrome  →  components  →  utilities  →  unlayered (developer)
 ```
 
 The layer order is declared explicitly at the top of `app.css` before any imports — this
@@ -709,11 +707,14 @@ The scaffold `app.css` wires everything together:
 @import '@sveltebuilder/coreui/styles/base.css' layer(base);
 @import './chrome.css' layer(chrome);
 @import '@sveltebuilder/coreui/styles/components.css' layer(components);
+@import '@sveltebuilder/logistic/styles/components.css' layer(components); /* one per module */
+@import './utilities.css' layer(utilities);
 
 /* developer overrides below — unlayered, always wins */
 ```
 
-`reset` and `utilities` are reserved layer slots. No files target them yet.
+The create CLI writes each selected module's line after coreui's, so a module rule that styles a
+coreui part wins a tie by order. `reset` is a reserved layer slot; no file targets it yet.
 
 ### What each layer owns
 
@@ -722,22 +723,44 @@ The scaffold `app.css` wires everything together:
 | _(none)_     | `packages/coreui/styles/tokens.css`     | CSS custom properties (design tokens) — not layered                                                     |
 | `base`       | `packages/coreui/styles/base.css`       | Box-sizing reset, `html` typography defaults, global `:focus-visible` ring, `prefers-reduced-motion`    |
 | `chrome`     | `src/chrome.css` (scaffold)             | Structural base for element classes (`.input`, `.button`, `.card`, etc.) plus all interactive field states |
-| `components` | `packages/coreui/styles/components.css` | All coreui component visual styles                                                                      |
-| _(none)_     | developer CSS / app-specific files      | Theme overrides and project-specific styles                                                             |
+| `components` | each package's `styles/components.css`  | Every coreui and domain-module component's styles, coreui first                                         |
+| `utilities`  | `src/utilities.css` (scaffold)          | Single-purpose classes such as `.visually-hidden`                                                       |
+| _(none)_     | the app's screens, layouts and components, and `app.css` | Each screen's and app component's own stylesheet, theme overrides                      |
 
 **Why `chrome` owns field interaction states:** focus, error, disabled, and read-only rules
 modify the same `.input`/`.textarea` classes that `chrome` establishes. Keeping them together
 in one layer and one file removes the ordering dependency that made `state` a separate layer.
 
-### coreui component style rules
+### Plain stylesheets
 
-**Visual styles belong in `packages/coreui/styles/components.css`.** A coreui Svelte component's
-`<style>` block may only contain private structural wrappers — `display: flex`, `width: 100%`,
-`position: relative` on an internal `div.wrap` — with no visual properties (color, border,
-background, shadow, radius, font, padding, transition).
+BEM class names scope every rule, which is what BEM was designed for, so no component uses Svelte's
+compiled scoping: no `<style>` blocks and no `:global`, anywhere. Styles are plain CSS files the page
+links.
 
-If you are adding a visual rule to a coreui `<style>` block, stop and put it in
-`components.css` instead.
+- **One stylesheet per concept folder**, named after the folder in kebab case and placed in it:
+  `Table/table.css` holds `.table`, `.table-row`, `.table-cell` and the rest of the folder's
+  blocks; a nested concept has its own (`Article/ArticleBlock/article-block.css`). A route
+  directory works the same way, its stylesheet named after its root block.
+- **A package's stylesheets are listed in its `src/lib/components.css`**, exported as
+  `<package>/styles/components.css` and layered by the app (above). Its order is the cascade
+  order within the layer.
+- **An app's own stylesheets are imported by the component that renders the block**
+  (`import './supplier-list-screen.css';`) and stay unlayered, like the rest of the developer's CSS.
+- **Every selector names its own block, and every element it reaches is named by a class.** A
+  rule in a plain stylesheet applies to the whole app, so `.article-card__dek p` would also hit
+  the paragraphs of every child component; give the element a class (`__dek-text`). A rule may
+  reach into a child component only through that child's public classes
+  (`.article-card__media .media-asset-figure__img`).
+- **A screen's root block is its view-model type, with `View` replaced by `Screen`**:
+  `InboundReceiptWarehouseQueueView` renders `.inbound-receipt-warehouse-queue-screen`. The
+  suffix keeps it from colliding with the component the screen renders (`.article-detail`). A
+  base-template screen with no view type is named after its concept and role
+  (`.locale-admin-list-screen`); a layout after its route group (`.admin-layout`).
+- **Visual rules are overridable.** A coreui stylesheet may hold anything; there is no separate
+  place for structural rules any more.
+
+`pnpm css:check` (`scripts/css-check.mjs`, also in the Test workflow) enforces all of this, and
+reports a class no component mentions, which replaces svelte-check's unused-selector warning.
 
 **Class names are BEM, and they are public API.** A component's root class is its name in kebab
 case (`.date-time-picker`). Every styled element inside it is `<root>__<part>`, and every variant,
@@ -771,12 +794,12 @@ element needs to affect a non-Bits child element, use a CSS custom property as t
 }
 ```
 
-This avoids mixed `:global(parent) .svelte-scoped-child` selectors that cannot be moved to a
-global file.
+This keeps a parent's state reaching a child through inheritance rather than a selector that
+depends on the parent's markup.
 
 **Private component tokens (`--_` prefix).** When a component needs an internal CSS variable
 that is not part of the public theming surface — to share a value between two selectors within
-one component's ruleset in `components.css` — name it with a `--_` prefix:
+one component's ruleset in its stylesheet — name it with a `--_` prefix:
 
 ```css
 /* private: consumers must not reference this */
@@ -896,7 +919,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `diglossia` 0.1.0                  | Complete and tested — split into a framework-agnostic core (`createDictionary`, per-request `DictionaryInstance`, `formatText` MF2 interpolation/pluralization) and a Svelte adapter (`diglossia/svelte`: `setDictionary`/`getDictionary`/`<LocalText />`); full test suite; extracted from this repo (formerly `@sveltebuilder/hermes`) into its own repo/npm package, consumed here as an external dependency                                                                                                                                                                                                                                     |
 | `@sveltebuilder/local-text-schema` | Complete — pure TS + Drizzle package (no Svelte), renamed from `@sveltebuilder/hermes-schema`; exports `./schema` (locale/local_text_link/local_text Drizzle tables) and `./seed` (canonical `LOCALES`/`BASE_SLUGS` data consumed by `sveltebuilder sync:supabase`)                                                                                                                                                                                                                                                                                                                                                                                 |
-| `@sveltebuilder/coreui`            | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocalePicker, Menu, MessageLiveRegion, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `DateTimePicker` added for content, `MetricCard`/`Timeline` added for logistic; the article block editor, `BarcodeInput` and the locale admin editors have since moved to content, logistic and the base template, and `StatusBadge` was removed in favour of `Badge`); all visual styles extracted to `styles/components.css` under `@layer components`; Bits UI data-attribute wiring throughout; builds cleanly |
+| `@sveltebuilder/coreui`            | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocalePicker, Menu, MessageLiveRegion, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `DateTimePicker` added for content, `MetricCard`/`Timeline` added for logistic; the article block editor, `BarcodeInput` and the locale admin editors have since moved to content, logistic and the base template, and `StatusBadge` was removed in favour of `Badge`); styles in one plain stylesheet per component folder, listed by `styles/components.css` and imported `layer(components)`; Bits UI data-attribute wiring throughout; builds cleanly |
 | `@sveltebuilder/content`           | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data; Camp 1/2 diglossia boundary respected. Route port to screen bundles is complete as of 2026-10-01 (article, section, feed, article-preview, article-admin; `screens/_unsorted/` is gone) — see `docs/MODULE-ROUTES.md`. Vitest suite in `packages/content/test/` renders 9 of its 18 components server-side, including the no-`[missing:]` gate.                  |
 | `@sveltebuilder/logistic`          | Schema, components and SQL complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; SECURITY DEFINER SQL for concurrency-sensitive stock mutations; README with v1-scope statement. Its Drizzle query layer is removed (guardrail 11) and its route port to screen bundles is complete as of 2026-09-30 (8 bundles: supplier, stock-level, inbound-receipt, shipment, return-authorization, cycle-count, warehouse, dashboard; `screens/_unported/` is gone). See Known Open Issues and `docs/MODULE-ROUTES.md`.                                                                                                                                                        |
 | `@sveltebuilder/cli`               | Complete — `sveltebuilder sync:supabase` working (`.sveltebuilder/registry/` manifest discovery, topological sort, Drizzle schema barrel + `drizzle-kit generate`, supplemental SQL append, seed.sql generation); bare `sync` kept as a deprecated alias; the dead `sync:drizzle` stub was removed                                                                                                                                                                                                                                                                                                                                                  |
