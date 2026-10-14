@@ -1,11 +1,10 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
+import { RETURN_CONDITIONS, RETURN_DISPOSITIONS } from '@sveltebuilder/logistic';
 import type { ReturnCondition, ReturnDisposition } from '@sveltebuilder/logistic';
 import type { LocationOption, ReturnDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 
-const CONDITIONS: ReturnCondition[] = ['salable', 'damaged', 'defective', 'wrong_item'];
-const DISPOSITIONS: ReturnDisposition[] = ['restock', 'quarantine', 'scrap', 'refurbish'];
 
 export const load: PageServerLoad = async ({ locals, params }): Promise<ReturnDetailView> => {
   const id = Number(params.id);
@@ -72,8 +71,8 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<ReturnDe
         .sort((a, b) => a.id - b.id),
     },
     locations,
-    conditions: CONDITIONS,
-    dispositions: DISPOSITIONS,
+    conditions: RETURN_CONDITIONS,
+    dispositions: RETURN_DISPOSITIONS,
     localeCode: locals.locale.code,
     copy,
   };
@@ -98,10 +97,10 @@ export const actions: Actions = {
     if (!Number.isInteger(receivedQuantity) || receivedQuantity < 0) {
       return fail(422, { error: 'Received quantity must be zero or a positive whole number.' });
     }
-    if (condition === null || !CONDITIONS.includes(condition)) {
+    if (condition === null || !RETURN_CONDITIONS.includes(condition)) {
       return fail(422, { error: 'Choose the condition the goods arrived in.' });
     }
-    if (disposition === null || !DISPOSITIONS.includes(disposition)) {
+    if (disposition === null || !RETURN_DISPOSITIONS.includes(disposition)) {
       return fail(422, { error: 'Choose what happens to the goods.' });
     }
 

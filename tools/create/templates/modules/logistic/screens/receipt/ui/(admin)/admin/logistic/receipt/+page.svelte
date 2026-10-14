@@ -13,7 +13,7 @@
     SelectItem,
     Textarea,
   } from '@sveltebuilder/coreui';
-  import { ReceiptCard } from '@sveltebuilder/logistic';
+  import { INBOUND_RECEIPT_STATUSES, ReceiptCard } from '@sveltebuilder/logistic';
   import type { InboundReceiptStatus } from '@sveltebuilder/logistic';
   import type { InboundReceiptListView, ScreenFormResult } from '@sveltebuilder/logistic/views';
 
@@ -23,7 +23,6 @@
   const scoped = $derived(createDictionary(data.copy));
   const t = (slug: string) => scoped.localText(slug, 'logistic');
 
-  const STATUSES: InboundReceiptStatus[] = ['pending', 'partial', 'complete', 'cancelled'];
 
   const filterHref = (status: InboundReceiptStatus | null) =>
     status === null ? '/admin/logistic/receipt' : `/admin/logistic/receipt?status=${status}`;
@@ -60,7 +59,7 @@
     >
       {t('logistic.receipt.filter_all')}
     </Button>
-    {#each STATUSES as status (status)}
+    {#each INBOUND_RECEIPT_STATUSES as status (status)}
       <Button
         href={filterHref(status)}
         variant={data.status === status ? 'secondary' : 'ghost'}

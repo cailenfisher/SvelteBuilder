@@ -198,7 +198,7 @@ export type ShipmentListView = ScreenCopy &
      * screen. The filter row this replaced listed five of the six and silently omitted
      * `packed`, so packed shipments could not be filtered for at all.
      */
-    statuses: ShipmentStatus[];
+    statuses: readonly ShipmentStatus[];
   };
 
 /** `/admin/logistic/shipment/[id]` */
@@ -210,7 +210,7 @@ export type ShipmentDetailView = ScreenCopy &
       trackingEvents: TrackingEvent[];
     };
     /** The statuses an operator may move this shipment to. */
-    statuses: ShipmentStatus[];
+    statuses: readonly ShipmentStatus[];
   };
 
 // ── Return authorizations ────────────────────────────────────────────────────
@@ -226,7 +226,7 @@ export type ReturnListView = ScreenCopy &
     returns: ReturnAuthorizationRow[];
     status: ReturnAuthorizationStatus | null;
     /** Filterable statuses, from the loader — see ShipmentListView for why. */
-    statuses: ReturnAuthorizationStatus[];
+    statuses: readonly ReturnAuthorizationStatus[];
   };
 
 /** `/admin/logistic/return/[id]` */
@@ -240,8 +240,8 @@ export type ReturnDetailView = ScreenCopy &
      * original listed all eight values as literal markup, which is how a screen and an
      * enum drift apart without anything noticing.
      */
-    conditions: ReturnCondition[];
-    dispositions: ReturnDisposition[];
+    conditions: readonly ReturnCondition[];
+    dispositions: readonly ReturnDisposition[];
   };
 
 // ── Cycle counts ─────────────────────────────────────────────────────────────
@@ -263,7 +263,7 @@ export type CycleCountListView = ScreenCopy &
     counts: CycleCountRow[];
     status: CycleCountStatus | null;
     /** Filterable statuses, from the loader — see ShipmentListView for why. */
-    statuses: CycleCountStatus[];
+    statuses: readonly CycleCountStatus[];
     /** Locations a new count can be opened against — bins only, since stock lives there. */
     locations: LocationOption[];
   };

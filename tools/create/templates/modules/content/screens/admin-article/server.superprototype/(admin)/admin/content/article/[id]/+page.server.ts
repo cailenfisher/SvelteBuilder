@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<AdminArt
       locals.supabase
         .from('article')
         .select(
-          'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, created_at, article_status!inner(id, slug, ordinal), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))'
+          'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, lead_media_asset_id, created_at, article_status!inner(id, slug, ordinal), article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))'
         )
         .eq('id', id)
         .maybeSingle(),
@@ -161,6 +161,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<AdminArt
       deletedAt: row.deleted_at,
       embargoUntil: row.embargo_until,
       allowComment: row.allow_comment,
+      leadMediaAssetId: row.lead_media_asset_id,
       createdAt: row.created_at,
       status: { id: status.id, slug: status.slug, ordinal: status.ordinal },
       blocks,
@@ -293,7 +294,7 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
     locals.supabase
       .from('article')
       .select(
-        'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, created_at, article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))'
+        'id, article_status_id, canonical_slug, published_at, updated_at, deleted_at, embargo_until, allow_comment, lead_media_asset_id, created_at, article_block(id, article_id, block_type, position, content, media_asset_id, created_at), article_byline(position, author_profile(id, user_account_id, slug, active, created_at)), article_section(section(id, parent_section_id, slug, ordinal, active, created_at)), article_topic(topic(id, slug, active, created_at)), article_tag(tag(id, slug, active, created_at))'
       )
       .eq('id', id)
       .maybeSingle(),
@@ -331,6 +332,7 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
     deletedAt: row.deleted_at,
     embargoUntil: row.embargo_until,
     allowComment: row.allow_comment,
+    leadMediaAssetId: row.lead_media_asset_id,
     createdAt: row.created_at,
     blocks,
     bylines: (row.article_byline ?? [])

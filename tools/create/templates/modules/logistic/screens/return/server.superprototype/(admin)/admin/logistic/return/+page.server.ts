@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
+import { RETURN_AUTHORIZATION_STATUSES } from '@sveltebuilder/logistic';
 import type { ReturnAuthorizationStatus } from '@sveltebuilder/logistic';
 import type { ReturnAuthorizationRow, ReturnListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
@@ -9,16 +10,10 @@ import type { Actions, PageServerLoad } from './$types';
 
 const PER_PAGE = 20;
 
-const RETURN_STATUSES: ReturnAuthorizationStatus[] = [
-  'pending',
-  'received',
-  'processed',
-  'cancelled',
-];
 
 export const load: PageServerLoad = async ({ locals, url }): Promise<ReturnListView> => {
   const statusParam = url.searchParams.get('status');
-  const status = RETURN_STATUSES.find((s) => s === statusParam) ?? null;
+  const status = RETURN_AUTHORIZATION_STATUSES.find((s) => s === statusParam) ?? null;
 
   const pageParam = Number(url.searchParams.get('page') ?? '1');
   const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
@@ -60,7 +55,7 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<ReturnListV
     page,
     perPage: PER_PAGE,
     status,
-    statuses: RETURN_STATUSES,
+    statuses: RETURN_AUTHORIZATION_STATUSES,
     localeCode: locals.locale.code,
     copy,
   };

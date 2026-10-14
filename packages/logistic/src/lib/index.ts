@@ -48,3 +48,15 @@ export type {
   CycleCountLine,
   CycleCountWithLines,
 } from './schema/index.js';
+
+// Enum values, declared once in modules that do not import drizzle-orm, so screens can use them
+// at runtime for filters and validation.
+export { ADJUSTMENT_REASONS } from './schema/adjustment-reason.js';
+export { CYCLE_COUNT_STATUSES } from './schema/cycle-count-status.js';
+export { INBOUND_RECEIPT_STATUSES } from './schema/inbound-receipt-status.js';
+export { PICK_TASK_STATUSES } from './schema/pick-task-status.js';
+export { RETURN_AUTHORIZATION_STATUSES } from './schema/return-authorization-status.js';
+export { RETURN_CONDITIONS } from './schema/return-condition.js';
+export { RETURN_DISPOSITIONS } from './schema/return-disposition.js';
+export { SHIPMENT_STATUSES } from './schema/shipment-status.js';
+export { STORAGE_LOCATION_TYPES } from './schema/storage-location-type.js';

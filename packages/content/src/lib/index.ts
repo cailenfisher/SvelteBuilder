@@ -2,8 +2,80 @@
 // @sveltebuilder/content — public surface
 // =============================================================================
 
-// Schema / types
-export * from './schema/index.js';
+// Schema types. Type-only: the schema modules define Drizzle tables, and drizzle-orm is a
+// build-time dependency that must never reach a runtime bundle (CLAUDE.md, guardrail 8).
+export type {
+  Article,
+  ArticleAssignment,
+  ArticleAssignmentRole,
+  ArticleBlock,
+  ArticleBlockContent,
+  ArticleBlockType,
+  ArticleBlockWithCopy,
+  ArticleByline,
+  ArticleChecklistState,
+  ArticlePreviewToken,
+  ArticleRenderable,
+  ArticleRevision,
+  ArticleSection,
+  ArticleStatus,
+  ArticleStatusWithCopy,
+  ArticleTag,
+  ArticleTopic,
+  ArticleWithCopy,
+  ArticleWithRelations,
+  AuthorProfile,
+  AuthorProfileWithCopy,
+  Comment,
+  CommentStatus,
+  CommentWithReplies,
+  EmbedBlockContent,
+  Front,
+  FrontLayoutVariant,
+  FrontSlot,
+  FrontSlotWithArticle,
+  FrontWithSlots,
+  GalleryBlockContent,
+  HeadingBlockContent,
+  ImageBlockContent,
+  LiveCoverage,
+  LiveCoverageWithUpdates,
+  LiveUpdate,
+  LiveUpdateBlockContent,
+  LiveUpdateWithCopy,
+  MediaAsset,
+  MediaAssetAttribution,
+  MediaAssetRights,
+  MediaAssetSource,
+  MediaAssetWithCopy,
+  MediaLicense,
+  MediaType,
+  Newsletter,
+  NewsletterSubscription,
+  NewsletterWithCopy,
+  ParagraphBlockContent,
+  PublishChecklistItem,
+  PublisherProfile,
+  PublisherProfileWithCopy,
+  PullquoteBlockContent,
+  Section,
+  SectionWithCopy,
+  Subscriber,
+  Tag,
+  TagWithCopy,
+  Topic,
+  TopicWithCopy,
+  VideoBlockContent,
+} from './schema/index.js';
+
+// Enum values, declared once in modules that do not import drizzle-orm, so screens can use them
+// at runtime for filters and validation.
+export { ARTICLE_ASSIGNMENT_ROLES } from './schema/article-assignment-role.js';
+export { ARTICLE_BLOCK_TYPES } from './schema/article-block-type.js';
+export { COMMENT_STATUSES } from './schema/comment-status.js';
+export { FRONT_LAYOUT_VARIANTS } from './schema/front-layout-variant.js';
+export { MEDIA_LICENSES } from './schema/media-license.js';
+export { MEDIA_TYPES } from './schema/media-type.js';
 
 // Camp 1 components (no hermes dependency)
 export { default as ArticleList } from './components/ArticleList.svelte';

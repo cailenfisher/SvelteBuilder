@@ -1,17 +1,10 @@
 import { error, fail } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
+import { SHIPMENT_STATUSES } from '@sveltebuilder/logistic';
 import type { ShipmentStatus } from '@sveltebuilder/logistic';
 import type { ShipmentDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 
-const SHIPMENT_STATUSES: ShipmentStatus[] = [
-  'created',
-  'packed',
-  'dispatched',
-  'in_transit',
-  'delivered',
-  'exception',
-];
 
 export const load: PageServerLoad = async ({ locals, params }): Promise<ShipmentDetailView> => {
   const id = Number(params.id);

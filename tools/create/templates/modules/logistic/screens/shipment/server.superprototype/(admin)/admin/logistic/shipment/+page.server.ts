@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
+import { SHIPMENT_STATUSES } from '@sveltebuilder/logistic';
 import type { ShipmentStatus } from '@sveltebuilder/logistic';
 import type { ShipmentListView, ShipmentRow } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
@@ -9,14 +10,6 @@ import type { Actions, PageServerLoad } from './$types';
 
 const PER_PAGE = 20;
 
-const SHIPMENT_STATUSES: ShipmentStatus[] = [
-  'created',
-  'packed',
-  'dispatched',
-  'in_transit',
-  'delivered',
-  'exception',
-];
 
 export const load: PageServerLoad = async ({ locals, url }): Promise<ShipmentListView> => {
   // Validated against the enum rather than cast: a query string is user input, and

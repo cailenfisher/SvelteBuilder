@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
+import { CYCLE_COUNT_STATUSES } from '@sveltebuilder/logistic';
 import type { CycleCountStatus } from '@sveltebuilder/logistic';
 import type {
   CycleCountListView,
@@ -13,11 +14,10 @@ import type { Actions, PageServerLoad } from './$types';
 
 const PER_PAGE = 20;
 
-const COUNT_STATUSES: CycleCountStatus[] = ['open', 'in_progress', 'complete', 'cancelled'];
 
 export const load: PageServerLoad = async ({ locals, url }): Promise<CycleCountListView> => {
   const statusParam = url.searchParams.get('status');
-  const status = COUNT_STATUSES.find((s) => s === statusParam) ?? null;
+  const status = CYCLE_COUNT_STATUSES.find((s) => s === statusParam) ?? null;
 
   const pageParam = Number(url.searchParams.get('page') ?? '1');
   const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
@@ -83,7 +83,7 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<CycleCountL
     page,
     perPage: PER_PAGE,
     status,
-    statuses: COUNT_STATUSES,
+    statuses: CYCLE_COUNT_STATUSES,
     locations,
     localeCode: locals.locale.code,
     copy,

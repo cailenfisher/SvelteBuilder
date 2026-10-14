@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
+import { INBOUND_RECEIPT_STATUSES } from '@sveltebuilder/logistic';
 import type { InboundReceiptStatus } from '@sveltebuilder/logistic';
 import type {
   EntityOption,
@@ -13,13 +14,12 @@ import type { Actions, PageServerLoad } from './$types';
 
 const PER_PAGE = 20;
 
-const RECEIPT_STATUSES: InboundReceiptStatus[] = ['pending', 'partial', 'complete', 'cancelled'];
 
 export const load: PageServerLoad = async ({ locals, url }): Promise<InboundReceiptListView> => {
   // Validated against the enum rather than cast: a query string is user input, and
   // PostgREST would reject an unknown enum value with a 400 the screen cannot explain.
   const statusParam = url.searchParams.get('status');
-  const status = RECEIPT_STATUSES.find((s) => s === statusParam) ?? null;
+  const status = INBOUND_RECEIPT_STATUSES.find((s) => s === statusParam) ?? null;
 
   const pageParam = Number(url.searchParams.get('page') ?? '1');
   const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
