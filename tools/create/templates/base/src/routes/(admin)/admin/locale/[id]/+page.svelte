@@ -19,7 +19,7 @@
 
 <div class="locale-edit-page">
   <header class="locale-edit-page__header">
-    <Button href="/admin/locale" variant="ghost" size="sm">← {dictionary.localText('nav.back')}</Button>
+    <Button href="/admin/locale" variant="ghost" size="sm">← {dictionary.localText('navigation.back')}</Button>
     <h1 class="locale-edit-page__title">{editLabel}</h1>
   </header>
 

@@ -25,11 +25,11 @@
       {t('logistic.warehouse.title')}
     </a>
 
-    <nav class="warehouse-layout__nav" aria-label={t('logistic.warehouse.title')}>
+    <nav class="warehouse-layout__navigation" aria-label={t('logistic.warehouse.title')}>
       {#each flows as flow (flow.href)}
         <a
           href={flow.href}
-          class="warehouse-layout__nav-link"
+          class="warehouse-layout__navigation-link"
           aria-current={page.url.pathname.startsWith(flow.href) ? 'page' : undefined}
         >
           {t(flow.slug)}
@@ -70,12 +70,12 @@
     text-decoration: none;
   }
 
-  .warehouse-layout__nav {
+  .warehouse-layout__navigation {
     display: flex;
     gap: var(--space-1);
   }
 
-  .warehouse-layout__nav-link {
+  .warehouse-layout__navigation-link {
     font-size: var(--text-sm);
     color: var(--text-soft);
     text-decoration: none;
@@ -83,7 +83,7 @@
     border-radius: var(--radius-sm);
   }
 
-  .warehouse-layout__nav-link[aria-current='page'] {
+  .warehouse-layout__navigation-link[aria-current='page'] {
     color: var(--text);
     font-weight: var(--weight-semibold);
     background-color: var(--surface-raised);

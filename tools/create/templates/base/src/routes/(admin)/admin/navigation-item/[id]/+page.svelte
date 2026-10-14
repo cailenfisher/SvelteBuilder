@@ -19,17 +19,17 @@
   }
 </script>
 
-<div class="nav-item-edit-page">
+<div class="navigation-item-edit-page">
   <header class="nav-item-edit-page__header">
-    <Button href="/admin/navigation-item" variant="ghost" size="sm">← {dictionary.localText('nav.back')}</Button>
+    <Button href="/admin/navigation-item" variant="ghost" size="sm">← {dictionary.localText('navigation.back')}</Button>
     <h1 class="nav-item-edit-page__title">{editLabel}</h1>
   </header>
 
   <dl class="nav-item-edit-page__meta">
     <dt>{slugLabel}</dt>
-    <dd><code>{data.navItem.localTextLink?.slug ?? '—'}</code></dd>
+    <dd><code>{data.navigationItem.localTextLink?.slug ?? '—'}</code></dd>
     <dt>{hrefLabel}</dt>
-    <dd>{data.navItem.href}</dd>
+    <dd>{data.navigationItem.href}</dd>
   </dl>
 
   {#if form?.error}
@@ -43,14 +43,14 @@
     <h2 class="nav-item-edit-page__section-title">{dictionary.localText('admin.navigation_item.edit')}</h2>
     <form method="post" action="?/update" class="nav-item-edit-page__form">
       <div class="nav-item-edit-page__form-row">
-        <Field label={hrefLabel} id="nav-href" required>
-          <Input id="nav-href" name="href" value={data.navItem.href} required />
+        <Field label={hrefLabel} id="navigation-item-href" required>
+          <Input id="navigation-item-href" name="href" value={data.navigationItem.href} required />
         </Field>
-        <Field label={menuLabel} id="nav-menu" required>
-          <Input id="nav-menu" name="menu" value={data.navItem.menu} required />
+        <Field label={menuLabel} id="navigation-item-menu" required>
+          <Input id="navigation-item-menu" name="menu" value={data.navigationItem.menu} required />
         </Field>
-        <Field label={positionLabel} id="nav-position">
-          <Input id="nav-position" name="position" type="number" value={String(data.navItem.position)} />
+        <Field label={positionLabel} id="navigation-item-position">
+          <Input id="navigation-item-position" name="position" type="number" value={String(data.navigationItem.position)} />
         </Field>
       </div>
       <!-- Checkbox is self-labelling: it renders its own <label> around the control,
@@ -59,7 +59,7 @@
            label's `for` pointing at no element. -->
       <Checkbox
         name="active"
-        checked={data.navItem.active}
+        checked={data.navigationItem.active}
         label={dictionary.localText('admin.navigation_item.active')}
       />
       <Button type="submit">{dictionary.localText('action.save')}</Button>
@@ -76,7 +76,7 @@
             localeLabel={locale.nativeName}
             contentLabel={dictionary.localText('admin.local_text.content')}
             locales={[locale]}
-            slug={data.navItem.localTextLink?.slug ?? ''}
+            slug={data.navigationItem.localTextLink?.slug ?? ''}
             localeId={locale.id}
             content={translationFor(locale.id)}
             slugReadonly={true}
@@ -97,7 +97,7 @@
 </div>
 
 <style>
-  .nav-item-edit-page {
+  .navigation-item-edit-page {
     max-width: 40rem;
     display: flex;
     flex-direction: column;

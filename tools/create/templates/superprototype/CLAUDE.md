@@ -475,7 +475,7 @@ local_text      (link, locale, content)    one row per translation
 
 | Kind of copy                                  | `scope`                            | `entity_id` | Example                          |
 | --------------------------------------------- | ---------------------------------- | ----------- | -------------------------------- |
-| App-wide chrome (nav, common actions)         | `null`                             | `null`      | `nav.home`, `action.save`        |
+| App-wide chrome (navigation, common actions)  | `null`                             | `null`      | `navigation.home`, `action.save`        |
 | UI copy for one feature area                  | the feature or module name         | `null`      | `ticket.list.title` / `ticket`   |
 | Copy belonging to one row                     | the table name                     | the row id  | `name` / `ticket` / `42`         |
 
@@ -483,7 +483,7 @@ Scope is implied by convention. It is never a column on a domain table and never
 prop. Slugs are lowercase, dot-separated, and specific: `ticket.list.empty`, not `empty_text`.
 
 Before adding a global slug, check whether one already exists (`action.save`, `action.cancel`,
-`feedback.not_found`, `nav.back` and about a hundred others are seeded). Browse them at
+`feedback.not_found`, `navigation.back` and about a hundred others are seeded). Browse them at
 `/admin/local-text`.
 
 ### Loading copy

@@ -13,7 +13,7 @@ queries `event.locals.supabase`, every screen is internationalised (the original
 English throughout), and what a module offers is read from the template tree, so the create CLI's
 hint now reports "8 screen bundles" with nothing left pending.
 
-The warehouse app is one bundle rather than four. Its shell nav and home screen link to all three
+The warehouse app is one bundle rather than four. Its shell navigation and home screen link to all three
 flows, so any subset renders dead links, and a warehouse app without picking is not a configuration
 anyone wants. `MODULE-ROUTES.md` already defines the selectable unit as a coherent feature carrying
 its shared layout, so this applies that rule rather than bending it.
@@ -69,9 +69,9 @@ All 9 components now render in `apps/dev-kitchen`, including the 3 no screen bun
 
 No admin navigation reaches the module's screens: the admin layout's `navigation_item` rows come
 only from the base seed, so the logistic screens are reachable from the dashboard's section links
-(`logistic.admin.nav.*`) and nowhere else. Seeding nav rows is not the fix: seeds are per module but
+(`logistic.admin.navigation.*`) and nowhere else. Seeding navigation rows is not the fix: seeds are per module but
 screens are per bundle, so a row for an unselected bundle is a dead link. It needs the create CLI to
-emit nav rows per selected bundle.
+emit navigation rows per selected bundle.
 
 ---
 

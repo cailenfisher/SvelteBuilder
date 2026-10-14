@@ -41,14 +41,14 @@
       <LocalTextLinkFieldset {slugLabel} scopeLabel={dictionary.localText('admin.local_text.scope')} />
 
       <div class="nav-item-admin__form-row">
-        <Field label={hrefLabel} id="nav-href" required>
-          <Input id="nav-href" name="href" placeholder="/admin/example" required />
+        <Field label={hrefLabel} id="navigation-item-href" required>
+          <Input id="navigation-item-href" name="href" placeholder="/admin/example" required />
         </Field>
-        <Field label={menuLabel} id="nav-menu" required>
-          <Input id="nav-menu" name="menu" placeholder="admin" required />
+        <Field label={menuLabel} id="navigation-item-menu" required>
+          <Input id="navigation-item-menu" name="menu" placeholder="admin" required />
         </Field>
-        <Field label={positionLabel} id="nav-position">
-          <Input id="nav-position" name="position" type="number" value="0" />
+        <Field label={positionLabel} id="navigation-item-position">
+          <Input id="navigation-item-position" name="position" type="number" value="0" />
         </Field>
       </div>
 
@@ -71,12 +71,12 @@
         </TableRow>
       </TableHead>
       <TableBody>
-        {#if data.navItems.length === 0}
+        {#if data.navigationItems.length === 0}
           <TableRow>
             <TableCell colspan={6}>{dictionary.localText('feedback.empty')}</TableCell>
           </TableRow>
         {/if}
-        {#each data.navItems as item (item.id)}
+        {#each data.navigationItems as item (item.id)}
           <TableRow>
             <TableCell>
               <code class="nav-item-admin__slug">{item.localTextLink?.slug ?? '—'}</code>

@@ -158,7 +158,7 @@
     cell={stockCell}
     labels={{
       empty: data.lowOnly ? t('logistic.stock_level.empty_low') : t('logistic.stock_level.empty'),
-      pagination: dictionary.localText('nav.pagination'),
+      pagination: dictionary.localText('navigation.pagination'),
       previousPage: dictionary.localText('pagination.previous'),
       nextPage: dictionary.localText('pagination.next'),
     }}

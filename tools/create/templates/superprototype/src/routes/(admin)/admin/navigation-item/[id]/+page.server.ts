@@ -12,17 +12,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
   if (isNaN(id)) throw error(404, 'Not found');
 
-  const [navResult, localeResult] = await Promise.all([
+  const [navigationItemResult, localeResult] = await Promise.all([
     getNavigationItem(locals.supabase, id),
     listLocale(locals.supabase),
   ]);
 
-  if (navResult.error || localeResult.error) {
+  if (navigationItemResult.error || localeResult.error) {
     throw error(500, 'Failed to load navigation item.');
   }
-  if (!navResult.data) throw error(404, 'Navigation item not found');
+  if (!navigationItemResult.data) throw error(404, 'Navigation item not found');
 
-  const linkId = navResult.data.localTextLink?.id ?? null;
+  const linkId = navigationItemResult.data.localTextLink?.id ?? null;
 
   const { data: translations, error: translationError } = linkId
     ? await listLocalText(locals.supabase, linkId)
@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (translationError) throw error(500, 'Failed to load translations.');
 
   return {
-    navItem: navResult.data,
+    navigationItem: navigationItemResult.data,
     translations,
     locales: localeResult.data,
   };
@@ -64,22 +64,22 @@ export const actions: Actions = {
   },
 
   updateText: async ({ params, request, locals }) => {
-    const navId = parseInt(params.id);
+    const navigationItemId = parseInt(params.id);
     const form = await request.formData();
 
     const localeId = parseInt(form.get('locale_id') as string);
     const content = (form.get('content') as string | null)?.trim() ?? '';
 
-    if (isNaN(navId) || isNaN(localeId)) return fail(422, { error: 'Invalid parameters.' });
+    if (isNaN(navigationItemId) || isNaN(localeId)) return fail(422, { error: 'Invalid parameters.' });
 
     // Read-then-write needs no transaction: if the upsert fails nothing changed.
-    const { data: navItem, error: readError } = await getNavigationItem(locals.supabase, navId);
+    const { data: navigationItem, error: readError } = await getNavigationItem(locals.supabase, navigationItemId);
 
     if (readError) return fail(500, { error: 'Failed to load navigation item.' });
-    if (!navItem) return fail(404, { error: 'Navigation item not found.' });
+    if (!navigationItem) return fail(404, { error: 'Navigation item not found.' });
 
     const { error: upsertError } = await saveLocalText(locals.supabase, {
-      link: navItem.localTextLinkId,
+      link: navigationItem.localTextLinkId,
       locale: localeId,
       content,
     });

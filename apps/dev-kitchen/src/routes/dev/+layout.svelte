@@ -27,7 +27,7 @@
 </svelte:head>
 
 <div class="kitchen">
-  <nav class="kitchen__nav" aria-label="Showcase pages">
+  <nav class="kitchen__navigation" aria-label="Showcase pages">
     <ul class="kitchen__pages">
       <li>
         <a href="/dev/theme" aria-current={page.url.pathname === '/dev/theme' ? 'page' : undefined}
@@ -84,7 +84,7 @@
     align-items: start;
   }
 
-  .kitchen__nav {
+  .kitchen__navigation {
     position: sticky;
     inset-block-start: var(--space-4);
     max-block-size: calc(100dvh - var(--space-8));
@@ -156,7 +156,7 @@
       grid-template-columns: 1fr;
     }
 
-    .kitchen__nav {
+    .kitchen__navigation {
       position: static;
       max-block-size: none;
     }

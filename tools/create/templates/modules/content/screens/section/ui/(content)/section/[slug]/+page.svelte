@@ -78,7 +78,7 @@
           onPageChange={(next) => goto(href(next))}
           previousLabel={dictionary.localText('pagination.previous')}
           nextLabel={dictionary.localText('pagination.next')}
-          label={dictionary.localText('nav.pagination')}
+          label={dictionary.localText('navigation.pagination')}
         />
       </nav>
     {/if}

@@ -121,7 +121,7 @@ target.
 | MenuGroup, MenuRadioGroup, MenuLabel, MenuSeparator | `.menu-group`, `.menu-radio-group`, `.menu-label`, `.menu-separator` | | |
 | MessageLiveRegion | `.message-live-region` | | |
 | MetricCard | `.metric-card` | `__label`, `__value`, `__trend`, `__description` | `__trend--positive`, `__trend--negative`, `__trend--neutral` |
-| Pagination | `.pagination` | `__button`, `__pages`, `__ellipsis` | `__button--page`, `__button--nav` |
+| Pagination | `.pagination` | `__button`, `__pages`, `__ellipsis` | `__button--page`, `__button--navigation` |
 | Popover | `.popover` | `__trigger`, `__arrow` | |
 | ProgressBar | `.progress-bar` | `__track`, `__indicator` | `--sm`, `--md`, `--lg`, `--indeterminate` |
 | RadioGroup | `.radio-group` | | `--horizontal`, `--vertical` |

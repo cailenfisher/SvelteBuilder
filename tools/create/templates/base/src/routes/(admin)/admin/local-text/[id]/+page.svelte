@@ -19,7 +19,7 @@
 
 <div class="local-text-edit-page">
   <header class="local-text-edit-page__header">
-    <Button href="/admin/local-text" variant="ghost" size="sm">← {dictionary.localText('nav.back')}</Button>
+    <Button href="/admin/local-text" variant="ghost" size="sm">← {dictionary.localText('navigation.back')}</Button>
     <h1 class="local-text-edit-page__title">{editLabel}</h1>
   </header>
 

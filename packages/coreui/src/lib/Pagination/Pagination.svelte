@@ -42,7 +42,7 @@
   class={classes}
 >
   {#snippet children({ pages })}
-    <Pagination.PrevButton class="pagination__button pagination__button--nav" aria-label={previousLabel}>
+    <Pagination.PrevButton class="pagination__button pagination__button--navigation" aria-label={previousLabel}>
       <svg viewBox="0 0 16 16" fill="none" width="16" height="16" aria-hidden="true">
         <path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -60,7 +60,7 @@
       {/each}
     </div>
 
-    <Pagination.NextButton class="pagination__button pagination__button--nav" aria-label={nextLabel}>
+    <Pagination.NextButton class="pagination__button pagination__button--navigation" aria-label={nextLabel}>
       <svg viewBox="0 0 16 16" fill="none" width="16" height="16" aria-hidden="true">
         <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>

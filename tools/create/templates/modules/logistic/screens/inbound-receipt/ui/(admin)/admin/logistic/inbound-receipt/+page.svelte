@@ -47,7 +47,7 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <!-- Links in a nav rather than a Tabs: the filter is server-side, so each option is a
+  <!-- Links in a <nav> rather than a Tabs: the filter is server-side, so each option is a
        navigation to a different URL, not a panel swap. Tab semantics (role="tab" with
        aria-controls) would claim there are panels on this page to switch between, and
        aria-current="page" is what actually tells a screen reader which filter is on. -->
@@ -106,7 +106,7 @@
               )}
             previousLabel={dictionary.localText('pagination.previous')}
             nextLabel={dictionary.localText('pagination.next')}
-            label={dictionary.localText('nav.pagination')}
+            label={dictionary.localText('navigation.pagination')}
           />
         </nav>
       {/if}

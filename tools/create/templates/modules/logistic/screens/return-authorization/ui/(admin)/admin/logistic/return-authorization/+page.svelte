@@ -118,7 +118,7 @@
     onPageChange={(next) => goto(href(data.status, next))}
     labels={{
       empty: t('logistic.return_authorization.empty'),
-      pagination: dictionary.localText('nav.pagination'),
+      pagination: dictionary.localText('navigation.pagination'),
       previousPage: dictionary.localText('pagination.previous'),
       nextPage: dictionary.localText('pagination.next'),
     }}

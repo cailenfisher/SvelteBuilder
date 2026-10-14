@@ -92,8 +92,8 @@
 
   const localValue = $derived(toLocalDateTimeString(value, timezone));
 
-  function handleChange(e: Event) {
-    const input = e.target as HTMLInputElement;
+  function handleChange(event: Event) {
+    const input = event.target as HTMLInputElement;
     const iso = toIsoWithOffset(input.value, timezone);
     if (onValueChange) onValueChange(iso);
     else value = iso ?? '';

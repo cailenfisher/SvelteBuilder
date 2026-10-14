@@ -100,7 +100,7 @@ since moving the component changes who supplies the copy.
 ### A3 — Locale editors' placeholders (not breaking)
 
 `LocaleEdit` hard-codes the placeholders `en` and `English`. `LocalTextLinkEdit` hard-codes
-`admin.nav.example` and `blog, product, …`; the blog module was retired on 2026-07-06.
+`admin.navigation.example` and `blog, product, …`; the blog module was retired on 2026-07-06.
 
 **Proposal.** Take placeholders as optional props, or drop them. Resolved with B2.
 

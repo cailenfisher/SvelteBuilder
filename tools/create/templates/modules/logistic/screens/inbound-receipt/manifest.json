@@ -51,7 +51,7 @@
     "action.cancel",
     "pagination.previous",
     "pagination.next",
-    "nav.pagination",
+    "navigation.pagination",
     "action.close"
   ]
 }

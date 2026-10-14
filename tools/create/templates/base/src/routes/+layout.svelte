@@ -60,7 +60,7 @@
       <a href="/" class="app__brand">
         <LocalText slug="app.name" />
       </a>
-      <nav class="app__nav">
+      <nav class="app__navigation">
         <LocalePicker
           label={dictionary.localText('locale.select')}
           current={data.locale}
@@ -111,7 +111,7 @@
     color: var(--text, inherit);
   }
 
-  .app__nav {
+  .app__navigation {
     display: flex;
     align-items: center;
     gap: 1rem;

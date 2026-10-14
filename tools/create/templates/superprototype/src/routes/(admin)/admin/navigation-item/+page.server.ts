@@ -7,11 +7,11 @@ import {
 } from '$lib/server/navigation-item';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const { data: navItems, error: queryError } = await listNavigationItem(locals.supabase);
+  const { data: navigationItems, error: queryError } = await listNavigationItem(locals.supabase);
 
   if (queryError) throw error(500, 'Failed to load navigation items.');
 
-  return { navItems };
+  return { navigationItems };
 };
 
 export const actions: Actions = {

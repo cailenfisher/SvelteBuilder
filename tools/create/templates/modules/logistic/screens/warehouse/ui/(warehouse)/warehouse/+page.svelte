@@ -14,19 +14,19 @@
       href: '/warehouse/pick-task',
       icon: '📦',
       slug: 'logistic.warehouse.pick_task.title',
-      desc: 'logistic.warehouse.pick_task.hint',
+      hint: 'logistic.warehouse.pick_task.hint',
     },
     {
       href: '/warehouse/inbound-receipt',
       icon: '🚚',
       slug: 'logistic.warehouse.inbound_receipt.title',
-      desc: 'logistic.warehouse.inbound_receipt.hint',
+      hint: 'logistic.warehouse.inbound_receipt.hint',
     },
     {
       href: '/warehouse/cycle-count',
       icon: '📋',
       slug: 'logistic.warehouse.cycle_count.title',
-      desc: 'logistic.warehouse.cycle_count.hint',
+      hint: 'logistic.warehouse.cycle_count.hint',
     },
   ];
 </script>
@@ -43,7 +43,7 @@
       <a href={flow.href} class="warehouse-home__flow-card">
         <span class="warehouse-home__flow-icon" aria-hidden="true">{flow.icon}</span>
         <span class="warehouse-home__flow-label">{t(flow.slug)}</span>
-        <span class="warehouse-home__flow-desc">{t(flow.desc)}</span>
+        <span class="warehouse-home__flow-hint">{t(flow.hint)}</span>
       </a>
     {/each}
   </nav>
@@ -96,7 +96,7 @@
     color: var(--text);
   }
 
-  .warehouse-home__flow-desc {
+  .warehouse-home__flow-hint {
     font-size: var(--text-sm);
     color: var(--text-soft);
   }

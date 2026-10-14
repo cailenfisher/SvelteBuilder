@@ -23,12 +23,12 @@ export const load: LayoutServerLoad = async ({ locals }) => {
   // layer and is not something a cached token payload should be trusted for.
   const { data: { user } } = await locals.supabase.auth.getUser();
 
-  const { data: navItems, error: queryError } = await listMenuNavigationItem(
+  const { data: navigationItems, error: queryError } = await listMenuNavigationItem(
     locals.supabase,
     'admin'
   );
 
   if (queryError) throw error(500, 'Failed to load admin navigation.');
 
-  return { navItems, user };
+  return { navigationItems, user };
 };

@@ -171,14 +171,14 @@ insert into local_text_link (slug, scope, entity_id) values
   ('logistic.stock_adjustment_reason.pick',                   'logistic', null),
   ('logistic.stock_adjustment_reason.return_restock',         'logistic', null),
   -- Admin navigation
-  ('logistic.admin.nav.storage_location',               'logistic', null),
-  ('logistic.admin.nav.supplier',                       'logistic', null),
-  ('logistic.admin.nav.stock_level',                    'logistic', null),
-  ('logistic.admin.nav.inbound_receipt',                'logistic', null),
-  ('logistic.admin.nav.pick_task',                      'logistic', null),
-  ('logistic.admin.nav.shipment',                       'logistic', null),
-  ('logistic.admin.nav.return_authorization',           'logistic', null),
-  ('logistic.admin.nav.cycle_count',                    'logistic', null),
+  ('logistic.admin.navigation.storage_location',               'logistic', null),
+  ('logistic.admin.navigation.supplier',                       'logistic', null),
+  ('logistic.admin.navigation.stock_level',                    'logistic', null),
+  ('logistic.admin.navigation.inbound_receipt',                'logistic', null),
+  ('logistic.admin.navigation.pick_task',                      'logistic', null),
+  ('logistic.admin.navigation.shipment',                       'logistic', null),
+  ('logistic.admin.navigation.return_authorization',           'logistic', null),
+  ('logistic.admin.navigation.cycle_count',                    'logistic', null),
   -- Field labels
   ('logistic.field.sku',                                'logistic', null),
   ('logistic.field.on_hand',                            'logistic', null),
@@ -288,14 +288,14 @@ from (values
   ('logistic.stock_adjustment_reason.inbound_receipt',        'logistic', 'Inbound receipt'),
   ('logistic.stock_adjustment_reason.pick',                   'logistic', 'Pick'),
   ('logistic.stock_adjustment_reason.return_restock',         'logistic', 'Return restock'),
-  ('logistic.admin.nav.storage_location',               'logistic', 'Storage locations'),
-  ('logistic.admin.nav.supplier',                       'logistic', 'Suppliers'),
-  ('logistic.admin.nav.stock_level',                    'logistic', 'Stock levels'),
-  ('logistic.admin.nav.inbound_receipt',                'logistic', 'Inbound receipts'),
-  ('logistic.admin.nav.pick_task',                      'logistic', 'Pick tasks'),
-  ('logistic.admin.nav.shipment',                       'logistic', 'Shipments'),
-  ('logistic.admin.nav.return_authorization',           'logistic', 'Return authorizations'),
-  ('logistic.admin.nav.cycle_count',                    'logistic', 'Cycle counts'),
+  ('logistic.admin.navigation.storage_location',               'logistic', 'Storage locations'),
+  ('logistic.admin.navigation.supplier',                       'logistic', 'Suppliers'),
+  ('logistic.admin.navigation.stock_level',                    'logistic', 'Stock levels'),
+  ('logistic.admin.navigation.inbound_receipt',                'logistic', 'Inbound receipts'),
+  ('logistic.admin.navigation.pick_task',                      'logistic', 'Pick tasks'),
+  ('logistic.admin.navigation.shipment',                       'logistic', 'Shipments'),
+  ('logistic.admin.navigation.return_authorization',           'logistic', 'Return authorizations'),
+  ('logistic.admin.navigation.cycle_count',                    'logistic', 'Cycle counts'),
   ('logistic.field.sku',                                'logistic', 'SKU'),
   ('logistic.field.on_hand',                            'logistic', 'On hand'),
   ('logistic.field.reserved',                           'logistic', 'Reserved'),
@@ -406,14 +406,14 @@ from (values
   ('logistic.stock_adjustment_reason.inbound_receipt',        'logistic', 'Réception entrante'),
   ('logistic.stock_adjustment_reason.pick',                   'logistic', 'Prélèvement'),
   ('logistic.stock_adjustment_reason.return_restock',         'logistic', 'Remise en stock (retour)'),
-  ('logistic.admin.nav.storage_location',               'logistic', 'Emplacements de stockage'),
-  ('logistic.admin.nav.supplier',                       'logistic', 'Fournisseurs'),
-  ('logistic.admin.nav.stock_level',                    'logistic', 'Niveaux de stock'),
-  ('logistic.admin.nav.inbound_receipt',                'logistic', 'Réceptions'),
-  ('logistic.admin.nav.pick_task',                      'logistic', 'Tâches de prélèvement'),
-  ('logistic.admin.nav.shipment',                       'logistic', 'Expéditions'),
-  ('logistic.admin.nav.return_authorization',           'logistic', 'Autorisations de retour'),
-  ('logistic.admin.nav.cycle_count',                    'logistic', 'Inventaires tournants'),
+  ('logistic.admin.navigation.storage_location',               'logistic', 'Emplacements de stockage'),
+  ('logistic.admin.navigation.supplier',                       'logistic', 'Fournisseurs'),
+  ('logistic.admin.navigation.stock_level',                    'logistic', 'Niveaux de stock'),
+  ('logistic.admin.navigation.inbound_receipt',                'logistic', 'Réceptions'),
+  ('logistic.admin.navigation.pick_task',                      'logistic', 'Tâches de prélèvement'),
+  ('logistic.admin.navigation.shipment',                       'logistic', 'Expéditions'),
+  ('logistic.admin.navigation.return_authorization',           'logistic', 'Autorisations de retour'),
+  ('logistic.admin.navigation.cycle_count',                    'logistic', 'Inventaires tournants'),
   ('logistic.field.sku',                                'logistic', 'SKU'),
   ('logistic.field.on_hand',                            'logistic', 'En stock'),
   ('logistic.field.reserved',                           'logistic', 'Réservé'),
@@ -900,7 +900,7 @@ on conflict (link, locale) do nothing;
 -- Screen copy — warehouse bundle
 --
 -- The shell's own labels are module copy under scope 'logistic' rather than global copy in
--- the base seed: a scaffold without this module has no warehouse to navigate, so its nav
+-- the base seed: a scaffold without this module has no warehouse to navigate, so its navigation
 -- strings are not application chrome every project carries.
 --
 -- The status labels these screens render are seeded above with the module's base copy.
@@ -911,7 +911,7 @@ on conflict (link, locale) do nothing;
 insert into local_text_link (slug, scope, entity_id)
 values
   ('logistic.warehouse.title',                  'logistic', null),
-  ('logistic.warehouse.nav',                    'logistic', null),
+  ('logistic.warehouse.navigation',                    'logistic', null),
   ('logistic.warehouse.pick_task.title',                   'logistic', null),
   ('logistic.warehouse.pick_task.hint',              'logistic', null),
   ('logistic.warehouse.inbound_receipt.title',                'logistic', null),
@@ -951,7 +951,7 @@ insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'en'), v.content
 from (values
   ('logistic.warehouse.title',                  'Warehouse'),
-  ('logistic.warehouse.nav',                    'Warehouse navigation'),
+  ('logistic.warehouse.navigation',                    'Warehouse navigation'),
   ('logistic.warehouse.pick_task.title',                   'Pick queue'),
   ('logistic.warehouse.pick_task.hint',              'View and work open pick tasks'),
   ('logistic.warehouse.inbound_receipt.title',                'Receiving'),
@@ -993,7 +993,7 @@ insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'fr'), v.content
 from (values
   ('logistic.warehouse.title',                  'Entrepôt'),
-  ('logistic.warehouse.nav',                    'Navigation entrepôt'),
+  ('logistic.warehouse.navigation',                    'Navigation entrepôt'),
   ('logistic.warehouse.pick_task.title',                   'File de prélèvement'),
   ('logistic.warehouse.pick_task.hint',              'Consulter et traiter les tâches de prélèvement'),
   ('logistic.warehouse.inbound_receipt.title',                'Réception'),
@@ -1034,7 +1034,7 @@ on conflict (link, locale) do nothing;
 -- ──────────────────────────────────────────────────────────────────────────────
 -- Screen copy — dashboard bundle
 --
--- The nav labels and dashboard title are seeded above with the module's base copy; only the
+-- The navigation labels and dashboard title are seeded above with the module's base copy; only the
 -- dashboard's own section headings and metric descriptions are new.
 -- ──────────────────────────────────────────────────────────────────────────────
 

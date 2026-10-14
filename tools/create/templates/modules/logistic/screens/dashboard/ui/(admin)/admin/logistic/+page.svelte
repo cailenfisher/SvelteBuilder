@@ -23,12 +23,12 @@
   // Every destination this dashboard offers. Each is a bundle the manifest lists under
   // `requires`, so none of these can be a dead link in a scaffolded project.
   const sections = [
-    { href: '/admin/logistic/supplier', slug: 'logistic.admin.nav.supplier' },
-    { href: '/admin/logistic/inbound-receipt', slug: 'logistic.admin.nav.inbound_receipt' },
-    { href: '/admin/logistic/stock-level', slug: 'logistic.admin.nav.stock_level' },
-    { href: '/admin/logistic/shipment', slug: 'logistic.admin.nav.shipment' },
-    { href: '/admin/logistic/cycle-count', slug: 'logistic.admin.nav.cycle_count' },
-    { href: '/admin/logistic/return-authorization', slug: 'logistic.admin.nav.return_authorization' },
+    { href: '/admin/logistic/supplier', slug: 'logistic.admin.navigation.supplier' },
+    { href: '/admin/logistic/inbound-receipt', slug: 'logistic.admin.navigation.inbound_receipt' },
+    { href: '/admin/logistic/stock-level', slug: 'logistic.admin.navigation.stock_level' },
+    { href: '/admin/logistic/shipment', slug: 'logistic.admin.navigation.shipment' },
+    { href: '/admin/logistic/cycle-count', slug: 'logistic.admin.navigation.cycle_count' },
+    { href: '/admin/logistic/return-authorization', slug: 'logistic.admin.navigation.return_authorization' },
   ];
 
   const formatDate = (iso: string | null) =>
@@ -47,22 +47,22 @@
   <div class="logistic-dashboard__metrics">
     <MetricCard
       value={data.metrics.pendingInboundReceiptCount}
-      label={t('logistic.admin.nav.inbound_receipt')}
+      label={t('logistic.admin.navigation.inbound_receipt')}
       description={t('logistic.dashboard.pending')}
     />
     <MetricCard
       value={data.metrics.openPickTaskCount}
-      label={t('logistic.admin.nav.pick_task')}
+      label={t('logistic.admin.navigation.pick_task')}
       description={t('logistic.dashboard.open')}
     />
     <MetricCard
       value={data.metrics.openReturnAuthorizationCount}
-      label={t('logistic.admin.nav.return_authorization')}
+      label={t('logistic.admin.navigation.return_authorization')}
       description={t('logistic.dashboard.open')}
     />
     <MetricCard
       value={data.metrics.openCycleCountCount}
-      label={t('logistic.admin.nav.cycle_count')}
+      label={t('logistic.admin.navigation.cycle_count')}
       description={t('logistic.dashboard.open')}
     />
     <MetricCard

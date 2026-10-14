@@ -341,9 +341,9 @@ REST paths (`/api/locale`, `/api/local-text/...`) are already singular. Only `CL
 
 ---
 
-## Added during Phase 8 (pending approval)
+## Added during Phase 8 (approved 2026-10-14)
 
-Applied in Phase 8 because they follow from approved rules; listed for review.
+Applied in Phase 8 because they follow from approved rules.
 
 | Old | New | Rule |
 | --- | --- | --- |
@@ -357,7 +357,7 @@ Applied in Phase 8 because they follow from approved rules; listed for review.
 | dev-kitchen `/dev/content/taxonomy` | `/dev/content/article-byline`, `/dev/content/section`, `/dev/content/topic` | the page also showed `ArticleBylineList`, so it splits three ways |
 | page-local CSS `admin-article`, `admin-article-list` | `article-admin`, `article-admin-list` | follows the screen id |
 
-## Added during Phase 9 (pending approval)
+## Added during Phase 9 (approved 2026-10-14)
 
 New names, not renames. Data module functions follow `<verb><Table>` with the table's full name
 (`listInboundReceipt`, `getPickTaskLine`, `receiveInboundReceiptLine`) and are not listed one by
@@ -368,11 +368,20 @@ one; the files are one per table, named like the schema file. The rest:
 | file per table, not per concept (`inbound-receipt-line.ts` beside `inbound-receipt.ts`) | data module layout; amends the D5 wording in `CLAUDE.md` and `MODULE-ROUTES.md`, whose example put `addInboundReceiptLine` in `inbound-receipt.ts` | layers mirror each other: a query's file follows from its table's name, as the schema file does |
 | `QueryResult<T>` | every data module function's return: supabase-js's `{ data, error }`, data in camelCase | one way to report a failure; the route decides what it means |
 | `QueryRange` (`offset`, `limit`), `CountedRows<T>` (`rows`, `total`) | a list function's slice argument and its counted result | generic names, allowed because `postgrest.ts` is shared infrastructure, not domain code |
-| `LocaleFields`, `NavigationItemFields`, `SupplierFields`, `SupplierContactFields`, `LocalTextEntryFields` | what an administrator edits, as a data module argument | `<Table>Fields`; a new suffix for an argument type, to be confirmed |
+| `LocaleFields`, `NavigationItemFields`, `SupplierFields`, `SupplierContactFields`, `LocalTextEntryFields` | what an administrator edits, as a data module argument | `<Table>Fields`, a suffix for a data module's argument type |
 | `NavigationItemWithLocalTextLink` | a navigation item with its copy link embedded | composite types are `<Concept>With<Concept>` |
 | `listActiveInboundReceipt`, `listRecentInboundReceipt`, `listAssignedPickTask`, `listOpenPickTask`, `listAssignedCycleCount`, `listOpenCycleCount`, `countOpenCycleCount`, `listActiveSection`, `listActiveTopic`, `listLatestArticle`, `getInitialArticleStatus` | lists named for what they select, where one table has several | qualifier before the table, as the view fields they fill (`activeInboundReceipts`) already do |
 | `getDictionaryPayload` | the `get_dictionary` RPC, in `local-text.ts` | avoids `getDictionary`, which diglossia/svelte already exports |
 | `getArticleByPreviewToken` | the two preview RPCs, in `article-preview-token.ts` | a function lives in the file of the table its query starts from |
 
-Drift noticed, not changed (out of this phase): the base admin screens' data keys `navItems` and
-`navItem` abbreviate `navigationItem`.
+## Abbreviation cleanup (2026-10-14, between Phases 9 and 10, at the user's request)
+
+| Old | New |
+| --- | --- |
+| copy slugs `nav.*`, `admin.nav.*`, `logistic.admin.nav.*`, `logistic.warehouse.nav` | `navigation.*`, `admin.navigation.*`, `logistic.admin.navigation.*`, `logistic.warehouse.navigation` |
+| data keys and locals `navItems`, `navItem`, `NavItem`, `navLinks`, `navId`, `navResult` | `navigationItems`, `navigationItem`, `NavigationItem`, `navigationLinks`, `navigationItemId`, `navigationItemResult` |
+| CSS `__nav`, `__nav-link`, `.pagination__button--nav`, `.nav-item-edit-page`, `.warehouse-home__flow-desc` | `__navigation`, `__navigation-link`, `.pagination__button--navigation`, `.navigation-item-edit-page`, `.warehouse-home__flow-hint` |
+| element ids `nav-href`, `nav-menu`, `nav-position` | `navigation-item-href`, `navigation-item-menu`, `navigation-item-position` |
+| locals `msg`, `imgError`, `str`, `e` (multi-line or non-lambda), `urlEls`, field `desc` | `message`, `imageError`, `text`, `entry`/`event`, `urlElements`, `hint` |
+
+Kept: `src`, `params` and `e` in one-line lambdas, which are platform names or allowed by `CLAUDE.md`.

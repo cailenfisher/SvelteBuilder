@@ -74,7 +74,7 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <!-- Links in a nav, not tabs: the filter is server-side, so each option is a navigation to a
+  <!-- Links in a <nav>, not tabs: the filter is server-side, so each option is a navigation to a
        different URL rather than a panel swap, and aria-current is what says which is on. -->
   <nav class="article-admin-list__filters" aria-label={t('content.article_admin.filter_status')}>
     <Button
@@ -108,7 +108,7 @@
     onPageChange={(next) => goto(href(data.statusSlug, next))}
     labels={{
       empty: t('content.article_admin.empty'),
-      pagination: dictionary.localText('nav.pagination'),
+      pagination: dictionary.localText('navigation.pagination'),
       previousPage: dictionary.localText('pagination.previous'),
       nextPage: dictionary.localText('pagination.next'),
     }}

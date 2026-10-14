@@ -240,14 +240,14 @@ export type CycleCountDetailView = ScreenCopy &
 
 // ── The warehouse worker screens ─────────────────────────────────────────────
 //
-// These are one feature rather than four: the shell's nav and its home screen link to all
+// These are one feature rather than four: the shell's navigation and its home screen link to all
 // three flows, so shipping any one without the others would leave dead links. See the
 // bundle's manifest.
 
 /**
  * `(warehouse)/+layout` — the shell.
  *
- * Its nav labels are module copy rather than base-seed global copy, because a scaffold
+ * Its navigation labels are module copy rather than base-seed global copy, because a scaffold
  * without this module has no warehouse to navigate. Page data inherits a layout's data,
  * which is how the home screen gets its labels without a loader of its own.
  */

@@ -64,9 +64,9 @@ export type MessageBus = {
   readonly labels: MessageLabels;
   readonly toasts: Message[];
   readonly banner: Message | null;
-  sendToast(msg: Omit<Message, 'id'>): string;
+  sendToast(message: Omit<Message, 'id'>): string;
   dismissToast(id: string): void;
-  sendBanner(msg: Omit<Message, 'id'>): string;
+  sendBanner(message: Omit<Message, 'id'>): string;
   dismissBanner(): void;
 };
 
@@ -93,9 +93,9 @@ export function createMessageBus(options: MessageBusOptions): MessageBus {
       return state.banner;
     },
 
-    sendToast(msg: Omit<Message, 'id'>): string {
+    sendToast(message: Omit<Message, 'id'>): string {
       const id = generateId();
-      state.toasts = [...state.toasts, { ...msg, id }];
+      state.toasts = [...state.toasts, { ...message, id }];
       return id;
     },
 
@@ -103,9 +103,9 @@ export function createMessageBus(options: MessageBusOptions): MessageBus {
       state.toasts = state.toasts.filter((m) => m.id !== id);
     },
 
-    sendBanner(msg: Omit<Message, 'id'>): string {
+    sendBanner(message: Omit<Message, 'id'>): string {
       const id = generateId();
-      state.banner = { ...msg, id };
+      state.banner = { ...message, id };
       return id;
     },
 

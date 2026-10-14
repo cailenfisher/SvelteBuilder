@@ -20,9 +20,9 @@
     class: extraClass,
   }: Props = $props();
 
-  let imgError = $state(false);
+  let imageError = $state(false);
 
-  const showImage = $derived(!!src && !imgError);
+  const showImage = $derived(!!src && !imageError);
   const initials = $derived(
     fallback
       ? fallback.slice(0, 2).toUpperCase()
@@ -41,11 +41,11 @@
   );
 
   function handleError() {
-    imgError = true;
+    imageError = true;
   }
 
   $effect(() => {
-    if (src) imgError = false;
+    if (src) imageError = false;
   });
 </script>
 

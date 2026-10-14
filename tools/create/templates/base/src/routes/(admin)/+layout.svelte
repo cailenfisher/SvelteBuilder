@@ -7,8 +7,8 @@
 
   const dictionary = getDictionary()
 
-  const navLinks = $derived(
-    data.navItems.map((item) => ({
+  const navigationLinks = $derived(
+    data.navigationItems.map((item) => ({
       href: item.href,
       label: item.localTextLink ? dictionary.localText(item.localTextLink.slug) : item.href,
     }))
@@ -16,14 +16,14 @@
 </script>
 
 <div class="admin-layout">
-  <nav class="admin-layout__sidebar" aria-label={dictionary.localText('admin.nav.label')}>
+  <nav class="admin-layout__sidebar" aria-label={dictionary.localText('admin.navigation.label')}>
     <div class="admin-layout__logo">
       <a href="/admin/dashboard">{dictionary.localText('admin.title')}</a>
     </div>
-    <ul class="admin-layout__nav">
-      {#each navLinks as link}
+    <ul class="admin-layout__navigation">
+      {#each navigationLinks as link}
         <li>
-          <a href={link.href} class="admin-layout__nav-link">{link.label}</a>
+          <a href={link.href} class="admin-layout__navigation-link">{link.label}</a>
         </li>
       {/each}
     </ul>
@@ -62,7 +62,7 @@
     padding: 0 0.5rem;
   }
 
-  .admin-layout__nav {
+  .admin-layout__navigation {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -71,7 +71,7 @@
     gap: 0.125rem;
   }
 
-  .admin-layout__nav-link {
+  .admin-layout__navigation-link {
     display: block;
     padding: 0.5rem 0.75rem;
     border-radius: var(--radius);
@@ -81,7 +81,7 @@
     transition: background-color 0.12s;
   }
 
-  .admin-layout__nav-link:hover {
+  .admin-layout__navigation-link:hover {
     background-color: var(--surface-overlay, rgba(0, 0, 0, 0.05));
   }
 

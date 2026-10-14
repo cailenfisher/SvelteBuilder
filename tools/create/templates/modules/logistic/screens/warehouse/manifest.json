@@ -2,7 +2,7 @@
   "id": "warehouse",
   "module": "logistic",
   "label": "Warehouse floor app",
-  "hint": "The worker-facing app: pick queue, receiving and counting, on its own layout — one bundle, since its nav links to all three",
+  "hint": "The worker-facing app: pick queue, receiving and counting, on its own layout — one bundle, since its navigation links to all three",
   "routes": [
     "/warehouse",
     "/warehouse/pick-task",
@@ -43,7 +43,7 @@
   },
   "copySlugs": [
     "logistic.warehouse.title",
-    "logistic.warehouse.nav",
+    "logistic.warehouse.navigation",
     "logistic.warehouse.pick_task.title",
     "logistic.warehouse.pick_task.hint",
     "logistic.warehouse.inbound_receipt.title",

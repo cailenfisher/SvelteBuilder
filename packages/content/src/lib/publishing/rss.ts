@@ -12,8 +12,8 @@ import type { ArticleWithRelations } from '../schema/index.js';
 export type RssFeedArticle = ArticleWithRelations;
 
 // XML escape — handles all five predefined XML entities correctly.
-function xmlEscape(str: string): string {
-  return str
+function xmlEscape(text: string): string {
+  return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

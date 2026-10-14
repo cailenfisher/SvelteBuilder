@@ -256,7 +256,7 @@ on an empty-string scope, and when an `entityId` is given with no scope.
 ### Scope convention
 
 Scope matches the table/model name for entity-bound copy (`product` model → `product` scope).
-For UI copy not bound to an entity, use a logical grouping (`nav`, `auth`, `checkout`).
+For UI copy not bound to an entity, use a logical grouping (`navigation`, `auth`, `checkout`).
 Scope is open-ended — `store` instead of `commerce` is valid if more idiomatic for a module.
 
 **Scope is never a schema column, never a component prop.** It is implied by convention.

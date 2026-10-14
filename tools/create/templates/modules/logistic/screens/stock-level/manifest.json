@@ -49,6 +49,6 @@
     "action.close",
     "pagination.previous",
     "pagination.next",
-    "nav.pagination"
+    "navigation.pagination"
   ]
 }
