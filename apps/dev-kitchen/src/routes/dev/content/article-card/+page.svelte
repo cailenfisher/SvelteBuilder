@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ArticleCard } from '@sveltebuilder/content';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import {
     AUTHORS,
     DRAFT_ARTICLE,

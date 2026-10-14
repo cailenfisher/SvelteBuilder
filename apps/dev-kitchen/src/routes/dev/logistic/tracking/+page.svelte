@@ -1,6 +1,6 @@
 <script lang="ts">
   import { TrackingEventList } from '@sveltebuilder/logistic';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import { TRACKING_EVENTS } from '$lib/fixtures/logistic';
 </script>
 

@@ -8,7 +8,7 @@
     TableHeader,
     TableRow,
   } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   type Line = { sku: string; quantity: number; location: string };
   const lines: Line[] = [

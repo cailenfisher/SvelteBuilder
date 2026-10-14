@@ -46,8 +46,8 @@ export default [
     // These files intentionally use {@html} with sanitized/trusted content.
     // Note: the bracket in [slug] is a glob character class, so we use a wildcard.
     files: [
-      'packages/content/src/lib/components/ArticleBlockRenderer.svelte',
-      'packages/content/src/lib/templates/routes/(content)/article/*/+page.svelte',
+      'packages/content/src/lib/Article/ArticleBlock/ArticleBlockRenderer.svelte',
+      'tools/create/templates/modules/content/screens/article/ui/(content)/article/*/+page.svelte',
     ],
     rules: {
       'svelte/no-at-html-tags': 'off',

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Field from '../../src/lib/Field.svelte';
-  import Switch from '../../src/lib/Switch.svelte';
-  import RadioGroup from '../../src/lib/RadioGroup.svelte';
-  import RadioItem from '../../src/lib/RadioItem.svelte';
+  import Field from '../../src/lib/Field/Field.svelte';
+  import Switch from '../../src/lib/Switch/Switch.svelte';
+  import RadioGroup from '../../src/lib/RadioGroup/RadioGroup.svelte';
+  import RadioItem from '../../src/lib/RadioGroup/RadioItem.svelte';
 
   type Props = { control: 'switch' | 'radio-group'; hint?: string; error?: string };
 

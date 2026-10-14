@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, ConfirmDialog } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   let open = $state(false);
   let busyOpen = $state(false);

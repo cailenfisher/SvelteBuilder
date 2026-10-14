@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Field } from '@sveltebuilder/coreui';
   import { BarcodeInput } from '@sveltebuilder/logistic';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   let scans = $state<string[]>([]);
 </script>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ProgressBar, Skeleton, Spinner } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const sizes = ['sm', 'md', 'lg'] as const;
 </script>

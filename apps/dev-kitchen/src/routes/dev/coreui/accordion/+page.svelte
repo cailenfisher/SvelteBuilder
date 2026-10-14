@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Accordion, AccordionItem } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   let single = $state('receiving');
   let multiple = $state<string[]>(['picking']);

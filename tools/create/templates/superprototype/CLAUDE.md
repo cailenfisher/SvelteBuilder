@@ -573,7 +573,7 @@ on conflict (slug) do nothing;
 Define the shape a page receives as a type, and annotate the loader's return type with it:
 
 ```ts
-// src/lib/types/ticket.ts
+// src/lib/Ticket/ticket.ts
 export type Ticket = { id: number; slug: string; status: string; createdAt: string };
 export type TicketListView = { tickets: Ticket[]; copy: DictionaryPayload };
 
@@ -603,8 +603,10 @@ Check `@sveltebuilder/coreui` before building any UI. It exports:
 Read the component's props in `node_modules/@sveltebuilder/coreui` rather than guessing them.
 Wrap form controls in `Field` (which wires up the label, `hint` and `error` with the right `aria-describedby`). Use
 `InlineNotification` for a form error and the message bus for toasts. If something reusable is
-missing, build it in `src/lib/components/` with the same conventions, and tell the user it
-might belong in coreui.
+missing, build it in the folder of the concept it represents (`src/lib/Ticket/TicketCard.svelte`,
+a child concept nested inside its parent's folder) with the same conventions, and tell the user
+it might belong in coreui. Group components by concept, never by kind: no `components/`,
+`forms/` or `utils/` folders.
 
 ### Styling
 

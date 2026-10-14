@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Field, Select, SelectItem } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const sizes = ['sm', 'md', 'lg'] as const;
 

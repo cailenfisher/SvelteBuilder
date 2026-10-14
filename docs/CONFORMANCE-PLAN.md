@@ -42,6 +42,18 @@ All work happens on `dev`. It already runs every CI gate on push, and the Releas
 - Do not edit historical `CHANGELOG.md` entries.
 - Run `pnpm changeset status --verbose` after writing any changeset. If it shows a major for any package other than coreui, content or logistic, stop.
 
+### Deferred decisions and their deadlines
+
+Choices taken provisionally during the run, each with the phase it has to be settled before. Report
+this table at the end of every phase, and update it when an item lands or a new one is deferred.
+
+| Item | Where it is recorded | Must land before | Status |
+| --- | --- | --- | --- |
+| Styling a class passed to a child component (`:global` stopgap on the base local-text page) | `docs/DEFERRED.md` | Phase 10 (screen decomposition multiplies the cases) | open |
+| `useField`/`FieldContext` as public API, or another way for a custom control to read `Field` | `docs/DEFERRED.md` | Phase 12 (1.0 freezes it), or before a second consumer | open |
+| Hard-coded English found along the way: `PickTaskCard` progress `aria-label`, `SubscriberList` column labels and counts | this table | Phase 11 (copy sweep) | open |
+| Validate the upgrade SQL against a database built from the 1.x schema | `docs/MIGRATION-2.0.md` | Phase 12 | open |
+
 ### Gate (run at the end of every phase)
 
 ```sh

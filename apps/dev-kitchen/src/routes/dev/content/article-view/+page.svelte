@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ArticleView } from '@sveltebuilder/content';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import {
     ATTRIBUTIONS,
     AUTHORS,

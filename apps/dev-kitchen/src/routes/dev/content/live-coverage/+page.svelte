@@ -1,6 +1,6 @@
 <script lang="ts">
   import { LiveCoverageView, LiveUpdateItem } from '@sveltebuilder/content';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import { LIVE_COVERAGE, LIVE_UPDATES, contentDictionary } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();

@@ -2,7 +2,7 @@
 <script lang="ts">
   import { LocaleSwitcher } from '@sveltebuilder/coreui';
   import { page } from '$app/state';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 </script>
 
 <Example title="LocaleSwitcher">

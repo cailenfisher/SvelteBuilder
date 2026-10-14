@@ -28,15 +28,15 @@ import { render } from 'svelte/server';
 import { createDictionary, type DictionaryPayload } from 'diglossia';
 import type { Component } from 'svelte';
 
-import ArticleBlockRenderer from '../src/lib/components/ArticleBlockRenderer.svelte';
-import ArticleCard from '../src/lib/components/ArticleCard.svelte';
-import ArticleView from '../src/lib/components/ArticleView.svelte';
-import BylineList from '../src/lib/components/BylineList.svelte';
-import LiveCoverageView from '../src/lib/components/LiveCoverageView.svelte';
-import LiveUpdateItem from '../src/lib/components/LiveUpdateItem.svelte';
-import MediaFigure from '../src/lib/components/MediaFigure.svelte';
-import SectionLabel from '../src/lib/components/SectionLabel.svelte';
-import TopicTag from '../src/lib/components/TopicTag.svelte';
+import ArticleBlockRenderer from '../src/lib/Article/ArticleBlock/ArticleBlockRenderer.svelte';
+import ArticleCard from '../src/lib/Article/ArticleCard.svelte';
+import ArticleView from '../src/lib/Article/ArticleView.svelte';
+import BylineList from '../src/lib/Article/ArticleByline/BylineList.svelte';
+import LiveCoverageView from '../src/lib/LiveCoverage/LiveCoverageView.svelte';
+import LiveUpdateItem from '../src/lib/LiveUpdate/LiveUpdateItem.svelte';
+import MediaFigure from '../src/lib/MediaAsset/MediaFigure.svelte';
+import SectionLabel from '../src/lib/Section/SectionLabel.svelte';
+import TopicTag from '../src/lib/Topic/TopicTag.svelte';
 
 import type {
   Article,

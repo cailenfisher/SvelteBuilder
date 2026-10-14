@@ -1,6 +1,6 @@
 <script lang="ts">
   import { PickTaskCard, PickTaskStatusBadge } from '@sveltebuilder/logistic';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import { PICK_LINES, PICK_TASKS, logisticDictionary } from '$lib/fixtures/logistic';
 
   const dictionary = logisticDictionary();

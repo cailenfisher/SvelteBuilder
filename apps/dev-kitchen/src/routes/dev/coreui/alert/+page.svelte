@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Alert, Banner, Button, InlineNotification, getMessageBus } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const messageBus = getMessageBus();
 

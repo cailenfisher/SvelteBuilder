@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Tabs, TabsContent, TabsList, TabsTrigger } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   let horizontal = $state('details');
   let vertical = $state('lines');

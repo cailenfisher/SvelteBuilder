@@ -1,6 +1,6 @@
 <script lang="ts">
   import { DateTimePicker, Label } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   let publishAt = $state('2026-10-07T09:30:00.000Z');
   let changes = $state<string[]>([]);

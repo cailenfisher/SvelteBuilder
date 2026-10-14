@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, Dialog, Drawer, Field, Input } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const sizes = ['sm', 'md', 'lg', 'xl', 'full'] as const;
   const sides = ['right', 'left', 'bottom'] as const;

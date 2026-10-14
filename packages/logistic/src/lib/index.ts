@@ -1,16 +1,16 @@
 // Components — Camp 2 (entity-aware, import @sveltebuilder/hermes)
-export { default as SupplierCard } from './components/SupplierCard.svelte';
-export { default as StorageLocationPath } from './components/StorageLocationPath.svelte';
-export { default as PickTaskCard } from './components/PickTaskCard.svelte';
-export { default as ReceiptCard } from './components/ReceiptCard.svelte';
+export { default as SupplierCard } from './Supplier/SupplierCard.svelte';
+export { default as StorageLocationPath } from './StorageLocation/StorageLocationPath.svelte';
+export { default as PickTaskCard } from './PickTask/PickTaskCard.svelte';
+export { default as ReceiptCard } from './InboundReceipt/ReceiptCard.svelte';
 
 // Components — Camp 1 (i18n-agnostic, no hermes import)
-export { default as PickTaskStatusBadge } from './components/PickTaskStatusBadge.svelte';
-export { default as ShipmentStatusBadge } from './components/ShipmentStatusBadge.svelte';
-export { default as ReturnConditionBadge } from './components/ReturnConditionBadge.svelte';
-export { default as StockLevelBar } from './components/StockLevelBar.svelte';
-export { default as BarcodeInput } from './components/BarcodeInput.svelte';
-export { default as TrackingEventList } from './components/TrackingEventList.svelte';
+export { default as PickTaskStatusBadge } from './PickTask/PickTaskStatusBadge.svelte';
+export { default as ShipmentStatusBadge } from './Shipment/ShipmentStatusBadge.svelte';
+export { default as ReturnConditionBadge } from './ReturnCondition/ReturnConditionBadge.svelte';
+export { default as StockLevelBar } from './StockLevel/StockLevelBar.svelte';
+export { default as BarcodeInput } from './BarcodeInput/BarcodeInput.svelte';
+export { default as TrackingEventList } from './TrackingEvent/TrackingEventList.svelte';
 
 // Types
 export type {

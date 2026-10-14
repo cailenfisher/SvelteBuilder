@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Popover, Tooltip } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 </script>
 
 <Example title="Popover">

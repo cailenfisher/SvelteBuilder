@@ -1,6 +1,6 @@
 <script lang="ts">
   import { DataTable, Pagination, type DataTableColumn } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   type Supplier = { id: number; name: string; country: string; openReceipts: number };
 

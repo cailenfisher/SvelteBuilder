@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { render } from 'svelte/server';
 import { createDictionary, type DictionaryPayload } from 'diglossia';
 
-import ArticleView from '../src/lib/components/ArticleView.svelte';
+import ArticleView from '../src/lib/Article/ArticleView.svelte';
 import type { ArticleBlock, ArticleRenderable, MediaAsset } from '../src/lib/schema/index.js';
 
 const STORAGE = 'https://example.test/storage/v1/object/public';

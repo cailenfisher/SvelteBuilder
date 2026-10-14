@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ArticleBlockEditor } from '@sveltebuilder/content';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import { BLOCKS, contentDictionary } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();

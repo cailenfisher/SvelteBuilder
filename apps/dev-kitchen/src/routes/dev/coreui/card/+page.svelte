@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, Card, Divider, MetricCard } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 </script>
 
 <Example title="Card">

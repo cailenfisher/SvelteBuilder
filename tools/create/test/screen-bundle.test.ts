@@ -448,14 +448,19 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
  * asked for twelve such slugs that nothing seeded.
  */
 function readComponentSlugs(module: string): string[] {
-  const dir = path.join(REPO, 'packages', module, 'src', 'lib', 'components');
+  // Components live in concept folders at any depth (Article/ArticleBlock/…), so walk the whole
+  // library rather than one directory: a flat read would silently find nothing.
+  const dir = path.join(REPO, 'packages', module, 'src', 'lib');
   if (!fs.existsSync(dir)) return [];
   const call = new RegExp(
     String.raw`(?:localText|formatText)\(\s*'([^']+)'\s*,\s*(?:\{[^}]*\}\s*,\s*)?'${module}'`,
     'g'
   );
   const slugs = new Set<string>();
-  for (const file of fs.readdirSync(dir).filter((name) => name.endsWith('.svelte'))) {
+  const files = fs
+    .readdirSync(dir, { recursive: true, encoding: 'utf8' })
+    .filter((name) => name.endsWith('.svelte'));
+  for (const file of files) {
     for (const match of fs.readFileSync(path.join(dir, file), 'utf8').matchAll(call))
       slugs.add(match[1]);
   }

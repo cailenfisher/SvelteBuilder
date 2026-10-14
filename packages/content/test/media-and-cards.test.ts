@@ -5,9 +5,9 @@ import { describe, expect, it } from 'vitest';
 import { render } from 'svelte/server';
 import { createDictionary } from 'diglossia';
 
-import ArticleCard from '../src/lib/components/ArticleCard.svelte';
-import ArticleView from '../src/lib/components/ArticleView.svelte';
-import MediaFigure from '../src/lib/components/MediaFigure.svelte';
+import ArticleCard from '../src/lib/Article/ArticleCard.svelte';
+import ArticleView from '../src/lib/Article/ArticleView.svelte';
+import MediaFigure from '../src/lib/MediaAsset/MediaFigure.svelte';
 import type {
   Article,
   ArticleBlock,

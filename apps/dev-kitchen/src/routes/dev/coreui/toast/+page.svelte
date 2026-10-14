@@ -2,7 +2,7 @@
      this page exercises them by sending through the bus rather than mounting copies. -->
 <script lang="ts">
   import { Button, Toast, getMessageBus, type SBMessageSeverity } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const messageBus = getMessageBus();
   const severities: SBMessageSeverity[] = ['info', 'success', 'warning', 'error'];

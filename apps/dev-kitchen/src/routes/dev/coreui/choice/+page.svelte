@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Checkbox, RadioGroup, RadioItem, Switch } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   let accepted = $state(true);
   let carrier = $state('ground');

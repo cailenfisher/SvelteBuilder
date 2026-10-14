@@ -10,7 +10,7 @@
     MenuSeparator,
     MenuSub,
   } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   let last = $state('(nothing yet)');
   let showArchived = $state(false);

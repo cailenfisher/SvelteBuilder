@@ -1,6 +1,6 @@
 <script lang="ts">
   import { StockLevelBar } from '@sveltebuilder/logistic';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const levels = [
     { title: 'Healthy', onHand: 420, reserved: 60, reorderPoint: 100 },

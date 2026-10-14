@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const variants = ['primary', 'secondary', 'ghost', 'danger', 'link'] as const;
   const sizes = ['sm', 'md', 'lg'] as const;

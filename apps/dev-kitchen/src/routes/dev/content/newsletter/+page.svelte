@@ -1,6 +1,6 @@
 <script lang="ts">
   import { NewsletterSignup, SubscriberList } from '@sveltebuilder/content';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import { NEWSLETTER, SUBSCRIBERS, contentDictionary } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();

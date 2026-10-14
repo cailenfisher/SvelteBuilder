@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ArticleList, AssignmentQueue } from '@sveltebuilder/content';
   import type { ComponentProps } from 'svelte';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import { ARTICLES_WITH_COPY, ASSIGNMENTS } from '$lib/fixtures/content';
 
   // AssignmentQueue's row type is not exported; typing through its props still fails the

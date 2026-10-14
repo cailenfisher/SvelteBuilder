@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Badge, Tag } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const variants = ['default', 'brand', 'success', 'warning', 'danger', 'info'] as const;
   const sizes = ['sm', 'md', 'lg'] as const;

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AuthorProfileView } from '@sveltebuilder/content';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import {
     ARTICLES_WITH_COPY,
     AUTHORS,

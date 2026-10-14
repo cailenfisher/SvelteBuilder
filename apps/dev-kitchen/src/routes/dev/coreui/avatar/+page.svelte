@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Avatar } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 

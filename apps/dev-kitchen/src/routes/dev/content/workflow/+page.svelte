@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ArticleWorkflowPanel } from '@sveltebuilder/content';
   import { Button } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import {
     ARTICLES_WITH_COPY,
     ASSIGNMENTS,
