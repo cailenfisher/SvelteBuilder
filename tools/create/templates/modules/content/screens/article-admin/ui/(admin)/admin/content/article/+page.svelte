@@ -8,13 +8,13 @@
     Button,
     DataTable,
     Dialog,
-    Field,
+    FilterLinkList,
     InlineNotification,
-    Input,
   } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
   import type { ArticleAdminListView, ArticleRow } from '@sveltebuilder/content/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import ArticleCreateForm from './ArticleCreateForm.svelte';
 
   let { data, form }: { data: ArticleAdminListView; form?: ScreenFormResult } = $props();
 
@@ -75,28 +75,17 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <!-- Links in a <nav>, not tabs: the filter is server-side, so each option is a navigation to a
-       different URL rather than a panel swap, and aria-current is what says which is on. -->
-  <nav class="article-admin-list-screen__filters" aria-label={t('content.article_admin.filter_status')}>
-    <Button
-      href={href(null)}
-      variant={data.statusSlug === null ? 'secondary' : 'ghost'}
-      size="sm"
-      aria-current={data.statusSlug === null ? 'page' : undefined}
-    >
-      {t('content.article_admin.filter_all')}
-    </Button>
-    {#each data.statuses as status (status.id)}
-      <Button
-        href={href(status.slug)}
-        variant={data.statusSlug === status.slug ? 'secondary' : 'ghost'}
-        size="sm"
-        aria-current={data.statusSlug === status.slug ? 'page' : undefined}
-      >
-        {scoped.localText('name', 'article_status', status.id)}
-      </Button>
-    {/each}
-  </nav>
+  <FilterLinkList
+    label={t('content.article_admin.filter_status')}
+    links={[
+      { href: href(null), label: t('content.article_admin.filter_all'), current: data.statusSlug === null },
+      ...data.statuses.map((status) => ({
+        href: href(status.slug),
+        label: scoped.localText('name', 'article_status', status.id),
+        current: data.statusSlug === status.slug,
+      })),
+    ]}
+  />
 
   <DataTable
     {columns}
@@ -118,22 +107,6 @@
 
 <Dialog bind:open={newArticleOpen} title={t('content.article_admin.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
-    <form method="POST" action="?/create" class="article-admin-list-screen__form">
-      <!-- Both fields are required: an article with no headline cannot be told apart from its
-           siblings in the list above, which is the only place an editor will look for it. -->
-      <Field label={t('content.article_admin.headline')} id="new-headline" required>
-        <Input name="headline" required />
-      </Field>
-      <Field label={t('content.article_admin.slug')} id="new-slug" required>
-        <Input name="canonical_slug" required />
-      </Field>
-
-      <div class="article-admin-list-screen__form-actions">
-        <Button variant="ghost" onclick={() => (newArticleOpen = false)}>
-          {dictionary.localText('action.cancel')}
-        </Button>
-        <Button type="submit" variant="primary">{t('content.article_admin.create')}</Button>
-      </div>
-    </form>
+    <ArticleCreateForm dictionary={scoped} onCancel={() => (newArticleOpen = false)} />
   {/snippet}
 </Dialog>

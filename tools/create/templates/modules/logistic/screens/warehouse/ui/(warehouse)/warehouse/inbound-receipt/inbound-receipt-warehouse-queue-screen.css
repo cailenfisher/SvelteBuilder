@@ -27,15 +27,3 @@
   color: var(--text);
   margin: 0;
 }
-
-.inbound-receipt-warehouse-queue-screen__cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.inbound-receipt-warehouse-queue-screen__empty {
-  font-size: var(--text-sm);
-  color: var(--text-soft);
-  margin: 0;
-}

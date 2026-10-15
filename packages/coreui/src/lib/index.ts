@@ -89,6 +89,8 @@ export { default as MenuSub } from './Menu/MenuSub.svelte';
 // ============================================================
 export { default as LocalePicker } from './LocalePicker/LocalePicker.svelte';
 export { default as Pagination } from './Pagination/Pagination.svelte';
+export { default as FilterLinkList } from './FilterLinkList/FilterLinkList.svelte';
+export type { FilterLink } from './FilterLinkList/filter-link.js';
 
 // ============================================================
 // Data display

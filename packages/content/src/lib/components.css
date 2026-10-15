@@ -13,6 +13,7 @@
 @import './Article/ArticleByline/article-byline.css';
 @import './Article/article.css';
 @import './AuthorProfile/author-profile.css';
+@import './Comment/comment.css';
 @import './Front/front.css';
 @import './LiveCoverage/live-coverage.css';
 @import './LiveUpdate/live-update.css';

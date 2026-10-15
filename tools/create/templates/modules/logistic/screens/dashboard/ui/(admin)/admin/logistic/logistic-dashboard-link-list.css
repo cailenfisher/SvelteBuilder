@@ -1,0 +1,26 @@
+.logistic-dashboard-link-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.logistic-dashboard-link-list__entry {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.logistic-dashboard-link-list__link {
+  color: var(--text);
+  font-weight: var(--weight-medium);
+}
+
+.logistic-dashboard-link-list__detail {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+}

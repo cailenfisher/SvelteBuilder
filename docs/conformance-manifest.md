@@ -399,3 +399,27 @@ Kept: `src`, `params` and `e` in one-line lambdas, which are platform names or a
 | dev-kitchen `.kitchen`, `.theme` | `.kitchen-layout`, `.theme-screen` | same naming as the templates |
 | — | `src/lib/components.css` in each package (the stylesheet index, exported as `styles/components.css`), `src/utilities.css`, `scripts/css-check.mjs`, `pnpm css:check` | new files |
 
+## Added during Phase 11 (pending approval)
+
+New components. "Package" ones only take props and render markup (D6) and have dev-kitchen
+showcases; "bundle" ones post to their route's actions or build its links, and sit beside the page.
+
+| Component | Where | Notes |
+| --- | --- | --- |
+| `FilterLinkList` (+ type `FilterLink`) | coreui | a list's server-side filter as a `<nav>` of links; replaces the same markup in six screens across two modules (promotion rule) |
+| `StockAdjustmentList`, `StorageLocationFieldset`, `InboundReceiptSummary`, `InboundReceiptList`, `CycleCountLineTable`, `ShipmentLineTable`, `LogisticMetricSummary` | logistic | `InboundReceiptList` is used by the admin list and the warehouse queue, with the link per receipt as a prop |
+| `CommentList` | content | renders readers' own words, so it needs no dictionary |
+| `<Concept>CreateForm`: `InboundReceiptCreateForm`, `ShipmentCreateForm`, `ReturnAuthorizationCreateForm`, `CycleCountCreateForm`, `SupplierCreateForm`, `ArticleCreateForm`, `LocalTextCreateForm`, `LocaleCreateForm`, `NavigationItemCreateForm` | bundle | named after the `create` action they post to |
+| `<Concept>Table`: `ShipmentTable`, `ReturnAuthorizationTable`, `CycleCountTable`, `StockLevelTable`, `StockLevelLowTable`, `LocalTextTable`, `LocaleTable`, `NavigationItemTable`; line tables `InboundReceiptLineTable`, `ReturnAuthorizationLineTable` | bundle | tables whose rows link to a route or post to one |
+| `<Concept>DetailHeader`: `InboundReceiptDetailHeader`, `ReturnAuthorizationDetailHeader`, `CycleCountDetailHeader`, `ShipmentDetailHeader`, `ArticleAdminDetailHeader` | bundle | named after the view type, like the screen root (`ArticleAdminDetailView` → `ArticleAdminDetailHeader`) |
+| child-row forms: `InboundReceiptLineAddForm`, `InboundReceiptLineReceiveForm`, `ReturnAuthorizationLineGradeForm`, `SupplierContactAddForm`, `TrackingEventAddForm`; edits: `SupplierUpdateForm`, `NavigationItemUpdateForm`, `ShipmentStatusForm`, `ShipmentTrackingForm`, `StockAdjustmentForm`, `StockLevelReorderPointForm`, `CommentForm` | bundle | `Add` for a child row, `Create` for a root, `Update` for the row itself |
+| `StockAdjustmentModal`, `StockAdjustmentPanel` | bundle | the stock-level screen's adjust dialog and history panel |
+| `SupplierList`, `SupplierContactList` | bundle | |
+| `LogisticDashboardSection`, `LogisticDashboardLinkList` | bundle | one frame and one preview list for the dashboard's four sections |
+| warehouse: `PickTaskAssignedList`, `PickTaskQueue`, `PickTaskLineList`, `CycleCountAssignedList`, `CycleCountQueue`, `CycleCountLineList`, `InboundReceiptLineList` | bundle | `Assigned` matches the data module's `listAssignedPickTask`; `Queue` is the open work a worker takes from |
+| `LocalTextForm` | base template `$lib/LocalText/` | one locale's copy, shared by the local-text and navigation-item detail screens, posting to the action the page names |
+
+Also: `class:negative` and `class:done` (bare classes) became BEM modifiers (`__discrepancy--negative`,
+`__line--done`), and text coloured `--danger` became `--danger-text`, which axe found failing contrast
+once the rules reached a showcased component.
+

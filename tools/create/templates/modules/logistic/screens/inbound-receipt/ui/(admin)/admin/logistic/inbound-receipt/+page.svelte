@@ -3,21 +3,12 @@
   import { goto } from '$app/navigation';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
-  import {
-    Button,
-    Dialog,
-    Field,
-    InlineNotification,
-    Input,
-    Pagination,
-    Select,
-    SelectItem,
-    Textarea,
-  } from '@sveltebuilder/coreui';
-  import { INBOUND_RECEIPT_STATUSES, InboundReceiptCard } from '@sveltebuilder/logistic';
+  import { Button, Dialog, FilterLinkList, InlineNotification, Pagination } from '@sveltebuilder/coreui';
+  import { INBOUND_RECEIPT_STATUSES, InboundReceiptList } from '@sveltebuilder/logistic';
   import type { InboundReceiptStatus } from '@sveltebuilder/logistic';
   import type { InboundReceiptListView } from '@sveltebuilder/logistic/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import InboundReceiptCreateForm from './InboundReceiptCreateForm.svelte';
 
   let { data, form }: { data: InboundReceiptListView; form?: ScreenFormResult } = $props();
 
@@ -48,106 +39,57 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <!-- Links in a <nav> rather than a Tabs: the filter is server-side, so each option is a
-       navigation to a different URL, not a panel swap. Tab semantics (role="tab" with
-       aria-controls) would claim there are panels on this page to switch between, and
-       aria-current="page" is what actually tells a screen reader which filter is on. -->
-  <nav class="inbound-receipt-list-screen__filters" aria-label={t('logistic.inbound_receipt.filter_status')}>
-    <Button
-      href={filterHref(null)}
-      variant={data.status === null ? 'secondary' : 'ghost'}
-      size="sm"
-      aria-current={data.status === null ? 'page' : undefined}
-    >
-      {t('logistic.inbound_receipt.filter_all')}
-    </Button>
-    {#each INBOUND_RECEIPT_STATUSES as status (status)}
-      <Button
-        href={filterHref(status)}
-        variant={data.status === status ? 'secondary' : 'ghost'}
-        size="sm"
-        aria-current={data.status === status ? 'page' : undefined}
-      >
-        {t(`logistic.inbound_receipt.status.${status}`)}
-      </Button>
-    {/each}
-  </nav>
+  <FilterLinkList
+    label={t('logistic.inbound_receipt.filter_status')}
+    links={[
+      { href: filterHref(null), label: t('logistic.inbound_receipt.filter_all'), current: data.status === null },
+      ...INBOUND_RECEIPT_STATUSES.map((status) => ({
+        href: filterHref(status),
+        label: t(`logistic.inbound_receipt.status.${status}`),
+        current: data.status === status,
+      })),
+    ]}
+  />
 
   <div class="inbound-receipt-list-screen__results">
-    {#if data.inboundReceipts.length > 0}
-      <div class="inbound-receipt-list-screen__cards">
-        {#each data.inboundReceipts as receipt (receipt.id)}
-          <!-- Camp 2 component: it reads the supplier's name and the status label from
-                 the dictionary, so it takes this screen's instance rather than context. -->
-          <InboundReceiptCard
-            {receipt}
-            supplier={receipt.supplier}
-            lines={receipt.lines}
-            href="/admin/logistic/inbound-receipt/{receipt.id}"
-            locale={data.localeCode}
-            dictionary={scoped}
-          />
-        {/each}
-      </div>
+    <InboundReceiptList
+      inboundReceipts={data.inboundReceipts}
+      href={(receipt) => `/admin/logistic/inbound-receipt/${receipt.id}`}
+      locale={data.localeCode}
+      emptyLabel={t('logistic.inbound_receipt.empty')}
+      dictionary={scoped}
+    />
 
-      {#if data.total > data.perPage}
-        <nav class="inbound-receipt-list-screen__pagination" aria-label={t('logistic.inbound_receipt.pagination')}>
-          <!-- Paging is server-side, so a page change is a navigation rather than local
-                 state: the loader owns the slice, and a reload or a shared URL has to land
-                 on the same one. goto keeps the status filter, which is the other half of
-                 what the loader read. -->
-          <Pagination
-            count={data.total}
-            perPage={data.perPage}
-            page={data.page}
-            onPageChange={(next) =>
-              goto(
-                `/admin/logistic/inbound-receipt?page=${next}` +
-                  (data.status ? `&status=${data.status}` : '')
-              )}
-            previousLabel={dictionary.localText('pagination.previous')}
-            nextLabel={dictionary.localText('pagination.next')}
-            label={dictionary.localText('navigation.pagination')}
-          />
-        </nav>
-      {/if}
-    {:else}
-      <p class="inbound-receipt-list-screen__empty">{t('logistic.inbound_receipt.empty')}</p>
+    {#if data.total > data.perPage}
+      <nav class="inbound-receipt-list-screen__pagination" aria-label={t('logistic.inbound_receipt.pagination')}>
+        <!-- Paging is server-side, so a page change is a navigation rather than local
+               state: the loader owns the slice, and a reload or a shared URL has to land
+               on the same one. goto keeps the status filter, which is the other half of
+               what the loader read. -->
+        <Pagination
+          count={data.total}
+          perPage={data.perPage}
+          page={data.page}
+          onPageChange={(next) =>
+            goto(
+              `/admin/logistic/inbound-receipt?page=${next}` +
+                (data.status ? `&status=${data.status}` : '')
+            )}
+          previousLabel={dictionary.localText('pagination.previous')}
+          nextLabel={dictionary.localText('pagination.next')}
+          label={dictionary.localText('navigation.pagination')}
+        />
+      </nav>
     {/if}
   </div>
 </div>
 
 <Dialog bind:open={newReceiptOpen} title={t('logistic.inbound_receipt.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
-    <form method="POST" action="?/create" class="inbound-receipt-list-screen__new-form">
-      <!-- Field renders the <label for>; the control inherits its id from field context. -->
-      <Field label={t('logistic.inbound_receipt.supplier')} id="supplier-id">
-        <Select name="supplier_id">
-          <!-- No supplier is a blind receipt, not a missing answer. -->
-          <SelectItem value="" label={t('logistic.inbound_receipt.blind')} />
-          {#each data.suppliers as supplier (supplier.id)}
-            <SelectItem
-              value={String(supplier.id)}
-              label={scoped.localText('name', 'supplier', supplier.id)}
-            />
-          {/each}
-        </Select>
-      </Field>
-
-      <Field label={t('logistic.inbound_receipt.expected_at')} id="expected-at">
-        <Input name="expected_at" type="date" />
-      </Field>
-
-      <Field label={t('logistic.field.note')} id="receipt-note">
-        <Textarea name="note" rows={3} />
-      </Field>
-
-      <div class="inbound-receipt-list-screen__new-form-actions">
-        <Button variant="ghost" onclick={() => (newReceiptOpen = false)}>
-          {dictionary.localText('action.cancel')}
-        </Button>
-        <Button type="submit" variant="primary">{t('logistic.inbound_receipt.create')}</Button>
-      </div>
-    </form>
+    <InboundReceiptCreateForm
+      suppliers={data.suppliers}
+      dictionary={scoped}
+      onCancel={() => (newReceiptOpen = false)}
+    />
   {/snippet}
 </Dialog>

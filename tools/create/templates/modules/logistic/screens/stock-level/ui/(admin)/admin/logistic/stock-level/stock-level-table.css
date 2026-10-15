@@ -1,0 +1,9 @@
+.stock-level-table__sku {
+  font-family: var(--font-mono);
+}
+
+.stock-level-table__actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: flex-end;
+}

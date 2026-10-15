@@ -1,0 +1,17 @@
+.navigation-item-table {
+  overflow-x: auto;
+}
+
+.navigation-item-table__slug {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background-color: var(--surface-overlay);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.navigation-item-table__row-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}

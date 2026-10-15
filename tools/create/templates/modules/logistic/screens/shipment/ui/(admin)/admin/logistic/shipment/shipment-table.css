@@ -1,0 +1,8 @@
+.shipment-table__link {
+  color: var(--text);
+  font-weight: var(--weight-medium);
+}
+
+.shipment-table__tracking-number {
+  font-family: var(--font-mono);
+}

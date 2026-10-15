@@ -79,6 +79,7 @@ export { MEDIA_ASSET_LICENSES } from './schema/media-asset-license.js';
 export { MEDIA_ASSET_TYPES } from './schema/media-asset-type.js';
 
 // Camp 1 components (no hermes dependency)
+export { default as CommentList } from './Comment/CommentList.svelte';
 export { default as ArticleList } from './Article/ArticleList.svelte';
 export { default as ArticleAssignmentQueue } from './Article/ArticleAssignment/ArticleAssignmentQueue.svelte';
 export { default as FrontCurationBoard } from './Front/FrontCurationBoard.svelte';

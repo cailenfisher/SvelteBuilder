@@ -33,6 +33,7 @@
 @import './Menu/menu.css';
 @import './MetricCard/metric-card.css';
 @import './Pagination/pagination.css';
+@import './FilterLinkList/filter-link-list.css';
 @import './Popover/popover.css';
 @import './ProgressBar/progress-bar.css';
 @import './RadioGroup/radio-group.css';

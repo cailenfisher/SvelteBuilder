@@ -86,3 +86,47 @@
   margin: 0;
   font-style: italic;
 }
+
+/* ── InboundReceiptSummary ───────────────────────────────────────────────────────── */
+
+.inbound-receipt-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.inbound-receipt-summary__dates {
+  display: flex;
+  gap: var(--space-8);
+  margin: 0;
+}
+
+.inbound-receipt-summary__term {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+}
+
+.inbound-receipt-summary__value {
+  margin: 0;
+  color: var(--text);
+}
+
+.inbound-receipt-summary__note {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  margin: var(--space-1) 0 0;
+}
+
+/* ── InboundReceiptList ──────────────────────────────────────────────────────────── */
+
+.inbound-receipt-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.inbound-receipt-list__empty {
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+  margin: 0;
+}

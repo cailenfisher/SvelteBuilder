@@ -23,7 +23,7 @@
  *   node scripts/css-check.mjs
  */
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
@@ -31,7 +31,7 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 /** Files git knows or would add: dev-kitchen's chrome is generated from the base template and ignored. */
 const tracked = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { cwd: ROOT, encoding: 'utf8' })
   .split('\n')
-  .filter(Boolean);
+  .filter((file) => file && existsSync(path.join(ROOT, file)));
 
 /** Where the rules apply. The Native template is on hold and not maintained (CLAUDE.md). */
 const TREES = [

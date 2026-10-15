@@ -1,10 +1,10 @@
 <script lang="ts">
   import './cycle-count-warehouse-detail-screen.css';
-  import { enhance } from '$app/forms';
   import { createDictionary } from 'diglossia';
-  import { Button, InlineNotification, Input } from '@sveltebuilder/coreui';
+  import { InlineNotification } from '@sveltebuilder/coreui';
   import type { CycleCountWarehouseDetailView } from '@sveltebuilder/logistic/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import CycleCountLineList from './CycleCountLineList.svelte';
 
   let { data, form }: { data: CycleCountWarehouseDetailView; form?: ScreenFormResult } = $props();
 
@@ -36,35 +36,7 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <ol class="cycle-count-warehouse-detail-screen__lines">
-    {#each count.lines as line (line.id)}
-      <li class="cycle-count-warehouse-detail-screen__line" class:done={line.countedQuantity !== null}>
-        <div class="cycle-count-warehouse-detail-screen__line-where">
-          <span class="cycle-count-warehouse-detail-screen__location">
-            {scoped.localText('name', 'storage_location', line.storageLocationId)}
-          </span>
-          <code class="cycle-count-warehouse-detail-screen__sku">{line.sku}</code>
-        </div>
-
-        <!-- The expected quantity is deliberately not shown. A counter who can see what the
-             system expects tends to confirm it; the whole value of a blind count is that
-             they report what is actually there. The variance is computed afterwards. -->
-        <form method="POST" action="?/record" class="cycle-count-warehouse-detail-screen__form" use:enhance>
-          <input type="hidden" name="cycle_count_line_id" value={line.id} />
-          <Input
-            name="quantity"
-            type="number"
-            min="0"
-            value={line.countedQuantity !== null ? String(line.countedQuantity) : ''}
-            aria-label={t('logistic.warehouse.cycle_count.counted_quantity')}
-          />
-          <Button type="submit" variant="primary" size="sm">
-            {t('logistic.warehouse.cycle_count.record')}
-          </Button>
-        </form>
-      </li>
-    {/each}
-  </ol>
+  <CycleCountLineList cycleCountLines={count.lines} dictionary={scoped} />
 
   <p class="cycle-count-warehouse-detail-screen__note">{t('logistic.warehouse.cycle_count.approval_note')}</p>
 </div>

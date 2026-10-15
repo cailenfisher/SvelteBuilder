@@ -2,7 +2,7 @@
   import './local-text-admin-detail-screen.css';
   import { getDictionary } from 'diglossia/svelte'
   import { Button } from '@sveltebuilder/coreui'
-  import LocalTextFieldset from '$lib/LocalText/LocalTextFieldset.svelte'
+  import LocalTextForm from '$lib/LocalText/LocalTextForm.svelte'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
@@ -40,19 +40,12 @@
 
   <div class="local-text-admin-detail-screen__translations">
     {#each data.locales as locale (locale.id)}
-      <form method="post" action="?/update" class="local-text-admin-detail-screen__locale-form">
-        <LocalTextFieldset
-          {slugLabel}
-          localeLabel={locale.nativeName}
-          contentLabel={dictionary.localText('admin.local_text.content')}
-          locales={[locale]}
-          slug={data.entry.slug}
-          localeId={locale.id}
-          content={translationFor(locale.id)}
-          slugReadonly={true}
-        />
-        <Button type="submit" size="sm">{dictionary.localText('action.save')}</Button>
-      </form>
+      <LocalTextForm
+        action="?/update"
+        slug={data.entry.slug}
+        {locale}
+        content={translationFor(locale.id)}
+      />
     {/each}
   </div>
 

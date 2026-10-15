@@ -2,10 +2,11 @@
   import './supplier-list-screen.css';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
-  import { Button, Field, Input, InlineNotification } from '@sveltebuilder/coreui';
-  import { SupplierCard } from '@sveltebuilder/logistic';
+  import { Button, InlineNotification } from '@sveltebuilder/coreui';
   import type { SupplierListView } from '@sveltebuilder/logistic/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import SupplierCreateForm from './SupplierCreateForm.svelte';
+  import SupplierList from './SupplierList.svelte';
 
   // The loader for this screen is flavour-specific; SupplierListView is the contract
   // between the two. Typing `data` as the view rather than PageData is what makes a
@@ -40,39 +41,8 @@
   {/if}
 
   {#if showCreateForm}
-    <!-- Creating a supplier is three statements — the row, its local_text_link, its
-         local_text — so it posts to an RPC rather than an insert. The name is captured
-         in the active locale only; further translations are the local-text admin's job. -->
-    <form method="POST" action="?/create" class="supplier-list-screen__form">
-      <div class="supplier-list-screen__form-fields">
-        <Field label={t('logistic.field.slug')} id="new-supplier-slug" required>
-          <Input name="slug" required />
-        </Field>
-        <Field label={t('logistic.field.name')} id="new-supplier-name" required>
-          <Input name="name" required />
-        </Field>
-        <Field label={t('logistic.field.lead_time_day')} id="new-supplier-lead-time">
-          <Input name="lead_time_day" type="number" min="0" />
-        </Field>
-      </div>
-      <Button type="submit" variant="primary">{dictionary.localText('action.save')}</Button>
-    </form>
+    <SupplierCreateForm dictionary={scoped} />
   {/if}
 
-  {#if data.suppliers.length > 0}
-    <div class="supplier-list-screen__grid">
-      {#each data.suppliers as supplier (supplier.id)}
-        <!-- Camp 2 component: it reads the supplier's own name from the dictionary,
-             so it takes this screen's instance rather than the page context. -->
-        <SupplierCard
-          {supplier}
-          contacts={supplier.contacts}
-          href="/admin/logistic/supplier/{supplier.id}"
-          dictionary={scoped}
-        />
-      {/each}
-    </div>
-  {:else}
-    <p class="supplier-list-screen__empty">{t('logistic.supplier.empty')}</p>
-  {/if}
+  <SupplierList suppliers={data.suppliers} dictionary={scoped} />
 </div>

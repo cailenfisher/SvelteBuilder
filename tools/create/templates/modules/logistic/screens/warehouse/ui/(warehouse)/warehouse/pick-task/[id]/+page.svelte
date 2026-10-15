@@ -1,11 +1,11 @@
 <script lang="ts">
   import './pick-task-warehouse-detail-screen.css';
-  import { enhance } from '$app/forms';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
-  import { Button, ConfirmDialog, InlineNotification, Input } from '@sveltebuilder/coreui';
+  import { Button, ConfirmDialog, InlineNotification } from '@sveltebuilder/coreui';
   import type { PickTaskWarehouseDetailView } from '@sveltebuilder/logistic/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import PickTaskLineList from './PickTaskLineList.svelte';
 
   let { data, form }: { data: PickTaskWarehouseDetailView; form?: ScreenFormResult } = $props();
 
@@ -43,46 +43,7 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <ol class="pick-task-warehouse-detail-screen__lines">
-    {#each task.lines as line (line.id)}
-      <li class="pick-task-warehouse-detail-screen__line" class:done={line.pickedQuantity >= line.requestedQuantity}>
-        <div class="pick-task-warehouse-detail-screen__line-where">
-          <!-- Location first and largest: the picker reads where to go before what to take. -->
-          <span class="pick-task-warehouse-detail-screen__location">
-            {scoped.localText('name', 'storage_location', line.storageLocationId)}
-          </span>
-          <code class="pick-task-warehouse-detail-screen__sku">{line.sku}</code>
-        </div>
-
-        <div class="pick-task-warehouse-detail-screen__line-what">
-          <span class="pick-task-warehouse-detail-screen__quantity">
-            {scoped.formatText(
-              'logistic.warehouse.pick_task.picked_of',
-              { picked: line.pickedQuantity, requested: line.requestedQuantity },
-              'logistic'
-            )}
-          </span>
-
-          <!-- use:enhance so recording one line does not scroll the picker away from where
-               they are in the list. -->
-          <form method="POST" action="?/pick" class="pick-task-warehouse-detail-screen__form" use:enhance>
-            <input type="hidden" name="pick_task_line_id" value={line.id} />
-            <Input
-              name="quantity"
-              type="number"
-              min="0"
-              max={String(line.requestedQuantity)}
-              value={String(line.pickedQuantity)}
-              aria-label={t('logistic.warehouse.pick_task.quantity')}
-            />
-            <Button type="submit" variant="primary" size="sm">
-              {t('logistic.warehouse.pick_task.record')}
-            </Button>
-          </form>
-        </div>
-      </li>
-    {/each}
-  </ol>
+  <PickTaskLineList pickTaskLines={task.lines} dictionary={scoped} />
 
   <Button variant="primary" full onclick={() => (completeConfirmOpen = true)}>
     {t('logistic.warehouse.pick_task.complete')}

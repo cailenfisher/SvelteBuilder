@@ -1,0 +1,13 @@
+/* ── CycleCountLineTable ──────────────────────────────────────────────────────────── */
+
+.cycle-count-line-table__sku {
+  font-family: var(--font-mono);
+}
+
+.cycle-count-line-table__variance {
+  font-weight: var(--weight-semibold);
+}
+
+.cycle-count-line-table__variance--negative {
+  color: var(--danger-text);
+}

@@ -1,0 +1,10 @@
+.tracking-event-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tracking-event-add-form__actions {
+  display: flex;
+  justify-content: flex-end;
+}

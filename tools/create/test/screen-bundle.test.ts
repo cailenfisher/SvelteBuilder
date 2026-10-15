@@ -201,7 +201,9 @@ function readSlugUses(bundleDir: string): SlugUse[] {
     }
 
     for (const [name, scope] of helpers) {
-      for (const m of source.matchAll(new RegExp(`\\b${name}\\('([^']+)'\\)`, 'g'))) {
+      // Not after a `.`: `globalDictionary.localText('…')` is a direct call, read below, even
+      // when the helper shares the method's name.
+      for (const m of source.matchAll(new RegExp(`(?<![.\\w])${name}\\('([^']+)'\\)`, 'g'))) {
         uses.push({ slug: m[1], scope, entityBound: false, file: rel });
       }
     }

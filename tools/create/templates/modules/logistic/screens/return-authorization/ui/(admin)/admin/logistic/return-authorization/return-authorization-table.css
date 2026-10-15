@@ -1,0 +1,4 @@
+.return-authorization-table__link {
+  color: var(--text);
+  font-weight: var(--weight-medium);
+}

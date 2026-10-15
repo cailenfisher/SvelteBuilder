@@ -1,0 +1,11 @@
+.navigation-item-update-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.navigation-item-update-form__fields {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: var(--space-4);
+}

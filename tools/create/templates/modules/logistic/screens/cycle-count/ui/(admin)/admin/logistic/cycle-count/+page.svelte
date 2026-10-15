@@ -3,18 +3,12 @@
   import { goto } from '$app/navigation';
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
-  import {
-    Badge,
-    Button,
-    Checkbox,
-    DataTable,
-    Dialog,
-    InlineNotification,
-  } from '@sveltebuilder/coreui';
-  import type { DataTableColumn } from '@sveltebuilder/coreui';
-  import type { CycleCountStatus } from '@sveltebuilder/logistic';
-  import type { CycleCountListView, CycleCountRow } from '@sveltebuilder/logistic/views';
+  import { Button, Dialog, FilterLinkList, InlineNotification } from '@sveltebuilder/coreui';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import type { CycleCountStatus } from '@sveltebuilder/logistic';
+  import type { CycleCountListView } from '@sveltebuilder/logistic/views';
+  import CycleCountCreateForm from './CycleCountCreateForm.svelte';
+  import CycleCountTable from './CycleCountTable.svelte';
 
   let { data, form }: { data: CycleCountListView; form?: ScreenFormResult } = $props();
 
@@ -24,24 +18,6 @@
 
   let newCountOpen = $state(false);
 
-  const columns: DataTableColumn[] = $derived([
-    { key: 'id', label: t('logistic.cycle_count.one') },
-    { key: 'status', label: t('logistic.cycle_count.status_label') },
-    { key: 'progress', label: t('logistic.cycle_count.progress'), align: 'end' },
-    { key: 'createdAt', label: t('logistic.cycle_count.created_at') },
-  ]);
-
-  // Badge takes a variant, not a domain status: mapping the one to the other is the
-  // caller's job by design, since only the domain knows which states are good news.
-  const statusVariant = (status: CycleCountStatus) =>
-    status === 'completed'
-      ? 'success'
-      : status === 'in_progress'
-        ? 'warning'
-        : status === 'cancelled'
-          ? 'danger'
-          : 'default';
-
   const href = (status: CycleCountStatus | null, page = 1) => {
     const params = new URLSearchParams();
     if (status !== null) params.set('status', status);
@@ -49,30 +25,7 @@
     const query = params.toString();
     return `/admin/logistic/cycle-count${query ? `?${query}` : ''}`;
   };
-
-  const formatDate = (iso: string) =>
-    new Intl.DateTimeFormat(data.localeCode, { dateStyle: 'medium' }).format(new Date(iso));
 </script>
-
-{#snippet countCell(row: CycleCountRow, column: DataTableColumn)}
-  {#if column.key === 'id'}
-    <a href="/admin/logistic/cycle-count/{row.id}" class="cycle-count-list-screen__link">#{row.id}</a>
-  {:else if column.key === 'status'}
-    <Badge variant={statusVariant(row.status)}>
-      {t(`logistic.cycle_count.status.${row.status}`)}
-    </Badge>
-  {:else if column.key === 'progress'}
-    <!-- Interpolated through MF2 so a locale can order the two numbers as its grammar
-         needs, rather than the screen hardcoding "x of y". -->
-    {scoped.formatText(
-      'logistic.cycle_count.progress_value',
-      { counted: row.countedCount, total: row.lineCount },
-      'logistic'
-    )}
-  {:else if column.key === 'createdAt'}
-    {formatDate(row.createdAt)}
-  {/if}
-{/snippet}
 
 <svelte:head>
   <title>{t('logistic.cycle_count.title')}</title>
@@ -90,67 +43,35 @@
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
-  <nav class="cycle-count-list-screen__filters" aria-label={t('logistic.cycle_count.filter_status')}>
-    <Button
-      href={href(null)}
-      variant={data.status === null ? 'secondary' : 'ghost'}
-      size="sm"
-      aria-current={data.status === null ? 'page' : undefined}
-    >
-      {t('logistic.cycle_count.filter_all')}
-    </Button>
-    {#each data.statuses as status (status)}
-      <Button
-        href={href(status)}
-        variant={data.status === status ? 'secondary' : 'ghost'}
-        size="sm"
-        aria-current={data.status === status ? 'page' : undefined}
-      >
-        {t(`logistic.cycle_count.status.${status}`)}
-      </Button>
-    {/each}
-  </nav>
+  <FilterLinkList
+    label={t('logistic.cycle_count.filter_status')}
+    links={[
+      { href: href(null), label: t('logistic.cycle_count.filter_all'), current: data.status === null },
+      ...data.statuses.map((status) => ({
+        href: href(status),
+        label: t(`logistic.cycle_count.status.${status}`),
+        current: data.status === status,
+      })),
+    ]}
+  />
 
-  <DataTable
-    {columns}
-    rows={data.cycleCounts}
-    rowKey={(row) => row.id}
-    cell={countCell}
+  <CycleCountTable
+    cycleCounts={data.cycleCounts}
     page={data.page}
     perPage={data.perPage}
     total={data.total}
     onPageChange={(next) => goto(href(data.status, next))}
-    labels={{
-      empty: t('logistic.cycle_count.empty'),
-      pagination: dictionary.localText('navigation.pagination'),
-      previousPage: dictionary.localText('pagination.previous'),
-      nextPage: dictionary.localText('pagination.next'),
-    }}
+    localeCode={data.localeCode}
+    dictionary={scoped}
   />
 </div>
 
 <Dialog bind:open={newCountOpen} title={t('logistic.cycle_count.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
-    <form method="POST" action="?/create" class="cycle-count-list-screen__new-form">
-      <fieldset class="cycle-count-list-screen__new-form-locations">
-        <legend>{t('logistic.cycle_count.choose_locations')}</legend>
-        {#each data.storageLocations as location (location.id)}
-          <!-- Checkbox is self-labelling, so it is not wrapped in a Field: that would
-               nest one label inside another and leave the outer for= dangling. -->
-          <Checkbox
-            name="storage_location_ids"
-            value={String(location.id)}
-            label={scoped.localText('name', 'storage_location', location.id)}
-          />
-        {/each}
-      </fieldset>
-
-      <div class="cycle-count-list-screen__new-form-actions">
-        <Button variant="ghost" onclick={() => (newCountOpen = false)}>
-          {dictionary.localText('action.cancel')}
-        </Button>
-        <Button type="submit" variant="primary">{t('logistic.cycle_count.create')}</Button>
-      </div>
-    </form>
+    <CycleCountCreateForm
+      storageLocations={data.storageLocations}
+      dictionary={scoped}
+      onCancel={() => (newCountOpen = false)}
+    />
   {/snippet}
 </Dialog>

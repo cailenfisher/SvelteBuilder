@@ -1,11 +1,12 @@
 <script lang="ts">
   import './article-detail-screen.css';
   import { createDictionary } from 'diglossia';
-  import { Button, Field, InlineNotification, Input, Textarea } from '@sveltebuilder/coreui';
-  import { ArticleDetail } from '@sveltebuilder/content';
+  import { InlineNotification } from '@sveltebuilder/coreui';
+  import { ArticleDetail, CommentList } from '@sveltebuilder/content';
   import { buildArticleMetaTags, buildNewsArticleJsonLd } from '@sveltebuilder/content/publishing';
   import type { ArticleDetailView } from '@sveltebuilder/content/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import CommentForm from './CommentForm.svelte';
 
   let { data, form }: { data: ArticleDetailView; form?: ScreenFormResult } = $props();
 
@@ -82,14 +83,7 @@
           <h2 class="article-detail-screen__comments-heading">{t('content.comment.heading')}</h2>
 
           {#if data.comments.length > 0}
-            <ol class="article-detail-screen__comment-list">
-              {#each data.comments as comment (comment.id)}
-                <li class="article-detail-screen__comment">
-                  <p class="article-detail-screen__comment-author">{comment.authorName}</p>
-                  <p class="article-detail-screen__comment-body">{comment.body}</p>
-                </li>
-              {/each}
-            </ol>
+            <CommentList comments={data.comments} />
           {/if}
 
           {#if commentAccepted}
@@ -97,27 +91,7 @@
                  not a problem, and should not interrupt a screen reader. -->
             <InlineNotification severity="success" summary={t('content.comment.pending')} />
           {:else}
-            <form class="article-detail-screen__comment-form" method="POST" action="?/comment">
-              <h3 class="article-detail-screen__comment-form-heading">{t('content.comment.leave')}</h3>
-
-              {#if form?.error}
-                <InlineNotification severity="danger" summary={form.error} />
-              {/if}
-
-              <Field label={t('content.comment.name')} id="comment-name" required>
-                <Input name="author_name" required />
-              </Field>
-              <Field label={t('content.comment.email')} id="comment-email" required>
-                <Input name="author_email" type="email" required />
-              </Field>
-              <Field label={t('content.comment.body')} id="comment-body" required>
-                <Textarea name="body" rows={5} required />
-              </Field>
-
-              <!-- No status field: a comment is created pending, and the RLS insert policy is
-                   what enforces that rather than this form omitting it. -->
-              <Button type="submit" variant="primary">{t('content.comment.submit')}</Button>
-            </form>
+            <CommentForm error={form?.error} dictionary={scoped} />
           {/if}
         </section>
       {/if}

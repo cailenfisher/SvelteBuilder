@@ -1,23 +1,15 @@
 <script lang="ts">
   import './logistic-dashboard-screen.css';
   import { createDictionary } from 'diglossia';
-  import { getDictionary } from 'diglossia/svelte';
-  import {
-    Badge,
-    Button,
-    MetricCard,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeaderCell,
-    TableRow,
-  } from '@sveltebuilder/coreui';
+  import { Button } from '@sveltebuilder/coreui';
+  import { LogisticMetricSummary } from '@sveltebuilder/logistic';
   import type { LogisticDashboardView } from '@sveltebuilder/logistic/views';
+  import LogisticDashboardLinkList from './LogisticDashboardLinkList.svelte';
+  import LogisticDashboardSection from './LogisticDashboardSection.svelte';
+  import StockLevelLowTable from './StockLevelLowTable.svelte';
 
   let { data }: { data: LogisticDashboardView } = $props();
 
-  const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
   const t = (slug: string) => scoped.localText(slug, 'logistic');
 
@@ -45,150 +37,60 @@
 <div class="logistic-dashboard-screen">
   <h1 class="logistic-dashboard-screen__title">{t('logistic.dashboard.title')}</h1>
 
-  <div class="logistic-dashboard-screen__metrics">
-    <MetricCard
-      value={data.metrics.pendingInboundReceiptCount}
-      label={t('logistic.admin.navigation.inbound_receipt')}
-      description={t('logistic.dashboard.pending')}
-    />
-    <MetricCard
-      value={data.metrics.openPickTaskCount}
-      label={t('logistic.admin.navigation.pick_task')}
-      description={t('logistic.dashboard.open')}
-    />
-    <MetricCard
-      value={data.metrics.openReturnAuthorizationCount}
-      label={t('logistic.admin.navigation.return_authorization')}
-      description={t('logistic.dashboard.open')}
-    />
-    <MetricCard
-      value={data.metrics.openCycleCountCount}
-      label={t('logistic.admin.navigation.cycle_count')}
-      description={t('logistic.dashboard.open')}
-    />
-    <MetricCard
-      value={data.metrics.lowStockCount}
-      label={t('logistic.dashboard.low_stock')}
-      description={t('logistic.dashboard.below_reorder')}
-    />
-  </div>
+  <LogisticMetricSummary metrics={data.metrics} dictionary={scoped} />
 
   {#if data.lowStockLevels.length > 0}
-    <section class="logistic-dashboard-screen__section">
-      <div class="logistic-dashboard-screen__section-header">
-        <h2 class="logistic-dashboard-screen__section-title">{t('logistic.dashboard.low_stock')}</h2>
-        <Button href="/admin/logistic/stock-level" variant="ghost" size="sm">
-          {dictionary.localText('action.view_all')}
-        </Button>
-      </div>
-
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableHeaderCell>{t('logistic.field.sku')}</TableHeaderCell>
-            <TableHeaderCell>{t('logistic.field.storage_location')}</TableHeaderCell>
-            <TableHeaderCell>{t('logistic.field.available')}</TableHeaderCell>
-            <TableHeaderCell>{t('logistic.field.reorder_point')}</TableHeaderCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {#each data.lowStockLevels as level (level.id)}
-            <TableRow>
-              <TableCell>
-                <a href="/admin/logistic/stock-level?history={level.id}" class="logistic-dashboard-screen__link">
-                  <code>{level.sku}</code>
-                </a>
-              </TableCell>
-              <TableCell>
-                {scoped.localText('name', 'storage_location', level.storageLocationId)}
-              </TableCell>
-              <TableCell><Badge variant="warning">{level.available}</Badge></TableCell>
-              <TableCell>{level.reorderPoint}</TableCell>
-            </TableRow>
-          {/each}
-        </TableBody>
-      </Table>
-    </section>
+    <LogisticDashboardSection title={t('logistic.dashboard.low_stock')} href="/admin/logistic/stock-level">
+      <StockLevelLowTable stockLevels={data.lowStockLevels} dictionary={scoped} />
+    </LogisticDashboardSection>
   {/if}
 
   {#if data.pendingInboundReceipts.length > 0}
-    <section class="logistic-dashboard-screen__section">
-      <div class="logistic-dashboard-screen__section-header">
-        <h2 class="logistic-dashboard-screen__section-title">
-          {t('logistic.dashboard.pending_inbound_receipt')}
-        </h2>
-        <Button href="/admin/logistic/inbound-receipt" variant="ghost" size="sm">
-          {dictionary.localText('action.view_all')}
-        </Button>
-      </div>
-
-      <ul class="logistic-dashboard-screen__list">
-        {#each data.pendingInboundReceipts as receipt (receipt.id)}
-          <li class="logistic-dashboard-screen__list-item">
-            <a href="/admin/logistic/inbound-receipt/{receipt.id}" class="logistic-dashboard-screen__link">
-              {t('logistic.inbound_receipt.one')} #{receipt.id}
-            </a>
-            <span class="logistic-dashboard-screen__muted">
-              {receipt.supplierId !== null
-                ? scoped.localText('name', 'supplier', receipt.supplierId)
-                : t('logistic.inbound_receipt.blind')}
-              · {formatDate(receipt.expectedAt)}
-            </span>
-          </li>
-        {/each}
-      </ul>
-    </section>
+    <LogisticDashboardSection
+      title={t('logistic.dashboard.pending_inbound_receipt')}
+      href="/admin/logistic/inbound-receipt"
+    >
+      <LogisticDashboardLinkList
+        links={data.pendingInboundReceipts.map((receipt) => ({
+          href: `/admin/logistic/inbound-receipt/${receipt.id}`,
+          label: `${t('logistic.inbound_receipt.one')} #${receipt.id}`,
+          detail: `${
+            receipt.supplierId !== null
+              ? scoped.localText('name', 'supplier', receipt.supplierId)
+              : t('logistic.inbound_receipt.blind')
+          } · ${formatDate(receipt.expectedAt)}`,
+        }))}
+      />
+    </LogisticDashboardSection>
   {/if}
 
   {#if data.openPickTasks.length > 0}
-    <section class="logistic-dashboard-screen__section">
-      <div class="logistic-dashboard-screen__section-header">
-        <h2 class="logistic-dashboard-screen__section-title">{t('logistic.dashboard.open_pick_task')}</h2>
-        <!-- The pick queue lives in the warehouse app, which is why the dashboard requires
-             that bundle as well as the admin ones. -->
-        <Button href="/warehouse/pick-task" variant="ghost" size="sm">
-          {dictionary.localText('action.view_all')}
-        </Button>
-      </div>
-
-      <ul class="logistic-dashboard-screen__list">
-        {#each data.openPickTasks as task (task.id)}
-          <li class="logistic-dashboard-screen__list-item">
-            <a href="/warehouse/pick-task/{task.id}" class="logistic-dashboard-screen__link">
-              {t('logistic.pick_task.one')} #{task.id}
-            </a>
-            <span class="logistic-dashboard-screen__muted">{formatDate(task.createdAt)}</span>
-          </li>
-        {/each}
-      </ul>
-    </section>
+    <!-- The pick queue lives in the warehouse app, which is why the dashboard requires that
+         bundle as well as the admin ones. -->
+    <LogisticDashboardSection title={t('logistic.dashboard.open_pick_task')} href="/warehouse/pick-task">
+      <LogisticDashboardLinkList
+        links={data.openPickTasks.map((task) => ({
+          href: `/warehouse/pick-task/${task.id}`,
+          label: `${t('logistic.pick_task.one')} #${task.id}`,
+          detail: formatDate(task.createdAt),
+        }))}
+      />
+    </LogisticDashboardSection>
   {/if}
 
   {#if data.openReturnAuthorizations.length > 0}
-    <section class="logistic-dashboard-screen__section">
-      <div class="logistic-dashboard-screen__section-header">
-        <h2 class="logistic-dashboard-screen__section-title">{t('logistic.dashboard.open_return_authorization')}</h2>
-        <Button href="/admin/logistic/return-authorization" variant="ghost" size="sm">
-          {dictionary.localText('action.view_all')}
-        </Button>
-      </div>
-
-      <ul class="logistic-dashboard-screen__list">
-        {#each data.openReturnAuthorizations as returnAuthorization (returnAuthorization.id)}
-          <li class="logistic-dashboard-screen__list-item">
-            <a
-              href="/admin/logistic/return-authorization/{returnAuthorization.id}"
-              class="logistic-dashboard-screen__link"
-            >
-              {t('logistic.return_authorization.one')} #{returnAuthorization.id}
-            </a>
-            <span class="logistic-dashboard-screen__muted">
-              {returnAuthorization.reason ?? formatDate(returnAuthorization.createdAt)}
-            </span>
-          </li>
-        {/each}
-      </ul>
-    </section>
+    <LogisticDashboardSection
+      title={t('logistic.dashboard.open_return_authorization')}
+      href="/admin/logistic/return-authorization"
+    >
+      <LogisticDashboardLinkList
+        links={data.openReturnAuthorizations.map((returnAuthorization) => ({
+          href: `/admin/logistic/return-authorization/${returnAuthorization.id}`,
+          label: `${t('logistic.return_authorization.one')} #${returnAuthorization.id}`,
+          detail: returnAuthorization.reason ?? formatDate(returnAuthorization.createdAt),
+        }))}
+      />
+    </LogisticDashboardSection>
   {/if}
 
   <nav class="logistic-dashboard-screen__sections" aria-label={t('logistic.dashboard.sections')}>

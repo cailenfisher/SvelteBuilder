@@ -114,6 +114,7 @@ export const COREUI_PAGES = [
     ],
   },
   { slug: 'data-table', title: 'DataTable, Pagination', components: ['DataTable', 'Pagination'] },
+  { slug: 'filter-link-list', title: 'FilterLinkList', components: ['FilterLinkList'] },
   { slug: 'timeline', title: 'Timeline', components: ['Timeline', 'TimelineItem'] },
   {
     slug: 'locale-picker',
@@ -139,6 +140,7 @@ export const CONTENT_PAGES = [
   { slug: 'article-byline', title: 'ArticleBylineList', components: ['ArticleBylineList'] },
   { slug: 'section', title: 'SectionLink', components: ['SectionLink'] },
   { slug: 'topic', title: 'TopicLink', components: ['TopicLink'] },
+  { slug: 'comment', title: 'CommentList', components: ['CommentList'] },
   {
     slug: 'live-coverage',
     title: 'Live coverage',
@@ -173,19 +175,31 @@ type Logistic = typeof import('@sveltebuilder/logistic');
 
 export const LOGISTIC_PAGES = [
   { slug: 'supplier', title: 'SupplierCard', components: ['SupplierCard'] },
-  { slug: 'storage-location', title: 'StorageLocationPath', components: ['StorageLocationPath'] },
+  {
+    slug: 'storage-location',
+    title: 'StorageLocationPath, StorageLocationFieldset',
+    components: ['StorageLocationPath', 'StorageLocationFieldset'],
+  },
   {
     slug: 'pick-task',
     title: 'PickTaskCard, PickTaskStatusBadge',
     components: ['PickTaskCard', 'PickTaskStatusBadge'],
   },
-  { slug: 'inbound-receipt', title: 'InboundReceiptCard', components: ['InboundReceiptCard'] },
+  {
+    slug: 'inbound-receipt',
+    title: 'InboundReceiptCard, InboundReceiptList, InboundReceiptSummary',
+    components: ['InboundReceiptCard', 'InboundReceiptList', 'InboundReceiptSummary'],
+  },
+  { slug: 'cycle-count', title: 'CycleCountLineTable', components: ['CycleCountLineTable'] },
+  { slug: 'shipment', title: 'ShipmentLineTable', components: ['ShipmentLineTable'] },
+  { slug: 'logistic-metric', title: 'LogisticMetricSummary', components: ['LogisticMetricSummary'] },
   {
     slug: 'status-badge',
     title: 'ShipmentStatusBadge, ReturnConditionBadge',
     components: ['ShipmentStatusBadge', 'ReturnConditionBadge'],
   },
   { slug: 'stock-level', title: 'StockLevelBar', components: ['StockLevelBar'] },
+  { slug: 'stock-adjustment', title: 'StockAdjustmentList', components: ['StockAdjustmentList'] },
   { slug: 'barcode-input', title: 'BarcodeInput', components: ['BarcodeInput'] },
   { slug: 'tracking-event', title: 'TrackingEventList', components: ['TrackingEventList'] },
 ] as const satisfies readonly ShowcasePage<ComponentName<Logistic>>[];

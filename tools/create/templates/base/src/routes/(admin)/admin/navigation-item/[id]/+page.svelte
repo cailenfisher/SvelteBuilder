@@ -1,8 +1,9 @@
 <script lang="ts">
   import './navigation-item-admin-detail-screen.css';
   import { getDictionary } from 'diglossia/svelte'
-  import { Button, Field, Input, Checkbox } from '@sveltebuilder/coreui'
-  import LocalTextFieldset from '$lib/LocalText/LocalTextFieldset.svelte'
+  import { Button } from '@sveltebuilder/coreui'
+  import LocalTextForm from '$lib/LocalText/LocalTextForm.svelte'
+  import NavigationItemUpdateForm from './NavigationItemUpdateForm.svelte'
   import type { PageData, ActionData } from './$types'
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
@@ -11,8 +12,6 @@
 
   const editLabel  = $derived(dictionary.localText('admin.navigation_item.edit'))
   const hrefLabel  = $derived(dictionary.localText('admin.navigation_item.href'))
-  const menuLabel  = $derived(dictionary.localText('admin.navigation_item.menu'))
-  const positionLabel  = $derived(dictionary.localText('admin.navigation_item.position'))
   const slugLabel  = $derived(dictionary.localText('admin.local_text.slug'))
 
   function translationFor(localeId: number): string {
@@ -42,48 +41,19 @@
 
   <section class="navigation-item-admin-detail-screen__section">
     <h2 class="navigation-item-admin-detail-screen__section-title">{dictionary.localText('admin.navigation_item.edit')}</h2>
-    <form method="post" action="?/update" class="navigation-item-admin-detail-screen__form">
-      <div class="navigation-item-admin-detail-screen__form-row">
-        <Field label={hrefLabel} id="navigation-item-href" required>
-          <Input id="navigation-item-href" name="href" value={data.navigationItem.href} required />
-        </Field>
-        <Field label={menuLabel} id="navigation-item-menu" required>
-          <Input id="navigation-item-menu" name="menu" value={data.navigationItem.menu} required />
-        </Field>
-        <Field label={positionLabel} id="navigation-item-position">
-          <Input id="navigation-item-position" name="position" type="number" value={String(data.navigationItem.position)} />
-        </Field>
-      </div>
-      <!-- Checkbox is self-labelling: it renders its own <label> around the control,
-           so it takes the label directly rather than being wrapped in a Field. A
-           Field here would nest one <label> inside another and leave the outer
-           label's `for` pointing at no element. -->
-      <Checkbox
-        name="active"
-        checked={data.navigationItem.active}
-        label={dictionary.localText('admin.navigation_item.active')}
-      />
-      <Button type="submit">{dictionary.localText('action.save')}</Button>
-    </form>
+    <NavigationItemUpdateForm navigationItem={data.navigationItem} />
   </section>
 
   <section class="navigation-item-admin-detail-screen__section">
     <h2 class="navigation-item-admin-detail-screen__section-title">{dictionary.localText('admin.local_text.title')}</h2>
     <div class="navigation-item-admin-detail-screen__translations">
       {#each data.locales as locale (locale.id)}
-        <form method="post" action="?/updateText" class="navigation-item-admin-detail-screen__locale-form">
-          <LocalTextFieldset
-            {slugLabel}
-            localeLabel={locale.nativeName}
-            contentLabel={dictionary.localText('admin.local_text.content')}
-            locales={[locale]}
-            slug={data.navigationItem.localTextLink?.slug ?? ''}
-            localeId={locale.id}
-            content={translationFor(locale.id)}
-            slugReadonly={true}
-          />
-          <Button type="submit" size="sm">{dictionary.localText('action.save')}</Button>
-        </form>
+        <LocalTextForm
+          action="?/updateText"
+          slug={data.navigationItem.localTextLink?.slug ?? ''}
+          {locale}
+          content={translationFor(locale.id)}
+        />
       {/each}
     </div>
   </section>

@@ -1,0 +1,37 @@
+.local-text-create-form {
+  padding: var(--space-6);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-raised);
+}
+
+.local-text-create-form__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  margin: 0 0 var(--space-4);
+}
+
+.local-text-create-form__error {
+  color: var(--danger-text);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-4);
+}
+
+.local-text-create-form__success {
+  color: var(--success-text);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-4);
+}
+
+.local-text-create-form__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.local-text-create-form__locales {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-4);
+}

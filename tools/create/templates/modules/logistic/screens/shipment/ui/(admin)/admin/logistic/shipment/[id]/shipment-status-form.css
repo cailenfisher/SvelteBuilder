@@ -1,0 +1,10 @@
+.shipment-status-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.shipment-status-form__actions {
+  display: flex;
+  justify-content: flex-end;
+}

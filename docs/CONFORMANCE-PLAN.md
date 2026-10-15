@@ -51,9 +51,12 @@ this table at the end of every phase, and update it when an item lands or a new 
 | --- | --- | --- | --- |
 | Styling a class passed to a child component (`:global` stopgap on the base local-text page) | `docs/DEFERRED.md` | Phase 11 (screen decomposition multiplies the cases) | landed in Phase 10: plain stylesheets, no `<style>` blocks or `:global` |
 | `useField`/`FieldContext` as public API, or another way for a custom control to read `Field` | `docs/DEFERRED.md` | Phase 13 (1.0 freezes it), or before a second consumer | open |
-| Hard-coded English found along the way: `PickTaskCard` progress `aria-label`; `LiveUpdateItem` ("Pinned"), `LiveCoverageView` ("Live", "Coverage ended"), `BylineList` ("By"), `FrontCurationBoard` (layout names, slot labels), `InboundReceiptCard` ("Expected", "Received", "Lines", "units"). `SubscriberList`, `ArticleList`, `AssignmentQueue` and `ArticleWorkflowPanel` were done in Phase 7 | this table | Phase 12 (copy sweep) | open |
+| Hard-coded English found along the way: `PickTaskCard` progress `aria-label`; `LiveUpdateItem` ("Pinned"), `LiveCoverageView` ("Live", "Coverage ended"), `BylineList` ("By"), `FrontCurationBoard` (layout names, slot labels), `InboundReceiptCard` ("Expected", "Received", "Lines", "units"), `StorageLocationPath` ("Storage location path"), `ArticleBlockRenderer` ("Live update"). `SubscriberList`, `ArticleList`, `AssignmentQueue` and `ArticleWorkflowPanel` were done in Phase 7 | this table | Phase 12 (copy sweep) | open |
 | Right-to-left: a `Checkbox` label's first letter is hidden ("artial shipments" on `/dev/theme`). Present before the Phase 7 rename too; axe does not see it | this table | Phase 13 (the RC's human RTL pass), or fix in Phase 12 | open |
 | Validate the upgrade SQL against a database built from the 1.x schema | `docs/MIGRATION-2.0.md` | Phase 13 | open |
+| Content's `ArticleList`, `ArticleWorkflowPanel` and `ArticleBlockEditor` are used by no screen, while the article admin screens render the same three concepts by hand (a table, an inline workflow with forms, a read-only block table). One concept, one component: adapt the components to the screens, or retire them. Phase 11 left those three screen sections unextracted | this table | Phase 13 (1.0 and 2.0 freeze the package API) | open |
+| The base admin dashboard is a placeholder: null stats, an always-empty "recent items" table with generic names, a "view all" button with no link, badges that print their variant name | this table | Phase 13 (production-ready bar) | open |
+| Return grading's condition, disposition and location `Select`s, in table cells, have no accessible name: `Select` takes it only from a `Field`. Needs visible labels or a coreui prop | this table | Phase 12 (with the copy sweep) | open |
 
 ### Gate (run at the end of every phase)
 
@@ -61,7 +64,7 @@ this table at the end of every phase, and update it when an item lands or a new 
 pnpm lint && pnpm check && pnpm test && pnpm scaffold:check
 ```
 
-Add `pnpm sql:check` (needs Docker) whenever a phase touches SQL, migrations, seeds, enums or column names. A phase is complete only when the full gate passes.
+Add `pnpm sql:check` (needs Docker) whenever a phase touches SQL, migrations, seeds, enums or column names. Add `pnpm --filter dev-kitchen test:a11y` (the Accessibility workflow's suites) whenever a phase touches components, stylesheets or dev-kitchen; Phase 10 shipped a failing run because the gate left it out. A phase is complete only when the full gate passes.
 
 ---
 

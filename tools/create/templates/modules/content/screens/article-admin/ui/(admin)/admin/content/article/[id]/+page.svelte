@@ -4,7 +4,6 @@
   import { createDictionary } from 'diglossia';
   import { getDictionary } from 'diglossia/svelte';
   import {
-    Badge,
     Button,
     Checkbox,
     InlineNotification,
@@ -19,6 +18,7 @@
   } from '@sveltebuilder/coreui';
   import type { ArticleAdminDetailView } from '@sveltebuilder/content/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import ArticleAdminDetailHeader from './ArticleAdminDetailHeader.svelte';
 
   let { data, form }: { data: ArticleAdminDetailView; form?: ScreenFormResult } = $props();
 
@@ -43,18 +43,7 @@
 </svelte:head>
 
 <div class="article-admin-detail-screen">
-  <header class="article-admin-detail-screen__header">
-    <a href="/admin/content/article" class="article-admin-detail-screen__back">
-      ← {t('content.article_admin.article')}
-    </a>
-    <div class="article-admin-detail-screen__title-row">
-      <h1 class="article-admin-detail-screen__title">{headline}</h1>
-      <Badge variant={article.status.slug === 'published' ? 'success' : 'default'}>
-        {scoped.localText('name', 'article_status', article.status.id)}
-      </Badge>
-    </div>
-    <p class="article-admin-detail-screen__slug"><code>{article.canonicalSlug}</code></p>
-  </header>
+  <ArticleAdminDetailHeader {article} dictionary={scoped} />
 
   {#if form?.error}
     <InlineNotification severity="danger" summary={form.error} />
