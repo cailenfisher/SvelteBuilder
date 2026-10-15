@@ -37,12 +37,7 @@
 
   const field = useField();
   const fieldId = $derived(idProp ?? field?.id);
-  const describedBy = $derived.by(() => {
-    // Field renders the hint only when there is no error, so point at whichever one exists.
-    if (!field) return undefined;
-    if (field.error) return field.errorId;
-    return field.hint ? field.hintId : undefined;
-  });
+
 
   const localValue = $derived(toLocalDateTime(value, timezone));
 
@@ -63,7 +58,7 @@
   max={max ? toLocalDateTime(max, timezone) : undefined}
   {disabled}
   {required}
-  aria-describedby={describedBy}
+  aria-describedby={field?.['aria-describedby']}
   class={['date-time-picker', extraClass ?? ''].filter(Boolean).join(' ')}
   onchange={handleChange}
 />

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { setContext } from 'svelte';
+  import { setFieldContext } from './use-field.js';
 
   type Props = {
     label: string;
@@ -28,15 +28,20 @@
   const hintId = $derived(`${id}-hint`);
   const errorId = $derived(`${id}-error`);
 
-  setContext('field', {
-    get id()      { return id; },
-    get labelId() { return labelId; },
-    get error()   { return error; },
-    get hint()    { return hint; },
-    get hintId()  { return hintId; },
-    get errorId() { return errorId; },
-    get required(){ return required; },
-    get disabled(){ return disabled; },
+  // Decided once here rather than in every control: the error when there is one (the hint is not
+  // rendered then), otherwise the hint. Never an id the markup below does not render.
+  const describedBy = $derived(error ? errorId : hint ? hintId : undefined);
+
+  setFieldContext({
+    get id()          { return id; },
+    get labelId()     { return labelId; },
+    get error()       { return error; },
+    get hint()        { return hint; },
+    get hintId()      { return hintId; },
+    get errorId()     { return errorId; },
+    get describedBy() { return describedBy; },
+    get required()    { return required; },
+    get disabled()    { return disabled; },
   });
 </script>
 

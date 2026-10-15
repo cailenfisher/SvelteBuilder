@@ -5,7 +5,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { RadioGroup } from 'bits-ui';
-  import { useField } from '../Field/use-field.js';
+  import { getFieldContext } from '../Field/use-field.js';
 
   type Props = {
     value?: string;
@@ -28,7 +28,8 @@
     class: extraClass,
   }: Props = $props();
 
-  const field = useField();
+  // The whole context, not useField(): the group is named by the Field's label id.
+  const field = getFieldContext();
   const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
 
   const classes = $derived(

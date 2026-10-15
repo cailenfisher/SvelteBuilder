@@ -5,7 +5,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { Select } from 'bits-ui';
-  import { useField } from '../Field/use-field.js';
+  import { getFieldContext } from '../Field/use-field.js';
   import SelectItemCollector from './SelectItemCollector.svelte';
   import type { SelectItemRecord, SelectItemRegistry } from './select-items.js';
 
@@ -36,7 +36,8 @@
     class: extraClass,
   }: Props = $props();
 
-  const field = useField();
+  // The whole context, not useField(): the trigger is named by the Field's label id.
+  const field = getFieldContext();
 
   // What each SelectItem child is called, so the trigger can show a label instead of the
   // selected value while the list is closed. See select-items.ts.
@@ -55,8 +56,7 @@
 
   const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
 
-  const resolvedError = $derived(error ?? field?.error);
-  const hasError = $derived(!!resolvedError);
+  const hasError = $derived(!!error || !!field?.error);
 
   // The trigger is a select-only combobox (role="combobox" on the button, the ARIA APG
   // pattern): Bits UI sets aria-activedescendant on it while open, which a plain button may
@@ -68,11 +68,9 @@
   // ARIA 1.2 requires an expanded combobox to name its popup; Bits UI does not set it here.
   const listboxId = $derived(`${field?.id ?? ownId}-listbox`);
   const labelledBy = $derived(field ? `${field.labelId} ${valueId}` : valueId);
-  const describedBy = $derived.by(() => {
-    if (!field) return undefined;
-    if (hasError) return field.errorId;
-    return field.hint ? field.hintId : undefined;
-  });
+  // The Field's, which names only what it renders: its own `error` marks the trigger invalid, but
+  // only the Field shows a message.
+  const describedBy = $derived(field?.describedBy);
 
   const triggerClasses = $derived(
     ['select__trigger', `select__trigger--${size}`, hasError ? 'select__trigger--error' : ''].filter(Boolean).join(' ')

@@ -45,7 +45,7 @@ The findings below are as audited. Each one's outcome, as of the conformance pla
 | E3  | `MenuLabel` outside a group throws and empties the menu                      | No            | Changed: `MenuLabel` renders outside a group (dev-kitchen showcases it) |
 | F1  | Svelte peer floor is `^5.0.0`; the real floor is 5.33                        | Yes (peer)    | Changed (Phase 1): peer `svelte ^5.33.0` |
 | F2  | `@internationalized/date` is required but undeclared                         | No            | Changed (Phase 1): declared as a peer |
-| F3  | `useField` is exported but its return type is not                            | No            | Changed (Phase 1): `FieldContext` exported; whether `useField` stays public is open until Phase 13 |
+| F3  | `useField` is exported but its return type is not                            | No            | Changed (Phase 1): `FieldContext` exported. Decided 2026-10-15: `useField` stays public, returning `FieldControl`; `FieldContext` becomes internal (lands in Phase 13; see `DEFERRED.md`) |
 | F4  | Exported constants and English defaults need a decision                      | Decide        | Changed: `DEFAULT_MESSAGE_LABELS` no longer exported; `AUTO_DISMISS_MS` kept, it documents behaviour |
 | G1  | 6 of 65 components carry any doc comment; README is 75 lines                 | No            | Open: reference documentation is COREUI-1.0 stage 4 |
 | G2  | One test file for 65 components                                              | No            | Partly changed (Phase 12): behaviour specs in dev-kitchen for every interactive component, in three engines |

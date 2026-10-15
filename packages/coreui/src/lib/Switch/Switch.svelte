@@ -34,11 +34,7 @@
   const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
   const resolvedRequired = $derived(required ?? field?.required ?? false);
 
-  const describedBy = $derived.by(() => {
-    if (!field) return undefined;
-    if (field.error) return field.errorId;
-    return field.hint ? field.hintId : undefined;
-  });
+
 
   const wrapClasses = $derived(
     ['switch', extraClass ?? ''].filter(Boolean).join(' ')
@@ -54,8 +50,8 @@
     id={field?.id}
     disabled={resolvedDisabled}
     required={resolvedRequired}
-    aria-describedby={describedBy}
-    aria-invalid={field?.error ? true : undefined}
+    aria-describedby={field?.['aria-describedby']}
+    aria-invalid={field?.['aria-invalid']}
     {name}
     class={rootClasses}
   >

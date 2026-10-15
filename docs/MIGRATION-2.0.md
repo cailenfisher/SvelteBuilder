@@ -395,6 +395,25 @@ commit;
 
 ---
 
+## coreui `useField`
+
+`useField()` returns `FieldControl | null` instead of `FieldContext | null`, and `FieldContext` is no
+longer exported. `FieldControl` holds only what a control puts on its focusable element, under the
+HTML attribute names:
+
+| `FieldContext` (1.x) | `FieldControl` (2.0 train, coreui 1.0) |
+| --- | --- |
+| `id` | `id` |
+| `hintId`, `errorId`, `hint`, `error` (to work out the description yourself) | `'aria-describedby'`, already worked out: the error's id, else the hint's, else nothing |
+| `error` (to work out invalid) | `'aria-invalid'`: `true` or `undefined` |
+| `required`, `disabled` | `required`, `disabled` |
+| `labelId` | none; a native control named by `<label for>` does not need it |
+
+A custom control that computed its own description can spread the result instead:
+`<input {...useField()} />`. Only logistic's `BarcodeInput` used it outside coreui, and it has moved.
+
+---
+
 ## Stylesheets
 
 coreui, content and logistic components no longer carry Svelte `<style>` blocks. Every style is in a

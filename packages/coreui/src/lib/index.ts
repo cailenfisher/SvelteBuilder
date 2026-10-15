@@ -122,7 +122,7 @@ export { default as DateTimePicker } from './DateTimePicker/DateTimePicker.svelt
 // Utilities — for consumers building custom form controls
 // ============================================================
 export { useField } from './Field/use-field.js';
-export type { FieldContext } from './Field/use-field.js';
+export type { FieldControl } from './Field/use-field.js';
 
 // ============================================================
 // Screen contracts — types shared by every module's view types

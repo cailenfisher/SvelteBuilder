@@ -520,3 +520,21 @@ test.describe('Switch, right to left', () => {
     }
   });
 });
+
+test.describe('Field', () => {
+  test("a control follows its Field's error as it appears and clears", async ({ page }) => {
+    const errors = await open(page, '/dev/coreui/field');
+    const input = example(page, 'Field with a live error').getByRole('textbox', { name: 'Reference' });
+
+    await expect(input).toHaveAttribute('aria-describedby', 'field-reference-hint');
+    await expect(input).not.toHaveAttribute('aria-invalid');
+    await input.fill('AB');
+    await expect(input).toHaveAttribute('aria-describedby', 'field-reference-error');
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
+    await expect(input).toHaveAccessibleDescription('At least 4 characters.');
+    await input.fill('ABCD');
+    await expect(input).toHaveAttribute('aria-describedby', 'field-reference-hint');
+    await expect(input).not.toHaveAttribute('aria-invalid');
+    expect(errors).toEqual([]);
+  });
+});

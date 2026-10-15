@@ -72,7 +72,9 @@ The component surface is closed: a component takes the props its type declares a
 Only `Input`, `Textarea` and `Button`, which wrap one native element, pass other attributes through
 to it. Anything another component needs from its caller (an accessible name, a `name` for form
 submission, a `class`) is a declared prop. Opening the surface later is additive; closing it after
-1.0 would not be. A custom control reads its `Field`'s id, label and error through `useField()`.
+1.0 would not be. A custom control inside a `Field` calls `useField()` and spreads the result on its focusable
+element (`<input {...useField()} />`): it gets the Field's `id`, `aria-describedby`, `aria-invalid`,
+`required` and `disabled`, typed as `FieldControl`.
 
 ## Part of the SvelteBuilder ecosystem
 

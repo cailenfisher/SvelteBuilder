@@ -27,16 +27,10 @@
   const resolvedRequired = $derived(restProps.required ?? field?.required);
   const resolvedDisabled = $derived(restProps.disabled ?? field?.disabled);
 
-  const resolvedError = $derived(error ?? field?.error);
-  const hasError = $derived(!!resolvedError);
-
-  const resolvedDescribedBy = $derived.by(() => {
-    if (restProps['aria-describedby']) return restProps['aria-describedby'];
-    const parts: string[] = [];
-    if (field?.hint && !hasError) parts.push(field.hintId);
-    if (hasError && field?.errorId) parts.push(field.errorId);
-    return parts.length ? parts.join(' ') : undefined;
-  });
+  // Its own `error` marks it invalid too, but only the Field renders an error message, so the
+  // description is the Field's: never an id nothing on the page has.
+  const hasError = $derived(!!error || field?.['aria-invalid'] === true);
+  const resolvedDescribedBy = $derived(restProps['aria-describedby'] ?? field?.['aria-describedby']);
 
   const classes = $derived(
     ['input', `input--${size}`, hasError ? 'input--error' : '', extraClass ?? ''].filter(Boolean).join(' ')

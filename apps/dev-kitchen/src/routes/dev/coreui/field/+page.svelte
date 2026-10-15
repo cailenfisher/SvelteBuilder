@@ -19,7 +19,7 @@
   </Example>
 
   <Example title="Field with a live error">
-    <Field id="field-reference" label="Reference" error={referenceError}>
+    <Field id="field-reference" label="Reference" hint="Four characters or more." error={referenceError}>
       <Input bind:value={reference} />
     </Field>
   </Example>

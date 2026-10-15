@@ -19,7 +19,9 @@ in any release.
 - **Snippets:** each snippet prop's name and the parameters it receives.
 - **Bindable values:** which props accept `bind:`.
 - **Field integration:** what each control takes from a surrounding `Field` (see `useField()`'s doc
-  comment), and `useField()` and `FieldContext` themselves.
+  comment), and `useField()` with its return type `FieldControl`: five attributes under their HTML
+  names (`id`, `aria-describedby`, `aria-invalid`, `required`, `disabled`). The context behind it,
+  and the label's id that `Select` and `RadioGroup` read from it, are internal.
 - **The CSS surface** listed in section 4: classes, modifiers, data attributes and tokens.
 - **Accessibility guarantees:** the role, accessible name source and keyboard behaviour each
   component provides. Removing one is breaking even when no type changes.

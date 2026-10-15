@@ -52,17 +52,9 @@
   }
 
   const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
-  const invalid = $derived(Boolean(field?.error));
-
-  // Field renders the hint only when there is no error, so point at whichever one exists.
-  const describedBy = $derived.by(() => {
-    if (!field) return undefined;
-    if (field.error) return field.errorId;
-    return field.hint ? field.hintId : undefined;
-  });
 
   const classes = $derived(
-    ['barcode-input', invalid ? 'barcode-input--error' : '', extraClass ?? '']
+    ['barcode-input', field?.['aria-invalid'] ? 'barcode-input--error' : '', extraClass ?? '']
       .filter(Boolean)
       .join(' ')
   );
@@ -90,8 +82,8 @@
     autocorrect="off"
     autocapitalize="off"
     spellcheck={false}
-    aria-invalid={invalid ? 'true' : undefined}
-    aria-describedby={describedBy}
+    aria-invalid={field?.['aria-invalid']}
+    aria-describedby={field?.['aria-describedby']}
     onkeydown={handleKeydown}
     oninput={handleInput}
   />
