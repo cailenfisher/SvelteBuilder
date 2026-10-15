@@ -8,6 +8,7 @@
   import SupplierContactAddForm from './SupplierContactAddForm.svelte';
   import SupplierContactList from './SupplierContactList.svelte';
   import SupplierUpdateForm from './SupplierUpdateForm.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: SupplierDetailView; form?: ScreenFormResult } = $props();
 
@@ -36,7 +37,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
   <SupplierUpdateForm supplier={data.supplier} dictionary={scoped} />

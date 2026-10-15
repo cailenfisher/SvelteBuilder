@@ -1,4 +1,4 @@
-import { error, fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import {
   getShipment,
@@ -10,6 +10,7 @@ import { SHIPMENT_STATUSES } from '@sveltebuilder/logistic';
 import type { ShipmentStatus } from '@sveltebuilder/logistic';
 import type { ShipmentDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({ locals, params }): Promise<ShipmentDetailView> => {
   const id = Number(params.id);
@@ -41,12 +42,12 @@ export const actions: Actions = {
     const form = await request.formData();
     const status = form.get('status') as ShipmentStatus | null;
     if (status === null || !SHIPMENT_STATUSES.includes(status)) {
-      return fail(422, { error: 'Choose a valid status.' });
+      return formError(422, 'logistic.error.status_invalid');
     }
 
     const { error: updateError } = await updateShipmentStatus(locals.supabase, id, status);
 
-    if (updateError) return fail(500, { error: 'Failed to update the status.' });
+    if (updateError) return formError(500, 'logistic.error.status_update_failed');
 
     return { success: true as const };
   },
@@ -63,7 +64,7 @@ export const actions: Actions = {
       trackingNumber: (form.get('tracking_number') as string | null)?.trim() || null,
     });
 
-    if (updateError) return fail(500, { error: 'Failed to save the tracking details.' });
+    if (updateError) return formError(500, 'logistic.error.tracking_save_failed');
 
     return { success: true as const };
   },
@@ -74,7 +75,7 @@ export const actions: Actions = {
 
     const form = await request.formData();
     const status = (form.get('status') as string | null)?.trim();
-    if (!status) return fail(422, { error: 'An event needs a status.' });
+    if (!status) return formError(422, 'logistic.error.tracking_event_status_required');
 
     const { error: insertError } = await addTrackingEvent(locals.supabase, {
       shipmentId: id,
@@ -83,7 +84,7 @@ export const actions: Actions = {
       description: (form.get('description') as string | null)?.trim() || null,
     });
 
-    if (insertError) return fail(500, { error: 'Failed to add the tracking event.' });
+    if (insertError) return formError(500, 'logistic.error.tracking_event_add_failed');
 
     return { success: true as const };
   },

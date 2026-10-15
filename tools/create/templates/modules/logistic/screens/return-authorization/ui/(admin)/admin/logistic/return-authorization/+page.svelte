@@ -9,6 +9,7 @@
   import type { ReturnAuthorizationListView } from '@sveltebuilder/logistic/views';
   import ReturnAuthorizationCreateForm from './ReturnAuthorizationCreateForm.svelte';
   import ReturnAuthorizationTable from './ReturnAuthorizationTable.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: ReturnAuthorizationListView; form?: ScreenFormResult } = $props();
 
@@ -40,7 +41,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
   <FilterLinkList

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getDictionary } from 'diglossia/svelte';
   import './article-admin-detail-screen.css';
   import { enhance } from '$app/forms';
   import { createDictionary } from 'diglossia';
@@ -7,8 +8,11 @@
   import type { ArticleAdminDetailView } from '@sveltebuilder/content/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import ArticleAdminDetailHeader from './ArticleAdminDetailHeader.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: ArticleAdminDetailView; form?: ScreenFormResult } = $props();
+
+  const globalDictionary = getDictionary();
 
   const scoped = $derived(createDictionary(data.copy));
   const localText = (slug: string) => scoped.localText(slug, 'content');
@@ -25,7 +29,7 @@
   <ArticleAdminDetailHeader {article} dictionary={scoped} />
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, globalDictionary)} detail={form.error.detail} />
   {/if}
 
   <div class="article-admin-detail-screen__columns">

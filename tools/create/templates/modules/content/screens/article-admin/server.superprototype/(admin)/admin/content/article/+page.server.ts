@@ -1,10 +1,11 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadEntityCopy, loadScopedCopy } from '$lib/server/scoped-copy';
 import { createLocalTextEntry } from '$lib/server/local-text';
 import { createArticle, listArticle } from '$lib/server/content/article';
 import { getInitialArticleStatus, listArticleStatus } from '$lib/server/content/article-status';
 import type { ArticleAdminListView } from '@sveltebuilder/content/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin regardless.
 // Note what this means for the list: an admin sees every article at every status, because the
@@ -79,13 +80,13 @@ export const actions: Actions = {
     const canonicalSlug = (form.get('canonical_slug') as string | null)?.trim();
     const headline = (form.get('headline') as string | null)?.trim();
 
-    if (!canonicalSlug) return fail(422, { error: 'A URL slug is required.' });
-    if (!headline) return fail(422, { error: 'A headline is required.' });
+    if (!canonicalSlug) return formError(422, 'content.error.slug_required');
+    if (!headline) return formError(422, 'content.error.headline_required');
 
     const statusResult = await getInitialArticleStatus(locals.supabase);
 
     if (statusResult.error || !statusResult.data) {
-      return fail(500, { error: 'No article statuses are configured.' });
+      return formError(500, 'content.error.article_status_missing');
     }
 
     const { data: articleId, error: insertError } = await createArticle(locals.supabase, {
@@ -96,9 +97,9 @@ export const actions: Actions = {
     if (insertError) {
       // 23505 is unique_violation on canonical_slug, which is a user error rather than a fault.
       if (insertError.code === '23505') {
-        return fail(409, { error: 'That URL slug is already in use.' });
+        return formError(409, 'content.error.slug_in_use');
       }
-      return fail(500, { error: 'Failed to create the article.' });
+      return formError(500, 'content.error.article_create_failed');
     }
 
     const { error: copyError } = await createLocalTextEntry(locals.supabase, {
@@ -112,9 +113,7 @@ export const actions: Actions = {
     if (copyError) {
       // The article exists but has no headline. Report it rather than pretending: the editor can
       // set one on the detail screen, and silently redirecting would hide a half-finished create.
-      return fail(500, {
-        error: 'The article was created but its headline could not be saved. Open it and set one.',
-      });
+      return formError(500, 'content.error.headline_save_failed');
     }
 
     redirect(303, `/admin/content/article/${articleId}`);

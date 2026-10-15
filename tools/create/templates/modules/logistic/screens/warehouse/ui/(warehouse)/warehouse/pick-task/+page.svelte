@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getDictionary } from 'diglossia/svelte';
   import './pick-task-warehouse-queue-screen.css';
   import { createDictionary } from 'diglossia';
   import { InlineNotification } from '@sveltebuilder/coreui';
@@ -6,8 +7,11 @@
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import PickTaskAssignedList from './PickTaskAssignedList.svelte';
   import PickTaskQueue from './PickTaskQueue.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: PickTaskWarehouseQueueView; form?: ScreenFormResult } = $props();
+
+  const globalDictionary = getDictionary();
 
   const scoped = $derived(createDictionary(data.copy));
   const localText = (slug: string) => scoped.localText(slug, 'logistic');
@@ -21,7 +25,7 @@
   <h1 class="pick-task-warehouse-queue-screen__title">{localText('logistic.warehouse.pick_task.title')}</h1>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, globalDictionary)} detail={form.error.detail} />
   {/if}
 
   {#if data.myPickTasks.length > 0}

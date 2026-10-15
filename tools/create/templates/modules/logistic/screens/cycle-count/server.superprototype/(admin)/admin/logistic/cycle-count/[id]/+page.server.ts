@@ -1,8 +1,9 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { approveCycleCount, getCycleCount } from '$lib/server/logistic/cycle-count';
 import type { CycleCountDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({ locals, params }): Promise<CycleCountDetailView> => {
   const id = Number(params.id);
@@ -32,20 +33,20 @@ export const actions: Actions = {
   approve: async ({ locals, params }) => {
     const id = Number(params.id);
     if (!Number.isInteger(id)) throw error(404, 'Not found.');
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const { error: rpcError } = await approveCycleCount(locals.supabase, id, locals.userAccountId);
 
     if (rpcError) {
       if (rpcError.code === '42501') {
-        return fail(409, { error: 'This count can no longer be approved.' });
+        return formError(409, 'logistic.error.cycle_count_not_approvable');
       }
       // A variance that would take stock below zero fails the table's check constraint,
       // which is a real answer: the counted figure cannot be right.
       if (rpcError.code === '23514') {
-        return fail(409, { error: 'Applying these counts would take stock below zero.' });
+        return formError(409, 'logistic.error.cycle_count_negative_stock');
       }
-      return fail(500, { error: 'Failed to approve the count.' });
+      return formError(500, 'logistic.error.cycle_count_approve_failed');
     }
 
     redirect(303, '/admin/logistic/cycle-count');

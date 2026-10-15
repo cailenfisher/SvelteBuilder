@@ -4,6 +4,7 @@
   import { Button } from '@sveltebuilder/coreui'
   import LocaleFieldset from '$lib/Locale/LocaleFieldset.svelte'
   import type { PageData, ActionData } from './$types'
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
 
@@ -25,7 +26,7 @@
   </header>
 
   {#if form?.error}
-    <p class="locale-admin-detail-screen__error" role="alert">{form.error}</p>
+    <p class="locale-admin-detail-screen__error" role="alert">{formErrorText(form.error, dictionary, dictionary)}</p>
   {/if}
   {#if form?.success}
     <p class="locale-admin-detail-screen__success" role="status">{dictionary.localText('feedback.saved')}</p>

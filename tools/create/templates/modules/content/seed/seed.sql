@@ -948,3 +948,147 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- Why a form action failed: each action returns one of these slugs, and the screen shows it in the
+-- reader's language ($lib/server/form-error.ts, $lib/FormError/form-error.ts).
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('content.error.slug_required',           'content', null),
+  ('content.error.headline_required',       'content', null),
+  ('content.error.article_status_missing',  'content', null),
+  ('content.error.slug_in_use',             'content', null),
+  ('content.error.article_create_failed',   'content', null),
+  ('content.error.headline_save_failed',    'content', null),
+  ('content.error.status_required',         'content', null),
+  ('content.error.status_change_forbidden', 'content', null),
+  ('content.error.checklist_item_invalid',  'content', null),
+  ('content.error.checklist_update_failed', 'content', null),
+  ('content.error.comment_incomplete',      'content', null),
+  ('content.error.comment_closed',          'content', null),
+  ('content.error.comment_submit_failed',   'content', null),
+  ('content.error.status_change_refused',   'content', null),
+  ('content.error.not_ready_to_publish',    'content', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('content.error.slug_required',           'A URL slug is required.'),
+  ('content.error.headline_required',       'A headline is required.'),
+  ('content.error.article_status_missing',  'No article statuses are configured.'),
+  ('content.error.slug_in_use',             'That URL slug is already in use.'),
+  ('content.error.article_create_failed',   'Failed to create the article.'),
+  ('content.error.headline_save_failed',    'The article was created but its headline could not be saved. Open it and set one.'),
+  ('content.error.status_required',         'Choose a status.'),
+  ('content.error.status_change_forbidden', 'Not permitted to change this article’s status.'),
+  ('content.error.checklist_item_invalid',  'Invalid checklist item.'),
+  ('content.error.checklist_update_failed', 'Failed to update the checklist.'),
+  ('content.error.comment_incomplete',      'Name, email and comment are all required.'),
+  ('content.error.comment_closed',          'This article is not accepting comments.'),
+  ('content.error.comment_submit_failed',   'Failed to submit your comment.'),
+  ('content.error.status_change_refused',   'The status could not be changed.'),
+  ('content.error.not_ready_to_publish',    'This article is not ready to publish.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('content.error.slug_required',           'Un identifiant d''URL est obligatoire.'),
+  ('content.error.headline_required',       'Un titre est obligatoire.'),
+  ('content.error.article_status_missing',  'Aucun statut d''article n''est configuré.'),
+  ('content.error.slug_in_use',             'Cet identifiant d''URL est déjà utilisé.'),
+  ('content.error.article_create_failed',   'La création de l''article a échoué.'),
+  ('content.error.headline_save_failed',    'L''article a été créé, mais son titre n''a pas pu être enregistré. Ouvrez-le pour en saisir un.'),
+  ('content.error.status_required',         'Choisissez un statut.'),
+  ('content.error.status_change_forbidden', 'Vous n''êtes pas autorisé à changer le statut de cet article.'),
+  ('content.error.checklist_item_invalid',  'Élément de liste de contrôle non valide.'),
+  ('content.error.checklist_update_failed', 'La mise à jour de la liste de contrôle a échoué.'),
+  ('content.error.comment_incomplete',      'Le nom, l''adresse courriel et le commentaire sont obligatoires.'),
+  ('content.error.comment_closed',          'Cet article n''accepte pas de commentaires.'),
+  ('content.error.comment_submit_failed',   'L''envoi de votre commentaire a échoué.'),
+  ('content.error.status_change_refused',   'Le statut n''a pas pu être changé.'),
+  ('content.error.not_ready_to_publish',    'Cet article n''est pas prêt à être publié.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- Why an article cannot be published yet: validateArticleForPublish returns these slugs, and the
+-- publish action formats them in the editor's language.
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('content.publish_validation.headline_required',      'content', null),
+  ('content.publish_validation.headline_too_long',      'content', null),
+  ('content.publish_validation.dek_required',           'content', null),
+  ('content.publish_validation.byline_required',        'content', null),
+  ('content.publish_validation.section_required',       'content', null),
+  ('content.publish_validation.block_required',         'content', null),
+  ('content.publish_validation.block_text_missing',     'content', null),
+  ('content.publish_validation.image_missing',          'content', null),
+  ('content.publish_validation.alt_text_missing',       'content', null),
+  ('content.publish_validation.publisher_missing',      'content', null),
+  ('content.publish_validation.publisher_name_missing', 'content', null),
+  ('content.publish_validation.publisher_url_missing',  'content', null),
+  ('content.publish_validation.published_at_offset',    'content', null),
+  ('content.publish_validation.embargo_passed',         'content', null),
+  ('content.publish_validation.rights_missing',         'content', null),
+  ('content.publish_validation.license_url_missing',    'content', null),
+  ('content.publish_validation.license_expired',        'content', null),
+  ('content.publish_validation.credit_missing',         'content', null),
+  ('content.publish_validation.source_missing',         'content', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('content.publish_validation.headline_required',      'The headline is missing.'),
+  ('content.publish_validation.headline_too_long',      'The headline is longer than 110 characters, the Google News limit.'),
+  ('content.publish_validation.dek_required',           'The dek (standfirst) is missing.'),
+  ('content.publish_validation.byline_required',        'Assign at least one byline.'),
+  ('content.publish_validation.section_required',       'File the article under at least one section.'),
+  ('content.publish_validation.block_required',         'The article has no body.'),
+  ('content.publish_validation.block_text_missing',     'Block {$position} has no text.'),
+  ('content.publish_validation.image_missing',          'Image block {$position} has no image attached.'),
+  ('content.publish_validation.alt_text_missing',       'Image block {$position} has no alt text, which accessibility and structured data both need.'),
+  ('content.publish_validation.publisher_missing',      'No publisher profile is set up, and structured data needs one.'),
+  ('content.publish_validation.publisher_name_missing', 'The publisher profile has no name.'),
+  ('content.publish_validation.publisher_url_missing',  'The publisher profile has no URL.'),
+  ('content.publish_validation.published_at_offset',    'The publication date {$date} has no timezone offset.'),
+  ('content.publish_validation.embargo_passed',         'The embargo date has passed. Remove or extend it.'),
+  ('content.publish_validation.rights_missing',         'Image block {$position} has no rights recorded.'),
+  ('content.publish_validation.license_url_missing',    'Image block {$position} is Creative Commons but has no license URL.'),
+  ('content.publish_validation.license_expired',        'Image block {$position} has a license that expired on {$date}.'),
+  ('content.publish_validation.credit_missing',         'Image block {$position} needs a credit line written in {$locale}.'),
+  ('content.publish_validation.source_missing',         'Image block {$position} has no source recorded.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('content.publish_validation.headline_required',      'Le titre est manquant.'),
+  ('content.publish_validation.headline_too_long',      'Le titre dépasse 110 caractères, la limite de Google Actualités.'),
+  ('content.publish_validation.dek_required',           'Le chapeau est manquant.'),
+  ('content.publish_validation.byline_required',        'Attribuez au moins une signature.'),
+  ('content.publish_validation.section_required',       'Classez l''article dans au moins une rubrique.'),
+  ('content.publish_validation.block_required',         'L''article n''a pas de corps.'),
+  ('content.publish_validation.block_text_missing',     'Le bloc {$position} n''a pas de texte.'),
+  ('content.publish_validation.image_missing',          'Le bloc image {$position} n''a pas d''image.'),
+  ('content.publish_validation.alt_text_missing',       'Le bloc image {$position} n''a pas de texte alternatif, nécessaire à l''accessibilité et aux données structurées.'),
+  ('content.publish_validation.publisher_missing',      'Aucun profil d''éditeur n''est configuré, alors que les données structurées en ont besoin.'),
+  ('content.publish_validation.publisher_name_missing', 'Le profil d''éditeur n''a pas de nom.'),
+  ('content.publish_validation.publisher_url_missing',  'Le profil d''éditeur n''a pas d''URL.'),
+  ('content.publish_validation.published_at_offset',    'La date de publication {$date} n''a pas de décalage horaire.'),
+  ('content.publish_validation.embargo_passed',         'La date d''embargo est passée. Supprimez-la ou repoussez-la.'),
+  ('content.publish_validation.rights_missing',         'Le bloc image {$position} n''a pas de droits enregistrés.'),
+  ('content.publish_validation.license_url_missing',    'Le bloc image {$position} est sous licence Creative Commons mais n''a pas d''URL de licence.'),
+  ('content.publish_validation.license_expired',        'La licence du bloc image {$position} a expiré le {$date}.'),
+  ('content.publish_validation.credit_missing',         'Le bloc image {$position} doit avoir une mention de crédit rédigée en {$locale}.'),
+  ('content.publish_validation.source_missing',         'Le bloc image {$position} n''a pas de source enregistrée.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;

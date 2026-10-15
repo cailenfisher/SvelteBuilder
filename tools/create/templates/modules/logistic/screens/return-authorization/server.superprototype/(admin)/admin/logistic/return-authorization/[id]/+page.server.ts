@@ -1,4 +1,4 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import {
   getReturnAuthorizationLine,
@@ -13,6 +13,7 @@ import { RETURN_CONDITIONS, RETURN_DISPOSITIONS } from '@sveltebuilder/logistic'
 import type { ReturnCondition, ReturnDisposition } from '@sveltebuilder/logistic';
 import type { ReturnAuthorizationDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({
   locals,
@@ -51,7 +52,7 @@ export const load: PageServerLoad = async ({
 export const actions: Actions = {
   gradeReturnAuthorizationLine: async ({ locals, params, request }) => {
     const returnId = Number(params.id);
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const form = await request.formData();
     const lineId = Number(form.get('return_authorization_line_id'));
@@ -60,22 +61,22 @@ export const actions: Actions = {
     const disposition = form.get('disposition') as ReturnDisposition | null;
     const locationRaw = (form.get('storage_location_id') as string | null)?.trim();
 
-    if (!Number.isInteger(lineId)) return fail(422, { error: 'Invalid line.' });
+    if (!Number.isInteger(lineId)) return formError(422, 'logistic.error.line_invalid');
     if (!Number.isInteger(receivedQuantity) || receivedQuantity < 0) {
-      return fail(422, { error: 'Received quantity must be zero or a positive whole number.' });
+      return formError(422, 'logistic.error.received_quantity_invalid');
     }
     if (condition === null || !RETURN_CONDITIONS.includes(condition)) {
-      return fail(422, { error: 'Choose the condition the goods arrived in.' });
+      return formError(422, 'logistic.error.condition_required');
     }
     if (disposition === null || !RETURN_DISPOSITIONS.includes(disposition)) {
-      return fail(422, { error: 'Choose what happens to the goods.' });
+      return formError(422, 'logistic.error.disposition_required');
     }
 
     const storageLocationId = locationRaw ? Number(locationRaw) : null;
     // Checked here as well as in the function, so the operator gets a message about the
     // form rather than a 500 from a raised exception.
     if (disposition === 'restock' && !Number.isInteger(storageLocationId)) {
-      return fail(422, { error: 'Restocking needs a location to put the goods in.' });
+      return formError(422, 'logistic.error.restock_location_required');
     }
 
     const { data: line, error: lineError } = await getReturnAuthorizationLine(
@@ -84,8 +85,8 @@ export const actions: Actions = {
       lineId
     );
 
-    if (lineError) return fail(500, { error: 'Failed to load the line.' });
-    if (line === null) return fail(404, { error: 'That line is not on this return.' });
+    if (lineError) return formError(500, 'logistic.error.line_load_failed');
+    if (line === null) return formError(404, 'logistic.error.return_authorization_line_mismatch');
 
     const { error: rpcError } = await gradeReturnAuthorizationLine(locals.supabase, {
       id: lineId,
@@ -98,9 +99,9 @@ export const actions: Actions = {
 
     if (rpcError) {
       if (rpcError.code === '42501') {
-        return fail(409, { error: 'This return is no longer open for grading.' });
+        return formError(409, 'logistic.error.return_authorization_closed');
       }
-      return fail(500, { error: 'Failed to record the grading.' });
+      return formError(500, 'logistic.error.grading_save_failed');
     }
 
     return { success: true as const };
@@ -112,7 +113,7 @@ export const actions: Actions = {
 
     const { error: updateError } = await processReturnAuthorization(locals.supabase, id);
 
-    if (updateError) return fail(500, { error: 'Failed to mark the return processed.' });
+    if (updateError) return formError(500, 'logistic.error.return_authorization_process_failed');
 
     redirect(303, '/admin/logistic/return-authorization');
   },

@@ -8,6 +8,7 @@
   import type { ArticleAdminListView } from '@sveltebuilder/content/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import ArticleCreateForm from './ArticleCreateForm.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: ArticleAdminListView; form?: ScreenFormResult } = $props();
 
@@ -39,7 +40,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
   <FilterLinkList

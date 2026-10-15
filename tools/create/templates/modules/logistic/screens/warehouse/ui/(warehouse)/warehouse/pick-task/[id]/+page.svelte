@@ -6,6 +6,7 @@
   import type { PickTaskWarehouseDetailView } from '@sveltebuilder/logistic/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import PickTaskLineList from './PickTaskLineList.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: PickTaskWarehouseDetailView; form?: ScreenFormResult } = $props();
 
@@ -40,7 +41,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
   <PickTaskLineList pickTaskLines={task.lines} dictionary={scoped} />

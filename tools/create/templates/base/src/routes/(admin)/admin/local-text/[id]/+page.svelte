@@ -4,6 +4,7 @@
   import { Button } from '@sveltebuilder/coreui'
   import LocalTextForm from '$lib/LocalText/LocalTextForm.svelte'
   import type { PageData, ActionData } from './$types'
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: PageData; form: ActionData } = $props()
 
@@ -32,7 +33,7 @@
   </dl>
 
   {#if form?.error}
-    <p class="local-text-admin-detail-screen__error" role="alert">{form.error}</p>
+    <p class="local-text-admin-detail-screen__error" role="alert">{formErrorText(form.error, dictionary, dictionary)}</p>
   {/if}
   {#if form?.success}
     <p class="local-text-admin-detail-screen__success" role="status">{dictionary.localText('feedback.saved')}</p>

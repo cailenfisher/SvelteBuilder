@@ -7,6 +7,7 @@
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import SupplierCreateForm from './SupplierCreateForm.svelte';
   import SupplierList from './SupplierList.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   // The loader for this screen is flavour-specific; SupplierListView is the contract
   // between the two. Typing `data` as the view rather than PageData is what makes a
@@ -37,7 +38,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
   {#if showCreateForm}

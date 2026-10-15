@@ -1,9 +1,10 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { getPickTaskLine, recordPickTaskLineQuantity } from '$lib/server/logistic/pick-task-line';
 import { completePickTask, getPickTask } from '$lib/server/logistic/pick-task';
 import type { PickTaskWarehouseDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({
   locals,
@@ -45,21 +46,21 @@ export const load: PageServerLoad = async ({
 export const actions: Actions = {
   pick: async ({ locals, params, request }) => {
     const taskId = Number(params.id);
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const form = await request.formData();
     const lineId = Number(form.get('pick_task_line_id'));
     const quantity = Number(form.get('quantity'));
 
-    if (!Number.isInteger(lineId)) return fail(422, { error: 'Invalid line.' });
+    if (!Number.isInteger(lineId)) return formError(422, 'logistic.error.line_invalid');
     if (!Number.isInteger(quantity) || quantity < 0) {
-      return fail(422, { error: 'Enter zero or a positive whole number.' });
+      return formError(422, 'logistic.error.whole_number_required');
     }
 
     const { data: line, error: lineError } = await getPickTaskLine(locals.supabase, taskId, lineId);
 
-    if (lineError) return fail(500, { error: 'Failed to load the line.' });
-    if (line === null) return fail(404, { error: 'That line is not on this task.' });
+    if (lineError) return formError(500, 'logistic.error.line_load_failed');
+    if (line === null) return formError(404, 'logistic.error.pick_task_line_mismatch');
 
     const { error: rpcError } = await recordPickTaskLineQuantity(locals.supabase, {
       id: lineId,
@@ -68,11 +69,11 @@ export const actions: Actions = {
     });
 
     if (rpcError) {
-      if (rpcError.code === '42501') return fail(403, { error: 'That task is not yours.' });
+      if (rpcError.code === '42501') return formError(403, 'logistic.error.pick_task_not_yours');
       if (rpcError.code === '23514' || rpcError.code === 'P0001') {
-        return fail(409, { error: 'That quantity is more than this line asked for.' });
+        return formError(409, 'logistic.error.picked_quantity_too_high');
       }
-      return fail(500, { error: 'Failed to record the pick.' });
+      return formError(500, 'logistic.error.pick_save_failed');
     }
 
     return { success: true as const };
@@ -81,15 +82,15 @@ export const actions: Actions = {
   complete: async ({ locals, params }) => {
     const id = Number(params.id);
     if (!Number.isInteger(id)) throw error(404, 'Not found.');
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const { error: rpcError } = await completePickTask(locals.supabase, id, locals.userAccountId);
 
     if (rpcError) {
       if (rpcError.code === '42501') {
-        return fail(409, { error: 'That task is not yours, or is no longer in progress.' });
+        return formError(409, 'logistic.error.pick_task_not_in_progress');
       }
-      return fail(500, { error: 'Failed to complete the task.' });
+      return formError(500, 'logistic.error.pick_task_complete_failed');
     }
 
     redirect(303, '/warehouse/pick-task');

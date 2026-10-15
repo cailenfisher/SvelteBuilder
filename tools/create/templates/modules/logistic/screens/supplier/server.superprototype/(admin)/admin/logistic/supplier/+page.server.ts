@@ -1,8 +1,9 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { createSupplier, listSupplier } from '$lib/server/logistic/supplier';
 import type { SupplierListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 // No auth guard here: the (admin) layout's load already redirects an anonymous
 // visitor to /sign-in and 403s a non-admin, and RLS refuses the read regardless.
@@ -35,12 +36,12 @@ export const actions: Actions = {
     const name = (form.get('name') as string | null)?.trim();
     const leadTimeRaw = (form.get('lead_time_day') as string | null)?.trim();
 
-    if (!slug) return fail(422, { error: 'Slug is required.' });
-    if (!name) return fail(422, { error: 'Name is required.' });
+    if (!slug) return formError(422, 'logistic.error.slug_required');
+    if (!name) return formError(422, 'logistic.error.name_required');
 
     const leadTimeDay = leadTimeRaw ? Number(leadTimeRaw) : null;
     if (leadTimeDay !== null && (!Number.isInteger(leadTimeDay) || leadTimeDay < 0)) {
-      return fail(422, { error: 'Lead time must be a whole number of days.' });
+      return formError(422, 'logistic.error.lead_time_invalid');
     }
 
     // The name is captured in the locale the admin is working in.
@@ -54,10 +55,10 @@ export const actions: Actions = {
     if (rpcError) {
       // 23505 is unique_violation: the slug is already taken, which is a user error
       // rather than a server fault and should not read as one.
-      if (rpcError.code === '23505') return fail(409, { error: 'That slug is already in use.' });
-      return fail(500, { error: 'Failed to create the supplier.' });
+      if (rpcError.code === '23505') return formError(409, 'logistic.error.slug_in_use');
+      return formError(500, 'logistic.error.supplier_create_failed');
     }
-    if (supplierId === null) return fail(500, { error: 'Failed to create the supplier.' });
+    if (supplierId === null) return formError(500, 'logistic.error.supplier_create_failed');
 
     redirect(303, `/admin/logistic/supplier/${supplierId}`);
   },

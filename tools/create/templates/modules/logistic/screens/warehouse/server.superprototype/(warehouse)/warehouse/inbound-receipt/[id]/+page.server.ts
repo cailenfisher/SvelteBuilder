@@ -1,4 +1,4 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import {
   getInboundReceiptLine,
@@ -7,6 +7,7 @@ import {
 import { getInboundReceipt } from '$lib/server/logistic/inbound-receipt';
 import type { InboundReceiptWarehouseDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({
   locals,
@@ -52,15 +53,15 @@ export const actions: Actions = {
   // receipt is refused above rather than merely hidden.
   receive: async ({ locals, params, request }) => {
     const receiptId = Number(params.id);
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const form = await request.formData();
     const lineId = Number(form.get('inbound_receipt_line_id'));
     const quantity = Number(form.get('quantity'));
 
-    if (!Number.isInteger(lineId)) return fail(422, { error: 'Invalid line.' });
+    if (!Number.isInteger(lineId)) return formError(422, 'logistic.error.line_invalid');
     if (!Number.isInteger(quantity) || quantity < 0) {
-      return fail(422, { error: 'Enter zero or a positive whole number.' });
+      return formError(422, 'logistic.error.whole_number_required');
     }
 
     const { data: line, error: lineError } = await getInboundReceiptLine(
@@ -69,8 +70,8 @@ export const actions: Actions = {
       lineId
     );
 
-    if (lineError) return fail(500, { error: 'Failed to load the line.' });
-    if (line === null) return fail(404, { error: 'That line is not on this receipt.' });
+    if (lineError) return formError(500, 'logistic.error.line_load_failed');
+    if (line === null) return formError(404, 'logistic.error.inbound_receipt_line_mismatch');
 
     const { error: rpcError } = await receiveInboundReceiptLine(locals.supabase, {
       id: lineId,
@@ -80,9 +81,9 @@ export const actions: Actions = {
 
     if (rpcError) {
       if (rpcError.code === '42501') {
-        return fail(409, { error: 'This receipt is no longer open for receiving.' });
+        return formError(409, 'logistic.error.inbound_receipt_closed');
       }
-      return fail(500, { error: 'Failed to record the received quantity.' });
+      return formError(500, 'logistic.error.received_quantity_save_failed');
     }
 
     return { success: true as const };

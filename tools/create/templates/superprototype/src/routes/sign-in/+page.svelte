@@ -3,6 +3,7 @@
   import { Button } from '@sveltebuilder/coreui'
   import { getDictionary } from 'diglossia/svelte'
   import type { ActionData } from './$types'
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { form }: { form: ActionData } = $props()
 
@@ -21,7 +22,7 @@
     </header>
 
     {#if form?.error}
-      <p class="sign-in-screen__card-error" role="alert">{form.error}</p>
+      <p class="sign-in-screen__card-error" role="alert">{formErrorText(form.error, dictionary, dictionary)}</p>
     {/if}
 
     <form method="post">

@@ -1,8 +1,13 @@
 # MIGRATION-2.0.md — upgrading to coreui 1.0, content 2.0 and logistic 2.0
 
-**Draft.** Written phase by phase as the conformance plan (`docs/CONFORMANCE-PLAN.md`) renames
-things, and completed in Phase 13. The SQL below has not yet been run against a database built from
-the 1.x schema; Phase 13 validates it before release.
+For the release candidates coreui `1.0.0-rc`, content `2.0.0-rc` and logistic `2.0.0-rc`.
+
+**The SQL is validated** (2026-10-15). A database built from the last 1.x release (`main` at
+`d194b00`, base plus logistic and content, migration and seed), upgraded with every block below,
+then given the 2.0 `supabase/supplemental/` files and seed, passes all of `pnpm sql:check`'s 2.0
+assertions, and re-runs the seed cleanly. Its schema matches a fresh 2.0 database except for one
+column's position (`subscriber.locale_id` is added last rather than in place, which nothing
+depends on), and its grants and its UI copy links are identical.
 
 Screens are scaffolded once and owned by your app (`CLAUDE.md`, guardrail 10), so an existing
 project receives none of these changes on upgrade. This guide is how to apply them.
@@ -392,6 +397,264 @@ delete from public.local_text_link where id in (select id from retired_link);
 
 commit;
 ```
+
+---
+
+## API changes
+
+What changed beyond a name. Each package's changelog for 1.0 or 2.0 has the same list.
+
+### coreui
+
+- **No English defaults.** Strings that are accessible names are required: `Dialog` and `Drawer`
+  `closeLabel`; `ConfirmDialog` `confirmLabel` and `cancelLabel`; `Pagination` `label`,
+  `previousLabel` and `nextLabel`; `Spinner` and `ProgressBar` `label`; and `Tag`'s `removeLabel`
+  whenever it has `onRemove`. `DataTable` replaces `emptyLabel` with one required `labels` object
+  (`empty`, `pagination`, `previousPage`, `nextPage`). `Select`'s `placeholder` is optional with no
+  default. `createMessageBus()` requires a complete `labels` object, `DEFAULT_MESSAGE_LABELS` is no
+  longer exported, and `InlineNotification` outside a message bus throws instead of showing
+  English.
+- **Callbacks.** `Tag`'s `onremove` is `onRemove`. Every bindable value has its change callback:
+  `onCheckedChange` (`Switch`, `MenuCheckboxItem`), `onValueChange` (`RadioGroup`, `Select`, `Tabs`,
+  `Accordion`, `MenuRadioGroup`) and `onOpenChange` (`Dialog`, `Popover`, `Menu`, `ConfirmDialog`).
+  `TableHeaderCell` keeps `onSort`, a request to sort with no value.
+- **Text.** `MenuSub` takes a `trigger` snippet instead of `triggerLabel`; `Tooltip` takes a
+  `trigger` snippet instead of `children`, with `content` still a string.
+- **Severity.** The message severity `error` is `danger`, as in `Badge`, `Alert` and the tokens.
+- **Moved out.** `BlockEditor` is content's `ArticleBlockEditor`; `LocaleEdit`, `LocalTextEdit` and
+  `LocalTextLinkEdit` are the base scaffold's `LocaleFieldset`, `LocalTextFieldset` and
+  `LocalTextLinkFieldset`; `BarcodeInput` is logistic's, labelled by a surrounding `Field`.
+  `StatusBadge` is removed: use `Badge`.
+- **Types.** The variant, size, side and orientation unions are exported (`ButtonVariant`,
+  `DrawerSide`, …), with `DataTableLabels` and the screen-contract types `ScreenCopy`,
+  `ScreenLocale`, `ScreenPage`, `ScreenFormResult` and `ScreenFormError`. `DataTableColumn.align` is
+  `'start' | 'end'`.
+- **`useField()` and form-action errors:** see the two sections below.
+- **Fixes you may notice.** `DateTimePicker` reads a typed time in its `timezone` prop rather than
+  the browser's, updates a bound `value` even with `onValueChange`, and passes `min`/`max` to the
+  input in the form it accepts. A disabled `SelectItem` carries `aria-disabled`; `Tooltip` has
+  `role="tooltip"`.
+- **Peers.** `svelte ^5.33.0`; `@internationalized/date` is declared; `diglossia` is an optional
+  peer, for the screen-contract types.
+
+### content
+
+- **Copy from the dictionary.** Every component resolves its text from the dictionary in context
+  or its `dictionary` prop; the 2.0 seed has it in English and French. `FrontCurationBoard`,
+  `ArticleList` and the other list components take `dictionary`; `FrontCurationBoard` no longer
+  takes `locale`.
+- **`ArticleList`** takes `ArticleRow[]` and an `href` per article, and requires `onPageChange`;
+  its columns are headline, status, canonical slug and creation date.
+- **`ArticleWorkflowPanel`** is an inline section of plain forms instead of a drawer: it takes
+  `statusSlug`, `statuses`, `checklist`, `transitionAction`, `checklistAction` and an optional
+  `enhance`, and no longer takes `article`, `assignments`, `open`, `onClose` or the transition
+  callbacks.
+- **`ArticleBlockEditor`**'s `readonly` mode shows text, with an empty state.
+- **`validateArticleForPublish`** returns its issues: see "Form-action errors".
+- **Types.** Entity types are inferred from the schema; `Article.leadMediaAssetId` is a required
+  `number | null`. `ArticleSection`, `ArticleTopic` and `ArticleTag` are exported;
+  `PaginatedResult` is not. The main entry exports the schema as types only.
+
+### logistic
+
+- **Copy from the dictionary**, as in content. `StockLevelBar` and `TrackingEventList` take
+  `dictionary`; `PickTaskCard` and `TrackingEventList` require `locale`.
+- **`StorageLocationPath`** is a labelled list rather than a `nav` landmark.
+- **`BarcodeInput`** is labelled by a surrounding `Field`; its `label` and `error` props are gone.
+
+### Scaffolded projects
+
+- **Data access** goes through one data module per table in `src/lib/server/` and
+  `src/lib/server/<module>/`; route files no longer call `.from()`. Copy them from a fresh scaffold.
+- **Stylesheets:** see "Stylesheets" below.
+- **Screens** name their copy lookup `localText` (was `t`), and module screens import package
+  components where they used to hand-build them (the article admin screens, the stock level,
+  receipt and shipment screens, and others). Screens are yours once scaffolded, so take what you
+  want from a fresh scaffold rather than expecting an upgrade to change them.
+
+---
+
+## Renames
+
+Every name that changed, from the approved list in `docs/conformance-manifest.md`. Database
+columns, enum values and copy slugs are above, with their SQL; this section is the code. A
+renamed component keeps its props unless the next section says otherwise.
+
+### Logistic: Screens and routes
+
+| Old | New |
+| --- | --- |
+| screen `receipt`, route `/admin/logistic/receipt[/[id]]` | `inbound-receipt`, `/admin/logistic/inbound-receipt[/[id]]` |
+| screen `return`, route `/admin/logistic/return[/[id]]` | `return-authorization`, `/admin/logistic/return-authorization[/[id]]` |
+| screen `stock`, route `/admin/logistic/stock` | `stock-level`, `/admin/logistic/stock-level` |
+| route `/warehouse/pick[/[id]]` | `/warehouse/pick-task[/[id]]` |
+| route `/warehouse/receive[/[id]]` | `/warehouse/inbound-receipt[/[id]]` |
+| route `/warehouse/count[/[id]]` | `/warehouse/cycle-count[/[id]]` |
+| form action `addLine`, `receiveLine` (inbound receipt) | `addInboundReceiptLine`, `receiveInboundReceiptLine` |
+| form field `line_id` | `inbound_receipt_line_id` |
+
+### Logistic: Components
+
+| Old | New |
+| --- | --- |
+| `ReceiptCard`, `.receipt-card` | `InboundReceiptCard`, `.inbound-receipt-card` |
+
+### Logistic: View-model types (`views.ts`)
+
+| Old | New |
+| --- | --- |
+| `StockListView` | `StockLevelListView` |
+| `ReturnListView`, `ReturnDetailView` | `ReturnAuthorizationListView`, `ReturnAuthorizationDetailView` |
+| `PickQueueView` | `PickTaskWarehouseQueueView` |
+| `PickTaskDetailView` (warehouse) | `PickTaskWarehouseDetailView` |
+| `ReceiveQueueView`, `ReceiveDetailView` | `InboundReceiptWarehouseQueueView`, `InboundReceiptWarehouseDetailView` |
+| `CountQueueView`, `CountDetailView` | `CycleCountWarehouseQueueView`, `CycleCountWarehouseDetailView` |
+| `LocationOption` | `StorageLocationOption` |
+| `ScreenCopy`, `ScreenLocale`, `ScreenPage`, `ScreenFormResult` | declared once, not per module |
+| field `LogisticMetrics.pendingReceiptCount` | `pendingInboundReceiptCount` |
+| field `LogisticMetrics.openReturnCount` | `openReturnAuthorizationCount` |
+| field `LogisticDashboardView.pendingReceipts`, `openReturns` | `pendingInboundReceipts`, `openReturnAuthorizations` |
+| field `StockLevelListView.levels`, `history`, `historyId` | `stockLevels`, `stockAdjustments`, `historyStockLevelId` |
+| field `PickQueueView.myTasks`, `openTasks` | `myPickTasks`, `openPickTasks` |
+| field `ReceiveQueueView.active`, `recent` | `activeInboundReceipts`, `recentInboundReceipts` |
+| field `CountQueueView.myCounts`, `openCounts` | `myCycleCounts`, `openCycleCounts` |
+| field `ReceiveDetailView.receipt`, `PickTaskDetailView.task` | `inboundReceipt`, `pickTask` |
+
+### Content: Screens and routes
+
+| Old | New |
+| --- | --- |
+| screen `admin-article` | `article-admin` (qualifier after parent) |
+| screen `preview`, route `/preview/[token]` | `article-preview`, `/article-preview/[token]` |
+| screen `feeds` | `feed` (singular) |
+| `feed-articles.ts` | `feed-article.ts` |
+
+### Content: Components
+
+| Old | New | Root class |
+| --- | --- | --- |
+| `AssignmentQueue` | `ArticleAssignmentQueue` | `.article-assignment-queue` |
+| `BylineList` | `ArticleBylineList` | `.article-byline-list` |
+| `MediaFigure` | `MediaAssetFigure` | `.media-asset-figure` |
+| `TopicTag` | `TopicLink`. It renders an `<a>` to `/?topic=…`, and `tag` is a separate table. | `.topic-link` |
+| `SectionFront` | `FrontDetail`. Its prop is `front: FrontWithSlots`. | `.front-detail` |
+| `SectionLabel` | `SectionLink`. It always renders an `<a>`. | `.section-link` |
+| `ArticleView` | `ArticleDetail` | `.article-detail` |
+| `AuthorProfileView` | `AuthorProfileDetail` | `.author-profile-detail` |
+| `LiveCoverageView` | `LiveCoverageDetail` | `.live-coverage-detail` |
+| `LiveUpdateItem` (prop `update`) | `LiveUpdateCard` (prop `liveUpdate`). It renders a self-contained `<article>`. | `.live-update-card` |
+| `NewsletterSignup` | `NewsletterSubscriptionForm` | `.newsletter-subscription-form` |
+| `BlockEditorHost` + coreui `BlockEditor` | `ArticleBlockEditor` | `.article-block-editor`, internals `.article-block-editor__*` |
+| `ArticleWorkflowPanel` tab "Team", class `__team-item` | "Assignment", `__assignment` | — |
+| `ArticleWorkflowPanel` hard-coded "Status", "Checklist", "Team" | copy slugs (see below) | slug |
+| local type `AssignmentWithArticle` (in `AssignmentQueue`) | `ArticleAssignmentWithArticle` | type |
+
+### Content: Types
+
+| Old | New |
+| --- | --- |
+| `ArticlePageView` | `ArticleDetailView` |
+| `SectionPageView` | `SectionDetailView` |
+| `PreviewPageView` | `ArticlePreviewDetailView` |
+| `AdminArticleListView`, `AdminArticleDetailView` | `ArticleAdminListView`, `ArticleAdminDetailView` |
+| `ChecklistEntry` | `ArticleChecklistEntry` |
+| `ParagraphBlockContent`, `HeadingBlockContent`, `ImageBlockContent`, `GalleryBlockContent`, `VideoBlockContent`, `EmbedBlockContent`, `PullquoteBlockContent`, `LiveUpdateBlockContent` | `ArticleBlockParagraphContent`, … (parent `ArticleBlock` first) |
+| `MediaType` / enum `media_type` | `MediaAssetType` / `media_asset_type` |
+| `MediaLicense` / enum `media_license` | `MediaAssetLicense` / `media_asset_license` |
+
+### coreui: Components and exports
+
+| Old | New |
+| --- | --- |
+| `RadioItem` | `RadioGroupItem` |
+| `TableHead` (`<thead>`), `TableHeader` (`<th>`) | `TableHead` kept; `TableHeader` → `TableHeaderCell` |
+| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit` | moved to the base template as `LocaleFieldset`, `LocalTextFieldset`, `LocalTextLinkFieldset` |
+| `LocaleSwitcher` | `LocalePicker` |
+| `StatusBadge` | removed |
+| `BlockEditor`, type `EditorBlock` | moved to content as `ArticleBlockEditor`; type `ArticleBlockDraft` |
+| `MessageAriaLive` | `MessageLiveRegion`. It is the message system's polite/assertive live region; "aria" names a technology, not the concept. |
+| `SBMessage`, `SBMessageAction`, `SBMessageSeverity` | `Message`, `MessageAction`, `MessageSeverity` |
+| `DEFAULT_MESSAGE_LABELS` | no longer exported |
+| `interface MessageBus` | `type MessageBus` (TS convention: `type` unless merging) |
+| `.table .align-right` | `.table__cell--end` (logical, BEM) |
+
+### coreui: CSS classes
+
+| Old | New |
+| --- | --- |
+| `.btn` | `.button` |
+| `.progress` | `.progress-bar` |
+| `.notification` | `.inline-notification` |
+| `.datetime-picker` | `.date-time-picker` |
+| `.aria-live` | `.message-live-region` |
+| `.radio-item` | `.radio-group-item` |
+| `.table-header` | `.table-header-cell` |
+| `.locale-switcher` | `.locale-picker` |
+| `.checkbox-wrap`, `.switch-wrap` | `.checkbox`, `.switch` become the wrapping root; the inputs become `.checkbox__control`, `.switch__control` |
+| `.table-wrap` | `.table` becomes the scroll root; `<table>` becomes `.table__element` |
+| `.block-editor`, `.block-*`, `.add-block-btn`, `.embed-*`, `.heading-level-select` | move with the component as `.article-block-editor__*` |
+| `.locale-edit`, `.local-text-edit`, `.local-text-link-edit` | move with the components as `.locale-fieldset`, `.local-text-fieldset`, `.local-text-link-fieldset` |
+
+### Base and SuperPrototype templates
+
+| Old | New |
+| --- | --- |
+| `navigation_item.scope` | `navigation_item.menu` (already flagged in CLAUDE.md as colliding with the i18n scope) |
+| `src/lib/server/scoped-copy.ts`, `hooks.server.ts` call `.from(` | not route files; excluded from the Phase 9 "no `.from(` in routes" check. (content's `feed-articles.ts` is the third non-route file in the 35, and it moves into the content seam.) |
+
+### Screen fields, form actions and copy
+
+| Old | New |
+| --- | --- |
+| view fields `receipts`, `receipt` (admin inbound receipt), `returns`, `counts`, `locations` (3 views), `task`, `active`, `recent`, `openTotal` | `inboundReceipts`, `inboundReceipt`, `returnAuthorizations`, `cycleCounts`, `storageLocations`, `pickTask`, `activeInboundReceipts`, `recentInboundReceipts`, `openPickTaskTotal` |
+| warehouse copy `logistic.pick.*`, `logistic.count.*`, `logistic.receive.*`; nav `logistic.warehouse.pick` (+ `.hint`) etc. | `logistic.warehouse.pick_task.*`, `logistic.warehouse.cycle_count.*`, `logistic.warehouse.inbound_receipt.*`; `logistic.warehouse.pick_task.title` (+ `.hint`) |
+| `logistic.pick.task` (dashboard label) | `logistic.pick_task.one` |
+| form actions `gradeLine`, `addContact`, `deleteContact`, `addEvent` | `gradeReturnAuthorizationLine`, `addSupplierContact`, `deleteSupplierContact`, `addTrackingEvent` |
+| form fields `line_id`, `task_id`, `count_id`, `contact_id`, `location_ids` | `inbound_receipt_line_id`, `return_authorization_line_id`, `pick_task_line_id`, `cycle_count_line_id`, `pick_task_id`, `cycle_count_id`, `supplier_contact_id`, `storage_location_ids` |
+| English "RMA" (`logistic.return_authorization.one`) | "Return authorization" |
+| `newsletter.*` and `action.submit_for_review` … `action.unpublish` in scope `content` | `content.newsletter_subscription_form.*`, `content.article_workflow.*` |
+| page-local CSS `admin-article`, `admin-article-list` | `article-admin`, `article-admin-list` |
+
+### Abbreviations spelled out
+
+| Old | New |
+| --- | --- |
+| copy slugs `nav.*`, `admin.nav.*`, `logistic.admin.nav.*`, `logistic.warehouse.nav` | `navigation.*`, `admin.navigation.*`, `logistic.admin.navigation.*`, `logistic.warehouse.navigation` |
+| data keys and locals `navItems`, `navItem`, `NavItem`, `navLinks`, `navId`, `navResult` | `navigationItems`, `navigationItem`, `NavigationItem`, `navigationLinks`, `navigationItemId`, `navigationItemResult` |
+| CSS `__nav`, `__nav-link`, `.pagination__button--nav`, `.nav-item-edit-page`, `.warehouse-home__flow-desc` | `__navigation`, `__navigation-link`, `.pagination__button--navigation`, `.navigation-item-edit-page`, `.warehouse-home__flow-hint` |
+| element ids `nav-href`, `nav-menu`, `nav-position` | `navigation-item-href`, `navigation-item-menu`, `navigation-item-position` |
+| locals `msg`, `imgError`, `str`, `e` (multi-line or non-lambda), `urlEls`, field `desc` | `message`, `imageError`, `text`, `entry`/`event`, `urlElements`, `hint` |
+
+### Screen and layout class names
+
+| Old | New |
+| --- | --- |
+| screen root blocks named freely (`.receipt-list`, `.count-detail`, `.pick-task`, `.article-page`, `.preview-page`, `.stock-page`, `.dashboard`, …) | the view type with `View` → `Screen`: `.inbound-receipt-list-screen`, `.cycle-count-detail-screen`, `.pick-task-warehouse-detail-screen`, `.article-detail-screen`, `.article-preview-detail-screen`, `.stock-level-list-screen`; base screens by concept and role: `.admin-dashboard-screen`, `.locale-admin-list-screen`, `.local-text-admin-detail-screen`, `.navigation-item-admin-list-screen`, `.sign-in-screen`; `.warehouse-home-screen` (the home page has no view type of its own) |
+| sub-blocks of a screen: `.cycle-count-new-form`, `.receipt-new-form`, `.return-new-form`, `.shipment-new-form`, `.sign-in-card`, `.stat` | `.<screen>__new-form`, `.sign-in-screen__card`, `.admin-dashboard-screen__stat` |
+| root layout `.app`, `.full-page` | `.app-layout`, `.full-page-layout` |
+| `.sr-only` (three copies) | `.visually-hidden` in `src/utilities.css`, `layer(utilities)` |
+| bare elements under a block (`__pullquote p`, `__embed iframe`, `__live-update p`, `__detail dt`/`dd`, `__meta dt`/`code`, `__filing dt`/`dd`, `__meta-item dt`/`dd`, `__logo a`, `kitchen__pages a`) | `__pullquote-text`, `__embed-frame`, `__live-update-text`, `__detail-term`/`-value`, `__meta-term`/`-code`, `__filing-term`/`-value`, `__meta-term`/`-value`, `__logo-link`, `__page-link` |
+| coreui table rules on `tr`, `td`, `th`, `thead` | `.table-row`, `.table-cell`, `.table-header-cell`, `.table-head` |
+
+---
+
+## Form-action errors
+
+`ScreenFormResult.error` is a `ScreenFormError` (`{ slug, detail? }`) instead of a string, and its
+success branch no longer has `message`. Actions return `formError(status, slug, detail?)` from
+`$lib/server/form-error`; screens show `formErrorText(form.error, screenDictionary,
+globalDictionary)` from `$lib/FormError/form-error`, with `form.error.detail` as the notification's
+detail. Copy every new file from a fresh scaffold, and in your own actions replace each
+`fail(n, { error: '…' })` with a slug you seed in every locale.
+
+content's `validateArticleForPublish` returns `PublishValidationIssue[]` (empty when the article is
+ready) instead of throwing, and `PublishValidationError` is now `PublishValidationIssue`: `message`
+became `slug` (`content.publish_validation.*`) and `values`, formatted by the caller with
+`dictionary.formatText(issue.slug, issue.values, 'content')`. It still throws if `imageProvenance`
+is given without `locale`, which is a caller's mistake.
+
+**Re-run the 2.0 seeds after upgrading.** The error copy is new rows; an action whose slug has no
+row shows "Something went wrong" in the reader's language and logs the slug on the server.
 
 ---
 

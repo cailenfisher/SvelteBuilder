@@ -3,11 +3,13 @@
   import './locale-create-form.css';
   import { getDictionary } from 'diglossia/svelte';
   import { Button } from '@sveltebuilder/coreui';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import { formErrorText } from '$lib/FormError/form-error';
   import LocaleFieldset from '$lib/Locale/LocaleFieldset.svelte';
 
   type Props = {
     /** The action's answer to the last submission. */
-    result?: { error?: string; success?: boolean } | null;
+    result?: ScreenFormResult | null;
   };
 
   let { result }: Props = $props();
@@ -20,7 +22,7 @@
   <h2 class="locale-create-form__title">{newLabel}</h2>
 
   {#if result?.error}
-    <p class="locale-create-form__error" role="alert">{result.error}</p>
+    <p class="locale-create-form__error" role="alert">{formErrorText(result.error, dictionary, dictionary)}</p>
   {/if}
   {#if result?.success}
     <p class="locale-create-form__success" role="status">{dictionary.localText('feedback.saved')}</p>

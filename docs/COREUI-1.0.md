@@ -6,6 +6,18 @@ claim, and the order to do it in. The detailed findings for stage 1 are in
 
 Read this before proposing a coreui version above 0.x, or a breaking change to coreui.
 
+## Status (2026-10-15): release candidate
+
+| Stage | State |
+| --- | --- |
+| 1. Settle the API | **Done.** Every finding in `COREUI-API-AUDIT.md` is changed or kept with its reason, shipped as one bundled break with the content and logistic 2.0 majors. |
+| 2. Prove behaviour | **Done in part.** Behaviour specs cover every interactive component and the message bus, and every browser suite runs in Chromium, Firefox and WebKit. Not every component has behaviour tests, and the browser support policy names floors no suite runs at. |
+| 3. Human accessibility pass | **In progress**, during the release candidate. Right-to-left is partly reviewed (`docs/DEFERRED.md`). |
+| 4. Documentation and policy | **Policy done:** `COREUI-COMPATIBILITY.md` is the compatibility policy and the support floors. Reference pages for every component are not written; `apps/docs` is still a placeholder. |
+| 5. Release candidate | **In progress.** `1.0.0-rc.0` is versioned with content and logistic `2.0.0-rc.0`; publishing it is the maintainer's call. |
+
+The sections below are the plan as written on 2026-10-08.
+
 ---
 
 ## Why 1.0, and why not yet

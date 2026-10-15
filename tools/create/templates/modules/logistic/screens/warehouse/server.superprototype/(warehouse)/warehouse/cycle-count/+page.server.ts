@@ -1,4 +1,4 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import {
   listAssignedCycleCount,
@@ -7,6 +7,7 @@ import {
 } from '$lib/server/logistic/cycle-count';
 import type { CycleCountWarehouseQueueView } from '@sveltebuilder/logistic/views';
 import type { PageServerLoad, Actions } from './$types';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({ locals }): Promise<CycleCountWarehouseQueueView> => {
   if (locals.userAccountId === null) redirect(303, '/sign-in');
@@ -30,11 +31,11 @@ export const load: PageServerLoad = async ({ locals }): Promise<CycleCountWareho
 
 export const actions: Actions = {
   take: async ({ locals, request }) => {
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const form = await request.formData();
     const countId = Number(form.get('cycle_count_id'));
-    if (!Number.isInteger(countId)) return fail(422, { error: 'Invalid count.' });
+    if (!Number.isInteger(countId)) return formError(422, 'logistic.error.cycle_count_invalid');
 
     const { data: taken, error: updateError } = await takeCycleCount(
       locals.supabase,
@@ -42,8 +43,8 @@ export const actions: Actions = {
       locals.userAccountId
     );
 
-    if (updateError) return fail(500, { error: 'Failed to take the count.' });
-    if (!taken) return fail(409, { error: 'Someone else has already taken that count.' });
+    if (updateError) return formError(500, 'logistic.error.cycle_count_take_failed');
+    if (!taken) return formError(409, 'logistic.error.cycle_count_taken');
 
     redirect(303, `/warehouse/cycle-count/${countId}`);
   },

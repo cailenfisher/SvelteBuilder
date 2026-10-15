@@ -3,6 +3,8 @@
 <script lang="ts">
   import './local-text-create-form.css';
   import { getDictionary } from 'diglossia/svelte';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import { formErrorText } from '$lib/FormError/form-error';
   import type { Locale } from 'diglossia';
   import { Button, Field, Textarea } from '@sveltebuilder/coreui';
   import LocalTextLinkFieldset from '$lib/LocalTextLink/LocalTextLinkFieldset.svelte';
@@ -10,7 +12,7 @@
   type Props = {
     locales: Pick<Locale, 'id' | 'nativeName'>[];
     /** The action's answer to the last submission. */
-    result?: { error?: string; success?: boolean } | null;
+    result?: ScreenFormResult | null;
   };
 
   let { locales, result }: Props = $props();
@@ -23,7 +25,7 @@
   <h2 class="local-text-create-form__title">{newLabel}</h2>
 
   {#if result?.error}
-    <p class="local-text-create-form__error" role="alert">{result.error}</p>
+    <p class="local-text-create-form__error" role="alert">{formErrorText(result.error, dictionary, dictionary)}</p>
   {/if}
   {#if result?.success}
     <p class="local-text-create-form__success" role="status">{dictionary.localText('feedback.saved')}</p>

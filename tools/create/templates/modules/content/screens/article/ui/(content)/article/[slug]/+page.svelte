@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getDictionary } from 'diglossia/svelte';
   import './article-detail-screen.css';
   import { createDictionary } from 'diglossia';
   import { InlineNotification } from '@sveltebuilder/coreui';
@@ -7,8 +8,11 @@
   import type { ArticleDetailView } from '@sveltebuilder/content/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import CommentForm from './CommentForm.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: ArticleDetailView; form?: ScreenFormResult } = $props();
+
+  const globalDictionary = getDictionary();
 
   // A fresh instance from this screen's payload, not `getDictionary().merge(...)`. Merging
   // would mutate the dictionary the root layout put in context, which on the server is shared
@@ -91,7 +95,7 @@
                  not a problem, and should not interrupt a screen reader. -->
             <InlineNotification severity="success" summary={localText('content.comment.pending')} />
           {:else}
-            <CommentForm error={form?.error} dictionary={scoped} />
+            <CommentForm error={form?.error ? formErrorText(form.error, scoped, globalDictionary) : undefined} dictionary={scoped} />
           {/if}
         </section>
       {/if}

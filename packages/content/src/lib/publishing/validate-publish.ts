@@ -2,9 +2,15 @@ import type { DictionaryInstance } from 'diglossia';
 import type { MediaAssetRights, MediaAssetSource } from '../schema/index.js';
 import type { ArticleForStructuredData, PublisherForStructuredData } from './structured-data.js';
 
-export type PublishValidationError = {
+/**
+ * One reason an article cannot be published yet. `slug` is copy in scope `content`
+ * (`content.publish_validation.*`), `values` what its message takes; the caller formats it in the
+ * editor's language. `field` says what the issue is about, for a caller that marks the field.
+ */
+export type PublishValidationIssue = {
   field: string;
-  message: string;
+  slug: string;
+  values?: Record<string, string | number>;
 };
 
 // ISO 8601 date with explicit timezone offset (Z suffix is valid — it denotes UTC +00:00).
@@ -46,16 +52,20 @@ export type PublishValidationOptions = {
 const isMissing = (text: string | undefined | null): boolean =>
   !text?.trim() || text.startsWith('[missing:');
 
-// Validates an article is ready to publish and that structured-data fields are
-// complete and well-formed. Throws with a list of errors rather than returning.
-// Call this in the transition-to-published action before calling transitionArticleStatus.
+/**
+ * Whether an article is ready to publish, and its structured-data fields complete and well-formed:
+ * every reason it is not, or an empty list. Call it in the transition-to-published action before
+ * the transition itself.
+ *
+ * Throws only on a caller's mistake (`imageProvenance` without `locale`), never on the article.
+ */
 export function validateArticleForPublish(
   article: ArticleForStructuredData,
   publisher: PublisherForStructuredData | null,
   dictionary: DictionaryInstance,
   options: PublishValidationOptions = {}
-): void {
-  const errors: PublishValidationError[] = [];
+): PublishValidationIssue[] {
+  const errors: PublishValidationIssue[] = [];
 
   // Resolved here rather than read off the row, for the same reason as everything else in this
   // directory: the copy lives in the dictionary, and a baked string could not follow a locale.
@@ -66,38 +76,29 @@ export function validateArticleForPublish(
 
   // Required headline
   if (!headline?.trim() || headline.startsWith('[missing:')) {
-    errors.push({ field: 'headline', message: 'Headline is required before publishing.' });
+    errors.push({ field: 'headline', slug: 'content.publish_validation.headline_required' });
   } else if (headline.length > 110) {
-    errors.push({
-      field: 'headline',
-      message: 'Headline exceeds 110 characters (Google News limit).',
-    });
+    errors.push({ field: 'headline', slug: 'content.publish_validation.headline_too_long' });
   }
 
   // Required dek / standfirst
   if (!dek?.trim() || dek.startsWith('[missing:')) {
-    errors.push({ field: 'dek', message: 'Dek (standfirst) is required before publishing.' });
+    errors.push({ field: 'dek', slug: 'content.publish_validation.dek_required' });
   }
 
   // At least one byline
   if (article.bylines.length === 0) {
-    errors.push({
-      field: 'bylines',
-      message: 'At least one byline must be assigned before publishing.',
-    });
+    errors.push({ field: 'bylines', slug: 'content.publish_validation.byline_required' });
   }
 
   // At least one section
   if (article.sections.length === 0) {
-    errors.push({
-      field: 'sections',
-      message: 'At least one section must be assigned before publishing.',
-    });
+    errors.push({ field: 'sections', slug: 'content.publish_validation.section_required' });
   }
 
   // At least one body block
   if (article.blocks.length === 0) {
-    errors.push({ field: 'blocks', message: 'Article must have at least one body block.' });
+    errors.push({ field: 'blocks', slug: 'content.publish_validation.block_required' });
   }
 
   // Every prose block needs text. Resolved from the dictionary, so an unwritten block and one
@@ -110,7 +111,8 @@ export function validateArticleForPublish(
     if (!text?.trim() || text.startsWith('[missing:')) {
       errors.push({
         field: `block.${block.id}`,
-        message: `Block ${block.position} (${block.blockType}) has no text.`,
+        slug: 'content.publish_validation.block_text_missing',
+        values: { position: block.position },
       });
     }
   }
@@ -124,7 +126,8 @@ export function validateArticleForPublish(
     if (block.mediaAssetId === null) {
       errors.push({
         field: `block.${block.id}.mediaAsset`,
-        message: `Image block ${block.position} has no image attached.`,
+        slug: 'content.publish_validation.image_missing',
+        values: { position: block.position },
       });
       continue;
     }
@@ -132,7 +135,8 @@ export function validateArticleForPublish(
     if (!altText?.trim() || altText.startsWith('[missing:')) {
       errors.push({
         field: `block.${block.id}.altText`,
-        message: `Image block ${block.position} is missing alt text. Alt text is required for accessibility (WCAG 2.2 AA) and Google structured data.`,
+        slug: 'content.publish_validation.alt_text_missing',
+        values: { position: block.position },
       });
     }
   }
@@ -149,24 +153,14 @@ export function validateArticleForPublish(
 
   // Publisher profile required for structured data
   if (!publisher) {
-    errors.push({
-      field: 'publisher',
-      message:
-        'A publisher profile must be configured before publishing (required for NewsArticle structured data).',
-    });
+    errors.push({ field: 'publisher', slug: 'content.publish_validation.publisher_missing' });
   } else {
     const publisherName = dictionary.localText('name', 'publisher_profile', publisher.id);
     if (!publisherName?.trim() || publisherName.startsWith('[missing:')) {
-      errors.push({
-        field: 'publisher.name',
-        message: 'Publisher name is required for structured data.',
-      });
+      errors.push({ field: 'publisher.name', slug: 'content.publish_validation.publisher_name_missing' });
     }
     if (!publisher.url?.trim()) {
-      errors.push({
-        field: 'publisher.url',
-        message: 'Publisher URL is required for structured data.',
-      });
+      errors.push({ field: 'publisher.url', slug: 'content.publish_validation.publisher_url_missing' });
     }
   }
 
@@ -174,7 +168,8 @@ export function validateArticleForPublish(
   if (article.publishedAt && !hasTimezoneOffset(article.publishedAt)) {
     errors.push({
       field: 'publishedAt',
-      message: `datePublished "${article.publishedAt}" lacks a timezone offset. Use ISO 8601 with a timezone (e.g. 2026-06-01T09:00:00Z).`,
+      slug: 'content.publish_validation.published_at_offset',
+      values: { date: article.publishedAt },
     });
   }
 
@@ -182,18 +177,11 @@ export function validateArticleForPublish(
   if (article.embargoExpiresAt && !article.publishedAt) {
     const embargoDate = new Date(article.embargoExpiresAt);
     if (embargoDate < new Date()) {
-      errors.push({
-        field: 'embargoExpiresAt',
-        message:
-          'Embargo date has already passed. Remove the embargo or extend it before publishing.',
-      });
+      errors.push({ field: 'embargoExpiresAt', slug: 'content.publish_validation.embargo_passed' });
     }
   }
 
-  if (errors.length > 0) {
-    const messages = errors.map((e) => `[${e.field}] ${e.message}`).join('\n');
-    throw new Error(`Article failed publish validation:\n${messages}`);
-  }
+  return errors;
 }
 
 // Whether every image the article shows may be shown: attached, licensed, sourced, in date, and
@@ -207,8 +195,8 @@ function validateImageProvenance(
     locale: string | undefined;
     now: Date;
   }
-): PublishValidationError[] {
-  const errors: PublishValidationError[] = [];
+): PublishValidationIssue[] {
+  const errors: PublishValidationIssue[] = [];
   const { provenance, locale, now } = context;
 
   if (!locale) {
@@ -219,7 +207,6 @@ function validateImageProvenance(
 
   for (const block of article.blocks) {
     if (block.blockType !== 'image') continue;
-    const label = `Image block ${block.position}`;
 
     // No-asset blocks were reported above; there is nothing to check provenance of.
     if (block.mediaAssetId === null) continue;
@@ -229,20 +216,23 @@ function validateImageProvenance(
     if (!rights) {
       errors.push({
         field: `block.${block.id}.rights`,
-        message: `${label} has no rights recorded. Record the license before publishing.`,
+        slug: 'content.publish_validation.rights_missing',
+        values: { position: block.position },
       });
     } else {
       if (rights.license === 'creative_commons' && !source?.licenseUrl?.trim()) {
         errors.push({
           field: `block.${block.id}.licenseUrl`,
-          message: `${label} is Creative Commons but has no license URL. Attribution needs to say which license.`,
+          slug: 'content.publish_validation.license_url_missing',
+          values: { position: block.position },
         });
       }
 
       if (rights.expiresAt && new Date(rights.expiresAt) < now) {
         errors.push({
           field: `block.${block.id}.expiresAt`,
-          message: `${label} has a license that expired on ${rights.expiresAt.slice(0, 10)}.`,
+          slug: 'content.publish_validation.license_expired',
+          values: { position: block.position, date: rights.expiresAt.slice(0, 10) },
         });
       }
 
@@ -255,7 +245,8 @@ function validateImageProvenance(
         if (isMissing(credit) || creditLocale !== locale) {
           errors.push({
             field: `block.${block.id}.credit`,
-            message: `${label} requires a credit line, and none is written in ${locale}.`,
+            slug: 'content.publish_validation.credit_missing',
+            values: { position: block.position, locale },
           });
         }
       }
@@ -264,7 +255,8 @@ function validateImageProvenance(
     if (!source?.sourceUrl?.trim()) {
       errors.push({
         field: `block.${block.id}.source`,
-        message: `${label} has no source recorded. Record where the image came from.`,
+        slug: 'content.publish_validation.source_missing',
+        values: { position: block.position },
       });
     }
   }

@@ -9,6 +9,7 @@
   import InboundReceiptDetailHeader from './InboundReceiptDetailHeader.svelte';
   import InboundReceiptLineAddForm from './InboundReceiptLineAddForm.svelte';
   import InboundReceiptLineTable from './InboundReceiptLineTable.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: InboundReceiptDetailView; form?: ScreenFormResult } = $props();
 
@@ -34,7 +35,7 @@
   <InboundReceiptDetailHeader inboundReceipt={data.inboundReceipt} dictionary={scoped} />
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
   <InboundReceiptSummary

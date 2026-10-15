@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getDictionary } from 'diglossia/svelte';
   import './shipment-detail-screen.css';
   import { createDictionary } from 'diglossia';
   import { InlineNotification } from '@sveltebuilder/coreui';
@@ -9,8 +10,11 @@
   import ShipmentStatusForm from './ShipmentStatusForm.svelte';
   import ShipmentTrackingForm from './ShipmentTrackingForm.svelte';
   import TrackingEventAddForm from './TrackingEventAddForm.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: ShipmentDetailView; form?: ScreenFormResult } = $props();
+
+  const globalDictionary = getDictionary();
 
   const scoped = $derived(createDictionary(data.copy));
   const localText = (slug: string) => scoped.localText(slug, 'logistic');
@@ -24,7 +28,7 @@
   <ShipmentDetailHeader shipment={data.shipment} dictionary={scoped} />
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, globalDictionary)} detail={form.error.detail} />
   {/if}
 
   <div class="shipment-detail-screen__columns">

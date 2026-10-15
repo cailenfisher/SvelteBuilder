@@ -9,6 +9,7 @@
   import type { InboundReceiptListView } from '@sveltebuilder/logistic/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import InboundReceiptCreateForm from './InboundReceiptCreateForm.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: InboundReceiptListView; form?: ScreenFormResult } = $props();
 
@@ -36,7 +37,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
   <FilterLinkList

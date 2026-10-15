@@ -446,3 +446,15 @@ Includes the names the three Phase 11 decisions brought in (2026-10-14).
 | `FieldControl` | the type `useField()` returns: `id`, `aria-describedby`, `aria-invalid`, `required`, `disabled`, under their HTML names so a native control can spread it. Replaces `FieldContext` in coreui's exports | approved 2026-10-15 |
 | `FieldContext` | stays as the internal type of the context `Field` sets; no longer exported | approved 2026-10-15 |
 | internal accessor for `Select` and `RadioGroup` (proposed `getFieldContext`, in `Field/use-field.ts`, not exported) | gives the two controls that need `aria-labelledby` the label's id | pending |
+
+## Added during Phase 13 (pending approval)
+
+| Name | What it is |
+| --- | --- |
+| coreui type `FieldControl` | what `useField()` returns: `id`, `aria-describedby`, `aria-invalid`, `required`, `disabled` (decided 2026-10-15) |
+| `setFieldContext`, `getFieldContext`, `FieldContext.describedBy` | internal to coreui: `Field`'s side of the context, and `Select`/`RadioGroup`'s accessor for the label id |
+| coreui type `ScreenFormError` (`slug`, `detail?`) | a form action's error as copy |
+| `formError(status, slug, detail?)` in the flavour's `src/lib/server/form-error.ts`; `formErrorText(error, screenDictionary, globalDictionary)` in the base template's `src/lib/FormError/form-error.ts` | the action side and the screen side; the folder is the concept, like `LocalText/` |
+| slugs `logistic.error.*` (66), `content.error.*` (15), global `error.*` (19) | one per distinct failure, named for what went wrong (`sku_required`, `inbound_receipt_closed`, `pick_task_not_yours`); `error` is a category segment like the existing `logistic.field.*` and global `feedback.*` |
+| slugs `content.publish_validation.*` (19); type `PublishValidationIssue` (was `PublishValidationError`), fields `slug`, `values` | the publish check's reasons, returned instead of thrown |
+| test fixtures `FieldWithControl.svelte` (was `FieldControl.svelte`, which now collides with the type) and `CustomFieldControl.svelte`; `tools/create/test/form-error.test.ts` | |

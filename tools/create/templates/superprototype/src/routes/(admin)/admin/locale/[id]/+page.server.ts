@@ -1,6 +1,7 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { deleteLocale, getLocale, updateLocale } from '$lib/server/locale';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
@@ -25,7 +26,7 @@ export const actions: Actions = {
     const dir = (form.get('dir') as string | null)?.trim() || 'ltr';
 
     if (isNaN(id) || !code || !name || !nativeName) {
-      return fail(422, { error: 'Code, name, and native name are required.' });
+      return formError(422, 'error.locale_incomplete');
     }
 
     const { error: updateError } = await updateLocale(locals.supabase, id, {
@@ -35,18 +36,18 @@ export const actions: Actions = {
       dir,
     });
 
-    if (updateError) return fail(500, { error: 'Failed to update locale.' });
+    if (updateError) return formError(500, 'error.locale_update_failed');
 
-    return { success: true };
+    return { success: true as const };
   },
 
   delete: async ({ params, locals }) => {
     const id = parseInt(params.id);
-    if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
+    if (isNaN(id)) return formError(422, 'error.id_invalid');
 
     const { error: deleteError } = await deleteLocale(locals.supabase, id);
 
-    if (deleteError) return fail(500, { error: 'Failed to delete locale.' });
+    if (deleteError) return formError(500, 'error.locale_delete_failed');
 
     throw redirect(303, '/admin/locale');
   },

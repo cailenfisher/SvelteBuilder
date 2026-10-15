@@ -204,9 +204,14 @@ Check `error` on every Supabase result, every time.
 
 - **In a load:** `throw error(500, 'Failed to load tickets.')` (from `@sveltejs/kit`). Use
   `error(404, …)` when a single row is missing (`.maybeSingle()` returned null).
-- **In a form action:** `return fail(4xx|500, { error: '…' })`, validating input first with
-  `fail(422, …)`. Map Postgres codes that are really user errors: `23505` (unique violation)
-  → `fail(409, …)`, `23503` (foreign key) → `fail(409, …)`.
+- **In a form action:** `return formError(4xx|500, 'ticket.error.title_required')` from
+  `$lib/server/form-error`, validating input first with `formError(422, …)`. The error is a copy
+  slug, never English: the screen shows it in the reader's language with `formErrorText` from
+  `$lib/FormError/form-error`, and a slug with no copy shows "Something went wrong" in that
+  language and logs the slug. Seed every slug you return in every locale. Map Postgres codes that
+  are really user errors: `23505` (unique violation) → `formError(409, …)`, `23503` (foreign key)
+  → `formError(409, …)`. Text the action cannot turn into a slug goes in the third argument,
+  `detail`, shown as it is.
 - **Redirect** after a successful create with `redirect(303, …)`.
 - Log the underlying Supabase error with `console.error` before throwing a generic message.
   Never send raw database errors to the browser.

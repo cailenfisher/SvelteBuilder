@@ -7,6 +7,7 @@
   import type { CycleCountDetailView } from '@sveltebuilder/logistic/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import CycleCountDetailHeader from './CycleCountDetailHeader.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: CycleCountDetailView; form?: ScreenFormResult } = $props();
 
@@ -41,7 +42,7 @@
   />
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
   <CycleCountLineTable cycleCountLines={count.lines} dictionary={scoped} />

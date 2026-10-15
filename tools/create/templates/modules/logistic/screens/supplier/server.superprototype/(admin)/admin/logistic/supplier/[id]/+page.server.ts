@@ -1,9 +1,10 @@
-import { error, fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { addSupplierContact, deleteSupplierContact } from '$lib/server/logistic/supplier-contact';
 import { getSupplier, updateSupplier } from '$lib/server/logistic/supplier';
 import type { SupplierDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless of what reaches here. See the list screen's loader for the reasoning.
@@ -48,11 +49,11 @@ export const actions: Actions = {
     const slug = (form.get('slug') as string | null)?.trim();
     const leadTimeRaw = (form.get('lead_time_day') as string | null)?.trim();
 
-    if (!slug) return fail(422, { error: 'Slug is required.' });
+    if (!slug) return formError(422, 'logistic.error.slug_required');
 
     const leadTimeDay = leadTimeRaw ? Number(leadTimeRaw) : null;
     if (leadTimeDay !== null && (!Number.isInteger(leadTimeDay) || leadTimeDay < 0)) {
-      return fail(422, { error: 'Lead time must be a whole number of days.' });
+      return formError(422, 'logistic.error.lead_time_invalid');
     }
 
     const { error: updateError } = await updateSupplier(locals.supabase, id, {
@@ -61,7 +62,7 @@ export const actions: Actions = {
       active: form.get('active') === 'true',
     });
 
-    if (updateError) return fail(500, { error: 'Failed to save the supplier.' });
+    if (updateError) return formError(500, 'logistic.error.supplier_save_failed');
 
     return { success: true as const };
   },
@@ -74,7 +75,7 @@ export const actions: Actions = {
     const role = (form.get('role') as string | null)?.trim();
     const name = (form.get('name') as string | null)?.trim();
 
-    if (!role || !name) return fail(422, { error: 'Role and name are required.' });
+    if (!role || !name) return formError(422, 'logistic.error.contact_incomplete');
 
     const { error: insertError } = await addSupplierContact(locals.supabase, supplierId, {
       role,
@@ -83,7 +84,7 @@ export const actions: Actions = {
       phone: (form.get('phone') as string | null)?.trim() || null,
     });
 
-    if (insertError) return fail(500, { error: 'Failed to add the contact.' });
+    if (insertError) return formError(500, 'logistic.error.contact_add_failed');
 
     return { success: true as const };
   },
@@ -93,7 +94,7 @@ export const actions: Actions = {
     const form = await request.formData();
     const contactId = Number(form.get('supplier_contact_id'));
 
-    if (!Number.isInteger(contactId)) return fail(422, { error: 'Invalid contact.' });
+    if (!Number.isInteger(contactId)) return formError(422, 'logistic.error.contact_invalid');
 
     const { error: deleteError } = await deleteSupplierContact(
       locals.supabase,
@@ -101,7 +102,7 @@ export const actions: Actions = {
       contactId
     );
 
-    if (deleteError) return fail(500, { error: 'Failed to remove the contact.' });
+    if (deleteError) return formError(500, 'logistic.error.contact_remove_failed');
 
     return { success: true as const };
   },

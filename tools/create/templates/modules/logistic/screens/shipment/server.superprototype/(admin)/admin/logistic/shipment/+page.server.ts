@@ -1,9 +1,10 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { createShipment, listShipment } from '$lib/server/logistic/shipment';
 import { SHIPMENT_STATUSES } from '@sveltebuilder/logistic';
 import type { ShipmentListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless. See the supplier list loader for the reasoning.
@@ -40,15 +41,15 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<ShipmentLis
 
 export const actions: Actions = {
   create: async ({ locals, request }) => {
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const form = await request.formData();
     const sku = (form.get('sku') as string | null)?.trim();
     const quantity = Number(form.get('quantity'));
 
-    if (!sku) return fail(422, { error: 'SKU is required.' });
+    if (!sku) return formError(422, 'logistic.error.sku_required');
     if (!Number.isInteger(quantity) || quantity < 1) {
-      return fail(422, { error: 'Quantity must be a positive whole number.' });
+      return formError(422, 'logistic.error.quantity_invalid');
     }
 
     const { data: shipmentId, error: rpcError } = await createShipment(locals.supabase, {
@@ -60,7 +61,7 @@ export const actions: Actions = {
     });
 
     if (rpcError || shipmentId === null) {
-      return fail(500, { error: 'Failed to create the shipment.' });
+      return formError(500, 'logistic.error.shipment_create_failed');
     }
 
     redirect(303, `/admin/logistic/shipment/${shipmentId}`);

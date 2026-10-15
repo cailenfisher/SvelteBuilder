@@ -1,4 +1,4 @@
-import { error, fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { listStockAdjustment } from '$lib/server/logistic/stock-adjustment';
 import {
@@ -9,6 +9,7 @@ import {
 import type { StockAdjustmentReason } from '@sveltebuilder/logistic';
 import type { StockLevelListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless. See the supplier list loader for the reasoning.
@@ -65,16 +66,16 @@ export const actions: Actions = {
     const reason = form.get('reason') as StockAdjustmentReason | null;
     const note = (form.get('note') as string | null)?.trim() || null;
 
-    if (!Number.isInteger(stockLevelId)) return fail(422, { error: 'Invalid stock level.' });
+    if (!Number.isInteger(stockLevelId)) return formError(422, 'logistic.error.stock_level_invalid');
     if (!Number.isInteger(delta) || delta === 0) {
-      return fail(422, { error: 'Enter a non-zero whole number to adjust by.' });
+      return formError(422, 'logistic.error.adjustment_quantity_invalid');
     }
     // Checked against the same list the screen offers, because a form post is not
     // bound by what the select rendered.
     if (reason === null || !MANUAL_REASONS.includes(reason)) {
-      return fail(422, { error: 'Choose a reason for the adjustment.' });
+      return formError(422, 'logistic.error.adjustment_reason_required');
     }
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const { error: rpcError } = await adjustStockLevel(locals.supabase, {
       stockLevelId,
@@ -88,9 +89,9 @@ export const actions: Actions = {
       // A negative on_hand is a real answer to the operator rather than a fault: they
       // tried to remove more than is there. 23514 is check_violation.
       if (rpcError.code === '23514') {
-        return fail(409, { error: 'That would take stock below zero.' });
+        return formError(409, 'logistic.error.negative_stock');
       }
-      return fail(500, { error: 'Failed to adjust the stock level.' });
+      return formError(500, 'logistic.error.adjustment_failed');
     }
 
     return { success: true as const };
@@ -102,9 +103,9 @@ export const actions: Actions = {
     const raw = ((form.get('reorder_point') as string | null) ?? '').trim();
     const reorderPoint = raw === '' ? null : Number(raw);
 
-    if (!Number.isInteger(stockLevelId)) return fail(422, { error: 'Invalid stock level.' });
+    if (!Number.isInteger(stockLevelId)) return formError(422, 'logistic.error.stock_level_invalid');
     if (reorderPoint !== null && (!Number.isInteger(reorderPoint) || reorderPoint < 0)) {
-      return fail(422, { error: 'The reorder point must be zero or a positive whole number.' });
+      return formError(422, 'logistic.error.reorder_point_invalid');
     }
 
     const { error: updateError } = await setStockLevelReorderPoint(
@@ -113,7 +114,7 @@ export const actions: Actions = {
       reorderPoint
     );
 
-    if (updateError) return fail(500, { error: 'Failed to save the reorder point.' });
+    if (updateError) return formError(500, 'logistic.error.reorder_point_save_failed');
 
     return { success: true as const };
   },

@@ -1,9 +1,10 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { recordCycleCountLineQuantity } from '$lib/server/logistic/cycle-count-line';
 import { getCycleCount } from '$lib/server/logistic/cycle-count';
 import type { CycleCountWarehouseDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({
   locals,
@@ -48,9 +49,9 @@ export const actions: Actions = {
     const lineId = Number(form.get('cycle_count_line_id'));
     const quantity = Number(form.get('quantity'));
 
-    if (!Number.isInteger(lineId)) return fail(422, { error: 'Invalid line.' });
+    if (!Number.isInteger(lineId)) return formError(422, 'logistic.error.line_invalid');
     if (!Number.isInteger(quantity) || quantity < 0) {
-      return fail(422, { error: 'Enter zero or a positive whole number.' });
+      return formError(422, 'logistic.error.whole_number_required');
     }
 
     const { data: recorded, error: updateError } = await recordCycleCountLineQuantity(
@@ -59,9 +60,9 @@ export const actions: Actions = {
       { id: lineId, countedQuantity: quantity }
     );
 
-    if (updateError) return fail(500, { error: 'Failed to record the count.' });
+    if (updateError) return formError(500, 'logistic.error.count_save_failed');
     // No row updated means RLS refused it — the count is not this worker's.
-    if (!recorded) return fail(403, { error: 'That count is not yours.' });
+    if (!recorded) return formError(403, 'logistic.error.cycle_count_not_yours');
 
     return { success: true as const };
   },

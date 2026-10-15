@@ -1,12 +1,16 @@
 <script lang="ts">
+  import { getDictionary } from 'diglossia/svelte';
   import './cycle-count-warehouse-detail-screen.css';
   import { createDictionary } from 'diglossia';
   import { InlineNotification } from '@sveltebuilder/coreui';
   import type { CycleCountWarehouseDetailView } from '@sveltebuilder/logistic/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import CycleCountLineList from './CycleCountLineList.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: CycleCountWarehouseDetailView; form?: ScreenFormResult } = $props();
+
+  const globalDictionary = getDictionary();
 
   const scoped = $derived(createDictionary(data.copy));
   const localText = (slug: string) => scoped.localText(slug, 'logistic');
@@ -33,7 +37,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, globalDictionary)} detail={form.error.detail} />
   {/if}
 
   <CycleCountLineList cycleCountLines={count.lines} dictionary={scoped} />

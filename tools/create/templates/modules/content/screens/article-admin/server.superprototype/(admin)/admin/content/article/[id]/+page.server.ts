@@ -1,4 +1,4 @@
-import { error, fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { createDictionary } from 'diglossia';
 import { validateArticleForPublish, type ImageProvenance } from '@sveltebuilder/content/publishing';
 import { loadEntityCopy, loadScopedCopy } from '$lib/server/scoped-copy';
@@ -17,6 +17,7 @@ import { listTag } from '$lib/server/content/tag';
 import { listActiveTopic } from '$lib/server/content/topic';
 import type { ArticleAdminDetailView, ArticleChecklistEntry } from '@sveltebuilder/content/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({ locals, params }): Promise<ArticleAdminDetailView> => {
   const id = Number(params.id);
@@ -110,26 +111,23 @@ export const actions: Actions = {
 
     const form = await request.formData();
     const statusSlug = (form.get('status_slug') as string | null)?.trim();
-    if (!statusSlug) return fail(422, { error: 'Choose a status.' });
+    if (!statusSlug) return formError(422, 'content.error.status_required');
 
     if (statusSlug === 'published') {
       const validation = await loadArticleForValidation(locals, id);
       if (validation === null) throw error(404, 'Article not found.');
 
-      try {
-        validateArticleForPublish(
-          validation.article,
-          validation.publisher,
-          createDictionary(validation.copy),
-          { imageProvenance: validation.imageProvenance, locale: locals.locale.code }
-        );
-      } catch (validationError) {
-        return fail(422, {
-          error:
-            validationError instanceof Error
-              ? validationError.message
-              : 'This article is not ready to publish.',
-        });
+      const dictionary = createDictionary(validation.copy);
+      const issues = validateArticleForPublish(validation.article, validation.publisher, dictionary, {
+        imageProvenance: validation.imageProvenance,
+        locale: locals.locale.code,
+      });
+      if (issues.length > 0) {
+        // Every reason at once, in the editor's language, so they can fix the whole list.
+        const detail = issues
+          .map((issue) => dictionary.formatText(issue.slug, issue.values, 'content'))
+          .join(' ');
+        return formError(422, 'content.error.not_ready_to_publish', detail);
       }
     }
 
@@ -137,11 +135,11 @@ export const actions: Actions = {
 
     if (rpcError) {
       if (rpcError.code === '42501') {
-        return fail(403, { error: 'Not permitted to change this article’s status.' });
+        return formError(403, 'content.error.status_change_forbidden');
       }
       // The function raises with the unsatisfied item slugs, which is more useful to an editor
-      // than a generic failure.
-      return fail(422, { error: rpcError.message });
+      // than a generic failure, so its message travels as the detail.
+      return formError(422, 'content.error.status_change_refused', rpcError.message);
     }
 
     return { success: true as const };
@@ -155,7 +153,7 @@ export const actions: Actions = {
     const itemId = Number(form.get('item_id'));
     const satisfied = form.get('satisfied') === 'true';
 
-    if (!Number.isInteger(itemId)) return fail(422, { error: 'Invalid checklist item.' });
+    if (!Number.isInteger(itemId)) return formError(422, 'content.error.checklist_item_invalid');
 
     const { error: upsertError } = await saveArticleChecklistState(locals.supabase, {
       articleId,
@@ -163,7 +161,7 @@ export const actions: Actions = {
       satisfied,
     });
 
-    if (upsertError) return fail(500, { error: 'Failed to update the checklist.' });
+    if (upsertError) return formError(500, 'content.error.checklist_update_failed');
 
     return { success: true as const };
   },
@@ -224,17 +222,21 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
     })
   );
 
-  const copy = await loadEntityCopy(
-    locals.supabase,
-    [
-      { scope: 'article', ids: [article.id] },
-      { scope: 'article_block', ids: article.blocks.map((block) => block.id) },
-      { scope: 'media_asset', ids: mediaAssetIds },
-      { scope: 'publisher_profile', ids: publisher ? [publisher.id] : [] },
-    ],
-    locals.locale.code,
-    locals.defaultLocale.code
-  );
+  // The module's UI copy too, for the validation messages.
+  const [uiCopy, entityCopy] = await Promise.all([
+    loadScopedCopy(locals.supabase, ['content'], locals.locale.code, locals.defaultLocale.code),
+    loadEntityCopy(
+      locals.supabase,
+      [
+        { scope: 'article', ids: [article.id] },
+        { scope: 'article_block', ids: article.blocks.map((block) => block.id) },
+        { scope: 'media_asset', ids: mediaAssetIds },
+        { scope: 'publisher_profile', ids: publisher ? [publisher.id] : [] },
+      ],
+      locals.locale.code,
+      locals.defaultLocale.code
+    ),
+  ]);
 
-  return { article, publisher, copy, imageProvenance };
+  return { article, publisher, copy: [...uiCopy, ...entityCopy], imageProvenance };
 }

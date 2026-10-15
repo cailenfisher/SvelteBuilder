@@ -1,4 +1,4 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { listLocale } from '$lib/server/locale';
 import {
@@ -7,6 +7,7 @@ import {
   listLocalText,
   saveLocalText,
 } from '$lib/server/local-text';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
@@ -38,7 +39,7 @@ export const actions: Actions = {
     const localeId = parseInt(form.get('locale_id') as string);
     const content = (form.get('content') as string | null)?.trim() ?? '';
 
-    if (isNaN(linkId) || isNaN(localeId)) return fail(422, { error: 'Invalid parameters.' });
+    if (isNaN(linkId) || isNaN(localeId)) return formError(422, 'error.parameters_invalid');
 
     const { error: upsertError } = await saveLocalText(locals.supabase, {
       link: linkId,
@@ -46,18 +47,18 @@ export const actions: Actions = {
       content,
     });
 
-    if (upsertError) return fail(500, { error: 'Failed to save translation.' });
+    if (upsertError) return formError(500, 'error.translation_save_failed');
 
-    return { success: true };
+    return { success: true as const };
   },
 
   delete: async ({ params, locals }) => {
     const id = parseInt(params.id);
-    if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
+    if (isNaN(id)) return formError(422, 'error.id_invalid');
 
     const { error: rpcError } = await deleteLocalTextEntry(locals.supabase, id);
 
-    if (rpcError) return fail(500, { error: 'Failed to delete copy entry.' });
+    if (rpcError) return formError(500, 'error.local_text_delete_failed');
 
     throw redirect(303, '/admin/local-text');
   },

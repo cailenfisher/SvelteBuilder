@@ -7,6 +7,7 @@ import { listMediaAsset, listMediaAssetAttribution } from '$lib/server/content/m
 import { getPublisherProfile } from '$lib/server/content/publisher-profile';
 import type { ArticleDetailView } from '@sveltebuilder/content/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 // No auth guard: this is a public page. What a reader may see is decided entirely by the
 // module's RLS policies — a draft, an embargoed article and a soft-deleted one are all
@@ -103,7 +104,7 @@ export const actions: Actions = {
     const body = (form.get('body') as string | null)?.trim();
 
     if (!authorName || !authorEmail || !body) {
-      return fail(422, { error: 'Name, email and comment are all required.' });
+      return formError(422, 'content.error.comment_incomplete');
     }
 
     const articleResult = await getArticleIdBySlug(locals.supabase, params.slug);
@@ -123,9 +124,9 @@ export const actions: Actions = {
       // 42501 is insufficient_privilege: the insert policy refused it, which here means the
       // article does not accept comments. That is an answer to the reader, not a fault.
       if (insertError.code === '42501') {
-        return fail(403, { error: 'This article is not accepting comments.' });
+        return formError(403, 'content.error.comment_closed');
       }
-      return fail(500, { error: 'Failed to submit your comment.' });
+      return formError(500, 'content.error.comment_submit_failed');
     }
 
     return { success: true as const };

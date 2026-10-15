@@ -1,4 +1,4 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import {
   listAssignedPickTask,
@@ -7,6 +7,7 @@ import {
 } from '$lib/server/logistic/pick-task';
 import type { PickTaskWarehouseQueueView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({ locals }): Promise<PickTaskWarehouseQueueView> => {
   // The layout's load has already redirected an anonymous visitor, so this is not null by
@@ -33,11 +34,11 @@ export const load: PageServerLoad = async ({ locals }): Promise<PickTaskWarehous
 
 export const actions: Actions = {
   take: async ({ locals, request }) => {
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const form = await request.formData();
     const taskId = Number(form.get('pick_task_id'));
-    if (!Number.isInteger(taskId)) return fail(422, { error: 'Invalid task.' });
+    if (!Number.isInteger(taskId)) return formError(422, 'logistic.error.pick_task_invalid');
 
     const { data: taken, error: updateError } = await takePickTask(
       locals.supabase,
@@ -45,8 +46,8 @@ export const actions: Actions = {
       locals.userAccountId
     );
 
-    if (updateError) return fail(500, { error: 'Failed to take the task.' });
-    if (!taken) return fail(409, { error: 'Someone else has already taken that task.' });
+    if (updateError) return formError(500, 'logistic.error.pick_task_take_failed');
+    if (!taken) return formError(409, 'logistic.error.pick_task_taken');
 
     redirect(303, `/warehouse/pick-task/${taskId}`);
   },

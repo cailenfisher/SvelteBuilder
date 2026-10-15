@@ -1,4 +1,4 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import {
   createReturnAuthorization,
@@ -7,6 +7,7 @@ import {
 import { RETURN_AUTHORIZATION_STATUSES } from '@sveltebuilder/logistic';
 import type { ReturnAuthorizationListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless. See the supplier list loader for the reasoning.
@@ -48,15 +49,15 @@ export const load: PageServerLoad = async ({
 
 export const actions: Actions = {
   create: async ({ locals, request }) => {
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const form = await request.formData();
     const sku = (form.get('sku') as string | null)?.trim();
     const expectedQuantity = Number(form.get('expected_quantity'));
 
-    if (!sku) return fail(422, { error: 'SKU is required.' });
+    if (!sku) return formError(422, 'logistic.error.sku_required');
     if (!Number.isInteger(expectedQuantity) || expectedQuantity < 1) {
-      return fail(422, { error: 'Expected quantity must be a positive whole number.' });
+      return formError(422, 'logistic.error.expected_quantity_invalid');
     }
 
     const { data: returnAuthorizationId, error: rpcError } = await createReturnAuthorization(
@@ -71,7 +72,7 @@ export const actions: Actions = {
     );
 
     if (rpcError || returnAuthorizationId === null) {
-      return fail(500, { error: 'Failed to create the return.' });
+      return formError(500, 'logistic.error.return_authorization_create_failed');
     }
 
     redirect(303, `/admin/logistic/return-authorization/${returnAuthorizationId}`);

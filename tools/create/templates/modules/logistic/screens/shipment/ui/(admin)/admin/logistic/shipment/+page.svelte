@@ -9,6 +9,7 @@
   import type { ShipmentListView } from '@sveltebuilder/logistic/views';
   import ShipmentCreateForm from './ShipmentCreateForm.svelte';
   import ShipmentTable from './ShipmentTable.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: ShipmentListView; form?: ScreenFormResult } = $props();
 
@@ -40,7 +41,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
   <FilterLinkList

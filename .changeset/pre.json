@@ -1,0 +1,16 @@
+{
+  "mode": "pre",
+  "tag": "rc",
+  "initialVersions": {
+    "dev-kitchen": "0.0.0",
+    "docs": "0.0.2",
+    "@sveltebuilder/commerce": "0.0.4",
+    "@sveltebuilder/content": "1.1.2",
+    "@sveltebuilder/coreui": "0.2.4",
+    "@sveltebuilder/local-text-schema": "0.2.1",
+    "@sveltebuilder/logistic": "1.0.2",
+    "@sveltebuilder/cli": "0.0.15",
+    "create-sveltebuilder": "0.1.4"
+  },
+  "changesets": []
+}

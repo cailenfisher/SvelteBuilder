@@ -34,10 +34,28 @@ export type ScreenPage = {
 };
 
 /**
+ * Why a form action failed, as copy rather than text: the action knows what went wrong, the screen
+ * knows the reader's language.
+ */
+export type ScreenFormError = {
+  /**
+   * A copy slug. A module's starts with the module's name, which is also its scope
+   * (`logistic.error.sku_required` in scope `logistic`); the base template's are global
+   * (`error.id_invalid`).
+   */
+  slug: string;
+  /**
+   * Text the action had and could not turn into a slug, shown as it is: a database's refusal, or
+   * a list the action already translated.
+   */
+  detail?: string;
+};
+
+/**
  * What a screen's form actions return. `fail()` payloads and successful returns share one shape so
  * a screen can render `form?.error` without narrowing per action, which is why the success branch
  * declares `error?: undefined` rather than omitting the key.
  */
 export type ScreenFormResult =
-  | { success: true; message?: string; error?: undefined }
-  | { success?: false; error: string };
+  | { success: true; error?: undefined }
+  | { success?: false; error: ScreenFormError };

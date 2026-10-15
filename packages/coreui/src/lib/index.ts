@@ -127,7 +127,7 @@ export type { FieldControl } from './Field/use-field.js';
 // ============================================================
 // Screen contracts — types shared by every module's view types
 // ============================================================
-export type { ScreenCopy, ScreenFormResult, ScreenLocale, ScreenPage } from './Screen/screen.js';
+export type { ScreenCopy, ScreenFormError, ScreenFormResult, ScreenLocale, ScreenPage } from './Screen/screen.js';
 
 // ============================================================
 // Variant, size and other prop value types

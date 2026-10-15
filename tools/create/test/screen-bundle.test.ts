@@ -491,3 +491,74 @@ describe.each(MODULES_WITH_COMPONENTS)('%s components', (module) => {
     expect(gaps, `component copy the seed does not provide: ${gaps.join(', ')}`).toEqual([]);
   });
 });
+
+// ── Form-action errors ───────────────────────────────────────────────────────
+
+/**
+ * Every slug a form action returns through `formError(status, 'slug')`, and every
+ * `content.publish_validation.*` slug the publish check returns. An action's error reaches the
+ * reader only as copy, so a slug nothing seeds would show "Something went wrong" instead of the
+ * reason. A module's slugs must be in its seed; the base template's are global.
+ */
+function readFormErrorSlugs(): { slug: string; file: string }[] {
+  const templatesDir = path.join(REPO, 'tools', 'create', 'templates');
+  const roots = [path.join(templatesDir, 'modules'), path.join(templatesDir, 'superprototype', 'src')];
+  const uses: { slug: string; file: string }[] = [];
+  for (const root of roots) {
+    const files = fs
+      .readdirSync(root, { recursive: true, encoding: 'utf8' })
+      .filter((name) => name.endsWith('.ts'));
+    for (const file of files) {
+      const source = fs.readFileSync(path.join(root, file), 'utf8');
+      for (const match of source.matchAll(/formError\(\s*\d+\s*,\s*'([^']+)'/g)) {
+        uses.push({ slug: match[1], file: path.relative(REPO, path.join(root, file)) });
+      }
+    }
+  }
+  const validator = path.join(REPO, 'packages', 'content', 'src', 'lib', 'publishing', 'validate-publish.ts');
+  for (const match of fs.readFileSync(validator, 'utf8').matchAll(/slug:\s*'([^']+)'/g)) {
+    uses.push({ slug: match[1], file: path.relative(REPO, validator) });
+  }
+  return uses;
+}
+
+describe('form-action errors', () => {
+  const uses = readFormErrorSlugs();
+
+  it('finds the actions to check', () => {
+    expect(uses.length).toBeGreaterThan(100);
+  });
+
+  it('are all seeded, in every required locale', () => {
+    const gaps: string[] = [];
+    for (const { slug, file } of uses) {
+      const module = slug.split('.')[0];
+      if (!fs.existsSync(path.join(MODULES_DIR, module))) {
+        if (!GLOBAL_SLUGS.has(slug)) gaps.push(`${file}: '${slug}' (global)`);
+        continue;
+      }
+      const seed = readSeed(module);
+      if (!seed.links.get(module)?.has(slug)) {
+        gaps.push(`${file}: '${slug}' (no link)`);
+        continue;
+      }
+      for (const locale of REQUIRED_LOCALES) {
+        if (!seed.copy.get(locale)?.has(slug)) gaps.push(`${file}: '${slug}' (${locale})`);
+      }
+    }
+    expect(gaps, `errors with no copy:\n  ${gaps.join('\n  ')}`).toEqual([]);
+  });
+
+  it('are never English text passed straight to fail()', () => {
+    const templatesDir = path.join(REPO, 'tools', 'create', 'templates');
+    const offenders: string[] = [];
+    for (const root of [path.join(templatesDir, 'modules'), path.join(templatesDir, 'superprototype', 'src')]) {
+      for (const file of fs.readdirSync(root, { recursive: true, encoding: 'utf8' })) {
+        if (!file.endsWith('.ts')) continue;
+        const source = fs.readFileSync(path.join(root, file), 'utf8');
+        if (/\bfail\(\s*\d+\s*,\s*\{\s*error:/.test(source)) offenders.push(file);
+      }
+    }
+    expect(offenders, 'use formError(status, slug) from $lib/server/form-error').toEqual([]);
+  });
+});

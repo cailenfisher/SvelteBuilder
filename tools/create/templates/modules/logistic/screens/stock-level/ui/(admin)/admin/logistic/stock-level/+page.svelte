@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getDictionary } from 'diglossia/svelte';
   import './stock-level-list-screen.css';
   import { createDictionary } from 'diglossia';
   import { FilterLinkList, InlineNotification } from '@sveltebuilder/coreui';
@@ -7,8 +8,11 @@
   import StockAdjustmentModal from './StockAdjustmentModal.svelte';
   import StockAdjustmentPanel from './StockAdjustmentPanel.svelte';
   import StockLevelTable from './StockLevelTable.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: StockLevelListView; form?: ScreenFormResult } = $props();
+
+  const globalDictionary = getDictionary();
 
   const scoped = $derived(createDictionary(data.copy));
   const localText = (slug: string) => scoped.localText(slug, 'logistic');
@@ -40,7 +44,7 @@
   </header>
 
   {#if form?.error}
-    <InlineNotification severity="danger" summary={form.error} />
+    <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, globalDictionary)} detail={form.error.detail} />
   {/if}
 
   {#if historyLevel !== null}

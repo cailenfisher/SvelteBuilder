@@ -1,10 +1,11 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { createInboundReceipt, listInboundReceipt } from '$lib/server/logistic/inbound-receipt';
 import { listSupplierOption } from '$lib/server/logistic/supplier';
 import { INBOUND_RECEIPT_STATUSES } from '@sveltebuilder/logistic';
 import type { InboundReceiptListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless. See the supplier list loader for the reasoning.
@@ -52,7 +53,7 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<InboundRece
 
 export const actions: Actions = {
   create: async ({ locals, request }) => {
-    if (locals.userAccountId === null) return fail(403, { error: 'Not signed in.' });
+    if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
     const form = await request.formData();
     const supplierRaw = (form.get('supplier_id') as string | null)?.trim();
@@ -63,7 +64,7 @@ export const actions: Actions = {
     // purchase order to match them to, which the schema allows by design.
     const supplierId = supplierRaw ? Number(supplierRaw) : null;
     if (supplierId !== null && !Number.isInteger(supplierId)) {
-      return fail(422, { error: 'Invalid supplier.' });
+      return formError(422, 'logistic.error.supplier_invalid');
     }
 
     const { data: inboundReceiptId, error: insertError } = await createInboundReceipt(
@@ -71,7 +72,7 @@ export const actions: Actions = {
       { supplierId, userAccountId: locals.userAccountId, expectedAt, note }
     );
 
-    if (insertError) return fail(500, { error: 'Failed to create the receipt.' });
+    if (insertError) return formError(500, 'logistic.error.inbound_receipt_create_failed');
 
     redirect(303, `/admin/logistic/inbound-receipt/${inboundReceiptId}`);
   },

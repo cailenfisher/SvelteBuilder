@@ -190,10 +190,10 @@ Set by Bits UI, and public because coreui's own styles key on them: `data-state`
 
 | Browser | Floor | Why |
 | --- | --- | --- |
-| Chrome, Edge | 119 | CSS relative colour syntax (`oklch(from var(--chrome) …)`) derives the colour tokens |
-| Firefox | 128 | relative colour syntax |
+| Chrome, Edge | 120 | CSS relative colour syntax (`oklch(from var(--chrome) …)`, from 119) derives the colour tokens; `:dir()` (from 120) sets the `Switch` thumb's direction |
+| Firefox | 128 | relative colour syntax; `:dir()` long predates it |
 | Safari, iOS Safari | 18 | complete relative colour syntax; earlier versions shipped a partial implementation |
 
-The accessibility workflow audits Chromium. WebKit and Firefox join it in Phase 12 of the
-conformance plan. Until then, the Firefox and Safari floors come from the features coreui uses, not
-from a test run.
+The accessibility and behaviour suites run in current Chromium, Firefox and WebKit on every push.
+The floors come from the features coreui uses; the suites prove the current versions, not the
+floors.

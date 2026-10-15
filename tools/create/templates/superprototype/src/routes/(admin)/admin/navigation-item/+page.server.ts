@@ -1,10 +1,11 @@
-import { error, fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import {
   createNavigationItem,
   deleteNavigationItem,
   listNavigationItem,
 } from '$lib/server/navigation-item';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const { data: navigationItems, error: queryError } = await listNavigationItem(locals.supabase);
@@ -24,7 +25,7 @@ export const actions: Actions = {
     const position = parseInt((form.get('position') as string | null) ?? '0') || 0;
 
     if (!slug || !href || !menu) {
-      return fail(422, { error: 'Slug, URL, and menu are required.' });
+      return formError(422, 'error.navigation_item_incomplete');
     }
 
     const { error: rpcError } = await createNavigationItem(locals.supabase, {
@@ -34,21 +35,21 @@ export const actions: Actions = {
       position,
     });
 
-    if (rpcError) return fail(500, { error: 'Failed to create navigation item.' });
+    if (rpcError) return formError(500, 'error.navigation_item_create_failed');
 
-    return { success: true };
+    return { success: true as const };
   },
 
   delete: async ({ request, locals }) => {
     const form = await request.formData();
     const id = parseInt(form.get('id') as string);
 
-    if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
+    if (isNaN(id)) return formError(422, 'error.id_invalid');
 
     const { error: rpcError } = await deleteNavigationItem(locals.supabase, id);
 
-    if (rpcError) return fail(500, { error: 'Failed to delete navigation item.' });
+    if (rpcError) return formError(500, 'error.navigation_item_delete_failed');
 
-    return { success: true };
+    return { success: true as const };
   },
 };

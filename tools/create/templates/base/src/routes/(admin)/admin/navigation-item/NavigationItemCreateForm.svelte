@@ -3,12 +3,14 @@
 <script lang="ts">
   import './navigation-item-create-form.css';
   import { getDictionary } from 'diglossia/svelte';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import { formErrorText } from '$lib/FormError/form-error';
   import { Button, Field, Input } from '@sveltebuilder/coreui';
   import LocalTextLinkFieldset from '$lib/LocalTextLink/LocalTextLinkFieldset.svelte';
 
   type Props = {
     /** The action's answer to the last submission. */
-    result?: { error?: string; success?: boolean } | null;
+    result?: ScreenFormResult | null;
   };
 
   let { result }: Props = $props();
@@ -21,7 +23,7 @@
   <h2 class="navigation-item-create-form__title">{newLabel}</h2>
 
   {#if result?.error}
-    <p class="navigation-item-create-form__error" role="alert">{result.error}</p>
+    <p class="navigation-item-create-form__error" role="alert">{formErrorText(result.error, dictionary, dictionary)}</p>
   {/if}
   {#if result?.success}
     <p class="navigation-item-create-form__success" role="status">{dictionary.localText('feedback.saved')}</p>

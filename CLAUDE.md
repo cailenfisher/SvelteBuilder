@@ -436,7 +436,11 @@ One word per idea, across every module:
 - **Mutations:** form actions in `+page.server.ts`, not ad hoc `fetch`, unless the interaction
   is genuinely client-only.
 - **Errors / redirects:** throw `error()` and `redirect()` from `@sveltejs/kit`. Never return
-  ad hoc error shapes.
+  ad hoc error shapes. A form action reports failure with `formError(status, slug, detail?)`
+  (`$lib/server/form-error`), returning a copy slug rather than English (`ScreenFormError`), and the
+  screen shows it with `formErrorText` (`$lib/FormError/form-error`), which falls back to the
+  global `feedback.error` when a slug has no copy. `tools/create/test/screen-bundle.test.ts` fails
+  on an unseeded error slug or on English passed to `fail()`.
 - **Secrets:** `$env/static/private` or `$env/dynamic/private` for server-only values. Public
   config uses the `PUBLIC_` prefix.
 
