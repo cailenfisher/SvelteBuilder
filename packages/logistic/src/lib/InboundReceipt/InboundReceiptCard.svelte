@@ -47,6 +47,8 @@
     return new Intl.DateTimeFormat(loc, { dateStyle: 'medium' }).format(new Date(iso));
   }
 
+  const number = $derived(dictionary.formatText('logistic.inbound_receipt.number', { id: receipt.id }, 'logistic'));
+
   const classes = $derived(
     ['inbound-receipt-card', extraClass ?? ''].filter(Boolean).join(' ')
   );
@@ -57,9 +59,9 @@
     <div class="inbound-receipt-card__title-row">
       <div>
         {#if href}
-          <a class="inbound-receipt-card__id-link" {href}>Receipt #{receipt.id}</a>
+          <a class="inbound-receipt-card__id-link" {href}>{number}</a>
         {:else}
-          <span class="inbound-receipt-card__id">Receipt #{receipt.id}</span>
+          <span class="inbound-receipt-card__id">{number}</span>
         {/if}
         <span class="inbound-receipt-card__supplier">{supplierName}</span>
       </div>
@@ -69,24 +71,30 @@
 
   <dl class="inbound-receipt-card__details">
     <div class="inbound-receipt-card__detail">
-      <dt class="inbound-receipt-card__detail-term">Expected</dt>
+      <dt class="inbound-receipt-card__detail-term">{dictionary.localText('logistic.inbound_receipt.expected_at', 'logistic')}</dt>
       <dd class="inbound-receipt-card__detail-value">{formatDate(receipt.expectedAt, locale)}</dd>
     </div>
     <div class="inbound-receipt-card__detail">
-      <dt class="inbound-receipt-card__detail-term">Received</dt>
+      <dt class="inbound-receipt-card__detail-term">{dictionary.localText('logistic.inbound_receipt.received_at', 'logistic')}</dt>
       <dd class="inbound-receipt-card__detail-value">{formatDate(receipt.receivedAt, locale)}</dd>
     </div>
     {#if lines.length > 0}
       <div class="inbound-receipt-card__detail">
-        <dt class="inbound-receipt-card__detail-term">Lines</dt>
-        <dd class="inbound-receipt-card__detail-value">{totalReceived}/{totalExpected} units</dd>
+        <dt class="inbound-receipt-card__detail-term">{dictionary.localText('logistic.inbound_receipt.lines', 'logistic')}</dt>
+        <dd class="inbound-receipt-card__detail-value">
+          {dictionary.formatText(
+            'logistic.warehouse.inbound_receipt.received_of',
+            { received: totalReceived, expected: totalExpected },
+            'logistic'
+          )}
+        </dd>
       </div>
     {/if}
   </dl>
 
   {#if hasDiscrepancy}
     <p class="inbound-receipt-card__discrepancy-alert" role="alert">
-      Quantity discrepancy detected on one or more lines.
+      {dictionary.localText('logistic.inbound_receipt.discrepancy_alert', 'logistic')}
     </p>
   {/if}
 

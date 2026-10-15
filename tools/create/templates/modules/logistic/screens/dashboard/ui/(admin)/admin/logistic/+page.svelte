@@ -11,7 +11,7 @@
   let { data }: { data: LogisticDashboardView } = $props();
 
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   // Every destination this dashboard offers. Each is a bundle the manifest lists under
   // `requires`, so none of these can be a dead link in a scaffolded project.
@@ -31,33 +31,33 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.dashboard.title')}</title>
+  <title>{localText('logistic.dashboard.title')}</title>
 </svelte:head>
 
 <div class="logistic-dashboard-screen">
-  <h1 class="logistic-dashboard-screen__title">{t('logistic.dashboard.title')}</h1>
+  <h1 class="logistic-dashboard-screen__title">{localText('logistic.dashboard.title')}</h1>
 
   <LogisticMetricSummary metrics={data.metrics} dictionary={scoped} />
 
   {#if data.lowStockLevels.length > 0}
-    <LogisticDashboardSection title={t('logistic.dashboard.low_stock')} href="/admin/logistic/stock-level">
+    <LogisticDashboardSection title={localText('logistic.dashboard.low_stock')} href="/admin/logistic/stock-level">
       <StockLevelLowTable stockLevels={data.lowStockLevels} dictionary={scoped} />
     </LogisticDashboardSection>
   {/if}
 
   {#if data.pendingInboundReceipts.length > 0}
     <LogisticDashboardSection
-      title={t('logistic.dashboard.pending_inbound_receipt')}
+      title={localText('logistic.dashboard.pending_inbound_receipt')}
       href="/admin/logistic/inbound-receipt"
     >
       <LogisticDashboardLinkList
         links={data.pendingInboundReceipts.map((receipt) => ({
           href: `/admin/logistic/inbound-receipt/${receipt.id}`,
-          label: `${t('logistic.inbound_receipt.one')} #${receipt.id}`,
+          label: `${localText('logistic.inbound_receipt.one')} #${receipt.id}`,
           detail: `${
             receipt.supplierId !== null
               ? scoped.localText('name', 'supplier', receipt.supplierId)
-              : t('logistic.inbound_receipt.blind')
+              : localText('logistic.inbound_receipt.blind')
           } · ${formatDate(receipt.expectedAt)}`,
         }))}
       />
@@ -67,11 +67,11 @@
   {#if data.openPickTasks.length > 0}
     <!-- The pick queue lives in the warehouse app, which is why the dashboard requires that
          bundle as well as the admin ones. -->
-    <LogisticDashboardSection title={t('logistic.dashboard.open_pick_task')} href="/warehouse/pick-task">
+    <LogisticDashboardSection title={localText('logistic.dashboard.open_pick_task')} href="/warehouse/pick-task">
       <LogisticDashboardLinkList
         links={data.openPickTasks.map((task) => ({
           href: `/warehouse/pick-task/${task.id}`,
-          label: `${t('logistic.pick_task.one')} #${task.id}`,
+          label: `${localText('logistic.pick_task.one')} #${task.id}`,
           detail: formatDate(task.createdAt),
         }))}
       />
@@ -80,22 +80,22 @@
 
   {#if data.openReturnAuthorizations.length > 0}
     <LogisticDashboardSection
-      title={t('logistic.dashboard.open_return_authorization')}
+      title={localText('logistic.dashboard.open_return_authorization')}
       href="/admin/logistic/return-authorization"
     >
       <LogisticDashboardLinkList
         links={data.openReturnAuthorizations.map((returnAuthorization) => ({
           href: `/admin/logistic/return-authorization/${returnAuthorization.id}`,
-          label: `${t('logistic.return_authorization.one')} #${returnAuthorization.id}`,
+          label: `${localText('logistic.return_authorization.one')} #${returnAuthorization.id}`,
           detail: returnAuthorization.reason ?? formatDate(returnAuthorization.createdAt),
         }))}
       />
     </LogisticDashboardSection>
   {/if}
 
-  <nav class="logistic-dashboard-screen__sections" aria-label={t('logistic.dashboard.sections')}>
+  <nav class="logistic-dashboard-screen__sections" aria-label={localText('logistic.dashboard.sections')}>
     {#each sections as section (section.href)}
-      <Button href={section.href} variant="ghost">{t(section.slug)}</Button>
+      <Button href={section.href} variant="ghost">{localText(section.slug)}</Button>
     {/each}
   </nav>
 </div>

@@ -1,4 +1,4 @@
-<!-- Camp 2: full article renderer. Resolves headline, dek, lede and all block text via
+<!-- Full article renderer. Resolves headline, dek, lede and all block text via
      diglossia, by entity id — so it needs the article's structure, not its copy. The prop is
      ArticleRenderable rather than ArticleWithCopy for that reason; see the type. -->
 <script lang="ts">
@@ -101,15 +101,15 @@
         <ArticleBylineList bylines={article.bylines} {locale} {dictionary} class="article-detail__bylines" />
       {/if}
 
-      <div class="article-detail__timestamps" aria-label="Publication timestamps">
+      <div class="article-detail__timestamps">
         {#if publishedFormatted}
           <time class="article-detail__published" datetime={article.publishedAt ?? undefined}>
-            Published {publishedFormatted}
+            {dictionary.formatText('content.article_detail.published', { date: publishedFormatted }, 'content')}
           </time>
         {/if}
         {#if updatedFormatted && updatedFormatted !== publishedFormatted}
           <time class="article-detail__updated" datetime={article.updatedAt ?? undefined}>
-            Updated {updatedFormatted}
+            {dictionary.formatText('content.article_detail.updated', { date: updatedFormatted }, 'content')}
           </time>
         {/if}
       </div>

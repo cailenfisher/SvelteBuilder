@@ -14,40 +14,41 @@ whether the fix is **breaking**. Breaking fixes belong in the single bundled rel
 the end. Non-breaking ones can ship as patches at any time, which also keeps the Changesets cascade
 quiet (`docs/DEFERRED.md`).
 
-Nothing in this document has been changed in the code. It is a proposal for review.
+The findings below are as audited. Each one's outcome, as of the conformance plan's Phase 12
+(2026-10-15), is in the summary table's last column.
 
 ---
 
 ## Summary
 
-| ID  | Finding                                                                      | Breaking fix? |
-| --- | ---------------------------------------------------------------------------- | ------------- |
-| A1  | 11 props, and the message-bus labels, default to English                     | Yes           |
-| A2  | `BlockEditor` has about 25 hard-coded English strings with no prop           | Yes           |
-| A3  | Locale editors ship English placeholders, one naming the retired blog module | No            |
-| B1  | `BlockEditor` is article-shaped, not universal                               | Yes (move)    |
-| B2  | Locale-admin editors are diglossia-shaped                                    | Yes (move)    |
-| B3  | `BarcodeInput` duplicates `Field` and is warehouse-shaped                    | Decide        |
-| B4  | `StatusBadge` is `Badge` with a `label` prop                                 | Yes (remove)  |
-| B5  | `Alert` and `InlineNotification` overlap                                     | Decide        |
-| C1  | Callback names are inconsistent                                              | Yes           |
-| C2  | 11 bindable values have no change callback                                   | No (additive) |
-| C3  | Text arrives as `label`, `title`, `content`, `triggerLabel` or `children`    | Yes           |
-| C4  | Severity is `danger` in some components and `error` in others                | Yes           |
-| C5  | 8 components take no `class` prop                                            | No (additive) |
-| C6  | Only 3 components forward other attributes                                   | Decide        |
-| D1  | No declared list of public class names                                       | Policy        |
-| D2  | Internal class names collide with other components' root classes             | Yes           |
-| D3  | 23 physical-direction declarations against 5 logical ones                    | No            |
-| E1  | Hard-coded element ids produce duplicates                                    | No            |
-| E2  | `Field` integration is partial, and its documentation is wrong               | No            |
-| E3  | `MenuLabel` outside a group throws and empties the menu                      | No            |
-| F1  | Svelte peer floor is `^5.0.0`; the real floor is 5.33                        | Yes (peer)    |
-| F2  | `@internationalized/date` is required but undeclared                         | No            |
-| F3  | `useField` is exported but its return type is not                            | No            |
-| F4  | Exported constants and English defaults need a decision                      | Decide        |
-| G1  | 6 of 65 components carry any doc comment; README is 75 lines                 | No            |
-| G2  | One test file for 65 components                                              | No            |
+| ID  | Finding                                                                      | Breaking fix? | Outcome |
+| --- | ---------------------------------------------------------------------------- | ------------- | --- |
+| A1  | 11 props, and the message-bus labels, default to English                     | Yes           | Changed (Phase 7): accessible names required, no English defaults; message bus takes a complete `MessageLabels` |
+| A2  | `BlockEditor` has about 25 hard-coded English strings with no prop           | Yes           | Changed (Phase 3): moved to content as `ArticleBlockEditor`, copy from the dictionary |
+| A3  | Locale editors ship English placeholders, one naming the retired blog module | No            | Changed (Phase 3): the editors moved to the base template, placeholders dropped |
+| B1  | `BlockEditor` is article-shaped, not universal                               | Yes (move)    | Changed (Phase 3): `ArticleBlockEditor` in content |
+| B2  | Locale-admin editors are diglossia-shaped                                    | Yes (move)    | Changed (Phase 3): moved to the base template (`LocaleFieldset` and the local-text forms) |
+| B3  | `BarcodeInput` duplicates `Field` and is warehouse-shaped                    | Decide        | Changed (Phase 3): moved to logistic |
+| B4  | `StatusBadge` is `Badge` with a `label` prop                                 | Yes (remove)  | Changed (Phase 3): removed; `Badge` instead |
+| B5  | `Alert` and `InlineNotification` overlap                                     | Decide        | Kept: `Alert` is static page content, `InlineNotification` a message result; stated in the README |
+| C1  | Callback names are inconsistent                                              | Yes           | Changed (Phase 7): `onRemove`, `MenuCheckboxItem.onCheckedChange`. Kept: `TableHeaderCell.onSort`, a request to sort with no value, unlike `DataTable`'s `onSortChange(key, direction)` |
+| C2  | 11 bindable values have no change callback                                   | No (additive) | Changed (Phase 7): every bindable value has its change callback; behaviour specs check each fires once |
+| C3  | Text arrives as `label`, `title`, `content`, `triggerLabel` or `children`    | Yes           | Changed (Phase 7): `MenuSub` and `Tooltip` take a `trigger` snippet |
+| C4  | Severity is `danger` in some components and `error` in others                | Yes           | Changed (Phase 7): `danger` everywhere |
+| C5  | 8 components take no `class` prop                                            | No (additive) | Changed (Phase 7): `class` on every styled root |
+| C6  | Only 3 components forward other attributes                                   | Decide        | Kept closed, stated in the README (decision A-5) |
+| D1  | No declared list of public class names                                       | Policy        | Changed: `docs/COREUI-COMPATIBILITY.md` lists the public classes |
+| D2  | Internal class names collide with other components' root classes             | Yes           | Changed (Phases 7 and 10): BEM `component__part` throughout, enforced by `pnpm css:check` |
+| D3  | 23 physical-direction declarations against 5 logical ones                    | No            | Changed: two physical declarations remain, both direction-neutral |
+| E1  | Hard-coded element ids produce duplicates                                    | No            | Changed: `$props.id()` throughout; the live regions' unused fixed ids removed (Phase 12) |
+| E2  | `Field` integration is partial, and its documentation is wrong               | No            | Changed (Phase 7): `Input`, `Textarea`, `Select`, `Checkbox`, `Switch`, `RadioGroup` and `DateTimePicker` read `Field`, as does logistic's `BarcodeInput` |
+| E3  | `MenuLabel` outside a group throws and empties the menu                      | No            | Changed: `MenuLabel` renders outside a group (dev-kitchen showcases it) |
+| F1  | Svelte peer floor is `^5.0.0`; the real floor is 5.33                        | Yes (peer)    | Changed (Phase 1): peer `svelte ^5.33.0` |
+| F2  | `@internationalized/date` is required but undeclared                         | No            | Changed (Phase 1): declared as a peer |
+| F3  | `useField` is exported but its return type is not                            | No            | Changed (Phase 1): `FieldContext` exported; whether `useField` stays public is open until Phase 13 |
+| F4  | Exported constants and English defaults need a decision                      | Decide        | Changed: `DEFAULT_MESSAGE_LABELS` no longer exported; `AUTO_DISMISS_MS` kept, it documents behaviour |
+| G1  | 6 of 65 components carry any doc comment; README is 75 lines                 | No            | Open: reference documentation is COREUI-1.0 stage 4 |
+| G2  | One test file for 65 components                                              | No            | Partly changed (Phase 12): behaviour specs in dev-kitchen for every interactive component, in three engines |
 
 ---
 
@@ -91,7 +92,7 @@ About 25 strings with no prop:
 - the embed provider names, the `Provider` and `URL` labels, and `select media asset in the media
 panel`.
 
-It is a Camp 1 component, so it cannot resolve copy itself.
+It is an application-level component (no dictionary), so it cannot resolve copy itself.
 
 **Proposal.** A single required `labels` prop (one typed object, like the message bus's), with
 functions for the positional strings: `moveUp: (position) => string`. Decided together with B1,

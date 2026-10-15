@@ -78,14 +78,11 @@ export { FRONT_LAYOUT_VARIANTS } from './schema/front-layout-variant.js';
 export { MEDIA_ASSET_LICENSES } from './schema/media-asset-license.js';
 export { MEDIA_ASSET_TYPES } from './schema/media-asset-type.js';
 
-// Camp 1 components (no hermes dependency)
-export { default as CommentList } from './Comment/CommentList.svelte';
+// Entity components: resolve their copy from the dictionary in context, or the `dictionary` prop.
 export { default as ArticleList } from './Article/ArticleList.svelte';
 export { default as ArticleAssignmentQueue } from './Article/ArticleAssignment/ArticleAssignmentQueue.svelte';
 export { default as FrontCurationBoard } from './Front/FrontCurationBoard.svelte';
 export { default as SubscriberList } from './Subscriber/SubscriberList.svelte';
-
-// Camp 2 components (import hermes — require hermes.load() before mount)
 export { default as ArticleBlockEditor } from './Article/ArticleBlock/ArticleBlockEditor.svelte';
 export type { ArticleBlockDraft } from './Article/ArticleBlock/ArticleBlockEditor.svelte';
 export { default as ArticleBlockRenderer } from './Article/ArticleBlock/ArticleBlockRenderer.svelte';
@@ -101,3 +98,6 @@ export { default as NewsletterSubscriptionForm } from './Newsletter/NewsletterSu
 export { default as FrontDetail } from './Front/FrontDetail.svelte';
 export { default as SectionLink } from './Section/SectionLink.svelte';
 export { default as TopicLink } from './Topic/TopicLink.svelte';
+
+// Application-level components: plain props, no dictionary.
+export { default as CommentList } from './Comment/CommentList.svelte';

@@ -1,9 +1,13 @@
 <script lang="ts">
   import { Tabs, TabsContent, TabsList, TabsTrigger } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   let horizontal = $state('details');
   let vertical = $state('lines');
+
+  let controlledValue = $state('details');
+  const controlledCalls: string[] = $state([]);
 </script>
 
 <Example title="Horizontal">
@@ -33,5 +37,27 @@
       <TabsContent value="lines">Arrow keys move between triggers.</TabsContent>
       <TabsContent value="notes">Handle with care.</TabsContent>
     </Tabs>
+  </div>
+</Example>
+
+<Example title="Callbacks">
+  <div style:inline-size="100%">
+    <Tabs
+      value={controlledValue}
+      onValueChange={(next) => {
+        controlledCalls.push(next);
+        controlledValue = next;
+      }}
+    >
+      <TabsList>
+        <TabsTrigger value="details">Controlled details</TabsTrigger>
+        <TabsTrigger value="lines">Controlled lines</TabsTrigger>
+        <TabsTrigger value="history">Controlled history</TabsTrigger>
+      </TabsList>
+      <TabsContent value="details">Details panel.</TabsContent>
+      <TabsContent value="lines">Lines panel.</TabsContent>
+      <TabsContent value="history">History panel.</TabsContent>
+    </Tabs>
+    <CallbackLog name="onValueChange" calls={controlledCalls} />
   </div>
 </Example>

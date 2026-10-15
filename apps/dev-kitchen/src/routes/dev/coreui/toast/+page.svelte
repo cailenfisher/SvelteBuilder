@@ -3,12 +3,15 @@
 <script lang="ts">
   import { Button, Toast, getMessageBus, type MessageSeverity } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   const messageBus = getMessageBus();
   const severities: MessageSeverity[] = ['info', 'success', 'warning', 'danger'];
 
   let undone = $state(0);
   let staticDismissed = $state(false);
+
+  const dismissCalls: true[] = $state([]);
 </script>
 
 <Example title="Toast, rendered directly">
@@ -20,11 +23,15 @@
         summary: 'Supplier saved',
         detail: 'Acme Freight is now active.',
       }}
-      onDismiss={() => (staticDismissed = true)}
+      onDismiss={() => {
+        dismissCalls.push(true);
+        staticDismissed = true;
+      }}
     />
   {:else}
     <Button variant="ghost" onclick={() => (staticDismissed = false)}>Show again</Button>
   {/if}
+  <CallbackLog name="onDismiss" calls={dismissCalls} />
 </Example>
 
 <Example title="Through the bus (ToastRegion, MessageLiveRegion)">

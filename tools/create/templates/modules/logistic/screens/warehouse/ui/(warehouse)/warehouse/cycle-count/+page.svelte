@@ -10,29 +10,29 @@
   let { data, form }: { data: CycleCountWarehouseQueueView; form?: ScreenFormResult } = $props();
 
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 </script>
 
 <svelte:head>
-  <title>{t('logistic.warehouse.cycle_count.title')}</title>
+  <title>{localText('logistic.warehouse.cycle_count.title')}</title>
 </svelte:head>
 
 <div class="cycle-count-warehouse-queue-screen">
-  <h1 class="cycle-count-warehouse-queue-screen__title">{t('logistic.warehouse.cycle_count.title')}</h1>
+  <h1 class="cycle-count-warehouse-queue-screen__title">{localText('logistic.warehouse.cycle_count.title')}</h1>
 
   {#if form?.error}
     <InlineNotification severity="danger" summary={form.error} />
   {/if}
 
   {#if data.myCycleCounts.length > 0}
-    <section class="cycle-count-warehouse-queue-screen__section" aria-label={t('logistic.warehouse.cycle_count.mine')}>
-      <h2 class="cycle-count-warehouse-queue-screen__section-title">{t('logistic.warehouse.cycle_count.mine')}</h2>
+    <section class="cycle-count-warehouse-queue-screen__section" aria-label={localText('logistic.warehouse.cycle_count.mine')}>
+      <h2 class="cycle-count-warehouse-queue-screen__section-title">{localText('logistic.warehouse.cycle_count.mine')}</h2>
       <CycleCountAssignedList cycleCounts={data.myCycleCounts} dictionary={scoped} />
     </section>
   {/if}
 
-  <section class="cycle-count-warehouse-queue-screen__section" aria-label={t('logistic.warehouse.cycle_count.open')}>
-    <h2 class="cycle-count-warehouse-queue-screen__section-title">{t('logistic.warehouse.cycle_count.open')}</h2>
+  <section class="cycle-count-warehouse-queue-screen__section" aria-label={localText('logistic.warehouse.cycle_count.open')}>
+    <h2 class="cycle-count-warehouse-queue-screen__section-title">{localText('logistic.warehouse.cycle_count.open')}</h2>
     <CycleCountQueue cycleCounts={data.openCycleCounts} dictionary={scoped} />
   </section>
 </div>

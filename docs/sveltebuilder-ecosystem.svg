@@ -81,7 +81,7 @@
   <g class="teal">
     <rect class="box" x="64" y="206" width="832" height="66" rx="8" stroke-width="1"/>
     <text class="t" x="480" y="227" text-anchor="middle">base template — shared by every scaffold</text>
-    <text class="s" x="480" y="245" text-anchor="middle">local-text schema + RLS + get_dictionary · root layout dictionary loading · LocaleSwitcher · message surface</text>
+    <text class="s" x="480" y="245" text-anchor="middle">local-text schema + RLS + get_dictionary · root layout dictionary loading · LocalePicker · message surface</text>
     <text class="x" x="480" y="261" text-anchor="middle">admin screens for locales, copy and navigation · coreui cascade layers · seed: 8 locales, en + fr copy</text>
   </g>
 

@@ -39,7 +39,9 @@
 </script>
 
 {#if !registry}
-  <Select.Item {value} {label} {disabled} class={classes}>
+  <!-- Bits UI marks a disabled option only with data-disabled, which assistive technology does
+       not read, so the option is announced as available. -->
+  <Select.Item {value} {label} {disabled} aria-disabled={disabled ? 'true' : undefined} class={classes}>
     {label}
   </Select.Item>
 {/if}

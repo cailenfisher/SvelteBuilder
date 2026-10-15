@@ -1,12 +1,12 @@
 /**
- * The gate for Camp 2 copy resolution.
+ * The gate for entity components' copy resolution.
  *
- * Every Camp 2 component resolves its own strings from a dictionary, and takes that
+ * Every entity component resolves its own strings from a dictionary, and takes that
  * dictionary either from context or from an optional `dictionary` prop. Two mistakes
  * are invisible to every other check in the repo:
  *
  *  1. A composite component (ArticleDetail, ArticleCard, ArticleBlockRenderer,
- *     LiveCoverageDetail) renders a child Camp 2 component and forgets to forward
+ *     LiveCoverageDetail) renders a child entity component and forgets to forward
  *     `dictionary`. The child silently falls back to `getDictionary()` — the root
  *     layout's context dictionary, which by design carries only global scope-null
  *     copy — and every entity-bound string becomes a `[missing: …]` sentinel.
@@ -37,6 +37,7 @@ import LiveUpdateCard from '../src/lib/LiveUpdate/LiveUpdateCard.svelte';
 import MediaAssetFigure from '../src/lib/MediaAsset/MediaAssetFigure.svelte';
 import SectionLink from '../src/lib/Section/SectionLink.svelte';
 import TopicLink from '../src/lib/Topic/TopicLink.svelte';
+import { FRONT_LAYOUT_VARIANTS } from '../src/lib/schema/front-layout-variant.js';
 
 import type {
   Article,
@@ -199,6 +200,27 @@ const BLOCK_TEXT: Record<number, string> = {
 /** The block ids whose prose should appear in rendered output. */
 const PROSE_BLOCK_IDS = [28, 29, 30];
 
+/** The module's own copy these components render, as the content seed provides it. */
+const MODULE_COPY: CopySpec[] = (
+    [
+      ['content.article_block_renderer.gallery', 'Photo gallery'],
+      ['content.article_block_renderer.embed', '{$provider} embed'],
+      ['content.article_byline_list.by', 'By'],
+      ['content.article_card.topics', 'Topics'],
+      ['content.article_detail.published', 'Published {$date}'],
+      ['content.article_detail.updated', 'Updated {$date}'],
+      ['content.live_coverage_detail.region', 'Live coverage'],
+      ['content.live_coverage_detail.live', 'Live'],
+      ['content.live_coverage_detail.ended', 'Coverage ended'],
+      ['content.live_coverage_detail.pinned', 'Pinned updates'],
+      ['content.live_coverage_detail.all', 'All updates'],
+      ['content.live_coverage_detail.empty', 'No updates yet.'],
+      ['content.live_update.label', 'Live update'],
+      ['content.live_update.pinned_label', 'Pinned live update'],
+      ['content.live_update.pinned', 'Pinned'],
+    ] as const
+  ).map(([slug, text]): CopySpec => [slug, 'content', null, text]);
+
 /** Copy for every key the article components resolve, directly or through a child. */
 const ARTICLE_COPY: CopySpec[] = [
   ['headline', 'article', article.id, HEADLINE],
@@ -213,13 +235,14 @@ const ARTICLE_COPY: CopySpec[] = [
   ...Object.entries(BLOCK_TEXT).map(
     ([id, text]) => ['text', 'article_block', Number(id), text] as CopySpec
   ),
+  ...MODULE_COPY,
 ];
 
 // ── leaf components ─────────────────────────────────────────────────────────
 // These resolve their own copy. If one of these breaks, every parent breaks too,
 // so they are asserted first to keep a failure readable.
 
-describe('leaf Camp 2 components resolve their own copy', () => {
+describe('leaf entity components resolve their own copy', () => {
   it('SectionLink', () => {
     const { html, missing } = renderWithCopy(
       SectionLink,
@@ -269,6 +292,7 @@ describe('leaf Camp 2 components resolve their own copy', () => {
     };
     const { html, missing } = renderWithCopy(LiveUpdateCard, { liveUpdate: update, locale: LOCALE }, [
       ['text', 'live_update', 3, 'Baghdad has not yet issued a statement.'],
+      ...MODULE_COPY,
     ]);
     expect(missing).toEqual([]);
     expect(html).toContain('Baghdad has not yet issued a statement.');
@@ -276,7 +300,7 @@ describe('leaf Camp 2 components resolve their own copy', () => {
 });
 
 // ── composite components ────────────────────────────────────────────────────
-// The regression that shipped. Each of these renders child Camp 2 components, and
+// The regression that shipped. Each of these renders child entity components, and
 // each assertion below fails if the `dictionary` prop is not forwarded to them.
 
 describe('composite components forward `dictionary` to their children', () => {
@@ -303,7 +327,7 @@ describe('composite components forward `dictionary` to their children', () => {
   });
 
   it('ArticleCard, in every layout variant', () => {
-    for (const variant of ['lead', 'secondary', 'river', 'brief'] as const) {
+    for (const variant of FRONT_LAYOUT_VARIANTS) {
       const { html, missing } = renderWithCopy(
         ArticleCard,
         {
@@ -381,6 +405,7 @@ describe('composite components forward `dictionary` to their children', () => {
       ['text', 'live_update', 1, 'The Pentagon confirms the withdrawal is complete.'],
       ['text', 'live_update', 2, 'A defense official says the final contingent has flown out.'],
       ['text', 'live_update', 3, 'Baghdad has not yet issued a statement.'],
+      ...MODULE_COPY,
     ];
 
     const { html, missing } = renderWithCopy(

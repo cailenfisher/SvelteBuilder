@@ -24,8 +24,13 @@
   );
 </script>
 
-<nav class={classes} aria-label="Storage location path">
-  <ol class="storage-location-path__list">
+<!-- A list, not a nav landmark: the segments are names, not links, and a pick task shows one
+     path per line. -->
+<div class={classes}>
+  <ol
+    class="storage-location-path__list"
+    aria-label={dictionary.localText('logistic.storage_location.path', 'logistic')}
+  >
     {#each fullPath as loc, index (loc.id)}
       <li class="storage-location-path__segment">
         <span
@@ -42,4 +47,4 @@
       </li>
     {/each}
   </ol>
-</nav>
+</div>

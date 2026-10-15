@@ -1,4 +1,4 @@
-<!-- Camp 2: subscriber email is plain data, not copy; the list's own column and table copy
+<!-- A subscriber's email is plain data, not copy; the list's own column and table copy
      (scope `content`) resolves from the dictionary.
      Uses coreui DataTable for paginated subscriber management. -->
 <script lang="ts">

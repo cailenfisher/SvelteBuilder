@@ -9,14 +9,14 @@
   let { data, form }: { data: InboundReceiptWarehouseDetailView; form?: ScreenFormResult } = $props();
 
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   const receipt = $derived(data.inboundReceipt);
 
   const supplierName = $derived(
     receipt.supplierId !== null
       ? scoped.localText('name', 'supplier', receipt.supplierId)
-      : t('logistic.inbound_receipt.blind')
+      : localText('logistic.inbound_receipt.blind')
   );
 
   const outstanding = $derived(
@@ -25,18 +25,18 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.inbound_receipt.one')} #{receipt.id}</title>
+  <title>{localText('logistic.inbound_receipt.one')} #{receipt.id}</title>
 </svelte:head>
 
 <div class="inbound-receipt-warehouse-detail-screen">
   <header class="inbound-receipt-warehouse-detail-screen__header">
     <a href="/warehouse/inbound-receipt" class="inbound-receipt-warehouse-detail-screen__back">
-      ← {t('logistic.warehouse.inbound_receipt.title')}
+      ← {localText('logistic.warehouse.inbound_receipt.title')}
     </a>
     <div class="inbound-receipt-warehouse-detail-screen__title-row">
-      <h1 class="inbound-receipt-warehouse-detail-screen__title">{t('logistic.inbound_receipt.one')} #{receipt.id}</h1>
+      <h1 class="inbound-receipt-warehouse-detail-screen__title">{localText('logistic.inbound_receipt.one')} #{receipt.id}</h1>
       <Badge variant={receipt.status === 'partial' ? 'warning' : 'default'}>
-        {t(`logistic.inbound_receipt.status.${receipt.status}`)}
+        {localText(`logistic.inbound_receipt.status.${receipt.status}`)}
       </Badge>
     </div>
     <p class="inbound-receipt-warehouse-detail-screen__meta">{supplierName}</p>

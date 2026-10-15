@@ -11,7 +11,7 @@
   let { data, form }: { data: ArticleAdminDetailView; form?: ScreenFormResult } = $props();
 
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'content');
+  const localText = (slug: string) => scoped.localText(slug, 'content');
 
   const article = $derived(data.article);
   const headline = $derived(scoped.localText('headline', 'article', article.id));
@@ -29,15 +29,15 @@
   {/if}
 
   <div class="article-admin-detail-screen__columns">
-    <section class="article-admin-detail-screen__section" aria-label={t('content.article_admin.body')}>
-      <h2 class="article-admin-detail-screen__section-title">{t('content.article_admin.body')}</h2>
+    <section class="article-admin-detail-screen__section" aria-label={localText('content.article_admin.body')}>
+      <h2 class="article-admin-detail-screen__section-title">{localText('content.article_admin.body')}</h2>
 
       <ArticleBlockEditor blocks={article.blocks} readonly dictionary={scoped} />
 
-      <h2 class="article-admin-detail-screen__section-title">{t('content.article_admin.filing')}</h2>
+      <h2 class="article-admin-detail-screen__section-title">{localText('content.article_admin.filing')}</h2>
       <dl class="article-admin-detail-screen__filing">
         <div>
-          <dt class="article-admin-detail-screen__filing-term">{t('content.article_admin.section')}</dt>
+          <dt class="article-admin-detail-screen__filing-term">{localText('content.article_admin.section')}</dt>
           <dd class="article-admin-detail-screen__filing-value">
             {article.sections.length > 0
               ? article.sections
@@ -47,7 +47,7 @@
           </dd>
         </div>
         <div>
-          <dt class="article-admin-detail-screen__filing-term">{t('content.article_admin.article_byline')}</dt>
+          <dt class="article-admin-detail-screen__filing-term">{localText('content.article_admin.article_byline')}</dt>
           <dd class="article-admin-detail-screen__filing-value">
             {article.bylines.length > 0
               ? article.bylines

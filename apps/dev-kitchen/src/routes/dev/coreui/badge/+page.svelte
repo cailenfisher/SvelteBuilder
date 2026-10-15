@@ -1,11 +1,14 @@
 <script lang="ts">
   import { Badge, Tag } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   const variants = ['default', 'brand', 'success', 'warning', 'danger', 'info'] as const;
   const sizes = ['sm', 'md', 'lg'] as const;
 
   let tags = $state(['Logistics', 'Commerce', 'Content']);
+
+  const removeCalls: string[] = $state([]);
 </script>
 
 <Example title="Badge variants">
@@ -28,11 +31,15 @@
 
 <Example title="Removable tags">
   {#each tags as tag (tag)}
-    <Tag removeLabel={`Remove ${tag}`} onRemove={() => (tags = tags.filter((t) => t !== tag))}
+    <Tag removeLabel={`Remove ${tag}`} onRemove={() => {
+        removeCalls.push(tag);
+        tags = tags.filter((other) => other !== tag);
+      }}
       >{tag}</Tag
     >
   {:else}
     <p>All tags removed.</p>
   {/each}
+  <CallbackLog name="onRemove" calls={removeCalls} />
 </Example>
 

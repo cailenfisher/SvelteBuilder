@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArticleCard } from '@sveltebuilder/content';
+  import { ArticleCard, FRONT_LAYOUT_VARIANTS } from '@sveltebuilder/content';
   import Example from '$lib/Example/Example.svelte';
   import {
     AUTHORS,
@@ -16,10 +16,9 @@
   } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();
-  const variants = ['lead', 'secondary', 'river', 'brief'] as const;
 </script>
 
-{#each variants as variant (variant)}
+{#each FRONT_LAYOUT_VARIANTS as variant (variant)}
   <Example title={`Variant: ${variant}, with its lead image`}>
     <div style:inline-size="min(100%, 40rem)">
       <ArticleCard

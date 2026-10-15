@@ -11,7 +11,7 @@
   // rather than the root dictionary — get_dictionary treats a null scope filter as
   // "scope is null", so scoped copy never reaches the root instance.
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   const flows = [
     { href: '/warehouse/pick-task', slug: 'logistic.warehouse.pick_task.title' },
@@ -23,17 +23,17 @@
 <div class="warehouse-layout">
   <header class="warehouse-layout__header">
     <a href="/warehouse" class="warehouse-layout__wordmark">
-      {t('logistic.warehouse.title')}
+      {localText('logistic.warehouse.title')}
     </a>
 
-    <nav class="warehouse-layout__navigation" aria-label={t('logistic.warehouse.title')}>
+    <nav class="warehouse-layout__navigation" aria-label={localText('logistic.warehouse.title')}>
       {#each flows as flow (flow.href)}
         <a
           href={flow.href}
           class="warehouse-layout__navigation-link"
           aria-current={page.url.pathname.startsWith(flow.href) ? 'page' : undefined}
         >
-          {t(flow.slug)}
+          {localText(flow.slug)}
         </a>
       {/each}
     </nav>

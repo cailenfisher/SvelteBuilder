@@ -13,7 +13,7 @@
 
   // Request-scoped, not a merge into the context instance — see the article screen.
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'content');
+  const localText = (slug: string) => scoped.localText(slug, 'content');
 
   const mediaAssets = $derived(new Map(data.mediaAssets.map((asset) => [asset.id, asset])));
 
@@ -32,9 +32,9 @@
     <h1 class="section-detail-screen__title">{sectionName}</h1>
 
     {#if data.childSections.length > 0}
-      <nav class="section-detail-screen__children" aria-label={t('content.section.subsections')}>
+      <nav class="section-detail-screen__children" aria-label={localText('content.section.subsections')}>
         {#each data.childSections as child (child.id)}
-          <!-- Camp 2 component: it resolves the section's name from the dictionary itself. -->
+          <!-- An entity component: it resolves the section's name from the dictionary itself. -->
           <SectionLink
             section={child}
             locale={data.localeCode}
@@ -69,7 +69,7 @@
     </div>
 
     {#if data.total > data.perPage}
-      <nav class="section-detail-screen__pagination" aria-label={t('content.section.pagination')}>
+      <nav class="section-detail-screen__pagination" aria-label={localText('content.section.pagination')}>
         <!-- Server-side paging, so a page change is a navigation: the loader owns the slice and
              a shared URL has to land on the same one. -->
         <Pagination
@@ -84,6 +84,6 @@
       </nav>
     {/if}
   {:else}
-    <p class="section-detail-screen__empty">{t('content.section.empty')}</p>
+    <p class="section-detail-screen__empty">{localText('content.section.empty')}</p>
   {/if}
 </main>

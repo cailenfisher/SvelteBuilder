@@ -1,5 +1,5 @@
 -- Seed data for @sveltebuilder/logistic
--- Depends on: locale table seeded (hermes/base seed), local_text_link, local_text
+-- Depends on: locale table seeded (the base local-text seed), local_text_link, local_text
 
 -- ──────────────────────────────────────────────────────────────────────────────
 -- Storage locations (self-referential tree: warehouse → zone → aisle → bin)
@@ -1076,6 +1076,59 @@ from (values
   ('logistic.dashboard.open_pick_task',           'Tâches de prélèvement ouvertes'),
   ('logistic.dashboard.open_return_authorization',         'Autorisations de retour ouvertes'),
   ('logistic.dashboard.sections',             'Sections logistique')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- Copy the module's cards, bars and lists ask for that no screen slug already covered (2026-10-14).
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('logistic.inbound_receipt.number',            'logistic', null),
+  ('logistic.inbound_receipt.discrepancy_alert', 'logistic', null),
+  ('logistic.pick_task.number',                  'logistic', null),
+  ('logistic.pick_task.lines',                   'logistic', null),
+  ('logistic.pick_task.lines_completed',         'logistic', null),
+  ('logistic.stock_level.below_reorder_point',   'logistic', null),
+  ('logistic.storage_location.path',             'logistic', null),
+  ('logistic.supplier.inactive',                 'logistic', null),
+  ('logistic.supplier.lead_time',                'logistic', null),
+  ('logistic.supplier.contact_more',             'logistic', null),
+  ('logistic.tracking_event.empty',              'logistic', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('logistic.inbound_receipt.number',            'Receipt #{$id}'),
+  ('logistic.inbound_receipt.discrepancy_alert', 'Quantity discrepancy on one or more lines.'),
+  ('logistic.pick_task.number',                  'Pick task #{$id}'),
+  ('logistic.pick_task.lines',                   'Pick lines'),
+  ('logistic.pick_task.lines_completed',         '{$completed} of {$total} lines picked'),
+  ('logistic.stock_level.below_reorder_point',   'Below reorder point ({$reorderPoint})'),
+  ('logistic.storage_location.path',             'Storage location path'),
+  ('logistic.supplier.inactive',                 'Inactive'),
+  ('logistic.supplier.lead_time',                '.input {$days :number} .match $days one {{Lead time: {$days} day}} * {{Lead time: {$days} days}}'),
+  ('logistic.supplier.contact_more',             '.input {$count :number} .match $count one {{+{$count} more contact}} * {{+{$count} more contacts}}'),
+  ('logistic.tracking_event.empty',              'No tracking events yet.')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('logistic.inbound_receipt.number',            'Réception n° {$id}'),
+  ('logistic.inbound_receipt.discrepancy_alert', 'Écart de quantité sur une ou plusieurs lignes.'),
+  ('logistic.pick_task.number',                  'Tâche de prélèvement n° {$id}'),
+  ('logistic.pick_task.lines',                   'Lignes à prélever'),
+  ('logistic.pick_task.lines_completed',         '{$completed} sur {$total} lignes prélevées'),
+  ('logistic.stock_level.below_reorder_point',   'Sous le seuil de réapprovisionnement ({$reorderPoint})'),
+  ('logistic.storage_location.path',             'Chemin de l''emplacement'),
+  ('logistic.supplier.inactive',                 'Inactif'),
+  ('logistic.supplier.lead_time',                '.input {$days :number} .match $days one {{Délai : {$days} jour}} * {{Délai : {$days} jours}}'),
+  ('logistic.supplier.contact_more',             '.input {$count :number} .match $count one {{+{$count} autre contact}} * {{+{$count} autres contacts}}'),
+  ('logistic.tracking_event.empty',              'Aucun événement de suivi pour l''instant.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
 on conflict (link, locale) do nothing;

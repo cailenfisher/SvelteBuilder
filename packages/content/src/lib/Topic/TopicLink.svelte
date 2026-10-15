@@ -1,4 +1,4 @@
-<!-- Camp 2: resolves topic name via diglossia. -->
+<!-- A link to a topic, named from the dictionary. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';

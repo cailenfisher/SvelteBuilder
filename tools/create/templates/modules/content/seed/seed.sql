@@ -850,3 +850,101 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- Copy the module's reading components ask for that was hard-coded English until 2026-10-14.
+
+insert into local_text_link (slug, scope, entity_id)
+values
+  ('content.article_block_renderer.gallery', 'content', null),
+  ('content.article_block_renderer.embed',   'content', null),
+  ('content.article_byline_list.by',         'content', null),
+  ('content.article_card.topics',            'content', null),
+  ('content.article_detail.published',       'content', null),
+  ('content.article_detail.updated',         'content', null),
+  ('content.author_profile_detail.articles', 'content', null),
+  ('content.front_detail.brief',             'content', null),
+  ('content.front_curation_board.empty',     'content', null),
+  ('content.front_curation_board.list',      'content', null),
+  ('content.front_curation_board.move_up',   'content', null),
+  ('content.front_curation_board.move_down', 'content', null),
+  ('content.front_curation_board.remove',    'content', null),
+  ('content.front_layout_variant.lead',      'content', null),
+  ('content.front_layout_variant.secondary', 'content', null),
+  ('content.front_layout_variant.river',     'content', null),
+  ('content.front_layout_variant.brief',     'content', null),
+  ('content.live_coverage_detail.region',    'content', null),
+  ('content.live_coverage_detail.live',      'content', null),
+  ('content.live_coverage_detail.ended',     'content', null),
+  ('content.live_coverage_detail.pinned',    'content', null),
+  ('content.live_coverage_detail.all',       'content', null),
+  ('content.live_coverage_detail.empty',     'content', null),
+  ('content.live_update.label',              'content', null),
+  ('content.live_update.pinned_label',       'content', null),
+  ('content.live_update.pinned',             'content', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('content.article_block_renderer.gallery', 'Photo gallery'),
+  ('content.article_block_renderer.embed',   '{$provider} embed'),
+  ('content.article_byline_list.by',         'By'),
+  ('content.article_card.topics',            'Topics'),
+  ('content.article_detail.published',       'Published {$date}'),
+  ('content.article_detail.updated',         'Updated {$date}'),
+  ('content.author_profile_detail.articles', 'Articles by {$name}'),
+  ('content.front_detail.brief',             'Briefs'),
+  ('content.front_curation_board.empty',     'No articles on this front.'),
+  ('content.front_curation_board.list',      'Article slots on {$front}'),
+  ('content.front_curation_board.move_up',   'Move {$headline} up'),
+  ('content.front_curation_board.move_down', 'Move {$headline} down'),
+  ('content.front_curation_board.remove',    'Remove {$headline} from the front'),
+  ('content.front_layout_variant.lead',      'Lead'),
+  ('content.front_layout_variant.secondary', 'Secondary'),
+  ('content.front_layout_variant.river',     'River'),
+  ('content.front_layout_variant.brief',     'Brief'),
+  ('content.live_coverage_detail.region',    'Live coverage'),
+  ('content.live_coverage_detail.live',      'Live'),
+  ('content.live_coverage_detail.ended',     'Coverage ended'),
+  ('content.live_coverage_detail.pinned',    'Pinned updates'),
+  ('content.live_coverage_detail.all',       'All updates'),
+  ('content.live_coverage_detail.empty',     'No updates yet.'),
+  ('content.live_update.label',              'Live update'),
+  ('content.live_update.pinned_label',       'Pinned live update'),
+  ('content.live_update.pinned',             'Pinned')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('content.article_block_renderer.gallery', 'Galerie photo'),
+  ('content.article_block_renderer.embed',   'Contenu intégré {$provider}'),
+  ('content.article_byline_list.by',         'Par'),
+  ('content.article_card.topics',            'Sujets'),
+  ('content.article_detail.published',       'Publié le {$date}'),
+  ('content.article_detail.updated',         'Mis à jour le {$date}'),
+  ('content.author_profile_detail.articles', 'Articles de {$name}'),
+  ('content.front_detail.brief',             'En bref'),
+  ('content.front_curation_board.empty',     'Aucun article sur cette une.'),
+  ('content.front_curation_board.list',      'Emplacements d''articles de {$front}'),
+  ('content.front_curation_board.move_up',   'Monter {$headline}'),
+  ('content.front_curation_board.move_down', 'Descendre {$headline}'),
+  ('content.front_curation_board.remove',    'Retirer {$headline} de la une'),
+  ('content.front_layout_variant.lead',      'À la une'),
+  ('content.front_layout_variant.secondary', 'Secondaire'),
+  ('content.front_layout_variant.river',     'Fil'),
+  ('content.front_layout_variant.brief',     'Brève'),
+  ('content.live_coverage_detail.region',    'Couverture en direct'),
+  ('content.live_coverage_detail.live',      'En direct'),
+  ('content.live_coverage_detail.ended',     'Couverture terminée'),
+  ('content.live_coverage_detail.pinned',    'Mises à jour épinglées'),
+  ('content.live_coverage_detail.all',       'Toutes les mises à jour'),
+  ('content.live_coverage_detail.empty',     'Aucune mise à jour pour l''instant.'),
+  ('content.live_update.label',              'Mise à jour en direct'),
+  ('content.live_update.pinned_label',       'Mise à jour en direct épinglée'),
+  ('content.live_update.pinned',             'Épinglée')
+) as v(slug, content)
+join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
+on conflict (link, locale) do nothing;

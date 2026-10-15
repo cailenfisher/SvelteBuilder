@@ -14,7 +14,7 @@
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   let newCountOpen = $state(false);
 
@@ -28,14 +28,14 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.cycle_count.title')}</title>
+  <title>{localText('logistic.cycle_count.title')}</title>
 </svelte:head>
 
 <div class="cycle-count-list-screen">
   <header class="cycle-count-list-screen__header">
-    <h1 class="cycle-count-list-screen__title">{t('logistic.cycle_count.title')}</h1>
+    <h1 class="cycle-count-list-screen__title">{localText('logistic.cycle_count.title')}</h1>
     <Button variant="primary" onclick={() => (newCountOpen = true)}>
-      {t('logistic.cycle_count.new')}
+      {localText('logistic.cycle_count.new')}
     </Button>
   </header>
 
@@ -44,12 +44,12 @@
   {/if}
 
   <FilterLinkList
-    label={t('logistic.cycle_count.filter_status')}
+    label={localText('logistic.cycle_count.filter_status')}
     links={[
-      { href: href(null), label: t('logistic.cycle_count.filter_all'), current: data.status === null },
+      { href: href(null), label: localText('logistic.cycle_count.filter_all'), current: data.status === null },
       ...data.statuses.map((status) => ({
         href: href(status),
-        label: t(`logistic.cycle_count.status.${status}`),
+        label: localText(`logistic.cycle_count.status.${status}`),
         current: data.status === status,
       })),
     ]}
@@ -66,7 +66,7 @@
   />
 </div>
 
-<Dialog bind:open={newCountOpen} title={t('logistic.cycle_count.new')} closeLabel={dictionary.localText('action.close')}>
+<Dialog bind:open={newCountOpen} title={localText('logistic.cycle_count.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <CycleCountCreateForm
       storageLocations={data.storageLocations}

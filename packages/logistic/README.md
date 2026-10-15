@@ -27,7 +27,7 @@ import type { InboundReceiptDetailView } from '@sveltebuilder/logistic/views';
 import { stockLevel, pickTask, shipment } from '@sveltebuilder/logistic/schema';
 ```
 
-- **`@sveltebuilder/logistic`** — Svelte components, split into Camp 1 (`PickTaskStatusBadge`, `ShipmentStatusBadge`, `ReturnConditionBadge`, `StockLevelBar`, `TrackingEventList`, `BarcodeInput` — no diglossia dependency) and Camp 2 (`SupplierCard`, `StorageLocationPath`, `PickTaskCard`, `InboundReceiptCard` — call `getDictionary()` from `diglossia/svelte`, with an optional `dictionary` prop for overriding context). Also re-exports all schema types.
+- **`@sveltebuilder/logistic`** — Svelte components, split into application-level components (`PickTaskStatusBadge`, `ShipmentStatusBadge`, `ReturnConditionBadge`, `BarcodeInput` — no diglossia dependency) and entity components (`SupplierCard`, `StorageLocationPath`, `PickTaskCard`, `InboundReceiptCard`, `StockLevelBar`, `TrackingEventList` and the rest — call `getDictionary()` from `diglossia/svelte`, with an optional `dictionary` prop for overriding context). Also re-exports all schema types.
 - **`@sveltebuilder/logistic/views`** — the view-model types a screen and its loader share. The module ships no queries (guardrail 11); a scaffolded project's data modules in `src/lib/server/logistic/` hold them.
 - **`@sveltebuilder/logistic/styles/components.css`** — every component's styles, for the `components` layer.
 - **`@sveltebuilder/logistic/schema`** — Drizzle table definitions and TypeScript types (`Supplier`, `StorageLocation`, `StockLevel`, `InboundReceipt`, `PickTask`, `Shipment`, `ReturnAuthorization`, `CycleCount`, and their line/item types).

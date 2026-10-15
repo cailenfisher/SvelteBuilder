@@ -1,4 +1,4 @@
-<!-- Camp 2: newsletter signup form. Labels/placeholders resolved via hermes (scope = 'content').
+<!-- Newsletter signup form. Labels and placeholders come from the dictionary (scope = 'content').
      Submits to a SvelteKit form action — no client-side fetch. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';

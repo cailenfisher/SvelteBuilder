@@ -11,17 +11,19 @@
     task: PickTask;
     lines?: PickTaskLineWithLocation[];
     href?: string;
-    locale?: string;
+    locale: string;
     dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { task, lines = [], href, locale = 'en', dictionary: dictionaryProp, class: extraClass }: Props = $props();
+  let { task, lines = [], href, locale, dictionary: dictionaryProp, class: extraClass }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
   const statusLabel = $derived(dictionary.localText(`logistic.pick_task.status.${task.status}`, 'logistic'));
+
+  const number = $derived(dictionary.formatText('logistic.pick_task.number', { id: task.id }, 'logistic'));
 
   const completedLines = $derived(lines.filter((l) => l.pickedQuantity >= l.requestedQuantity));
 
@@ -45,11 +47,9 @@
     <div class="pick-task-card__title-row">
       <div>
         {#if href}
-          <a class="pick-task-card__id-link" {href}>
-            Task #{task.id}
-          </a>
+          <a class="pick-task-card__id-link" {href}>{number}</a>
         {:else}
-          <span class="pick-task-card__id">Task #{task.id}</span>
+          <span class="pick-task-card__id">{number}</span>
         {/if}
         <time class="pick-task-card__date" datetime={task.createdAt}>{formattedDate}</time>
       </div>
@@ -58,19 +58,26 @@
     </div>
 
     {#if lines.length > 0}
-      <div class="pick-task-card__progress" aria-label="{completionPct}% complete">
+      <div class="pick-task-card__progress">
         <div class="pick-task-card__progress-track" aria-hidden="true">
           <div class="pick-task-card__progress-fill" style:width="{completionPct}%"></div>
         </div>
         <span class="pick-task-card__progress-label">
-          {completedLines.length}/{lines.length} lines
+          {dictionary.formatText(
+            'logistic.pick_task.lines_completed',
+            { completed: completedLines.length, total: lines.length },
+            'logistic'
+          )}
         </span>
       </div>
     {/if}
   </header>
 
   {#if lines.length > 0}
-    <ul class="pick-task-card__lines" aria-label="Pick lines">
+    <ul
+      class="pick-task-card__lines"
+      aria-label={dictionary.localText('logistic.pick_task.lines', 'logistic')}
+    >
       {#each lines as line (line.id)}
         <li class="pick-task-card__line" class:pick-task-card__line--done={line.pickedQuantity >= line.requestedQuantity}>
           <div class="pick-task-card__line-info">

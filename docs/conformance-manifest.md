@@ -423,3 +423,18 @@ Also: `class:negative` and `class:done` (bare classes) became BEM modifiers (`__
 `__line--done`), and text coloured `--danger` became `--danger-text`, which axe found failing contrast
 once the rules reached a showcased component.
 
+
+## Added during Phase 12 (pending approval)
+
+Includes the names the three Phase 11 decisions brought in (2026-10-14).
+
+| Name | What it is |
+| --- | --- |
+| `ArticleList` props `href`, `onPageChange` (now required), `locale`; `ArticleWorkflowPanel` props `statusSlug`, `statuses`, `checklist`, `transitionAction`, `checklistAction`, `enhance` | the adapted content components; `href` matches `InboundReceiptList`'s, the action props `NewsletterSubscriptionForm`'s `action` |
+| slugs `content.article_list.canonical_slug`, `content.article_list.created_at`, `content.article_workflow.transition`, `content.article_workflow.save`, `content.article_workflow.publish_blocked`, `content.article_block_editor.empty` | copy for the adapted components |
+| `toLocalDateTime`, `toIsoDateTime` in `DateTimePicker/date-time-picker.ts` | the picker's timezone conversions, internal (not exported from the package) |
+| dev-kitchen `CallbackLog` (`$lib/CallbackLog/`), `tests/behaviour.spec.ts`, script `test:browser` (was `test:a11y`), fixtures `ARTICLE_ROWS`, `ARTICLE_STATUSES`, `CHECKLIST` | the behaviour test layer; the script runs accessibility and behaviour, so it no longer says only one |
+| slugs `content.article_block_renderer.{gallery,embed}`, `content.article_byline_list.by`, `content.article_card.topics`, `content.article_detail.{published,updated}`, `content.author_profile_detail.articles`, `content.front_detail.brief`, `content.front_curation_board.{empty,list,move_up,move_down,remove}`, `content.live_coverage_detail.{region,live,ended,pinned,all,empty}` | component copy, named after the component, like `content.article_list.*` |
+| slugs `content.live_update.{label,pinned_label,pinned}`, `content.front_layout_variant.{lead,secondary,river,brief}` | named after the concept rather than a component: the first is shared by `LiveUpdateCard` and `ArticleBlockRenderer`, the second is the enum's value names, like `content.article_block_type.*` |
+| slugs `logistic.inbound_receipt.{number,discrepancy_alert}`, `logistic.pick_task.{number,lines,lines_completed}`, `logistic.stock_level.below_reorder_point`, `logistic.storage_location.path`, `logistic.supplier.{inactive,lead_time,contact_more}`, `logistic.tracking_event.empty` | logistic component copy; the cards reuse `logistic.inbound_receipt.expected_at`, `received_at`, `lines`, `logistic.field.{available,reserved,on_hand}` and `logistic.warehouse.inbound_receipt.received_of` rather than add twins |
+| "application-level" and "entity" components | the descriptive terms replacing "Camp 1" and "Camp 2", taken from CLAUDE.md's own table |

@@ -15,7 +15,7 @@
   // by everything rendering that request and on the client accumulates every article the
   // reader has visited. createDictionary() is request-scoped by construction.
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'content');
+  const localText = (slug: string) => scoped.localText(slug, 'content');
 
   const siteUrl = $derived(new URL(data.canonicalUrl).origin);
 
@@ -67,7 +67,7 @@
 </svelte:head>
 
 <main class="article-detail-screen">
-  <!-- Camp 2 component: it resolves the headline, dek and every block's text from the
+  <!-- An entity component: it resolves the headline, dek and every block's text from the
        dictionary by entity id, so it takes this screen's instance rather than context. -->
   <ArticleDetail
     article={data.article}
@@ -79,8 +79,8 @@
   >
     {#snippet after()}
       {#if data.article.commentAllowed}
-        <section class="article-detail-screen__comments" aria-label={t('content.comment.heading')}>
-          <h2 class="article-detail-screen__comments-heading">{t('content.comment.heading')}</h2>
+        <section class="article-detail-screen__comments" aria-label={localText('content.comment.heading')}>
+          <h2 class="article-detail-screen__comments-heading">{localText('content.comment.heading')}</h2>
 
           {#if data.comments.length > 0}
             <CommentList comments={data.comments} />
@@ -89,7 +89,7 @@
           {#if commentAccepted}
             <!-- role="status" rather than an alert: a successful submission is confirmation,
                  not a problem, and should not interrupt a screen reader. -->
-            <InlineNotification severity="success" summary={t('content.comment.pending')} />
+            <InlineNotification severity="success" summary={localText('content.comment.pending')} />
           {:else}
             <CommentForm error={form?.error} dictionary={scoped} />
           {/if}

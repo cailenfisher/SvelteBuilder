@@ -1,4 +1,4 @@
-<!-- Camp 2: imports diglossia for entity copy resolution. -->
+<!-- An article as a card: resolves its headline, dek, status and section from the dictionary. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
@@ -128,7 +128,7 @@
   {/if}
 
   {#if sections.length > 0}
-    <div class="article-card__kicker" aria-label="Section">
+    <div class="article-card__kicker">
       <SectionLink section={sections[0]} {locale} {dictionary} />
     </div>
   {/if}
@@ -166,7 +166,10 @@
       {/if}
 
       {#if topics.length > 0 && variant !== 'brief'}
-        <ul class="article-card__topics" aria-label="Topics">
+        <ul
+          class="article-card__topics"
+          aria-label={dictionary.localText('content.article_card.topics', 'content')}
+        >
           {#each topics as topic (topic.id)}
             <li><TopicLink {topic} {locale} href={`/?topic=${topic.slug}`} {dictionary} /></li>
           {/each}

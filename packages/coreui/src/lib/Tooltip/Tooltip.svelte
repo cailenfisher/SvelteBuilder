@@ -30,7 +30,8 @@
     </Tooltip.Trigger>
 
     <Tooltip.Portal>
-      <Tooltip.Content class={tooltipClasses} sideOffset={6}>
+      <!-- The trigger's aria-describedby already points here; the role is what Bits UI leaves out. -->
+      <Tooltip.Content role="tooltip" class={tooltipClasses} sideOffset={6}>
         <Tooltip.Arrow class="tooltip__arrow" />
         {content}
       </Tooltip.Content>

@@ -11,7 +11,7 @@
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   const task = $derived(data.pickTask);
   const remaining = $derived(
@@ -23,13 +23,13 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.pick_task.one')} #{task.id}</title>
+  <title>{localText('logistic.pick_task.one')} #{task.id}</title>
 </svelte:head>
 
 <div class="pick-task-warehouse-detail-screen">
   <header class="pick-task-warehouse-detail-screen__header">
-    <a href="/warehouse/pick-task" class="pick-task-warehouse-detail-screen__back">← {t('logistic.warehouse.pick_task.title')}</a>
-    <h1 class="pick-task-warehouse-detail-screen__title">{t('logistic.pick_task.one')} #{task.id}</h1>
+    <a href="/warehouse/pick-task" class="pick-task-warehouse-detail-screen__back">← {localText('logistic.warehouse.pick_task.title')}</a>
+    <h1 class="pick-task-warehouse-detail-screen__title">{localText('logistic.pick_task.one')} #{task.id}</h1>
     <p class="pick-task-warehouse-detail-screen__meta">
       {scoped.formatText(
         'logistic.warehouse.pick_task.remaining',
@@ -46,7 +46,7 @@
   <PickTaskLineList pickTaskLines={task.lines} dictionary={scoped} />
 
   <Button variant="primary" full onclick={() => (completeConfirmOpen = true)}>
-    {t('logistic.warehouse.pick_task.complete')}
+    {localText('logistic.warehouse.pick_task.complete')}
   </Button>
 </div>
 
@@ -54,11 +54,11 @@
 
 <ConfirmDialog
   bind:open={completeConfirmOpen}
-  title={t('logistic.warehouse.pick_task.complete')}
+  title={localText('logistic.warehouse.pick_task.complete')}
   description={remaining > 0
-    ? t('logistic.warehouse.pick_task.complete_short')
-    : t('logistic.warehouse.pick_task.complete_confirm')}
-  confirmLabel={t('logistic.warehouse.pick_task.complete')}
+    ? localText('logistic.warehouse.pick_task.complete_short')
+    : localText('logistic.warehouse.pick_task.complete_confirm')}
+  confirmLabel={localText('logistic.warehouse.pick_task.complete')}
   cancelLabel={dictionary.localText('action.cancel')}
   onConfirm={() => completeForm?.requestSubmit()}
 />

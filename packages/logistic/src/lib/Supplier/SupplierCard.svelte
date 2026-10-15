@@ -38,13 +38,13 @@
       {/if}
 
       {#if !supplier.active}
-        <Badge variant="default" size="sm">Inactive</Badge>
+        <Badge variant="default" size="sm">{dictionary.localText('logistic.supplier.inactive', 'logistic')}</Badge>
       {/if}
     </div>
 
     {#if supplier.leadTimeDay !== null}
       <p class="supplier-card__lead-time">
-        Lead time: {supplier.leadTimeDay} {supplier.leadTimeDay === 1 ? 'day' : 'days'}
+        {dictionary.formatText('logistic.supplier.lead_time', { days: supplier.leadTimeDay }, 'logistic')}
       </p>
     {/if}
   </header>
@@ -66,6 +66,8 @@
   {/if}
 
   {#if contacts.length > 1}
-    <p class="supplier-card__contact-count">+{contacts.length - 1} more contact{contacts.length - 1 !== 1 ? 's' : ''}</p>
+    <p class="supplier-card__contact-count">
+      {dictionary.formatText('logistic.supplier.contact_more', { count: contacts.length - 1 }, 'logistic')}
+    </p>
   {/if}
 </article>

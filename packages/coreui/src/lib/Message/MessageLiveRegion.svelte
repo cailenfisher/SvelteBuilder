@@ -66,9 +66,9 @@
   Must be present in the DOM before any messages are dispatched.
   Visually hidden — announcements are for assistive technology only.
 -->
-<div id="sb-live-polite" aria-live="polite" aria-atomic="true" class={classes}>
+<div aria-live="polite" aria-atomic="true" class={classes}>
   {politeText}
 </div>
-<div id="sb-live-assertive" aria-live="assertive" aria-atomic="true" class={classes}>
+<div aria-live="assertive" aria-atomic="true" class={classes}>
   {assertiveText}
 </div>

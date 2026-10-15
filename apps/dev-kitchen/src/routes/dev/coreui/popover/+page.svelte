@@ -1,6 +1,9 @@
 <script lang="ts">
   import { Popover, Tooltip } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
+
+  const openCalls: boolean[] = $state([]);
 </script>
 
 <Example title="Popover">
@@ -20,4 +23,12 @@
   <Tooltip content="Opens after 1.2s" delay={1200}>
     {#snippet trigger()}Long delay{/snippet}
   </Tooltip>
+</Example>
+
+<Example title="Callbacks">
+  <Popover onOpenChange={(next) => openCalls.push(next)}>
+    {#snippet trigger()}Reorder detail{/snippet}
+    <p>Reorder at 12 units.</p>
+  </Popover>
+  <CallbackLog name="onOpenChange" calls={openCalls} />
 </Example>

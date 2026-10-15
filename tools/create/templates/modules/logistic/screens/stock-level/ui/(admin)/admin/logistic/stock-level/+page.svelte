@@ -11,7 +11,7 @@
   let { data, form }: { data: StockLevelListView; form?: ScreenFormResult } = $props();
 
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   let adjustOpen = $state(false);
   let adjustTarget = $state<StockLevelRow | null>(null);
@@ -24,17 +24,17 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.stock_level.title')}</title>
+  <title>{localText('logistic.stock_level.title')}</title>
 </svelte:head>
 
 <div class="stock-level-list-screen">
   <header class="stock-level-list-screen__header">
-    <h1 class="stock-level-list-screen__title">{t('logistic.stock_level.title')}</h1>
+    <h1 class="stock-level-list-screen__title">{localText('logistic.stock_level.title')}</h1>
     <FilterLinkList
-      label={t('logistic.stock_level.filters')}
+      label={localText('logistic.stock_level.filters')}
       links={[
-        { href: '/admin/logistic/stock-level', label: t('logistic.stock_level.filter_all'), current: !data.lowOnly },
-        { href: '?filter=low', label: t('logistic.stock_level.filter_low'), current: data.lowOnly },
+        { href: '/admin/logistic/stock-level', label: localText('logistic.stock_level.filter_all'), current: !data.lowOnly },
+        { href: '?filter=low', label: localText('logistic.stock_level.filter_low'), current: data.lowOnly },
       ]}
     />
   </header>

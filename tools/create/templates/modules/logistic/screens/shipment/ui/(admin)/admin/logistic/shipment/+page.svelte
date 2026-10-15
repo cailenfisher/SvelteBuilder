@@ -14,7 +14,7 @@
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   let newShipmentOpen = $state(false);
 
@@ -28,14 +28,14 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.shipment.title')}</title>
+  <title>{localText('logistic.shipment.title')}</title>
 </svelte:head>
 
 <div class="shipment-list-screen">
   <header class="shipment-list-screen__header">
-    <h1 class="shipment-list-screen__title">{t('logistic.shipment.title')}</h1>
+    <h1 class="shipment-list-screen__title">{localText('logistic.shipment.title')}</h1>
     <Button variant="primary" onclick={() => (newShipmentOpen = true)}>
-      {t('logistic.shipment.new')}
+      {localText('logistic.shipment.new')}
     </Button>
   </header>
 
@@ -44,12 +44,12 @@
   {/if}
 
   <FilterLinkList
-    label={t('logistic.shipment.filter_status')}
+    label={localText('logistic.shipment.filter_status')}
     links={[
-      { href: href(null), label: t('logistic.shipment.filter_all'), current: data.status === null },
+      { href: href(null), label: localText('logistic.shipment.filter_all'), current: data.status === null },
       ...data.statuses.map((status) => ({
         href: href(status),
-        label: t(`logistic.shipment.status.${status}`),
+        label: localText(`logistic.shipment.status.${status}`),
         current: data.status === status,
       })),
     ]}
@@ -66,7 +66,7 @@
   />
 </div>
 
-<Dialog bind:open={newShipmentOpen} title={t('logistic.shipment.new')} closeLabel={dictionary.localText('action.close')}>
+<Dialog bind:open={newShipmentOpen} title={localText('logistic.shipment.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <ShipmentCreateForm dictionary={scoped} onCancel={() => (newShipmentOpen = false)} />
   {/snippet}

@@ -1,5 +1,5 @@
-<!-- Camp 2: renders a single article block by dispatching on block_type.
-     All text blocks resolve copy via hermes (scope = 'article_block', entityId = block.id).
+<!-- Renders a single article block by dispatching on block_type.
+     All text blocks resolve copy from the dictionary (scope = 'article_block', entityId = block.id).
      Structural config (heading level, embed provider) lives in block.content jsonb. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
@@ -66,7 +66,11 @@
   {:else if block.blockType === 'image' && asset}
     <MediaAssetFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
   {:else if block.blockType === 'gallery'}
-    <div class="article-block-renderer__gallery" role="region" aria-label="Photo gallery">
+    <div
+      class="article-block-renderer__gallery"
+      role="region"
+      aria-label={dictionary.localText('content.article_block_renderer.gallery', 'content')}
+    >
       {#if asset}
         <MediaAssetFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
       {/if}
@@ -78,11 +82,14 @@
     <MediaAssetFigure {asset} {attribution} {storageBaseUrl} {locale} {dictionary} />
   {:else if block.blockType === 'embed' && embedSrc}
     <div class="article-block-renderer__embed" data-provider={provider || undefined}>
-      <iframe class="article-block-renderer__embed-frame" src={embedSrc} title={text || `${provider} embed`} loading="lazy" allowfullscreen
+      <iframe class="article-block-renderer__embed-frame" src={embedSrc} title={text || dictionary.formatText('content.article_block_renderer.embed', { provider }, 'content')} loading="lazy" allowfullscreen
       ></iframe>
     </div>
   {:else if block.blockType === 'live_update'}
-    <aside class="article-block-renderer__live-update" aria-label="Live update">
+    <aside
+      class="article-block-renderer__live-update"
+      aria-label={dictionary.localText('content.live_update.label', 'content')}
+    >
       <p class="article-block-renderer__live-update-text">{text}</p>
     </aside>
   {/if}

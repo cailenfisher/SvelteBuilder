@@ -14,7 +14,7 @@
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
 
   const filterHref = (status: InboundReceiptStatus | null) =>
@@ -24,14 +24,14 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.inbound_receipt.title')}</title>
+  <title>{localText('logistic.inbound_receipt.title')}</title>
 </svelte:head>
 
 <div class="inbound-receipt-list-screen">
   <header class="inbound-receipt-list-screen__header">
-    <h1 class="inbound-receipt-list-screen__title">{t('logistic.inbound_receipt.title')}</h1>
+    <h1 class="inbound-receipt-list-screen__title">{localText('logistic.inbound_receipt.title')}</h1>
     <Button variant="primary" onclick={() => (newReceiptOpen = true)}>
-      {t('logistic.inbound_receipt.new')}
+      {localText('logistic.inbound_receipt.new')}
     </Button>
   </header>
 
@@ -40,12 +40,12 @@
   {/if}
 
   <FilterLinkList
-    label={t('logistic.inbound_receipt.filter_status')}
+    label={localText('logistic.inbound_receipt.filter_status')}
     links={[
-      { href: filterHref(null), label: t('logistic.inbound_receipt.filter_all'), current: data.status === null },
+      { href: filterHref(null), label: localText('logistic.inbound_receipt.filter_all'), current: data.status === null },
       ...INBOUND_RECEIPT_STATUSES.map((status) => ({
         href: filterHref(status),
-        label: t(`logistic.inbound_receipt.status.${status}`),
+        label: localText(`logistic.inbound_receipt.status.${status}`),
         current: data.status === status,
       })),
     ]}
@@ -56,12 +56,12 @@
       inboundReceipts={data.inboundReceipts}
       href={(receipt) => `/admin/logistic/inbound-receipt/${receipt.id}`}
       locale={data.localeCode}
-      emptyLabel={t('logistic.inbound_receipt.empty')}
+      emptyLabel={localText('logistic.inbound_receipt.empty')}
       dictionary={scoped}
     />
 
     {#if data.total > data.perPage}
-      <nav class="inbound-receipt-list-screen__pagination" aria-label={t('logistic.inbound_receipt.pagination')}>
+      <nav class="inbound-receipt-list-screen__pagination" aria-label={localText('logistic.inbound_receipt.pagination')}>
         <!-- Paging is server-side, so a page change is a navigation rather than local
                state: the loader owns the slice, and a reload or a shared URL has to land
                on the same one. goto keeps the status filter, which is the other half of
@@ -84,7 +84,7 @@
   </div>
 </div>
 
-<Dialog bind:open={newReceiptOpen} title={t('logistic.inbound_receipt.new')} closeLabel={dictionary.localText('action.close')}>
+<Dialog bind:open={newReceiptOpen} title={localText('logistic.inbound_receipt.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <InboundReceiptCreateForm
       suppliers={data.suppliers}

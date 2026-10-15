@@ -1,4 +1,4 @@
-// Components — Camp 2 (entity-aware, import @sveltebuilder/hermes)
+// Entity components: resolve their copy from the dictionary in context, or the `dictionary` prop.
 export { default as SupplierCard } from './Supplier/SupplierCard.svelte';
 export { default as StorageLocationPath } from './StorageLocation/StorageLocationPath.svelte';
 export { default as StorageLocationFieldset } from './StorageLocation/StorageLocationFieldset.svelte';
@@ -9,15 +9,15 @@ export { default as InboundReceiptCard } from './InboundReceipt/InboundReceiptCa
 export { default as InboundReceiptSummary } from './InboundReceipt/InboundReceiptSummary.svelte';
 export { default as InboundReceiptList } from './InboundReceipt/InboundReceiptList.svelte';
 export { default as CycleCountLineTable } from './CycleCount/CycleCountLineTable.svelte';
+export { default as ShipmentLineTable } from './Shipment/ShipmentLineTable.svelte';
+export { default as StockLevelBar } from './StockLevel/StockLevelBar.svelte';
+export { default as TrackingEventList } from './TrackingEvent/TrackingEventList.svelte';
 
-// Components — Camp 1 (i18n-agnostic, no hermes import)
+// Application-level components: plain props, no dictionary.
 export { default as PickTaskStatusBadge } from './PickTask/PickTaskStatusBadge.svelte';
 export { default as ShipmentStatusBadge } from './Shipment/ShipmentStatusBadge.svelte';
-export { default as ShipmentLineTable } from './Shipment/ShipmentLineTable.svelte';
 export { default as ReturnConditionBadge } from './ReturnCondition/ReturnConditionBadge.svelte';
-export { default as StockLevelBar } from './StockLevel/StockLevelBar.svelte';
 export { default as BarcodeInput } from './BarcodeInput/BarcodeInput.svelte';
-export { default as TrackingEventList } from './TrackingEvent/TrackingEventList.svelte';
 
 // Types
 export type {

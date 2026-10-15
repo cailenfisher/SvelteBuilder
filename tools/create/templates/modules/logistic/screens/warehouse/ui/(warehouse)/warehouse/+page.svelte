@@ -8,7 +8,7 @@
   let { data }: { data: WarehouseShellView } = $props();
 
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   const flows = [
     {
@@ -33,18 +33,18 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.warehouse.title')}</title>
+  <title>{localText('logistic.warehouse.title')}</title>
 </svelte:head>
 
 <div class="warehouse-home-screen">
-  <h1 class="warehouse-home-screen__title">{t('logistic.warehouse.title')}</h1>
+  <h1 class="warehouse-home-screen__title">{localText('logistic.warehouse.title')}</h1>
 
-  <nav class="warehouse-home-screen__flows" aria-label={t('logistic.warehouse.title')}>
+  <nav class="warehouse-home-screen__flows" aria-label={localText('logistic.warehouse.title')}>
     {#each flows as flow (flow.href)}
       <a href={flow.href} class="warehouse-home-screen__flow-card">
         <span class="warehouse-home-screen__flow-icon" aria-hidden="true">{flow.icon}</span>
-        <span class="warehouse-home-screen__flow-label">{t(flow.slug)}</span>
-        <span class="warehouse-home-screen__flow-hint">{t(flow.hint)}</span>
+        <span class="warehouse-home-screen__flow-label">{localText(flow.slug)}</span>
+        <span class="warehouse-home-screen__flow-hint">{localText(flow.hint)}</span>
       </a>
     {/each}
   </nav>

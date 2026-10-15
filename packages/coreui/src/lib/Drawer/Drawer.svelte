@@ -1,5 +1,5 @@
 <!-- Drawer: accessible slide-over panel backed by Bits UI Dialog.
-     Camp 1 — i18n-agnostic. Caller provides title and content via snippets. -->
+     Takes its text from the caller: provides title and content via snippets. -->
 <script module lang="ts">
   export type DrawerSide = 'right' | 'left' | 'bottom';
 </script>

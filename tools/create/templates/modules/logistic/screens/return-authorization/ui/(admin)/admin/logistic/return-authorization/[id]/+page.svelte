@@ -12,7 +12,7 @@
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   const authorization = $derived(data.returnAuthorization);
 
@@ -33,7 +33,7 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.return_authorization.one')} #{authorization.id}</title>
+  <title>{localText('logistic.return_authorization.one')} #{authorization.id}</title>
 </svelte:head>
 
 <div class="return-authorization-detail-screen">
@@ -49,7 +49,7 @@
   {/if}
 
   <section class="return-authorization-detail-screen__lines">
-    <h2 class="return-authorization-detail-screen__section-title">{t('logistic.return_authorization.lines')}</h2>
+    <h2 class="return-authorization-detail-screen__section-title">{localText('logistic.return_authorization.lines')}</h2>
     <ReturnAuthorizationLineTable
       returnAuthorizationLines={authorization.lines}
       gradable={open}
@@ -67,9 +67,9 @@
 
 <ConfirmDialog
   bind:open={processConfirmOpen}
-  title={t('logistic.return_authorization.process')}
-  description={t('logistic.return_authorization.process_confirm')}
-  confirmLabel={t('logistic.return_authorization.process')}
+  title={localText('logistic.return_authorization.process')}
+  description={localText('logistic.return_authorization.process_confirm')}
+  confirmLabel={localText('logistic.return_authorization.process')}
   cancelLabel={dictionary.localText('action.cancel')}
   onConfirm={() => processForm?.requestSubmit()}
 />

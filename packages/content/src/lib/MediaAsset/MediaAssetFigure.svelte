@@ -1,4 +1,4 @@
-<!-- Camp 2: resolves alt text, caption, and credit from hermes.
+<!-- Resolves alt text, caption and credit from the dictionary.
      Alt text is NEVER hardcoded — it is always resolved from the media_asset scope.
      Empty alt ("") is only valid for explicitly decorative images (pass decorative=true).
      SECURITY: storageBaseUrl is validated server-side before being passed to this component. -->
@@ -81,7 +81,7 @@
     <figcaption class="media-asset-figure__caption">
       {#if caption}<span class="media-asset-figure__caption-text">{caption}</span>{/if}
       {#if credit || licenseHref}
-        <span class="media-asset-figure__credit" aria-label="Image credit">
+        <span class="media-asset-figure__credit">
           {#if credit}
             {#if sourceHref}
               <a class="media-asset-figure__link" href={sourceHref} rel="noopener">{credit}</a>

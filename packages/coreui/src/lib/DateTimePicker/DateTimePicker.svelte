@@ -1,16 +1,19 @@
 <!-- DateTimePicker: timezone-aware date and time input.
-     Camp 1 — i18n-agnostic. Value is an ISO 8601 string with timezone offset.
+     Takes no copy. Value is an ISO 8601 string with timezone offset.
      Uses native <input type="datetime-local"> backed by a timezone-aware wrapper.
      Consumers must pass the IANA timezone name (e.g. 'America/New_York') for
      accurate offset serialization. -->
 <script lang="ts">
   import { useField } from '../Field/use-field.js';
+  import { toIsoDateTime, toLocalDateTime } from './date-time-picker.js';
 
   type Props = {
     value?: string;
     onValueChange?: (iso: string | null) => void;
     timezone?: string;
+    /** The earliest instant allowed, as ISO 8601 like `value`. */
     min?: string;
+    /** The latest instant allowed, as ISO 8601 like `value`. */
     max?: string;
     disabled?: boolean;
     required?: boolean;
@@ -41,62 +44,13 @@
     return field.hint ? field.hintId : undefined;
   });
 
-  // Convert a UTC ISO string to a datetime-local value (YYYY-MM-DDTHH:mm)
-  // in the target timezone.
-  function toLocalDateTimeString(iso: string, tz: string): string {
-    if (!iso) return '';
-    try {
-      const d = new Date(iso);
-      // Use Intl.DateTimeFormat to format in the target timezone
-      const parts = new Intl.DateTimeFormat('en-CA', {
-        timeZone: tz,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      }).formatToParts(d);
+  const localValue = $derived(toLocalDateTime(value, timezone));
 
-      const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '00';
-      return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
-    } catch {
-      return '';
-    }
-  }
-
-  // Convert a datetime-local string back to an ISO string with tz offset.
-  function toIsoWithOffset(local: string, tz: string): string | null {
-    if (!local) return null;
-    try {
-      // Create a Date by interpreting the local string in the target timezone
-      const d = new Date(
-        new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
-          .format(new Date(local + 'Z')) // Initial parse
-          .replace(/(\d{4})-(\d{2})-(\d{2})/, '$1-$2-$3T') + local.slice(11) + ':00',
-      );
-      // Compute offset in target tz
-      const utc = d.getTime();
-      const tzDate = new Date(local);
-      const offsetMs = tzDate.getTime() - utc;
-      const offsetMin = Math.round(offsetMs / 60000);
-      const sign = offsetMin >= 0 ? '+' : '-';
-      const abs = Math.abs(offsetMin);
-      const hh = String(Math.floor(abs / 60)).padStart(2, '0');
-      const mm = String(abs % 60).padStart(2, '0');
-      return new Date(local).toISOString().replace('Z', `${sign}${hh}:${mm}`);
-    } catch {
-      return null;
-    }
-  }
-
-  const localValue = $derived(toLocalDateTimeString(value, timezone));
-
-  function handleChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const iso = toIsoWithOffset(input.value, timezone);
-    if (onValueChange) onValueChange(iso);
-    else value = iso ?? '';
+  function handleChange(event: Event & { currentTarget: HTMLInputElement }) {
+    const iso = toIsoDateTime(event.currentTarget.value, timezone);
+    // Both, not either: a caller may bind the value and listen for changes at once.
+    value = iso ?? '';
+    onValueChange?.(iso);
   }
 </script>
 
@@ -105,8 +59,8 @@
   id={fieldId}
   {name}
   value={localValue}
-  {min}
-  {max}
+  min={min ? toLocalDateTime(min, timezone) : undefined}
+  max={max ? toLocalDateTime(max, timezone) : undefined}
   {disabled}
   {required}
   aria-describedby={describedBy}

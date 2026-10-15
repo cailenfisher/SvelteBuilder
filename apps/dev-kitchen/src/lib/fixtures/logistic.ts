@@ -281,6 +281,22 @@ const COPY: CopyRow[] = [
   ['logistic.dashboard.pending', 'logistic', null, "Pending"],
   ['logistic.dashboard.open', 'logistic', null, "Open"],
   ['logistic.dashboard.below_reorder', 'logistic', null, "Below reorder point"],
+  ['logistic.inbound_receipt.lines', 'logistic', null, 'Lines'],
+  ['logistic.warehouse.inbound_receipt.received_of', 'logistic', null, '{$received} of {$expected} received'],
+  ['logistic.inbound_receipt.number', 'logistic', null, 'Receipt #{$id}'],
+  ['logistic.inbound_receipt.discrepancy_alert', 'logistic', null, 'Quantity discrepancy on one or more lines.'],
+  ['logistic.pick_task.number', 'logistic', null, 'Pick task #{$id}'],
+  ['logistic.pick_task.lines', 'logistic', null, 'Pick lines'],
+  ['logistic.pick_task.lines_completed', 'logistic', null, '{$completed} of {$total} lines picked'],
+  ['logistic.field.available', 'logistic', null, 'Available'],
+  ['logistic.field.reserved', 'logistic', null, 'Reserved'],
+  ['logistic.field.on_hand', 'logistic', null, 'On hand'],
+  ['logistic.stock_level.below_reorder_point', 'logistic', null, 'Below reorder point ({$reorderPoint})'],
+  ['logistic.storage_location.path', 'logistic', null, 'Storage location path'],
+  ['logistic.supplier.inactive', 'logistic', null, 'Inactive'],
+  ['logistic.supplier.lead_time', 'logistic', null, '.input {$days :number} .match $days one {{Lead time: {$days} day}} * {{Lead time: {$days} days}}'],
+  ['logistic.supplier.contact_more', 'logistic', null, '.input {$count :number} .match $count one {{+{$count} more contact}} * {{+{$count} more contacts}}'],
+  ['logistic.tracking_event.empty', 'logistic', null, 'No tracking events yet.'],
 ];
 
 const COPY_PAYLOAD: DictionaryPayload = COPY.map(([slug, scope, entityId, content], index) => ({

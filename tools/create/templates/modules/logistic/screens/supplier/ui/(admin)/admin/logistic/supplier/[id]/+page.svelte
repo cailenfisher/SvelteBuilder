@@ -15,7 +15,7 @@
   // list screen for why the module's copy cannot come from the root dictionary.
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   // The supplier's name is entity-bound copy: scope 'supplier', keyed by row id.
   const supplierName = $derived(scoped.localText('name', 'supplier', data.supplier.id));
@@ -45,11 +45,11 @@
 
   <section class="supplier-detail-screen__contacts">
     <div class="supplier-detail-screen__contacts-header">
-      <h2 class="supplier-detail-screen__section-title">{t('logistic.supplier.contacts')}</h2>
+      <h2 class="supplier-detail-screen__section-title">{localText('logistic.supplier.contacts')}</h2>
       <Button variant="ghost" size="sm" onclick={() => (showContactForm = !showContactForm)}>
         {showContactForm
           ? dictionary.localText('action.cancel')
-          : t('logistic.supplier.contact_add')}
+          : localText('logistic.supplier.contact_add')}
       </Button>
     </div>
 

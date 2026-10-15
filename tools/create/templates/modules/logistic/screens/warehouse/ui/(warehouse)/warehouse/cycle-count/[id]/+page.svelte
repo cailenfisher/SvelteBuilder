@@ -9,20 +9,20 @@
   let { data, form }: { data: CycleCountWarehouseDetailView; form?: ScreenFormResult } = $props();
 
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   const count = $derived(data.cycleCount);
   const counted = $derived(count.lines.filter((line) => line.countedQuantity !== null).length);
 </script>
 
 <svelte:head>
-  <title>{t('logistic.cycle_count.one')} #{count.id}</title>
+  <title>{localText('logistic.cycle_count.one')} #{count.id}</title>
 </svelte:head>
 
 <div class="cycle-count-warehouse-detail-screen">
   <header class="cycle-count-warehouse-detail-screen__header">
-    <a href="/warehouse/cycle-count" class="cycle-count-warehouse-detail-screen__back">← {t('logistic.warehouse.cycle_count.title')}</a>
-    <h1 class="cycle-count-warehouse-detail-screen__title">{t('logistic.cycle_count.one')} #{count.id}</h1>
+    <a href="/warehouse/cycle-count" class="cycle-count-warehouse-detail-screen__back">← {localText('logistic.warehouse.cycle_count.title')}</a>
+    <h1 class="cycle-count-warehouse-detail-screen__title">{localText('logistic.cycle_count.one')} #{count.id}</h1>
     <p class="cycle-count-warehouse-detail-screen__meta">
       {scoped.formatText(
         'logistic.cycle_count.progress_value',
@@ -38,5 +38,5 @@
 
   <CycleCountLineList cycleCountLines={count.lines} dictionary={scoped} />
 
-  <p class="cycle-count-warehouse-detail-screen__note">{t('logistic.warehouse.cycle_count.approval_note')}</p>
+  <p class="cycle-count-warehouse-detail-screen__note">{localText('logistic.warehouse.cycle_count.approval_note')}</p>
 </div>

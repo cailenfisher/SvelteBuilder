@@ -1,6 +1,7 @@
 <script lang="ts">
   import { DateTimePicker, Label } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   let publishAt = $state('2026-10-07T09:30:00.000Z');
   let changes = $state<string[]>([]);
@@ -13,9 +14,10 @@
       id="publish-at"
       bind:value={publishAt}
       timezone="UTC"
-      onValueChange={(iso) => (changes = [String(iso), ...changes])}
+      onValueChange={(iso) => changes.push(String(iso))}
     />
     <p role="status">Value: <code>{publishAt || '(empty)'}</code></p>
+    <CallbackLog name="onValueChange" calls={changes} />
   </Example>
 
   <Example title="Another timezone, with bounds">

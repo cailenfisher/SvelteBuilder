@@ -1,14 +1,21 @@
-<!-- Camp 1: i18n-agnostic. Displays on-hand / reserved / available breakdown.
-     Caller formats the labels (e.g. via localText for the column headings). -->
+<!-- A stock level's available, reserved and on-hand figures, with a bar showing how much is
+     reserved, and a note when available stock is at or below the reorder point. -->
 <script lang="ts">
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
+
   type Props = {
     onHand: number;
     reserved: number;
     reorderPoint?: number;
+    dictionary?: DictionaryInstance;
     class?: string | undefined;
   };
 
-  let { onHand, reserved, reorderPoint, class: extraClass }: Props = $props();
+  let { onHand, reserved, reorderPoint, dictionary: dictionaryProp, class: extraClass }: Props = $props();
+
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
 
   const available = $derived(onHand - reserved);
 
@@ -29,15 +36,15 @@
   <div class="stock-level-bar__figures">
     <span class="stock-level-bar__figure">
       <span class="stock-level-bar__count">{available}</span>
-      <span class="stock-level-bar__label">available</span>
+      <span class="stock-level-bar__label">{dictionary.localText('logistic.field.available', 'logistic')}</span>
     </span>
     <span class="stock-level-bar__figure">
       <span class="stock-level-bar__count">{reserved}</span>
-      <span class="stock-level-bar__label">reserved</span>
+      <span class="stock-level-bar__label">{dictionary.localText('logistic.field.reserved', 'logistic')}</span>
     </span>
     <span class="stock-level-bar__figure">
       <span class="stock-level-bar__count">{onHand}</span>
-      <span class="stock-level-bar__label">on hand</span>
+      <span class="stock-level-bar__label">{dictionary.localText('logistic.field.on_hand', 'logistic')}</span>
     </span>
   </div>
 
@@ -49,6 +56,8 @@
   </div>
 
   {#if belowReorder}
-    <p class="stock-level-bar__alert" role="status">Below reorder point ({reorderPoint})</p>
+    <p class="stock-level-bar__alert" role="status">
+      {dictionary.formatText('logistic.stock_level.below_reorder_point', { reorderPoint }, 'logistic')}
+    </p>
   {/if}
 </div>

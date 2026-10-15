@@ -1,4 +1,4 @@
-<!-- Camp 1: i18n-agnostic. Caller resolves the label string. No hermes import. -->
+<!-- Application-level: the caller resolves the label string; no dictionary. -->
 <script lang="ts">
   import { Badge } from '@sveltebuilder/coreui';
   import type { ShipmentStatus } from '../schema/index.js';

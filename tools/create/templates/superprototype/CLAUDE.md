@@ -514,7 +514,7 @@ Before adding a global slug, check whether one already exists (`action.save`, `a
 
     const dictionary = getDictionary();                    // global copy
     const scoped = $derived(createDictionary(data.copy));  // this page's copy
-    const t = (slug: string) => scoped.localText(slug, 'ticket');
+    const localText = (slug: string) => scoped.localText(slug, 'ticket');
   </script>
   ```
 

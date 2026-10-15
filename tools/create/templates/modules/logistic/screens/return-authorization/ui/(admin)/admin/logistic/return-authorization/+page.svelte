@@ -14,7 +14,7 @@
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   let newReturnOpen = $state(false);
 
@@ -28,14 +28,14 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.return_authorization.title')}</title>
+  <title>{localText('logistic.return_authorization.title')}</title>
 </svelte:head>
 
 <div class="return-authorization-list-screen">
   <header class="return-authorization-list-screen__header">
-    <h1 class="return-authorization-list-screen__title">{t('logistic.return_authorization.title')}</h1>
+    <h1 class="return-authorization-list-screen__title">{localText('logistic.return_authorization.title')}</h1>
     <Button variant="primary" onclick={() => (newReturnOpen = true)}>
-      {t('logistic.return_authorization.new')}
+      {localText('logistic.return_authorization.new')}
     </Button>
   </header>
 
@@ -44,12 +44,12 @@
   {/if}
 
   <FilterLinkList
-    label={t('logistic.return_authorization.filter_status')}
+    label={localText('logistic.return_authorization.filter_status')}
     links={[
-      { href: href(null), label: t('logistic.return_authorization.filter_all'), current: data.status === null },
+      { href: href(null), label: localText('logistic.return_authorization.filter_all'), current: data.status === null },
       ...data.statuses.map((status) => ({
         href: href(status),
-        label: t(`logistic.return_authorization.status.${status}`),
+        label: localText(`logistic.return_authorization.status.${status}`),
         current: data.status === status,
       })),
     ]}
@@ -66,7 +66,7 @@
   />
 </div>
 
-<Dialog bind:open={newReturnOpen} title={t('logistic.return_authorization.new')} closeLabel={dictionary.localText('action.close')}>
+<Dialog bind:open={newReturnOpen} title={localText('logistic.return_authorization.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <ReturnAuthorizationCreateForm dictionary={scoped} onCancel={() => (newReturnOpen = false)} />
   {/snippet}

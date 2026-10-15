@@ -12,7 +12,7 @@
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   const count = $derived(data.cycleCount);
 
@@ -29,7 +29,7 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.cycle_count.one')} #{count.id}</title>
+  <title>{localText('logistic.cycle_count.one')} #{count.id}</title>
 </svelte:head>
 
 <div class="cycle-count-detail-screen">
@@ -51,9 +51,9 @@
 
 <ConfirmDialog
   bind:open={approveConfirmOpen}
-  title={t('logistic.cycle_count.approve')}
-  description={t('logistic.cycle_count.approve_confirm')}
-  confirmLabel={t('logistic.cycle_count.approve')}
+  title={localText('logistic.cycle_count.approve')}
+  description={localText('logistic.cycle_count.approve_confirm')}
+  confirmLabel={localText('logistic.cycle_count.approve')}
   cancelLabel={dictionary.localText('action.cancel')}
   onConfirm={() => approveForm?.requestSubmit()}
 />

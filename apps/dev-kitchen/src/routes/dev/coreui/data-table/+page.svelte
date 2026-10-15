@@ -1,6 +1,7 @@
 <script lang="ts">
   import { DataTable, Pagination, type DataTableColumn } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   type Supplier = { id: number; name: string; country: string; openReceipts: number };
 
@@ -39,6 +40,9 @@
   const visible = $derived(sorted.slice((page - 1) * perPage, page * perPage));
 
   let standalonePage = $state(3);
+
+  const sortCalls: [string, 'asc' | 'desc'][] = $state([]);
+  const pageCalls: number[] = $state([]);
 </script>
 
 {#snippet supplierCell(supplier: Supplier, column: DataTableColumn)}
@@ -62,15 +66,20 @@
       {sortKey}
       {sortDirection}
       onSortChange={(key, direction) => {
+        sortCalls.push([key, direction]);
         sortKey = key;
         sortDirection = direction;
         page = 1;
       }}
       bind:page
+      onPageChange={(next) => pageCalls.push(next)}
       {perPage}
       total={suppliers.length}
       labels={{ ...labels, empty: 'No suppliers.' }}
     />
+    <CallbackLog name="onSortChange" calls={sortCalls} />
+    <CallbackLog name="onPageChange" calls={pageCalls} />
+    <p role="status">Page {page}, sorted by {sortKey} {sortDirection}</p>
   </div>
 </Example>
 

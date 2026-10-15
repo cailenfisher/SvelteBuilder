@@ -117,7 +117,7 @@ blocks and a byline — EN and FR throughout.
 ### Types narrowed, and why it kept happening
 
 Five types in the package demanded resolved copy that the code reading them never used:
-`ArticleView`'s prop, `ArticleForStructuredData`, `RssFeedArticle`, `NewsSitemapArticle` and
+`ArticleDetail`'s prop, `ArticleForStructuredData`, `RssFeedArticle`, `NewsSitemapArticle` and
 `validateArticleForPublish`. Each was an `ArticleWithCopy` or an `Omit<>` of one, while the function
 or component already took a `DictionaryInstance` and resolved the headline through it — then read
 byline names, section names and block text as baked strings off the row.
@@ -149,8 +149,8 @@ Unit tests now exist (`packages/content/test/`, five files rendering 9 of the 18
 server-side, including a no-`[missing:]` gate), but the other 9 have none. The live-coverage,
 front-curation, author-profile, newsletter and
 media screens were never written — only the thirteen route files that existed were ported, and
-`SectionFront`, `FrontCurationBoard`, `AssignmentQueue`, `SubscriberList`, `LiveCoverageView` and
-`AuthorProfileView` are components with no screen rendering them. They render in `apps/dev-kitchen`
+`FrontDetail`, `FrontCurationBoard`, `ArticleAssignmentQueue`, `SubscriberList`, `LiveCoverageDetail`
+and `AuthorProfileDetail` are components with no screen rendering them. They render in `apps/dev-kitchen`
 and pass its accessibility audit, but no scaffold can show them. That is the next content gap, and
 it is feature work rather than a port.
 
@@ -224,12 +224,10 @@ Standing rules:
 - **No favicon in any scaffold.** Both templates' `app.html` link `%sveltekit.assets%/favicon.png`,
   and neither ships a `static/` directory, so every page of every scaffolded app requests a file
   that does not exist and logs a 404. Fixing it needs an icon, which is a branding decision.
-- **coreui's internal `class="label"`.** Seven components besides `Field` and `LocaleSwitcher` use
-  it for an internal element, so the form `Label`'s rules apply to them too. `Button`'s use failed
-  contrast and was renamed; the others pass, by luck rather than design.
-- **Right-to-left mirroring is unreviewed.** `components.css` has 15 physical-direction
-  declarations (`left`, `margin-right`, …) against 5 logical ones. axe passes under `dir="rtl"`,
-  but mirroring is visual.
+- **Right-to-left mirroring is partly reviewed.** The package stylesheets are down to two physical
+  declarations, both direction-neutral, and the `Switch` thumb that escaped its track in
+  right-to-left was fixed (2026-10-14). axe passes under `dir="rtl"`; the rest of mirroring is the
+  release candidate's visual review.
 
 ---
 

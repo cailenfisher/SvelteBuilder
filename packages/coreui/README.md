@@ -2,7 +2,7 @@
 
 Universal UI component library for [SvelteBuilder](https://github.com/cailenfisher/SvelteBuilder). Interactive components are built on [Bits UI](https://bits-ui.com) primitives; the rest are plain HTML — see [Bits UI or native](#bits-ui-or-native).
 
-Every component in coreui is Camp 1 (application-level UI) — plain `label: string` props, no `diglossia` import, no dependency on an entity `id`. Camp 2 (entity-aware) components live in the domain modules (`@sveltebuilder/content`, `@sveltebuilder/logistic`), not here.
+Every component in coreui is application-level UI — plain `label: string` props, no `diglossia` import, no dependency on an entity `id`. Entity components, which resolve their own copy, live in the domain modules (`@sveltebuilder/content`, `@sveltebuilder/logistic`), not here.
 
 ## Install
 
@@ -65,6 +65,14 @@ Everything else is plain HTML on purpose:
 ## Copy
 
 Every string a component shows comes in as a prop, and none has an English default: a default would ship English to screen-reader users in every other locale. Strings that are accessible names are required — `Dialog` and `Drawer` take `closeLabel`; `ConfirmDialog` takes `confirmLabel` and `cancelLabel`; `Pagination` takes `previousLabel`, `nextLabel` and `label`; `DataTable` takes one `labels` object; `Spinner` and `ProgressBar` take `label`; a removable `Tag` takes `removeLabel`. Optional text such as `Select`'s `placeholder` simply renders nothing when omitted. The messaging surfaces share one set of labels, passed once to `createMessageBus({ labels })` and read by `Toast`, `ToastRegion`, `Banner` and `InlineNotification` from context — see `MessageLabels` for the keys.
+
+## Attributes
+
+The component surface is closed: a component takes the props its type declares and nothing else.
+Only `Input`, `Textarea` and `Button`, which wrap one native element, pass other attributes through
+to it. Anything another component needs from its caller (an accessible name, a `name` for form
+submission, a `class`) is a declared prop. Opening the surface later is additive; closing it after
+1.0 would not be. A custom control reads its `Field`'s id, label and error through `useField()`.
 
 ## Part of the SvelteBuilder ecosystem
 

@@ -1,8 +1,11 @@
-<!-- Camp 1: front curation drag-order board. Receives pre-resolved copy from server.
-     No hermes import — headline strings are passed as props from the server load.
-     Emits onSlotsReorder with the new slot order for the parent to persist via form action. -->
+<!-- Front curation: reorder a front's article slots by dragging or with the move buttons, and
+     remove one. Headlines arrive resolved on each slot's article; the board's own copy (scope
+     `content`) comes from the dictionary. Reports the new order through onSlotsReorder for the
+     parent to persist through a form action. -->
 <script lang="ts">
   import { untrack } from 'svelte';
+  import { getDictionary } from 'diglossia/svelte';
+  import type { DictionaryInstance } from 'diglossia';
   import { Badge } from '@sveltebuilder/coreui';
   import type { FrontSlotWithArticle } from '../schema/index.js';
 
@@ -11,10 +14,15 @@
     slots: FrontSlotWithArticle[];
     onSlotsReorder?: (slotIds: number[]) => void;
     onSlotRemove?: (slotId: number) => void;
-    locale: string;
+    dictionary?: DictionaryInstance;
   };
 
-  let { frontName, slots, onSlotsReorder, onSlotRemove, locale: _locale }: Props = $props();
+  let { frontName, slots, onSlotsReorder, onSlotRemove, dictionary: dictionaryProp }: Props = $props();
+
+  // svelte-ignore state_referenced_locally
+  const dictionary = dictionaryProp ?? getDictionary();
+
+  const headlineOf = (slot: FrontSlotWithArticle) => slot.article?.headline ?? '—';
 
   let orderedSlots: FrontSlotWithArticle[] = $state(untrack(() => [...slots]));
 
@@ -59,22 +67,20 @@
     orderedSlots = updated;
     onSlotsReorder?.(orderedSlots.map((s) => s.id));
   }
-
-  const VARIANT_LABEL: Record<string, string> = {
-    lead: 'Lead',
-    secondary: 'Secondary',
-    river: 'River',
-    brief: 'Brief',
-  };
 </script>
 
-<div class="front-curation-board" aria-label={`Front curation: ${frontName}`}>
+<div class="front-curation-board">
   <h2 class="front-curation-board__title">{frontName}</h2>
 
   {#if orderedSlots.length === 0}
-    <p class="front-curation-board__empty">No articles on this front.</p>
+    <p class="front-curation-board__empty">
+      {dictionary.localText('content.front_curation_board.empty', 'content')}
+    </p>
   {:else}
-    <ol class="front-curation-board__list" role="list" aria-label="Article slots">
+    <ol
+      class="front-curation-board__list"
+      aria-label={dictionary.formatText('content.front_curation_board.list', { front: frontName }, 'content')}
+    >
       {#each orderedSlots as slot, i (slot.id)}
         <li
           class="front-curation-board__slot"
@@ -82,40 +88,42 @@
           ondragstart={() => onDragStart(i)}
           ondragover={(e) => onDragOver(e, i)}
           ondrop={onDrop}
-          aria-label={`Slot ${i + 1}: ${slot.article?.headline ?? 'Unknown article'}`}
         >
           <span class="front-curation-board__position" aria-hidden="true">{i + 1}</span>
 
           <div class="front-curation-board__info">
             <span class="front-curation-board__headline">
-              {slot.article?.headline ?? '—'}
+              {headlineOf(slot)}
             </span>
             <Badge variant="default" size="sm">
-              {VARIANT_LABEL[slot.layoutVariant] ?? slot.layoutVariant}
+              {dictionary.localText(`content.front_layout_variant.${slot.layoutVariant}`, 'content')}
             </Badge>
           </div>
 
           <div class="front-curation-board__controls">
             <button
+              type="button"
               class="front-curation-board__move"
               onclick={() => moveUp(i)}
               disabled={i === 0}
-              aria-label="Move up"
+              aria-label={dictionary.formatText('content.front_curation_board.move_up', { headline: headlineOf(slot) }, 'content')}
             >
               ↑
             </button>
             <button
+              type="button"
               class="front-curation-board__move"
               onclick={() => moveDown(i)}
               disabled={i === orderedSlots.length - 1}
-              aria-label="Move down"
+              aria-label={dictionary.formatText('content.front_curation_board.move_down', { headline: headlineOf(slot) }, 'content')}
             >
               ↓
             </button>
             <button
+              type="button"
               class="front-curation-board__remove"
               onclick={() => onSlotRemove?.(slot.id)}
-              aria-label={`Remove ${slot.article?.headline ?? 'article'} from front`}
+              aria-label={dictionary.formatText('content.front_curation_board.remove', { headline: headlineOf(slot) }, 'content')}
             >
               ✕
             </button>

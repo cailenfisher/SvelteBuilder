@@ -13,7 +13,7 @@
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'content');
+  const localText = (slug: string) => scoped.localText(slug, 'content');
 
   let newArticleOpen = $state(false);
 
@@ -27,14 +27,14 @@
 </script>
 
 <svelte:head>
-  <title>{t('content.article_admin.article')}</title>
+  <title>{localText('content.article_admin.article')}</title>
 </svelte:head>
 
 <div class="article-admin-list-screen">
   <header class="article-admin-list-screen__header">
-    <h1 class="article-admin-list-screen__title">{t('content.article_admin.article')}</h1>
+    <h1 class="article-admin-list-screen__title">{localText('content.article_admin.article')}</h1>
     <Button variant="primary" onclick={() => (newArticleOpen = true)}>
-      {t('content.article_admin.new')}
+      {localText('content.article_admin.new')}
     </Button>
   </header>
 
@@ -43,9 +43,9 @@
   {/if}
 
   <FilterLinkList
-    label={t('content.article_admin.filter_status')}
+    label={localText('content.article_admin.filter_status')}
     links={[
-      { href: href(null), label: t('content.article_admin.filter_all'), current: data.statusSlug === null },
+      { href: href(null), label: localText('content.article_admin.filter_all'), current: data.statusSlug === null },
       ...data.statuses.map((status) => ({
         href: href(status.slug),
         label: scoped.localText('name', 'article_status', status.id),
@@ -66,7 +66,7 @@
   />
 </div>
 
-<Dialog bind:open={newArticleOpen} title={t('content.article_admin.new')} closeLabel={dictionary.localText('action.close')}>
+<Dialog bind:open={newArticleOpen} title={localText('content.article_admin.new')} closeLabel={dictionary.localText('action.close')}>
   {#snippet children()}
     <ArticleCreateForm dictionary={scoped} onCancel={() => (newArticleOpen = false)} />
   {/snippet}

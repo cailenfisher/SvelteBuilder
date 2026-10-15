@@ -9,6 +9,7 @@
     TableRow,
   } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   type Line = { sku: string; quantity: number; location: string };
   const lines: Line[] = [
@@ -24,6 +25,8 @@
     )
   );
   const total = $derived(lines.reduce((sum, line) => sum + line.quantity, 0));
+
+  const sortCalls: true[] = $state([]);
 </script>
 
 <Example title="Caption, sortable header, footer">
@@ -35,7 +38,10 @@
           <TableHeaderCell
             sortable
             sorted={direction}
-            onSort={() => (direction = direction === 'asc' ? 'desc' : 'asc')}>Quantity</TableHeaderCell
+            onSort={() => {
+              sortCalls.push(true);
+              direction = direction === 'asc' ? 'desc' : 'asc';
+            }}>Quantity</TableHeaderCell
           >
           <TableHeaderCell>Location</TableHeaderCell>
         </TableRow>
@@ -56,5 +62,6 @@
         </TableRow>
       </TableFoot>
     </Table>
+    <CallbackLog name="onSort" calls={sortCalls} />
   </div>
 </Example>

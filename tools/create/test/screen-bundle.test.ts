@@ -191,7 +191,7 @@ function readSlugUses(bundleDir: string): SlugUse[] {
     const source = fs.readFileSync(path.join(uiDir, rel), 'utf8');
 
     // A screen conventionally wraps its own scope in a one-line helper:
-    //   const t = (slug: string) => scoped.localText(slug, 'logistic');
+    //   const localText = (slug: string) => scoped.localText(slug, 'logistic');
     // Learn each helper's name and scope so its call sites resolve.
     const helpers = new Map<string, string>();
     for (const m of source.matchAll(

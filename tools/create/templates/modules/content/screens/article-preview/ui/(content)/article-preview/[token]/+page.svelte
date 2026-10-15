@@ -8,7 +8,7 @@
   let { data }: { data: ArticlePreviewDetailView } = $props();
 
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'content');
+  const localText = (slug: string) => scoped.localText(slug, 'content');
 
   const headline = $derived(scoped.localText('headline', 'article', data.article.id));
 </script>
@@ -17,13 +17,13 @@
   <!-- An unpublished article behind a shareable link: keep it out of every index. The link is
        the only thing protecting it, so a crawler following one must not make it permanent. -->
   <meta name="robots" content="noindex, nofollow" />
-  <title>{t('content.article_preview.title_prefix')} {headline}</title>
+  <title>{localText('content.article_preview.title_prefix')} {headline}</title>
 </svelte:head>
 
 <div class="article-preview-detail-screen">
   <!-- role="status" rather than "alert": this is a standing condition of the page, not an
        interruption, and an alert would preempt the headline for a screen reader. -->
-  <InlineNotification severity="warning" summary={t('content.article_preview.banner')} />
+  <InlineNotification severity="warning" summary={localText('content.article_preview.banner')} />
 
   <main class="article-preview-detail-screen__article">
     <ArticleDetail

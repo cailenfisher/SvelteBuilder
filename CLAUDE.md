@@ -220,7 +220,7 @@ opposite failure mode: it's shared across concurrent requests on the server, lea
 visitor's locale into another's response. `createDictionary()` returns a fresh, request-scoped
 instance each call — call it in the component's `<script>` body, not inside an effect.
 
-**Feature module packages split internally (Camp 1 / Camp 2):**
+**Feature module packages hold two kinds of component:**
 
 | Component kind                                          | i18n dependency                                 | Receives                                                                                      |
 | ------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |

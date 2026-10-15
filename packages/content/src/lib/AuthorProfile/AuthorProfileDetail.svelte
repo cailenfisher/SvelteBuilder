@@ -1,4 +1,4 @@
-<!-- Camp 2: resolves author name, bio, and expertise via hermes (scope = 'author_profile'). -->
+<!-- An author's profile: resolves name, bio and expertise from the dictionary (scope = 'author_profile'). -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
@@ -67,7 +67,9 @@
 
   {#if articles.length > 0}
     <div class="author-profile-detail__articles">
-      <h2 class="author-profile-detail__articles-heading">Articles by {name}</h2>
+      <h2 class="author-profile-detail__articles-heading">
+        {dictionary.formatText('content.author_profile_detail.articles', { name }, 'content')}
+      </h2>
       <div class="author-profile-detail__article-list">
         {#each articles as article (article.id)}
           <ArticleCard

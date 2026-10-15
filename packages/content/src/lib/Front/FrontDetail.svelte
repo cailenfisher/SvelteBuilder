@@ -1,6 +1,6 @@
-<!-- Camp 2: renders a section front page layout from FrontWithSlots.
-     Front title resolved via hermes (scope = 'front').
-     Article copy within slots resolved via hermes inside ArticleCard. -->
+<!-- Renders a front's layout from FrontWithSlots.
+     The front's title comes from the dictionary (scope = 'front'); each slot's article copy is
+     resolved by ArticleCard. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
@@ -44,7 +44,7 @@
   {/if}
 
   {#if leadSlots.length > 0}
-    <div class="front-detail__leads" aria-label="Lead stories">
+    <div class="front-detail__leads">
       {#each leadSlots as slot (slot.id)}
         {#if slot.article}
           <ArticleCard
@@ -64,7 +64,7 @@
   {/if}
 
   {#if secondarySlots.length > 0}
-    <div class="front-detail__secondary" aria-label="Secondary stories">
+    <div class="front-detail__secondary">
       {#each secondarySlots as slot (slot.id)}
         {#if slot.article}
           <ArticleCard
@@ -84,7 +84,7 @@
   {/if}
 
   {#if riverSlots.length > 0}
-    <div class="front-detail__river" aria-label="More stories">
+    <div class="front-detail__river">
       {#each riverSlots as slot (slot.id)}
         {#if slot.article}
           <ArticleCard
@@ -104,7 +104,10 @@
   {/if}
 
   {#if briefSlots.length > 0}
-    <aside class="front-detail__briefs" aria-label="Briefs">
+    <aside
+      class="front-detail__briefs"
+      aria-label={dictionary.localText('content.front_detail.brief', 'content')}
+    >
       {#each briefSlots as slot (slot.id)}
         {#if slot.article}
           <ArticleCard

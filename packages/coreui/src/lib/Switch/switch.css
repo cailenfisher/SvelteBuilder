@@ -50,11 +50,19 @@
 .switch__control--sm .switch__thumb { width: 1rem;    height: 1rem; }
 .switch__control--md .switch__thumb { width: 1.25rem; height: 1.25rem; }
 
+/* The thumb starts at the inline start, so in right-to-left it travels the other way. */
+.switch__control {
+  --_travel-direction: 1;
+}
+.switch__control:dir(rtl) {
+  --_travel-direction: -1;
+}
+
 .switch__control--sm[data-state='checked'] .switch__thumb {
-  transform: translateX(calc(2.25rem - 1rem - var(--space-1)));
+  transform: translateX(calc(var(--_travel-direction) * (2.25rem - 1rem - var(--space-1))));
 }
 .switch__control--md[data-state='checked'] .switch__thumb {
-  transform: translateX(calc(2.75rem - 1.25rem - var(--space-1)));
+  transform: translateX(calc(var(--_travel-direction) * (2.75rem - 1.25rem - var(--space-1))));
 }
 
 .switch__label {

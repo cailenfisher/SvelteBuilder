@@ -1,5 +1,5 @@
-<!-- Camp 2: renders a live coverage page with ordered live updates.
-     Coverage title/description resolved via hermes (scope = 'live_coverage'). -->
+<!-- A live coverage page with its updates, newest first and pinned ones on top.
+     Title and description come from the dictionary (scope = 'live_coverage'). -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
@@ -32,15 +32,19 @@
 
 <section
   class={['live-coverage-detail', extraClass ?? ''].filter(Boolean).join(' ')}
-  aria-label="Live coverage"
+  aria-label={dictionary.localText('content.live_coverage_detail.region', 'content')}
 >
   <header class="live-coverage-detail__header">
     <div class="live-coverage-detail__status" aria-live="polite">
       {#if coverage.active}
         <span class="live-coverage-detail__live-dot" aria-hidden="true"></span>
-        <span class="live-coverage-detail__live-label">Live</span>
+        <span class="live-coverage-detail__live-label"
+          >{dictionary.localText('content.live_coverage_detail.live', 'content')}</span
+        >
       {:else}
-        <span class="live-coverage-detail__ended-label">Coverage ended</span>
+        <span class="live-coverage-detail__ended-label"
+          >{dictionary.localText('content.live_coverage_detail.ended', 'content')}</span
+        >
       {/if}
     </div>
     <h1 class="live-coverage-detail__title">{title}</h1>
@@ -50,19 +54,28 @@
   </header>
 
   {#if pinnedUpdates.length > 0}
-    <div class="live-coverage-detail__pinned" aria-label="Pinned updates">
+    <section
+      class="live-coverage-detail__pinned"
+      aria-label={dictionary.localText('content.live_coverage_detail.pinned', 'content')}
+    >
       {#each pinnedUpdates as update (update.id)}
         <LiveUpdateCard liveUpdate={update} {locale} {dictionary} />
       {/each}
-    </div>
+    </section>
   {/if}
 
-  <div class="live-coverage-detail__updates" aria-label="All updates" aria-live="polite">
+  <section
+    class="live-coverage-detail__updates"
+    aria-label={dictionary.localText('content.live_coverage_detail.all', 'content')}
+    aria-live="polite"
+  >
     {#each regularUpdates as update (update.id)}
       <LiveUpdateCard liveUpdate={update} {locale} {dictionary} />
     {/each}
     {#if regularUpdates.length === 0 && pinnedUpdates.length === 0}
-      <p class="live-coverage-detail__empty">No updates yet.</p>
+      <p class="live-coverage-detail__empty">
+        {dictionary.localText('content.live_coverage_detail.empty', 'content')}
+      </p>
     {/if}
-  </div>
+  </section>
 </section>

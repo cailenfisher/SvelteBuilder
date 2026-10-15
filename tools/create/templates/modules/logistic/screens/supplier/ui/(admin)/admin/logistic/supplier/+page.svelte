@@ -19,20 +19,20 @@
   // visitor switches locale, and this screen has to follow.
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   let showCreateForm = $state(false);
 </script>
 
 <svelte:head>
-  <title>{t('logistic.supplier.title')}</title>
+  <title>{localText('logistic.supplier.title')}</title>
 </svelte:head>
 
 <div class="supplier-list-screen">
   <header class="supplier-list-screen__header">
-    <h1 class="supplier-list-screen__title">{t('logistic.supplier.title')}</h1>
+    <h1 class="supplier-list-screen__title">{localText('logistic.supplier.title')}</h1>
     <Button variant="primary" onclick={() => (showCreateForm = !showCreateForm)}>
-      {showCreateForm ? dictionary.localText('action.cancel') : t('logistic.supplier.add')}
+      {showCreateForm ? dictionary.localText('action.cancel') : localText('logistic.supplier.add')}
     </Button>
   </header>
 

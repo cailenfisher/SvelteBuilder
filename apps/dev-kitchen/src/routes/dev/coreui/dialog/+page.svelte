@@ -1,12 +1,16 @@
 <script lang="ts">
   import { Button, Dialog, Drawer, Field, Input } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   const sizes = ['sm', 'md', 'lg', 'xl', 'full'] as const;
   const sides = ['right', 'left', 'bottom'] as const;
 
   let formOpen = $state(false);
   let drawerOpen = $state(false);
+
+  let controlledOpen = $state(false);
+  const openCalls: boolean[] = $state([]);
 </script>
 
 <Example title="Dialog with its own trigger">
@@ -58,4 +62,20 @@
       <Button onclick={() => (drawerOpen = false)}>Apply</Button>
     {/snippet}
   </Drawer>
+</Example>
+
+<Example title="Callbacks">
+  <Dialog
+    open={controlledOpen}
+    onOpenChange={(next) => {
+      openCalls.push(next);
+      controlledOpen = next;
+    }}
+    title="Controlled dialog"
+    closeLabel="Close controlled dialog"
+  >
+    {#snippet trigger()}Open controlled{/snippet}
+    <p>Opened through its own trigger, with the open state held by the page.</p>
+  </Dialog>
+  <CallbackLog name="onOpenChange" calls={openCalls} />
 </Example>

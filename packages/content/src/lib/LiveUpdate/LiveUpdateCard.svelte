@@ -1,4 +1,4 @@
-<!-- Camp 2: resolves the live update's text from the dictionary. -->
+<!-- Resolves the live update's text from the dictionary. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
@@ -29,11 +29,16 @@
   class={['live-update-card', liveUpdate.pinned ? 'live-update-card--pinned' : '', extraClass ?? '']
     .filter(Boolean)
     .join(' ')}
-  aria-label={liveUpdate.pinned ? 'Pinned live update' : 'Live update'}
+  aria-label={dictionary.localText(
+    liveUpdate.pinned ? 'content.live_update.pinned_label' : 'content.live_update.label',
+    'content'
+  )}
 >
   <header class="live-update-card__header">
     {#if liveUpdate.pinned}
-      <Badge variant="brand" size="sm">Pinned</Badge>
+      <Badge variant="brand" size="sm"
+        >{dictionary.localText('content.live_update.pinned', 'content')}</Badge
+      >
     {/if}
     <time class="live-update-card__time" datetime={liveUpdate.publishedAt}>
       {publishedTime}

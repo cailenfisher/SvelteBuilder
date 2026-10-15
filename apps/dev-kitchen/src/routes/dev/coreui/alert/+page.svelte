@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Alert, Banner, Button, InlineNotification, getMessageBus } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   const messageBus = getMessageBus();
 
@@ -9,6 +10,8 @@
 
   let dismissed = $state(false);
   let retries = $state(0);
+
+  const dismissCalls: true[] = $state([]);
 </script>
 
 <Example title="Alert">
@@ -42,10 +45,14 @@
         severity="info"
         summary="Dismissible"
         dismissible
-        onDismiss={() => (dismissed = true)}
+        onDismiss={() => {
+          dismissCalls.push(true);
+          dismissed = true;
+        }}
       />
     {/if}
     <p role="status">Retries: {retries}</p>
+    <CallbackLog name="onDismiss" calls={dismissCalls} />
   </div>
 </Example>
 

@@ -14,7 +14,7 @@
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'logistic');
+  const localText = (slug: string) => scoped.localText(slug, 'logistic');
 
   // Receiving is only offered while the receipt is still open. The same rule is enforced
   // by the worker RLS policy and by the RPC, so hiding the control is a courtesy to the
@@ -27,7 +27,7 @@
 </script>
 
 <svelte:head>
-  <title>{t('logistic.inbound_receipt.one')} #{data.inboundReceipt.id}</title>
+  <title>{localText('logistic.inbound_receipt.one')} #{data.inboundReceipt.id}</title>
 </svelte:head>
 
 <div class="inbound-receipt-detail-screen">
@@ -45,10 +45,10 @@
 
   <section class="inbound-receipt-detail-screen__lines">
     <div class="inbound-receipt-detail-screen__lines-header">
-      <h2 class="inbound-receipt-detail-screen__section-title">{t('logistic.inbound_receipt.lines')}</h2>
+      <h2 class="inbound-receipt-detail-screen__section-title">{localText('logistic.inbound_receipt.lines')}</h2>
       {#if open}
         <Button variant="ghost" size="sm" onclick={() => (showAddLine = !showAddLine)}>
-          {showAddLine ? dictionary.localText('action.cancel') : t('logistic.inbound_receipt.line_add')}
+          {showAddLine ? dictionary.localText('action.cancel') : localText('logistic.inbound_receipt.line_add')}
         </Button>
       {/if}
     </div>

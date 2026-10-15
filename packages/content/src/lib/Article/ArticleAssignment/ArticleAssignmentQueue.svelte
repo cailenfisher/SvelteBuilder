@@ -1,4 +1,4 @@
-<!-- Camp 2: receives pre-resolved article copy from the server, and resolves its own column,
+<!-- Receives pre-resolved article copy from the server, and resolves its own column,
      role and table copy (scope `content`) from the dictionary.
      Uses coreui DataTable for article assignment queue management. -->
 <script lang="ts">

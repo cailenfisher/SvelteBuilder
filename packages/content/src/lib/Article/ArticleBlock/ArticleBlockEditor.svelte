@@ -1,4 +1,4 @@
-<!-- Camp 2: edits an article's blocks. Resolves each text block's copy (scope `article_block`) and
+<!-- Edits an article's blocks. Resolves each text block's copy (scope `article_block`) and
      its own UI copy (scope `content`) from the dictionary, and reports changes as drafts for the
      parent form action to persist. Editor-only: never rendered in a published article.
      Keyboard: Tab/Shift-Tab between controls; Enter in a text block adds a paragraph after it. -->
