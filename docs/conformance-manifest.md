@@ -322,7 +322,7 @@ REST paths (`/api/locale`, `/api/local-text/...`) are already singular. Only `CL
 | A-2 | Boundary | **Agree.** `BarcodeInput`: commerce is a stub with no planned scanning screen, so **move it to logistic** now. Adding it back to coreui later is additive; removing it from coreui after 1.0 would be breaking. |
 | A-3 | Duplicates | **Agree:** remove `StatusBadge`; keep `Alert` (static page content) and `InlineNotification` (a message-system result). |
 | A-4 | Severity word | **`danger`.** Note that `MessageSeverity` also has `critical`, which `Badge`/`Alert` lack; it stays message-only. |
-| A-5 | Attribute forwarding | **Closed and explicit.** `useField` and `FieldContext` are **public**: `BarcodeInput` moving to logistic (A-2) is a custom control that must read `Field`'s wiring. F3 ships in Phase 1. Approved as the best option today, to be revisited; see `DEFERRED.md`. |
+| A-5 | Attribute forwarding | **Closed and explicit.** `useField` and `FieldContext` are **public**: `BarcodeInput` moving to logistic (A-2) is a custom control that must read `Field`'s wiring. F3 ships in Phase 1. Approved as the best option today, to be revisited; see `DEFERRED.md`. **Revised 2026-10-15:** `useField()` stays public but returns `FieldControl`; `FieldContext` is no longer exported. |
 | A-6 | CSS contract | **Agree,** using the tables above. |
 | A-6b | Modifier form (new) | Modifiers are mixed today: `.btn.primary`, `.progress.lg`, `.toast.success` but `.drawer--left`. **Recommend BEM `--`** (`.button--primary`), which CLAUDE.md already names as the structure convention. |
 | A-7 | Callback and text conventions | **Agree.** |
@@ -424,7 +424,7 @@ Also: `class:negative` and `class:done` (bare classes) became BEM modifiers (`__
 once the rules reached a showcased component.
 
 
-## Added during Phase 12 (pending approval)
+## Added during Phase 12 (approved 2026-10-15)
 
 Includes the names the three Phase 11 decisions brought in (2026-10-14).
 
@@ -438,3 +438,11 @@ Includes the names the three Phase 11 decisions brought in (2026-10-14).
 | slugs `content.live_update.{label,pinned_label,pinned}`, `content.front_layout_variant.{lead,secondary,river,brief}` | named after the concept rather than a component: the first is shared by `LiveUpdateCard` and `ArticleBlockRenderer`, the second is the enum's value names, like `content.article_block_type.*` |
 | slugs `logistic.inbound_receipt.{number,discrepancy_alert}`, `logistic.pick_task.{number,lines,lines_completed}`, `logistic.stock_level.below_reorder_point`, `logistic.storage_location.path`, `logistic.supplier.{inactive,lead_time,contact_more}`, `logistic.tracking_event.empty` | logistic component copy; the cards reuse `logistic.inbound_receipt.expected_at`, `received_at`, `lines`, `logistic.field.{available,reserved,on_hand}` and `logistic.warehouse.inbound_receipt.received_of` rather than add twins |
 | "application-level" and "entity" components | the descriptive terms replacing "Camp 1" and "Camp 2", taken from CLAUDE.md's own table |
+
+## Added with the `useField` decision (2026-10-15)
+
+| Name | What it is | Status |
+| --- | --- | --- |
+| `FieldControl` | the type `useField()` returns: `id`, `aria-describedby`, `aria-invalid`, `required`, `disabled`, under their HTML names so a native control can spread it. Replaces `FieldContext` in coreui's exports | approved 2026-10-15 |
+| `FieldContext` | stays as the internal type of the context `Field` sets; no longer exported | approved 2026-10-15 |
+| internal accessor for `Select` and `RadioGroup` (proposed `getFieldContext`, in `Field/use-field.ts`, not exported) | gives the two controls that need `aria-labelledby` the label's id | pending |

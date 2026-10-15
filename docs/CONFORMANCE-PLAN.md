@@ -50,7 +50,7 @@ this table at the end of every phase, and update it when an item lands or a new 
 | Item | Where it is recorded | Must land before | Status |
 | --- | --- | --- | --- |
 | Styling a class passed to a child component (`:global` stopgap on the base local-text page) | `docs/DEFERRED.md` | Phase 11 (screen decomposition multiplies the cases) | landed in Phase 10: plain stylesheets, no `<style>` blocks or `:global` |
-| `useField`/`FieldContext` as public API, or another way for a custom control to read `Field` | `docs/DEFERRED.md` | Phase 13 (1.0 freezes it), or before a second consumer | open |
+| `useField`/`FieldContext` as public API, or another way for a custom control to read `Field`. **Decided 2026-10-15: keep `useField()`, narrowed to return `FieldControl` (`id`, `aria-describedby`, `aria-invalid`, `required`, `disabled`); `FieldContext` becomes internal** | `docs/DEFERRED.md` | Phase 13 step 1 (1.0 freezes it), or before a second consumer | decided, not yet implemented |
 | Hard-coded English found along the way: `PickTaskCard` progress `aria-label`; `LiveUpdateItem` ("Pinned"), `LiveCoverageView` ("Live", "Coverage ended"), `BylineList` ("By"), `FrontCurationBoard` (layout names, slot labels), `InboundReceiptCard` ("Expected", "Received", "Lines", "units"), `StorageLocationPath` ("Storage location path"), `ArticleBlockRenderer` ("Live update"). `SubscriberList`, `ArticleList`, `AssignmentQueue` and `ArticleWorkflowPanel` were done in Phase 7 | this table | Phase 12 (copy sweep) | landed in Phase 12: every module component takes its copy from the dictionary, EN and FR |
 | Right-to-left: a `Checkbox` label's first letter is hidden ("artial shipments" on `/dev/theme`). Present before the Phase 7 rename too; axe does not see it | this table | Phase 13 (the RC's human RTL pass), or fix in Phase 12 | landed in Phase 12: it was the `Switch` beside it, whose thumb left its track in right-to-left; a behaviour spec measures it now |
 | Validate the upgrade SQL against a database built from the 1.x schema | `docs/MIGRATION-2.0.md` | Phase 13 | open |
@@ -392,12 +392,13 @@ BEM class names already scope every rule, which is what BEM was designed for. Sv
 
 **Goal:** publish the RC versions and hand off to the human RC window.
 
-1. Enter pre mode: `pnpm changeset pre enter rc`.
-2. Confirm with `pnpm changeset status --verbose` that the plan is exactly: coreui `1.0.0-rc.0`, content `2.0.0-rc.0`, logistic `2.0.0-rc.0`, and only minors or patches for everything else. Stop if not.
-3. Confirm content and logistic peer on coreui `^1.0.0-rc.0` (which also admits `1.0.0` and every later 1.x).
-4. Complete `docs/MIGRATION-2.0.md` (drafted from Phase 5 on): every old → new export, component, prop, callback, route, view type, copy slug, CSS class, enum value and column, with the SQL for existing databases. **Validate the SQL**: build a database from the last 1.x scaffold, run the upgrade, re-apply the supplemental files, and confirm `pnpm sql:check`'s assertions pass against it.
-5. Update `docs/COREUI-1.0.md` to show stages 1, 2 (partial) and 4 (policy) done, and stages 3 and 5 in progress.
-6. Pause. The release itself is the maintainer's call: merging `dev` to `main` publishes the RC.
+1. Implement the `useField` decision in `docs/DEFERRED.md`, unless it has already landed: add `FieldControl` and have `useField()` return it; stop exporting `FieldContext`, and give `Select` and `RadioGroup` an internal accessor for the label's id; compute `aria-describedby` once in `Field` and remove the copies from `Input`, `Textarea`, `Switch`, `Select`, `DateTimePicker` and logistic's `BarcodeInput`; rewrite `useField()`'s doc comment, the coreui README line and `docs/COREUI-COMPATIBILITY.md`'s Field integration entry; add `FieldContext` → `FieldControl` to `docs/MIGRATION-2.0.md`; cover it in `packages/coreui/test/field.test.ts` and the behaviour specs; write the coreui changeset (part of the 1.0 major). Gate, including `test:browser`.
+2. Enter pre mode: `pnpm changeset pre enter rc`.
+3. Confirm with `pnpm changeset status --verbose` that the plan is exactly: coreui `1.0.0-rc.0`, content `2.0.0-rc.0`, logistic `2.0.0-rc.0`, and only minors or patches for everything else. Stop if not.
+4. Confirm content and logistic peer on coreui `^1.0.0-rc.0` (which also admits `1.0.0` and every later 1.x).
+5. Complete `docs/MIGRATION-2.0.md` (drafted from Phase 5 on): every old → new export, component, prop, callback, route, view type, copy slug, CSS class, enum value and column, with the SQL for existing databases. **Validate the SQL**: build a database from the last 1.x scaffold, run the upgrade, re-apply the supplemental files, and confirm `pnpm sql:check`'s assertions pass against it.
+6. Update `docs/COREUI-1.0.md` to show stages 1, 2 (partial) and 4 (policy) done, and stages 3 and 5 in progress.
+7. Pause. The release itself is the maintainer's call: merging `dev` to `main` publishes the RC.
 
 ### The RC window (human, not Claude Code)
 
