@@ -386,7 +386,7 @@ one; the files are one per table, named like the schema file. The rest:
 
 Kept: `src`, `params` and `e` in one-line lambdas, which are platform names or allowed by `CLAUDE.md`.
 
-## Added during Phase 10 (pending approval)
+## Added during Phase 10 (approved 2026-10-14)
 
 | Old | New | Rule |
 | --- | --- | --- |
