@@ -436,18 +436,12 @@ from (values
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
 
--- Copy the module's own components ask for: the editorial workflow panel's transitions and
--- the newsletter signup form. No screen renders either yet, which is how these went unseeded;
--- tools/create/test/screen-bundle.test.ts now checks every module-scoped slug a component
--- asks for, not only the ones a screen does.
+-- Copy the newsletter signup form asks for. No screen renders it yet, which is how these went
+-- unseeded; tools/create/test/screen-bundle.test.ts now checks every module-scoped slug a
+-- component asks for, not only the ones a screen does.
 
 insert into local_text_link (slug, scope, entity_id)
 values
-  ('content.article_workflow.submit_for_review',        'content', null),
-  ('content.article_workflow.approve',                  'content', null),
-  ('content.article_workflow.send_back',                'content', null),
-  ('content.article_workflow.publish',                  'content', null),
-  ('content.article_workflow.unpublish',                'content', null),
   ('content.newsletter_subscription_form.signup_heading',       'content', null),
   ('content.newsletter_subscription_form.signup_description',   'content', null),
   ('content.newsletter_subscription_form.email_label',          'content', null),
@@ -460,11 +454,6 @@ on conflict do nothing;
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'en'), v.content
 from (values
-  ('content.article_workflow.submit_for_review',        'Submit for review'),
-  ('content.article_workflow.approve',                  'Approve'),
-  ('content.article_workflow.send_back',                'Send back to draft'),
-  ('content.article_workflow.publish',                  'Publish'),
-  ('content.article_workflow.unpublish',                'Unpublish'),
   ('content.newsletter_subscription_form.signup_heading',       'Get the newsletter'),
   ('content.newsletter_subscription_form.signup_description',   'The day''s most important stories, in your inbox.'),
   ('content.newsletter_subscription_form.email_label',          'Email address'),
@@ -479,11 +468,6 @@ on conflict (link, locale) do nothing;
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'fr'), v.content
 from (values
-  ('content.article_workflow.submit_for_review',        'Soumettre pour relecture'),
-  ('content.article_workflow.approve',                  'Approuver'),
-  ('content.article_workflow.send_back',                'Renvoyer en brouillon'),
-  ('content.article_workflow.publish',                  'Publier'),
-  ('content.article_workflow.unpublish',                'Dépublier'),
   ('content.newsletter_subscription_form.signup_heading',       'Recevoir l''infolettre'),
   ('content.newsletter_subscription_form.signup_description',   'L''essentiel de l''actualité du jour, dans votre boîte de réception.'),
   ('content.newsletter_subscription_form.email_label',          'Adresse courriel'),
@@ -496,16 +480,15 @@ join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_i
 on conflict (link, locale) do nothing;
 
 -- Copy the module's list, queue and workflow components ask for: column headings, table and
--- pagination labels, assignment role names and the workflow panel's tabs.
+-- pagination labels, assignment role names, and the workflow panel's headings and form.
 
 insert into local_text_link (slug, scope, entity_id)
 values
   ('content.article_list.headline',              'content', null),
-  ('content.article_list.author',                'content', null),
-  ('content.article_list.section',               'content', null),
   ('content.article_list.status',                'content', null),
-  ('content.article_list.published_at',          'content', null),
   ('content.article_list.empty',                 'content', null),
+  ('content.article_list.canonical_slug',        'content', null),
+  ('content.article_list.created_at',            'content', null),
   ('content.article_assignment_queue.article',   'content', null),
   ('content.article_assignment_queue.role',      'content', null),
   ('content.article_assignment_queue.assignee',  'content', null),
@@ -527,24 +510,22 @@ values
   ('content.pagination.previous',                'content', null),
   ('content.pagination.next',                    'content', null),
   ('content.article_workflow.title',             'content', null),
-  ('content.article_workflow.close',             'content', null),
   ('content.article_workflow.status',            'content', null),
   ('content.article_workflow.checklist',         'content', null),
-  ('content.article_workflow.assignment',        'content', null),
-  ('content.article_workflow.current',           'content', null),
   ('content.article_workflow.required',          'content', null),
-  ('content.article_workflow.assignment_empty',  'content', null)
+  ('content.article_workflow.transition',        'content', null),
+  ('content.article_workflow.save',              'content', null),
+  ('content.article_workflow.publish_blocked',   'content', null)
 on conflict do nothing;
 
 insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'en'), v.content
 from (values
   ('content.article_list.headline',              'Headline'),
-  ('content.article_list.author',                'Author'),
-  ('content.article_list.section',               'Section'),
   ('content.article_list.status',                'Status'),
-  ('content.article_list.published_at',          'Published'),
   ('content.article_list.empty',                 'No articles found.'),
+  ('content.article_list.canonical_slug',        'URL slug'),
+  ('content.article_list.created_at',            'Created'),
   ('content.article_assignment_queue.article',   'Article'),
   ('content.article_assignment_queue.role',      'Role'),
   ('content.article_assignment_queue.assignee',  'Assignee'),
@@ -566,13 +547,12 @@ from (values
   ('content.pagination.previous',                'Previous page'),
   ('content.pagination.next',                    'Next page'),
   ('content.article_workflow.title',             'Article workflow'),
-  ('content.article_workflow.close',             'Close'),
   ('content.article_workflow.status',            'Status'),
   ('content.article_workflow.checklist',         'Checklist'),
-  ('content.article_workflow.assignment',        'Assignment'),
-  ('content.article_workflow.current',           'Current:'),
   ('content.article_workflow.required',          'Required'),
-  ('content.article_workflow.assignment_empty',  'No one is assigned yet.')
+  ('content.article_workflow.transition',        'Move to'),
+  ('content.article_workflow.save',              'Save'),
+  ('content.article_workflow.publish_blocked',   'Publishing is blocked until every required item is ticked.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -581,11 +561,10 @@ insert into local_text (link, locale, content)
 select l.id, (select id from locale where code = 'fr'), v.content
 from (values
   ('content.article_list.headline',              'Titre'),
-  ('content.article_list.author',                'Auteur'),
-  ('content.article_list.section',               'Rubrique'),
   ('content.article_list.status',                'Statut'),
-  ('content.article_list.published_at',          'Publié'),
   ('content.article_list.empty',                 'Aucun article trouvé.'),
+  ('content.article_list.canonical_slug',        'Identifiant d''URL'),
+  ('content.article_list.created_at',            'Créé'),
   ('content.article_assignment_queue.article',   'Article'),
   ('content.article_assignment_queue.role',      'Rôle'),
   ('content.article_assignment_queue.assignee',  'Responsable'),
@@ -607,13 +586,12 @@ from (values
   ('content.pagination.previous',                'Page précédente'),
   ('content.pagination.next',                    'Page suivante'),
   ('content.article_workflow.title',             'Flux de travail de l''article'),
-  ('content.article_workflow.close',             'Fermer'),
   ('content.article_workflow.status',            'Statut'),
   ('content.article_workflow.checklist',         'Liste de contrôle'),
-  ('content.article_workflow.assignment',        'Affectation'),
-  ('content.article_workflow.current',           'Actuel :'),
   ('content.article_workflow.required',          'Obligatoire'),
-  ('content.article_workflow.assignment_empty',  'Personne n''est encore affecté.')
+  ('content.article_workflow.transition',        'Passer à'),
+  ('content.article_workflow.save',              'Enregistrer'),
+  ('content.article_workflow.publish_blocked',   'La publication est bloquée tant que tous les éléments obligatoires ne sont pas cochés.')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -643,6 +621,7 @@ values
   ('content.article_block_editor.add',                 'content', null),
   ('content.article_block_editor.add_after',           'content', null),
   ('content.article_block_editor.add_first',           'content', null),
+  ('content.article_block_editor.empty',               'content', null),
   ('content.article_block_type.paragraph',             'content', null),
   ('content.article_block_type.heading',               'content', null),
   ('content.article_block_type.image',                 'content', null),
@@ -677,6 +656,7 @@ from (values
   ('content.article_block_editor.add',                 'Add block'),
   ('content.article_block_editor.add_after',           'Add block after block {$position}'),
   ('content.article_block_editor.add_first',           'Add first block'),
+  ('content.article_block_editor.empty',               'No blocks yet.'),
   ('content.article_block_type.paragraph',             'Paragraph'),
   ('content.article_block_type.heading',               'Heading'),
   ('content.article_block_type.image',                 'Image'),
@@ -713,6 +693,7 @@ from (values
   ('content.article_block_editor.add',                 'Ajouter un bloc'),
   ('content.article_block_editor.add_after',           'Ajouter un bloc après le bloc {$position}'),
   ('content.article_block_editor.add_first',           'Ajouter un premier bloc'),
+  ('content.article_block_editor.empty',               'Aucun bloc.'),
   ('content.article_block_type.paragraph',             'Paragraphe'),
   ('content.article_block_type.heading',               'Titre'),
   ('content.article_block_type.image',                 'Image'),
@@ -824,24 +805,14 @@ values
   ('content.article_admin.article',            'content', null),
   ('content.article_admin.new',                 'content', null),
   ('content.article_admin.create',              'content', null),
-  ('content.article_admin.empty',               'content', null),
   ('content.article_admin.headline',            'content', null),
   ('content.article_admin.slug',                'content', null),
-  ('content.article_admin.status',              'content', null),
-  ('content.article_admin.created',             'content', null),
   ('content.article_admin.filter_all',          'content', null),
   ('content.article_admin.filter_status',       'content', null),
   ('content.article_admin.body',                'content', null),
-  ('content.article_admin.body_empty',          'content', null),
-  ('content.article_admin.block_type',          'content', null),
-  ('content.article_admin.block_text',          'content', null),
   ('content.article_admin.filing',              'content', null),
   ('content.article_admin.section',            'content', null),
-  ('content.article_admin.article_byline',             'content', null),
-  ('content.article_admin.workflow',            'content', null),
-  ('content.article_admin.checklist',           'content', null),
-  ('content.article_admin.required',            'content', null),
-  ('content.article_admin.publish_blocked',     'content', null)
+  ('content.article_admin.article_byline',             'content', null)
 on conflict do nothing;
 
 insert into local_text (link, locale, content)
@@ -850,24 +821,14 @@ from (values
   ('content.article_admin.article',            'Articles'),
   ('content.article_admin.new',                 'New article'),
   ('content.article_admin.create',              'Create article'),
-  ('content.article_admin.empty',               'No articles yet.'),
   ('content.article_admin.headline',            'Headline'),
   ('content.article_admin.slug',                'URL slug'),
-  ('content.article_admin.status',              'Status'),
-  ('content.article_admin.created',             'Created'),
   ('content.article_admin.filter_all',          'All'),
   ('content.article_admin.filter_status',       'Filter articles by status'),
   ('content.article_admin.body',                'Body'),
-  ('content.article_admin.body_empty',          'No blocks yet.'),
-  ('content.article_admin.block_type',          'Type'),
-  ('content.article_admin.block_text',          'Text'),
   ('content.article_admin.filing',              'Filing'),
   ('content.article_admin.section',            'Sections'),
-  ('content.article_admin.article_byline',             'Bylines'),
-  ('content.article_admin.workflow',            'Workflow'),
-  ('content.article_admin.checklist',           'Publish checklist'),
-  ('content.article_admin.required',            'Required'),
-  ('content.article_admin.publish_blocked',     'Publishing is blocked until every required item is ticked.')
+  ('content.article_admin.article_byline',             'Bylines')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -878,24 +839,14 @@ from (values
   ('content.article_admin.article',            'Articles'),
   ('content.article_admin.new',                 'Nouvel article'),
   ('content.article_admin.create',              'Créer l''article'),
-  ('content.article_admin.empty',               'Aucun article.'),
   ('content.article_admin.headline',            'Titre'),
   ('content.article_admin.slug',                'Identifiant d''URL'),
-  ('content.article_admin.status',              'Statut'),
-  ('content.article_admin.created',             'Créé'),
   ('content.article_admin.filter_all',          'Tous'),
   ('content.article_admin.filter_status',       'Filtrer les articles par statut'),
   ('content.article_admin.body',                'Corps'),
-  ('content.article_admin.body_empty',          'Aucun bloc.'),
-  ('content.article_admin.block_type',          'Type'),
-  ('content.article_admin.block_text',          'Texte'),
   ('content.article_admin.filing',              'Classement'),
   ('content.article_admin.section',            'Rubriques'),
-  ('content.article_admin.article_byline',             'Signatures'),
-  ('content.article_admin.workflow',            'Flux de publication'),
-  ('content.article_admin.checklist',           'Liste de contrôle'),
-  ('content.article_admin.required',            'Obligatoire'),
-  ('content.article_admin.publish_blocked',     'La publication est bloquée tant que tous les éléments obligatoires ne sont pas cochés.')
+  ('content.article_admin.article_byline',             'Signatures')
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;

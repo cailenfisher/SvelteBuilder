@@ -31,7 +31,13 @@
 
 <Example title="Read-only">
   <div style:inline-size="100%">
-    <ArticleBlockEditor blocks={BLOCKS.slice(0, 2)} readonly {dictionary} />
+    <ArticleBlockEditor {blocks} readonly {dictionary} />
+  </div>
+</Example>
+
+<Example title="Read-only, empty">
+  <div style:inline-size="100%">
+    <ArticleBlockEditor blocks={[]} readonly {dictionary} />
   </div>
 </Example>
 

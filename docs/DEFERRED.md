@@ -224,9 +224,6 @@ Standing rules:
 - **No favicon in any scaffold.** Both templates' `app.html` link `%sveltekit.assets%/favicon.png`,
   and neither ships a `static/` directory, so every page of every scaffolded app requests a file
   that does not exist and logs a 404. Fixing it needs an icon, which is a branding decision.
-- **`ArticleWorkflowPanel` is hard-coded English** ("Article Workflow", "Status", "Checklist",
-  "Team", "Required", the role names). It now works and is accessible, but showing it in another
-  locale needs copy slugs and seed rows.
 - **coreui's internal `class="label"`.** Seven components besides `Field` and `LocaleSwitcher` use
   it for an internal element, so the form `Label`'s rules apply to them too. `Button`'s use failed
   contrast and was renamed; the others pass, by luck rather than design.

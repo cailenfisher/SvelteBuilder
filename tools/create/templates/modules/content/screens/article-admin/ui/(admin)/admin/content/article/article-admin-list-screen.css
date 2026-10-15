@@ -21,15 +21,3 @@
   color: var(--text);
   margin: 0;
 }
-
-
-.article-admin-list-screen__link {
-  color: var(--text);
-  font-weight: var(--weight-medium);
-}
-
-.article-admin-list-screen__slug {
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--text-soft);
-}

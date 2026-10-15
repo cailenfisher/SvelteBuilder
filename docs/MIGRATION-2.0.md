@@ -356,6 +356,43 @@ where l.slug = v.old_slug and l.scope = 'content' and l.entity_id is null;
 commit;
 ```
 
+Some slugs are no longer rendered at all: the base dashboard's placeholder statistics, the article
+admin screens' own table and workflow labels (the screens now render content's `ArticleList`,
+`ArticleWorkflowPanel` and `ArticleBlockEditor`, which bring their own), and the workflow panel's
+drawer, assignment tab and per-status buttons. The 2.0 seeds no longer create them. Leaving the rows
+in place is harmless; to remove them, run this after the renames:
+
+```sql
+begin;
+
+create temporary table retired_link on commit drop as
+select id from public.local_text_link
+where entity_id is null and (
+  (scope is null and slug in (
+    'admin.dashboard.recent.title', 'admin.stats.key_metrics',
+    'admin.dashboard.stat.total_users', 'admin.dashboard.stat.active_sessions',
+    'admin.dashboard.stat.published', 'admin.dashboard.stat.pending_review'))
+  or (scope = 'content' and slug in (
+    'content.article_admin.empty', 'content.article_admin.status', 'content.article_admin.created',
+    'content.article_admin.body_empty', 'content.article_admin.block_type',
+    'content.article_admin.block_text', 'content.article_admin.workflow',
+    'content.article_admin.checklist', 'content.article_admin.required',
+    'content.article_admin.publish_blocked',
+    'content.article_list.author', 'content.article_list.section', 'content.article_list.published_at',
+    'content.article_workflow.submit_for_review', 'content.article_workflow.approve',
+    'content.article_workflow.send_back', 'content.article_workflow.publish',
+    'content.article_workflow.unpublish', 'content.article_workflow.close',
+    'content.article_workflow.current', 'content.article_workflow.assignment',
+    'content.article_workflow.assignment_empty'))
+);
+
+-- local_text references its link with on delete restrict, so the copy goes first.
+delete from public.local_text where link in (select id from retired_link);
+delete from public.local_text_link where id in (select id from retired_link);
+
+commit;
+```
+
 ---
 
 ## Stylesheets

@@ -1,32 +1,33 @@
-<!-- Camp 2: receives pre-resolved headline strings from the server, and resolves its own column
-     and table copy (scope `content`) from the dictionary.
-     Uses coreui DataTable for paginated article management. Sort/filter is a
-     server-side concern (load function); this component only reports intent. -->
+<!-- Articles as a paginated table: headline, workflow status, canonical slug and creation date.
+     Resolves headlines and status names (scopes `article`, `article_status`) and its own column
+     copy (scope `content`) from the dictionary. Filtering and paging are the loader's concern;
+     this component reports the page asked for and links each headline through `href`. -->
 <script lang="ts">
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
-  import { DataTable } from '@sveltebuilder/coreui';
+  import { Badge, DataTable } from '@sveltebuilder/coreui';
   import type { DataTableColumn } from '@sveltebuilder/coreui';
-  import type { ArticleWithCopy } from '../schema/index.js';
+  import type { ArticleRow } from '../views.js';
 
   type Props = {
-    articles: ArticleWithCopy[];
+    articles: ArticleRow[];
+    /** Where each headline links. */
+    href: (article: ArticleRow) => string;
     total: number;
     page: number;
     perPage: number;
-    onPageChange?: (page: number) => void;
-    onRowClick?: (article: ArticleWithCopy) => void;
+    onPageChange: (page: number) => void;
     locale: string;
     dictionary?: DictionaryInstance;
   };
 
   let {
     articles,
+    href,
     total,
     page,
     perPage,
     onPageChange,
-    onRowClick,
     locale,
     dictionary: dictionaryProp,
   }: Props = $props();
@@ -36,10 +37,9 @@
 
   const columns: DataTableColumn[] = $derived([
     { key: 'headline', label: dictionary.localText('content.article_list.headline', 'content') },
-    { key: 'bylines', label: dictionary.localText('content.article_list.author', 'content') },
-    { key: 'section', label: dictionary.localText('content.article_list.section', 'content') },
     { key: 'status', label: dictionary.localText('content.article_list.status', 'content') },
-    { key: 'publishedAt', label: dictionary.localText('content.article_list.published_at', 'content') },
+    { key: 'canonicalSlug', label: dictionary.localText('content.article_list.canonical_slug', 'content') },
+    { key: 'createdAt', label: dictionary.localText('content.article_list.created_at', 'content') },
   ]);
 
   const tableLabels = $derived({
@@ -54,23 +54,19 @@
   }
 </script>
 
-{#snippet articleCell(article: ArticleWithCopy, column: DataTableColumn)}
+{#snippet articleCell(article: ArticleRow, column: DataTableColumn)}
   {#if column.key === 'headline'}
-    {#if onRowClick}
-      <button type="button" class="article-list__row-link" onclick={() => onRowClick?.(article)}>
-        {article.headline}
-      </button>
-    {:else}
-      {article.headline}
-    {/if}
-  {:else if column.key === 'bylines'}
-    {article.bylines?.map((b) => b.name).join(', ') ?? '—'}
-  {:else if column.key === 'section'}
-    {article.sections?.[0]?.name ?? '—'}
+    <a href={href(article)} class="article-list__link">
+      {dictionary.localText('headline', 'article', article.id)}
+    </a>
   {:else if column.key === 'status'}
-    {article.status.label}
-  {:else if column.key === 'publishedAt'}
-    {article.publishedAt ? formatDate(article.publishedAt) : '—'}
+    <Badge variant={article.status.slug === 'published' ? 'success' : 'default'}>
+      {dictionary.localText('name', 'article_status', article.status.id)}
+    </Badge>
+  {:else if column.key === 'canonicalSlug'}
+    <code class="article-list__canonical-slug">{article.canonicalSlug}</code>
+  {:else if column.key === 'createdAt'}
+    {formatDate(article.createdAt)}
   {/if}
 {/snippet}
 
@@ -82,6 +78,6 @@
   {page}
   {perPage}
   {total}
-  onPageChange={onPageChange ?? (() => {})}
+  {onPageChange}
   labels={tableLabels}
 />

@@ -32,6 +32,7 @@ import type {
   SubscriberWithLocale,
   Topic,
 } from '@sveltebuilder/content';
+import type { ArticleChecklistEntry, ArticleRow } from '@sveltebuilder/content/views';
 
 /** Served from this app's static/media/, so pages need no network. */
 export const STORAGE_BASE_URL = '/media';
@@ -232,11 +233,6 @@ const COPY: CopyRow[] = [
   ['label', 'publish_checklist_item', 2, 'Copy edited'],
   ['label', 'publish_checklist_item', 3, 'Images credited'],
   // Module UI copy, as tools/create/templates/modules/content/seed/seed.sql seeds it.
-  ['content.article_workflow.submit_for_review', 'content', null, 'Submit for review'],
-  ['content.article_workflow.approve', 'content', null, 'Approve'],
-  ['content.article_workflow.send_back', 'content', null, 'Send back to draft'],
-  ['content.article_workflow.publish', 'content', null, 'Publish'],
-  ['content.article_workflow.unpublish', 'content', null, 'Unpublish'],
   ['content.newsletter_subscription_form.signup_heading', 'content', null, 'Get the newsletter'],
   [
     'content.newsletter_subscription_form.signup_description',
@@ -253,12 +249,12 @@ const COPY: CopyRow[] = [
     'content',
     null,
     'We could not subscribe that address. Please try again.',
-  ],  ['content.article_list.headline', 'content', null, 'Headline'],
-  ['content.article_list.author', 'content', null, 'Author'],
-  ['content.article_list.section', 'content', null, 'Section'],
+  ],
+  ['content.article_list.headline', 'content', null, 'Headline'],
   ['content.article_list.status', 'content', null, 'Status'],
-  ['content.article_list.published_at', 'content', null, 'Published'],
   ['content.article_list.empty', 'content', null, 'No articles found.'],
+  ['content.article_list.canonical_slug', 'content', null, 'URL slug'],
+  ['content.article_list.created_at', 'content', null, 'Created'],
   ['content.article_assignment_queue.article', 'content', null, 'Article'],
   ['content.article_assignment_queue.role', 'content', null, 'Role'],
   ['content.article_assignment_queue.assignee', 'content', null, 'Assignee'],
@@ -280,13 +276,17 @@ const COPY: CopyRow[] = [
   ['content.pagination.previous', 'content', null, 'Previous page'],
   ['content.pagination.next', 'content', null, 'Next page'],
   ['content.article_workflow.title', 'content', null, 'Article workflow'],
-  ['content.article_workflow.close', 'content', null, 'Close'],
   ['content.article_workflow.status', 'content', null, 'Status'],
   ['content.article_workflow.checklist', 'content', null, 'Checklist'],
-  ['content.article_workflow.assignment', 'content', null, 'Assignment'],
-  ['content.article_workflow.current', 'content', null, 'Current:'],
   ['content.article_workflow.required', 'content', null, 'Required'],
-  ['content.article_workflow.assignment_empty', 'content', null, 'No one is assigned yet.'],
+  ['content.article_workflow.transition', 'content', null, 'Move to'],
+  ['content.article_workflow.save', 'content', null, 'Save'],
+  [
+    'content.article_workflow.publish_blocked',
+    'content',
+    null,
+    'Publishing is blocked until every required item is ticked.',
+  ],
   ['content.article_block_editor.region', 'content', null, 'Article block editor'],
   ['content.article_block_editor.block_list', 'content', null, 'Content blocks'],
   ['content.article_block_editor.block_controls', 'content', null, 'Block controls'],
@@ -308,6 +308,7 @@ const COPY: CopyRow[] = [
   ['content.article_block_editor.add', 'content', null, 'Add block'],
   ['content.article_block_editor.add_after', 'content', null, 'Add block after block {$position}'],
   ['content.article_block_editor.add_first', 'content', null, 'Add first block'],
+  ['content.article_block_editor.empty', 'content', null, 'No blocks yet.'],
   ['content.article_block_type.paragraph', 'content', null, 'Paragraph'],
   ['content.article_block_type.heading', 'content', null, 'Heading'],
   ['content.article_block_type.image', 'content', null, 'Image'],
@@ -364,6 +365,25 @@ function withCopy(article: Article, status: ArticleStatus): ArticleWithCopy {
     tags: [],
   };
 }
+
+/** Articles as an admin list loads them: copy resolved through the dictionary, not baked in. */
+const articleRow = (article: Article, status: ArticleStatus): ArticleRow => ({
+  ...article,
+  status,
+  sections: SECTIONS.slice(1),
+  topics: TOPICS,
+  tags: [],
+  bylines: AUTHORS.slice(0, 1),
+});
+
+export const ARTICLE_ROWS: ArticleRow[] = [
+  articleRow(LEAD_ARTICLE, STATUS.published),
+  articleRow(DRAFT_ARTICLE, STATUS.draft),
+  articleRow(REVIEW_ARTICLE, STATUS.inReview),
+];
+
+/** Every workflow status the fixtures use, in position order. */
+export const ARTICLE_STATUSES: ArticleStatus[] = [STATUS.draft, STATUS.inReview, STATUS.published];
 
 export const ARTICLES_WITH_COPY: ArticleWithCopy[] = [
   withCopy(LEAD_ARTICLE, STATUS.published),
@@ -507,3 +527,11 @@ export const CHECKLIST_STATES: ArticleChecklistState[] = [
     satisfiedAt: CREATED_AT,
   },
 ];
+
+/** The publish checklist as the article admin screen loads it, for the article in review. */
+export const CHECKLIST: ArticleChecklistEntry[] = CHECKLIST_ITEMS.map((item) => ({
+  ...item,
+  completed: CHECKLIST_STATES.some(
+    (state) => state.publishChecklistItemId === item.id && state.satisfied
+  ),
+}));

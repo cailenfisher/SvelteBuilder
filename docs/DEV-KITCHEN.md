@@ -257,8 +257,9 @@ on its first server render, its first axe run, or its first keyboard walk.
 - **The `.label` collision elsewhere.** Seven more coreui components (`Checkbox`, `RadioItem`,
   `Switch`, `Tag`, `MetricCard`, `TimelineItem`, `BarcodeInput`) use an internal `class="label"` and
   so inherit the form `Label`'s rules. None fails today; `Button`'s did.
-- **Overlays inside module components**, such as `ArticleWorkflowPanel`'s drawer, are rendered
-  closed; only coreui's own overlays are audited open.
+- **Overlays inside module components** would be rendered closed; only coreui's own overlays are
+  audited open. None remains since `ArticleWorkflowPanel` stopped being a drawer (2026-10-14), but a
+  new one would need adding to the overlay suite.
 - **Loaders and SQL.** The harness renders fixtures; screens against a database remain
   `scaffold:check`'s and `sql:check`'s job. Neither gate subsumes the other.
 

@@ -318,7 +318,7 @@ The admin area has four screens:
 
 | Screen          | Path                     | What it is for                                                                                       |
 | --------------- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| Dashboard       | `/admin/dashboard`       | Landing page after sign-in.                                                                          |
+| Dashboard       | `/admin/dashboard`       | Landing page after sign-in: links to each admin area in the admin navigation.                       |
 | Localized copy  | `/admin/local-text`      | Every piece of UI text, in every locale. Edit copy here without a deploy.                            |
 | Locales         | `/admin/locale`          | Add, edit, or remove the languages the app offers.                                                    |
 | Navigation      | `/admin/navigation-item` | The admin menu entries, their order, and their labels.                                               |

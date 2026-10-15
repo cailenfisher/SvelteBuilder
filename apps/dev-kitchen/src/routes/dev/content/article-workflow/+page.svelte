@@ -1,33 +1,35 @@
 <script lang="ts">
   import { ArticleWorkflowPanel } from '@sveltebuilder/content';
-  import { Button } from '@sveltebuilder/coreui';
   import Example from '$lib/Example/Example.svelte';
-  import {
-    ARTICLES_WITH_COPY,
-    ASSIGNMENTS,
-    CHECKLIST_ITEMS,
-    CHECKLIST_STATES,
-    contentDictionary,
-  } from '$lib/fixtures/content';
+  import { ARTICLE_STATUSES, CHECKLIST, STATUS, contentDictionary } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();
-
-  let open = $state(false);
-  let lastTransition = $state('(none)');
 </script>
 
-<Example title="ArticleWorkflowPanel">
-  <Button onclick={() => (open = true)}>Open workflow</Button>
-  <ArticleWorkflowPanel
-    article={ARTICLES_WITH_COPY[2]}
-    assignments={ASSIGNMENTS}
-    checklistItems={CHECKLIST_ITEMS}
-    checklistStates={CHECKLIST_STATES}
-    {open}
-    onClose={() => (open = false)}
-    onTransitionStatus={(slug) => (lastTransition = slug)}
-    locale="en"
-    {dictionary}
-  />
-  <p role="status">Last transition: {lastTransition}</p>
+<!-- The forms post to this page, which has no actions: submitting shows SvelteKit's 405. The
+     showcase is for the panel's markup and keyboard path, not the workflow itself. -->
+<Example title="Required items outstanding">
+  <div style:inline-size="100%">
+    <ArticleWorkflowPanel
+      statusSlug={STATUS.inReview.slug}
+      statuses={ARTICLE_STATUSES}
+      checklist={CHECKLIST}
+      transitionAction="?/transition"
+      checklistAction="?/checklist"
+      {dictionary}
+    />
+  </div>
+</Example>
+
+<Example title="Ready to publish">
+  <div style:inline-size="100%">
+    <ArticleWorkflowPanel
+      statusSlug={STATUS.inReview.slug}
+      statuses={ARTICLE_STATUSES}
+      checklist={CHECKLIST.map((item) => ({ ...item, completed: true }))}
+      transitionAction="?/transition"
+      checklistAction="?/checklist"
+      {dictionary}
+    />
+  </div>
 </Example>

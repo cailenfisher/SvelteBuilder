@@ -399,7 +399,7 @@ Kept: `src`, `params` and `e` in one-line lambdas, which are platform names or a
 | dev-kitchen `.kitchen`, `.theme` | `.kitchen-layout`, `.theme-screen` | same naming as the templates |
 | — | `src/lib/components.css` in each package (the stylesheet index, exported as `styles/components.css`), `src/utilities.css`, `scripts/css-check.mjs`, `pnpm css:check` | new files |
 
-## Added during Phase 11 (pending approval)
+## Added during Phase 11 (approved 2026-10-14)
 
 New components. "Package" ones only take props and render markup (D6) and have dev-kitchen
 showcases; "bundle" ones post to their route's actions or build its links, and sit beside the page.

@@ -191,14 +191,17 @@
         </div>
 
         <div class="article-block-editor__content">
-          {#if PROSE_TYPES.has(draft.blockType)}
+          {#if readonly && PROSE_TYPES.has(draft.blockType)}
+            <!-- Read-only shows the text as text: a disabled control is skipped by the Tab key and
+                 announced as unavailable, which misreports a body that is simply not editable here. -->
+            <p class="article-block-editor__prose">{draft.text}</p>
+          {:else if PROSE_TYPES.has(draft.blockType)}
             {#if draft.blockType === 'heading'}
               <select
                 class="article-block-editor__heading-level"
                 value={(draft.content as { level?: number }).level ?? 2}
                 onchange={(event) =>
                   updateBlockContent(draft.id, 'level', Number(event.currentTarget.value))}
-                disabled={readonly}
                 aria-label={dictionary.localText('content.article_block_editor.heading_level', 'content')}
               >
                 <option value={2}>H2</option>
@@ -209,7 +212,6 @@
             <textarea
               class="article-block-editor__text"
               value={draft.text ?? ''}
-              disabled={readonly}
               aria-label={dictionary.formatText('content.article_block_editor.text', { blockType: typeName, position: draft.position }, 'content')}
               rows={draft.blockType === 'paragraph' ? 4 : 2}
               oninput={(event) => {
@@ -228,6 +230,21 @@
                 </span>
               {/if}
             </p>
+          {:else if readonly && (draft.blockType === 'video' || draft.blockType === 'embed')}
+            <dl class="article-block-editor__embed">
+              <div>
+                <dt class="article-block-editor__embed-term">{dictionary.localText('content.article_block_editor.provider', 'content')}</dt>
+                <dd class="article-block-editor__embed-value">
+                  {(draft.content as { provider?: string }).provider ?? ''}
+                </dd>
+              </div>
+              <div>
+                <dt class="article-block-editor__embed-term">{dictionary.localText('content.article_block_editor.url', 'content')}</dt>
+                <dd class="article-block-editor__embed-value">
+                  {(draft.content as { url?: string }).url ?? ''}
+                </dd>
+              </div>
+            </dl>
           {:else if draft.blockType === 'video' || draft.blockType === 'embed'}
             <div class="article-block-editor__embed">
               <label class="article-block-editor__embed-label">
@@ -237,7 +254,6 @@
                   value={(draft.content as { provider?: string }).provider ?? ''}
                   onchange={(event) =>
                     updateBlockContent(draft.id, 'provider', event.currentTarget.value)}
-                  disabled={readonly}
                 >
                   {#if draft.blockType === 'video'}
                     <option value="youtube">{dictionary.localText('content.article_block_editor.provider_youtube', 'content')}</option>
@@ -257,7 +273,6 @@
                   class="article-block-editor__embed-control"
                   value={(draft.content as { url?: string }).url ?? ''}
                   oninput={(event) => updateBlockContent(draft.id, 'url', event.currentTarget.value)}
-                  disabled={readonly}
                 />
               </label>
             </div>
@@ -278,7 +293,11 @@
     {/each}
   </ol>
 
-  {#if !readonly && drafts.length === 0}
+  {#if readonly && drafts.length === 0}
+    <p class="article-block-editor__empty">
+      {dictionary.localText('content.article_block_editor.empty', 'content')}
+    </p>
+  {:else if drafts.length === 0}
     <button
       class="article-block-editor__add article-block-editor__add--empty"
       onclick={() =>

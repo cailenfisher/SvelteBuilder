@@ -2,7 +2,7 @@
   import { ArticleList, ArticleAssignmentQueue } from '@sveltebuilder/content';
   import type { ComponentProps } from 'svelte';
   import Example from '$lib/Example/Example.svelte';
-  import { ARTICLES_WITH_COPY, ASSIGNMENTS, contentDictionary } from '$lib/fixtures/content';
+  import { ARTICLE_ROWS, ARTICLES_WITH_COPY, ASSIGNMENTS, contentDictionary } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();
 
@@ -14,21 +14,22 @@
     assigneeName: ['Ada Reporter', 'Grace Editor'][index],
   })) satisfies ComponentProps<typeof ArticleAssignmentQueue>['assignments'];
 
-  let opened = $state('(none)');
+  let page = $state(1);
 </script>
 
 <Example title="ArticleList">
   <div style:inline-size="100%">
     <ArticleList
-      articles={ARTICLES_WITH_COPY}
-      total={ARTICLES_WITH_COPY.length}
-      page={1}
+      articles={ARTICLE_ROWS}
+      href={(article) => `#article-${article.id}`}
+      total={60}
+      {page}
       perPage={20}
-      onRowClick={(article) => (opened = article.headline)}
+      onPageChange={(next) => (page = next)}
       locale="en"
       {dictionary}
     />
-    <p role="status">Opened: {opened}</p>
+    <p role="status">Page asked for: {page}</p>
   </div>
 </Example>
 

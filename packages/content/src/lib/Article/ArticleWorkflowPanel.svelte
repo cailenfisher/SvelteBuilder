@@ -1,174 +1,110 @@
-<!-- Camp 2: article workflow side panel. Resolves status labels and checklist item labels
-     via diglossia. Uses coreui Drawer, Tabs and Checkbox. -->
+<!-- An article's place in the editorial workflow: the publish checklist and the status
+     transition. Both are plain forms posting to the actions the screen names, so the panel works
+     without JavaScript; `enhance` (SvelteKit's, from `$app/forms`) keeps the page and focus in
+     place when a checklist box submits itself. Resolves checklist and status names (scopes
+     `publish_checklist_item`, `article_status`) and its own copy (scope `content`). -->
 <script lang="ts">
+  import type { Action } from 'svelte/action';
   import { getDictionary } from 'diglossia/svelte';
   import type { DictionaryInstance } from 'diglossia';
-  import { Drawer, Tabs, TabsList, TabsTrigger, TabsContent, Checkbox, Button } from '@sveltebuilder/coreui';
-  import type {
-    ArticleWithCopy,
-    ArticleAssignment,
-    ArticleChecklistState,
-    PublishChecklistItem,
-  } from '../schema/index.js';
+  import { Button, Checkbox, Field, InlineNotification, Select, SelectItem } from '@sveltebuilder/coreui';
+  import type { ArticleStatus } from '../schema/index.js';
+  import type { ArticleChecklistEntry } from '../views.js';
 
   type Props = {
-    article: ArticleWithCopy;
-    assignments: ArticleAssignment[];
-    checklistItems: PublishChecklistItem[];
-    checklistStates: ArticleChecklistState[];
-    open: boolean;
-    onClose: () => void;
-    onTransitionStatus?: (statusSlug: string) => void;
-    onChecklistToggle?: (itemId: number, satisfied: boolean) => void;
-    locale: string;
+    /** The article's current status. */
+    statusSlug: string;
+    /** Every workflow status, in position order. */
+    statuses: ArticleStatus[];
+    checklist: ArticleChecklistEntry[];
+    /** Receives `status_slug`. */
+    transitionAction: string;
+    /** Receives `item_id` and `satisfied`, one item per submission. */
+    checklistAction: string;
+    enhance?: Action<HTMLFormElement>;
     dictionary?: DictionaryInstance;
   };
 
   let {
-    article,
-    assignments,
-    checklistItems,
-    checklistStates,
-    open,
-    onClose,
-    onTransitionStatus,
-    onChecklistToggle,
-    locale: _locale,
+    statusSlug,
+    statuses,
+    checklist,
+    transitionAction,
+    checklistAction,
+    enhance = () => {},
     dictionary: dictionaryProp,
   }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const dictionary = dictionaryProp ?? getDictionary();
 
-  function getChecklistState(itemId: number): boolean {
-    return checklistStates.find((s) => s.publishChecklistItemId === itemId)?.satisfied ?? false;
-  }
+  const statusFieldId = $props.id();
 
-  let activeTab = $state('status');
+  // One form per checklist item, keyed by item id so the checkbox can submit its own.
+  const checklistForms: Record<number, HTMLFormElement | undefined> = $state({});
 
+  // What the server will refuse, shown before the editor tries. The transition function enforces
+  // the same rule, so this is a courtesy rather than the safeguard.
+  const blockingItems = $derived(checklist.filter((item) => item.required && !item.completed));
+
+  const itemLabel = (item: ArticleChecklistEntry) =>
+    dictionary.localText('label', 'publish_checklist_item', item.id);
 </script>
 
-<Drawer
-  {open}
-  onOpenChange={(next) => {
-    if (!next) onClose();
-  }}
-  side="right"
-  title={dictionary.localText('content.article_workflow.title', 'content')}
-  description={article.headline}
-  closeLabel={dictionary.localText('content.article_workflow.close', 'content')}
+<section
+  class="article-workflow-panel"
+  aria-label={dictionary.localText('content.article_workflow.title', 'content')}
 >
-  <Tabs bind:value={activeTab}>
-    <TabsList>
-      <TabsTrigger value="status">
-        {dictionary.localText('content.article_workflow.status', 'content')}
-      </TabsTrigger>
-      <TabsTrigger value="checklist">
-        {dictionary.localText('content.article_workflow.checklist', 'content')}
-      </TabsTrigger>
-      <TabsTrigger value="assignment">
-        {dictionary.localText('content.article_workflow.assignment', 'content')}
-      </TabsTrigger>
-    </TabsList>
+  <h2 class="article-workflow-panel__title">
+    {dictionary.localText('content.article_workflow.checklist', 'content')}
+  </h2>
 
-    <TabsContent value="status">
-      <div class="article-workflow-panel__status">
-        <div class="article-workflow-panel__current-status">
-          <span class="article-workflow-panel__status-label">
-            {dictionary.localText('content.article_workflow.current', 'content')}
+  <ul class="article-workflow-panel__checklist">
+    {#each checklist as item (item.id)}
+      <li class="article-workflow-panel__checklist-item">
+        <!-- Ticking a box is its own submission, so a half-filled checklist cannot be lost by
+             navigating away. -->
+        <form method="POST" action={checklistAction} use:enhance bind:this={checklistForms[item.id]}>
+          <input type="hidden" name="item_id" value={item.id} />
+          <input type="hidden" name="satisfied" value={item.completed ? 'false' : 'true'} />
+          <!-- Checkbox is self-labelling, so it is not wrapped in a Field. -->
+          <Checkbox
+            checked={item.completed}
+            label={itemLabel(item)}
+            onCheckedChange={() => checklistForms[item.id]?.requestSubmit()}
+          />
+        </form>
+        {#if item.required}
+          <span class="article-workflow-panel__required">
+            {dictionary.localText('content.article_workflow.required', 'content')}
           </span>
-          <strong>{article.status.label}</strong>
-        </div>
-
-        <div class="article-workflow-panel__actions">
-          {#if article.status.slug === 'draft'}
-            <Button
-              variant="primary"
-              onclick={() => onTransitionStatus?.('in_review')}
-            >
-              {dictionary.localText('content.article_workflow.submit_for_review', 'content')}
-            </Button>
-          {:else if article.status.slug === 'in_review'}
-            <Button
-              variant="primary"
-              onclick={() => onTransitionStatus?.('approved')}
-            >
-              {dictionary.localText('content.article_workflow.approve', 'content')}
-            </Button>
-            <Button
-              variant="secondary"
-              onclick={() => onTransitionStatus?.('draft')}
-            >
-              {dictionary.localText('content.article_workflow.send_back', 'content')}
-            </Button>
-          {:else if article.status.slug === 'approved'}
-            <Button
-              variant="primary"
-              onclick={() => onTransitionStatus?.('published')}
-            >
-              {dictionary.localText('content.article_workflow.publish', 'content')}
-            </Button>
-          {:else if article.status.slug === 'published'}
-            <Button
-              variant="secondary"
-              onclick={() => onTransitionStatus?.('draft')}
-            >
-              {dictionary.localText('content.article_workflow.unpublish', 'content')}
-            </Button>
-          {/if}
-        </div>
-      </div>
-    </TabsContent>
-
-    <TabsContent value="checklist">
-      <div class="article-workflow-panel__checklist">
-        {#each checklistItems as item (item.id)}
-          {@const checked = getChecklistState(item.id)}
-          <div class="article-workflow-panel__checklist-item">
-            <Checkbox
-              {checked}
-              onCheckedChange={(value) => onChecklistToggle?.(item.id, value)}
-              label={dictionary.localText('label', 'publish_checklist_item', item.id)}
-            />
-            {#if item.required && !checked}
-              <span class="article-workflow-panel__required">
-                {dictionary.localText('content.article_workflow.required', 'content')}
-              </span>
-            {/if}
-          </div>
-        {/each}
-      </div>
-    </TabsContent>
-
-    <TabsContent value="assignment">
-      <div class="article-workflow-panel__assignment">
-        {#if assignments.length === 0}
-          <p class="article-workflow-panel__empty">
-            {dictionary.localText('content.article_workflow.assignment_empty', 'content')}
-          </p>
-        {:else}
-          <ul class="article-workflow-panel__assignment-list" role="list">
-            {#each assignments as assignment (assignment.id)}
-              <li class="article-workflow-panel__assignment-item">
-                <span class="article-workflow-panel__assignment-role">
-                  {dictionary.localText(`content.article_assignment_role.${assignment.role}`, 'content')}
-                </span>
-                <span class="article-workflow-panel__assignment-member">
-                  <!-- userAccountId resolved server-side; name comes from hermes via author_profile scope -->
-                  User #{assignment.userAccountId}
-                </span>
-                {#if assignment.dueAt}
-                  <time class="article-workflow-panel__due" datetime={assignment.dueAt}>
-                    Due {new Intl.DateTimeFormat(_locale, { dateStyle: 'medium' }).format(
-                      new Date(assignment.dueAt)
-                    )}
-                  </time>
-                {/if}
-              </li>
-            {/each}
-          </ul>
         {/if}
-      </div>
-    </TabsContent>
-  </Tabs>
-</Drawer>
+      </li>
+    {/each}
+  </ul>
+
+  <h2 class="article-workflow-panel__title">
+    {dictionary.localText('content.article_workflow.status', 'content')}
+  </h2>
+
+  {#if blockingItems.length > 0}
+    <InlineNotification
+      severity="info"
+      summary={dictionary.localText('content.article_workflow.publish_blocked', 'content')}
+      detail={blockingItems.map(itemLabel).join(', ')}
+    />
+  {/if}
+
+  <form method="POST" action={transitionAction} class="article-workflow-panel__transition" use:enhance>
+    <Field label={dictionary.localText('content.article_workflow.transition', 'content')} id={statusFieldId}>
+      <Select name="status_slug" value={statusSlug}>
+        {#each statuses as status (status.id)}
+          <SelectItem value={status.slug} label={dictionary.localText('name', 'article_status', status.id)} />
+        {/each}
+      </Select>
+    </Field>
+    <Button type="submit" variant="primary" size="sm">
+      {dictionary.localText('content.article_workflow.save', 'content')}
+    </Button>
+  </form>
+</section>

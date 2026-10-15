@@ -55,6 +55,7 @@
     "logistic.return_authorization.status.processed",
     "logistic.return_authorization.status.cancelled",
     "logistic.field.sku",
+    "logistic.field.storage_location",
     "logistic.field.note",
     "action.cancel",
     "action.close",
