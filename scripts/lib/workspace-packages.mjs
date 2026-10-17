@@ -24,8 +24,16 @@ import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-/** Workspace packages a scaffolded project may depend on, by npm name. */
+/**
+ * Workspace packages a scaffolded project may depend on, by npm name.
+ *
+ * The CLI is here too: create-sveltebuilder pins every SvelteBuilder dependency to the version
+ * being released, and on a Version Packages PR that version is not on npm yet. Taken from the
+ * registry, it failed to install; before the pinning, `latest` resolved, and the harnesses were
+ * quietly checking the previous release's sync:supabase instead of this one.
+ */
 export const WORKSPACE_PACKAGES = {
+  '@sveltebuilder/cli': 'tools/cli',
   '@sveltebuilder/coreui': 'packages/coreui',
   '@sveltebuilder/local-text-schema': 'packages/local-text-schema',
   '@sveltebuilder/content': 'packages/content',
