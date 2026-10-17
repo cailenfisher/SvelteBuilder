@@ -7,6 +7,11 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { syncSupabase } from '@sveltebuilder/cli/api';
 import { addModuleStylesheet, copyModuleTemplate } from './module-template.js';
+import { pinPackageVersions } from './package-version.js';
+import { restoreTemplateDotfiles } from './template-dotfile.js';
+
+/** This release's SvelteBuilder package versions, stamped in by tsup.config.ts at build time. */
+declare const __SVELTEBUILDER_PACKAGE_VERSIONS__: Record<string, string>;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -375,6 +380,7 @@ async function main() {
   // ── Step 1: Scaffold base template ────────────────────────────────────────
   s.start('Scaffolding project...');
   await fs.copy(path.join(TEMPLATES_DIR, 'base'), targetDir, { overwrite: true });
+  await restoreTemplateDotfiles(targetDir);
 
   // Read base package.json before overlaying the scaffold template.
   const pkgPath = path.join(targetDir, 'package.json');
@@ -457,6 +463,8 @@ async function main() {
       pkg.dependencies[dep] = 'latest';
     }
   }
+  // Every SvelteBuilder dependency, the templates' and the modules', pinned to this release.
+  pinPackageVersions(pkg, __SVELTEBUILDER_PACKAGE_VERSIONS__);
   await fs.writeJson(pkgPath, pkg, { spaces: 2 });
 
   s.stop('Project scaffolded');

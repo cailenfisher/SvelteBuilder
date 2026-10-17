@@ -102,7 +102,7 @@ src/
     └── api/                 /api/locale, /api/local-text
 supabase/
 ├── config.toml              local Supabase config
-├── supplemental/            RLS policies, functions, RPCs (hand-written, appended to migration)
+├── supplemental/            RLS policies, functions, RPCs (hand-written, migrated by sync:supabase)
 ├── seeds/                   seed files, appended to seed.sql in filename order
 ├── migrations/              generated
 └── seed.sql                 generated

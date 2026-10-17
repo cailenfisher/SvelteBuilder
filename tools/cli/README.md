@@ -22,7 +22,7 @@ sveltebuilder sync            # deprecated alias for sync:supabase
 1. Discovers every installed module's schema manifest under `.sveltebuilder/registry/*.json`.
 2. Topologically sorts them by each manifest's `after` dependencies (the local-text schema first, then domain modules).
 3. Writes a barrel file (`.sveltebuilder/schema.ts`) and a generated `drizzle.config.ts`.
-4. Runs `drizzle-kit generate` to produce Supabase migrations, appends each module's supplemental SQL (RLS policies, triggers, cross-module FK constraints), and rewrites `supabase/config.toml`'s `migrations.schema_paths`.
+4. Runs `drizzle-kit generate` to produce Supabase migrations, then writes any new or changed supplemental SQL (RLS policies, functions, triggers) into a migration created by this run — drizzle-kit's, or an empty `--custom` one when the schema did not change — so nothing is ever added to a migration a hosted project has already applied.
 5. Assembles `supabase/seed.sql` from the base local-text seed data plus each module's seed SQL.
 
 ## Programmatic API

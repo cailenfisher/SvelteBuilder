@@ -68,70 +68,59 @@ export async function syncSupabase(root?: string): Promise<void> {
   console.log('[sveltebuilder] running drizzle-kit generate...');
   await mkdir(path.join(cwd, MIGRATIONS_DIR), { recursive: true });
 
-  const drizzleKitBin = path.join(cwd, 'node_modules', '.bin', 'drizzle-kit');
-  const drizzleKitCmd = existsSync(drizzleKitBin) ? drizzleKitBin : 'npx drizzle-kit';
-  const [cmd, ...args] = drizzleKitCmd.includes(' ')
-    ? drizzleKitCmd.split(' ')
-    : [drizzleKitCmd];
+  const migrationsBefore = new Set(await listMigrations(cwd));
+  runDrizzleKit(cwd, []);
+  const generatedMigrations = (await listMigrations(cwd)).filter((f) => !migrationsBefore.has(f));
 
-  const result = spawnSync(
-    cmd!,
-    [...args, 'generate', '--config', DRIZZLE_CONFIG_PATH],
-    { cwd, stdio: 'inherit', shell: process.platform === 'win32' },
-  );
-
-  if (result.status !== 0) {
-    throw new Error('drizzle-kit generate failed');
-  }
-
-  // ── 4. Append supplemental SQL into the latest generated migration ──────────
+  // ── 4. Supplemental SQL: only into a migration that has never been applied ──
+  //
+  // Supplemental SQL that is not yet in any migration goes into a migration created by this
+  // run, never into an existing one. An existing migration may already be applied somewhere:
+  // `supabase db push` records it by version and will not run it again, so SQL appended to it
+  // reached a hosted database never, while `db reset` locally replayed it and hid the problem.
+  // When drizzle-kit generated a migration this run, the supplemental SQL rides along in it;
+  // otherwise (the usual case for an RLS fix or a new function) drizzle-kit is asked for an
+  // empty custom migration, which it registers in its journal so its own numbering and
+  // Supabase's version ordering both stay intact.
+  //
+  // "Not yet in any migration" is judged by content across every migration, so an unchanged
+  // file is skipped and an edited one is carried forward in full: the later migration replaces
+  // what the earlier one created, which is why supplemental SQL is written to be re-runnable
+  // (create or replace, drop policy if exists). Deleting a file undoes nothing; to remove an
+  // object, write the drop in a supplemental file.
   const supplementalFiles = await glob(`${SUPPLEMENTAL_DIR}/*.sql`, { cwd });
   supplementalFiles.sort();
 
-  if (supplementalFiles.length > 0) {
-    const migrationFiles = await glob(`${MIGRATIONS_DIR}/*.sql`, { cwd });
-    migrationFiles.sort();
-    const latestMigration = migrationFiles.at(-1);
+  const migrationSql = (
+    await Promise.all(
+      (await listMigrations(cwd)).map((f) => readFile(path.join(cwd, f), 'utf-8')),
+    )
+  ).join('\n');
 
-    if (latestMigration) {
-      // Every migration, not just the newest. Checking only the newest meant a
-      // freshly generated migration never contained any marker, so all of the
-      // project's supplemental SQL was re-appended to each new migration — the
-      // whole set duplicated on every schema change.
-      //
-      // The test is the file's own content rather than its marker, which keeps the
-      // edit case working: an unchanged file is found verbatim in an earlier
-      // migration and skipped, while an edited one is not found and so gets
-      // appended to the latest migration, where `db reset` will apply it. A
-      // marker-only check across all migrations would instead mean an edited
-      // supplemental file could never reach the database again. Comparing content
-      // also recognises blocks appended by older versions of this command, which
-      // wrote the same marker without one.
-      const priorMigrations = await Promise.all(
-        migrationFiles.map((f) => readFile(path.join(cwd, f), 'utf-8')),
-      );
-      const appliedSql = priorMigrations.join('\n');
+  const pendingBlocks: string[] = [];
+  for (const f of supplementalFiles) {
+    const content = await readFile(path.join(cwd, f), 'utf-8');
+    if (migrationSql.includes(content.trim())) {
+      console.log(`[sveltebuilder] skipping already-migrated supplemental: ${path.basename(f)}`);
+      continue;
+    }
+    pendingBlocks.push(`\n-- supplemental: ${path.basename(f)}\n${content}`);
+  }
 
-      const supplementalBlocks = await Promise.all(
-        supplementalFiles.map(async (f) => {
-          const marker = `-- supplemental: ${path.basename(f)}`;
-          const content = await readFile(path.join(cwd, f), 'utf-8');
-          if (appliedSql.includes(content.trim())) {
-            console.log(`[sveltebuilder] skipping already-appended supplemental: ${path.basename(f)}`);
-            return null;
-          }
-          return `\n${marker}\n${content}`;
-        }),
-      );
-      const toAppend = supplementalBlocks.filter((b): b is string => b !== null);
-      if (toAppend.length > 0) {
-        const combined = toAppend.join('\n');
-        await appendToFile(path.join(cwd, latestMigration), combined);
-        console.log(
-          `[sveltebuilder] appended ${toAppend.length} supplemental file(s) to ${latestMigration}`,
-        );
+  if (pendingBlocks.length > 0) {
+    let target = generatedMigrations.at(-1);
+    if (target === undefined) {
+      const beforeCustom = new Set(await listMigrations(cwd));
+      runDrizzleKit(cwd, ['--custom', '--name', 'supplemental']);
+      target = (await listMigrations(cwd)).find((f) => !beforeCustom.has(f));
+      if (target === undefined) {
+        throw new Error('drizzle-kit generate --custom created no migration for the supplemental SQL');
       }
     }
+    await appendToFile(path.join(cwd, target), pendingBlocks.join('\n'));
+    console.log(`[sveltebuilder] wrote ${pendingBlocks.length} supplemental file(s) to ${target}`);
+  } else if (generatedMigrations.length === 0) {
+    console.log('[sveltebuilder] no schema or supplemental changes; no new migration');
   }
 
   // ── 5. Generate supabase/seed.sql ───────────────────────────────────────────
@@ -155,6 +144,28 @@ export async function syncSupabase(root?: string): Promise<void> {
   console.log(`[sveltebuilder] wrote ${SEED_OUT}`);
 
   console.log('[sveltebuilder] sync:supabase complete');
+}
+
+/** Migration files, relative to the project root, in version order. */
+async function listMigrations(cwd: string): Promise<string[]> {
+  const files = await glob(`${MIGRATIONS_DIR}/*.sql`, { cwd });
+  return files.sort();
+}
+
+function runDrizzleKit(cwd: string, extraArgs: string[]): void {
+  const drizzleKitBin = path.join(cwd, 'node_modules', '.bin', 'drizzle-kit');
+  const drizzleKitCmd = existsSync(drizzleKitBin) ? drizzleKitBin : 'npx drizzle-kit';
+  const [cmd, ...args] = drizzleKitCmd.split(' ');
+  if (cmd === undefined) throw new Error('no drizzle-kit command to run');
+
+  const result = spawnSync(
+    cmd,
+    [...args, 'generate', '--config', DRIZZLE_CONFIG_PATH, ...extraArgs],
+    { cwd, stdio: 'inherit', shell: process.platform === 'win32' },
+  );
+  if (result.status !== 0) {
+    throw new Error(`drizzle-kit generate ${extraArgs.join(' ')} failed`.trimEnd());
+  }
 }
 
 async function appendToFile(filePath: string, content: string): Promise<void> {

@@ -677,7 +677,11 @@ What `sync:supabase` does:
    your `schema.ts`, and any modules) and orders them by their dependencies.
 2. Runs `drizzle-kit generate`, writing a new migration to `supabase/migrations/` for whatever
    changed.
-3. Appends any new or changed `supabase/supplemental/*.sql` to the newest migration.
+3. Writes any new or changed `supabase/supplemental/*.sql` into a new migration: the one from
+   step 2 when the schema changed, otherwise a `NNNN_supplemental.sql` of its own. An existing
+   migration is never edited, because a hosted project that already applied it would never run
+   the addition. A changed file is carried forward whole, which is why supplemental SQL must be
+   re-runnable (below); deleting one undoes nothing, so drop an object in a supplemental file.
 4. Regenerates `supabase/seed.sql` from the base locales and copy, plus `supabase/seeds/*.sql`.
 
 Rules of thumb:

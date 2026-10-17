@@ -88,7 +88,7 @@ behaves as the routes assume — impersonating an admin, a non-admin and an anon
 `scripts/sql-check/`. Neither `scaffold:check` nor `svelte-check` runs a line of SQL, so a
 malformed seed or a policy admitting nobody ships green past them.
 
-`pnpm test` runs the unit suites. `tools/create/test/screen-bundle.test.ts` checks the half of a
+`pnpm test` runs the unit suites. Two of them cover what no scaffold harness can see, because the harnesses copy templates from this repo and override package versions: `tools/create/test/template-dotfile.test.ts` checks that `npm pack` publishes every template file (npm silently drops `.gitignore`), and `package-version.test.ts` that every SvelteBuilder dependency a scaffold can receive is pinned to the release, never `latest`. `tools/create/test/screen-bundle.test.ts` checks the half of a
 screen bundle's contract that types cannot express — that a manifest matches its files, that every
 slug a screen renders is seeded, and that each has both required locales. The package suites
 (`packages/coreui/test/`, `packages/content/test/`) render components server-side with
@@ -518,8 +518,10 @@ project-root-relative path (`./src/lib/server/schema.ts`) for the scaffold's own
 1. Discovers manifests from `.sveltebuilder/registry/*.json` and resolves `after`-order.
 2. Writes a barrel file (`.sveltebuilder/schema.ts`) re-exporting every module's Drizzle schema.
 3. Runs `drizzle-kit generate` against that barrel to produce `supabase/migrations/*.sql`.
-4. Appends `supabase/supplemental/*.sql` (RLS, functions — anything Drizzle can't express) to
-   the latest generated migration.
+4. Writes any new or changed `supabase/supplemental/*.sql` (RLS, functions — anything Drizzle
+   can't express) into a migration created by this run: drizzle-kit's own when the schema
+   changed, else an empty `drizzle-kit generate --custom` one. Never into an existing migration,
+   which may already be applied where `supabase db push` will not run it again.
 5. Regenerates `supabase/seed.sql` from `@sveltebuilder/local-text-schema`'s canonical locale/slug
    data plus any `supabase/seeds/*.sql` files, appended in alphabetical order.
 
