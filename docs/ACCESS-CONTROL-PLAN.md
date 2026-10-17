@@ -179,9 +179,10 @@ Start by settling the two Phase 8 items in the deferred table: the seeded role s
 4. Make `content_transition_article_status` `SECURITY DEFINER` with the DESIGN §3.5 check, rebuild the `article` update grant per column, and add the §3.5 insert policy (A19).
 5. Loaders for article admin screens return `actions` per row (DESIGN §5.3); screens hide controls the user cannot use.
 6. Add `RoleAssignmentPanel` to the article admin detail screen, with its add form using `list_article_principal`.
-7. Extend `40-assert-content.sql` with the content bullets of DESIGN §9, plus: an assigned editor can update their article and its blocks and not another's; a `content_writer` cannot publish by RPC or by `PATCH`; the publish checklist cannot be skipped by an admin either; public reads are unchanged.
-8. If a rename lands, it is total (see `CLAUDE.md` and the conformance plan's rule): schema, types, policies, seeds, screens, tests, docs, in this phase.
-9. Changeset for content.
+7. Close field-test finding 6 (appendix §3a): `comment` columns are selectable only per public column.
+8. Extend `40-assert-content.sql` with the content bullets of DESIGN §9, plus `author_email` unreadable by anon and authenticated non-admins, plus: an assigned editor can update their article and its blocks and not another's; a `content_writer` cannot publish by RPC or by `PATCH`; the publish checklist cannot be skipped by an admin either; public reads are unchanged.
+9. If a rename lands, it is total (see `CLAUDE.md` and the conformance plan's rule): schema, types, policies, seeds, screens, tests, docs, in this phase.
+10. Changeset for content. Run the Clarion's `08` journey against a scaffold from this branch.
 
 **Gate.** Pause.
 
@@ -193,9 +194,10 @@ Start by settling the two Phase 8 items in the deferred table: the seeded role s
 2. Seed roles with copy.
 3. Rewrite every policy in the Phase 0 worklist to the scope-level shape: admin-gated, `using (true)` reads, and `worker_update` alike (A22).
 4. The five SECURITY DEFINER stock functions check `current_user_can()` themselves, since they bypass RLS, and take the acting user from `current_user_id()` instead of a `p_user_account_id` parameter. Update their callers.
-5. Loaders return `actions`; screens hide what the user cannot do.
-6. Extend `30-assert-logistic.sql`: an operator can receive and pick but not adjust stock or manage suppliers; a signed-in user with no role reads nothing; a stock adjustment cannot be attributed to someone else.
-7. Changeset for logistic, and a `MIGRATION` entry telling operators to assign `logistic_operator` to existing staff before upgrading.
+5. Close field-test finding 7 (appendix §3a): rebuild `pick_task_line`'s update grant so its quantities and references change only through `logistic_record_picked_quantity`.
+6. Loaders return `actions`; screens hide what the user cannot do. The `(warehouse)` layout admits only a user holding a logistic permission, and shows a no-access page rather than a 403 to one who does not (field-test finding 12).
+7. Extend `30-assert-logistic.sql`: an operator can receive and pick but not adjust stock or manage suppliers; a signed-in user with no role reads nothing; a stock adjustment cannot be attributed to someone else; a worker cannot change a pick line's requested quantity. Run the Clarion's `08` journey against a scaffold from this branch.
+8. Changeset for logistic, and a `MIGRATION` entry telling operators to assign `logistic_operator` to existing staff before upgrading.
 
 **Gate.**
 
@@ -280,6 +282,17 @@ Content functions: `content_transition_article_status` (A19). `set_media_asset_c
 | `stock_adjustment` | insert by self (`user_account_id = current_user_id()`) |
 
 And the five `SECURITY DEFINER` stock functions (`logistic_adjust_stock`, `_reserve_stock`, `_release_stock_reservation`, `_consume_stock`, `_ensure_stock_level`, lines 119-252) are executable by every authenticated user, check nothing, and take the acting `p_user_account_id` as a **parameter**, so a caller can attribute an adjustment to anyone. That is existing drift, not caused by this work, but Phase 9 has to fix it: the definer functions check `current_user_can()` and take the actor from `current_user_id()`. The eight `SECURITY INVOKER` RPCs follow whatever policies Phase 9 writes.
+
+### 3a. Field-test findings this work must close
+
+The Puddleby Clarion field test (`~/code/testdeploy/puddleby-clarion/FINDINGS.md`, 2026-10-16) found four security problems on the RC, and its `08-sunday-a-nosy-reader` journey pins each as `test.fail`. That journey passing is the acceptance check for Phases 8 and 9.
+
+| Finding | Closed by |
+| --- | --- |
+| 4. Anyone who signs up can call the stock functions and sign the change as the admin | Phase 9 step 4 |
+| 5. "Authenticated" means anyone with an email address; signup is open | A22, Phase 9 step 3. Signup stays open: an account with no role now reaches nothing |
+| 6. An approved comment exposes `author_email` to anon: the row policy restricts rows, not columns | Phase 8: revoke table `SELECT` on `comment` from `anon` and `authenticated` and grant it per public column, the A19 technique applied to reads |
+| 7. `pick_task_line_worker_update` is `with check (true)`, so a worker can rewrite their own lines | Phase 9: the line's quantities and references change only through `logistic_record_picked_quantity` (A19) |
 
 ### 4. Corrections made in this commit
 
