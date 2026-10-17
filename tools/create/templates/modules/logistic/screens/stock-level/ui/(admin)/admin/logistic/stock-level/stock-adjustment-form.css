@@ -1,0 +1,11 @@
+.stock-adjustment-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stock-adjustment-form__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}

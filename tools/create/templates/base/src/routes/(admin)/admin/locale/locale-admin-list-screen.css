@@ -1,0 +1,20 @@
+.locale-admin-list-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 56rem;
+  margin-inline: auto;
+}
+
+.locale-admin-list-screen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.locale-admin-list-screen__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  margin: 0;
+}

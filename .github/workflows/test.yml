@@ -45,5 +45,10 @@ jobs:
       - name: Type check
         run: pnpm turbo run check
 
+      # Components carry no <style> blocks, so nothing else checks stylesheet scoping or
+      # unused classes. See scripts/css-check.mjs.
+      - name: Stylesheets
+        run: pnpm css:check
+
       - name: Test
         run: pnpm turbo run test

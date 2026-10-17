@@ -1,6 +1,9 @@
 <script lang="ts">
   import { StockLevelBar } from '@sveltebuilder/logistic';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
+  import { logisticDictionary } from '$lib/fixtures/logistic';
+
+  const dictionary = logisticDictionary();
 
   const levels = [
     { title: 'Healthy', onHand: 420, reserved: 60, reorderPoint: 100 },
@@ -18,6 +21,7 @@
         onHand={level.onHand}
         reserved={level.reserved}
         reorderPoint={level.reorderPoint}
+        {dictionary}
       />
     </div>
   </Example>

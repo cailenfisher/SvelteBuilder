@@ -1,0 +1,19 @@
+.logistic-dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.logistic-dashboard-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.logistic-dashboard-section__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  margin: 0;
+}

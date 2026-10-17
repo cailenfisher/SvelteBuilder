@@ -2,27 +2,102 @@
 // @sveltebuilder/content — public surface
 // =============================================================================
 
-// Schema / types
-export * from './schema/index.js';
+// Schema types. Type-only: the schema modules define Drizzle tables, and drizzle-orm is a
+// build-time dependency that must never reach a runtime bundle (CLAUDE.md, guardrail 8).
+export type {
+  Article,
+  ArticleAssignment,
+  ArticleAssignmentRole,
+  ArticleBlock,
+  ArticleBlockContent,
+  ArticleBlockType,
+  ArticleBlockWithCopy,
+  ArticleByline,
+  ArticleChecklistState,
+  ArticlePreviewToken,
+  ArticleRenderable,
+  ArticleRevision,
+  ArticleSection,
+  ArticleStatus,
+  ArticleStatusWithCopy,
+  ArticleTag,
+  ArticleTopic,
+  ArticleWithCopy,
+  ArticleWithRelations,
+  AuthorProfile,
+  AuthorProfileWithCopy,
+  Comment,
+  CommentStatus,
+  CommentWithReplies,
+  ArticleBlockEmbedContent,
+  Front,
+  FrontLayoutVariant,
+  FrontSlot,
+  FrontSlotWithArticle,
+  FrontWithSlots,
+  ArticleBlockGalleryContent,
+  ArticleBlockHeadingContent,
+  ArticleBlockImageContent,
+  LiveCoverage,
+  LiveCoverageWithUpdates,
+  LiveUpdate,
+  ArticleBlockLiveUpdateContent,
+  LiveUpdateWithCopy,
+  MediaAsset,
+  MediaAssetAttribution,
+  MediaAssetRights,
+  MediaAssetSource,
+  MediaAssetWithCopy,
+  MediaAssetLicense,
+  MediaAssetType,
+  Newsletter,
+  NewsletterSubscription,
+  NewsletterWithCopy,
+  ArticleBlockParagraphContent,
+  PublishChecklistItem,
+  PublisherProfile,
+  PublisherProfileWithCopy,
+  ArticleBlockPullquoteContent,
+  Section,
+  SectionWithCopy,
+  Subscriber,
+  SubscriberWithLocale,
+  Tag,
+  TagWithCopy,
+  Topic,
+  TopicWithCopy,
+  ArticleBlockVideoContent,
+} from './schema/index.js';
 
-// Camp 1 components (no hermes dependency)
-export { default as ArticleList } from './components/ArticleList.svelte';
-export { default as AssignmentQueue } from './components/AssignmentQueue.svelte';
-export { default as BlockEditorHost } from './components/BlockEditorHost.svelte';
-export { default as FrontCurationBoard } from './components/FrontCurationBoard.svelte';
-export { default as SubscriberList } from './components/SubscriberList.svelte';
+// Enum values, declared once in modules that do not import drizzle-orm, so screens can use them
+// at runtime for filters and validation.
+export { ARTICLE_ASSIGNMENT_ROLES } from './schema/article-assignment-role.js';
+export { ARTICLE_BLOCK_TYPES } from './schema/article-block-type.js';
+export { COMMENT_STATUSES } from './schema/comment-status.js';
+export { FRONT_LAYOUT_VARIANTS } from './schema/front-layout-variant.js';
+export { MEDIA_ASSET_LICENSES } from './schema/media-asset-license.js';
+export { MEDIA_ASSET_TYPES } from './schema/media-asset-type.js';
 
-// Camp 2 components (import hermes — require hermes.load() before mount)
-export { default as ArticleBlockRenderer } from './components/ArticleBlockRenderer.svelte';
-export { default as ArticleCard } from './components/ArticleCard.svelte';
-export { default as ArticleView } from './components/ArticleView.svelte';
-export { default as ArticleWorkflowPanel } from './components/ArticleWorkflowPanel.svelte';
-export { default as AuthorProfileView } from './components/AuthorProfileView.svelte';
-export { default as BylineList } from './components/BylineList.svelte';
-export { default as LiveCoverageView } from './components/LiveCoverageView.svelte';
-export { default as LiveUpdateItem } from './components/LiveUpdateItem.svelte';
-export { default as MediaFigure } from './components/MediaFigure.svelte';
-export { default as NewsletterSignup } from './components/NewsletterSignup.svelte';
-export { default as SectionFront } from './components/SectionFront.svelte';
-export { default as SectionLabel } from './components/SectionLabel.svelte';
-export { default as TopicTag } from './components/TopicTag.svelte';
+// Entity components: resolve their copy from the dictionary in context, or the `dictionary` prop.
+export { default as ArticleList } from './Article/ArticleList.svelte';
+export { default as ArticleAssignmentQueue } from './Article/ArticleAssignment/ArticleAssignmentQueue.svelte';
+export { default as FrontCurationBoard } from './Front/FrontCurationBoard.svelte';
+export { default as SubscriberList } from './Subscriber/SubscriberList.svelte';
+export { default as ArticleBlockEditor } from './Article/ArticleBlock/ArticleBlockEditor.svelte';
+export type { ArticleBlockDraft } from './Article/ArticleBlock/ArticleBlockEditor.svelte';
+export { default as ArticleBlockRenderer } from './Article/ArticleBlock/ArticleBlockRenderer.svelte';
+export { default as ArticleCard } from './Article/ArticleCard.svelte';
+export { default as ArticleDetail } from './Article/ArticleDetail.svelte';
+export { default as ArticleWorkflowPanel } from './Article/ArticleWorkflowPanel.svelte';
+export { default as AuthorProfileDetail } from './AuthorProfile/AuthorProfileDetail.svelte';
+export { default as ArticleBylineList } from './Article/ArticleByline/ArticleBylineList.svelte';
+export { default as LiveCoverageDetail } from './LiveCoverage/LiveCoverageDetail.svelte';
+export { default as LiveUpdateCard } from './LiveUpdate/LiveUpdateCard.svelte';
+export { default as MediaAssetFigure } from './MediaAsset/MediaAssetFigure.svelte';
+export { default as NewsletterSubscriptionForm } from './Newsletter/NewsletterSubscription/NewsletterSubscriptionForm.svelte';
+export { default as FrontDetail } from './Front/FrontDetail.svelte';
+export { default as SectionLink } from './Section/SectionLink.svelte';
+export { default as TopicLink } from './Topic/TopicLink.svelte';
+
+// Application-level components: plain props, no dictionary.
+export { default as CommentList } from './Comment/CommentList.svelte';

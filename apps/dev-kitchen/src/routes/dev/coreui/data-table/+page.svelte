@@ -1,6 +1,7 @@
 <script lang="ts">
   import { DataTable, Pagination, type DataTableColumn } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   type Supplier = { id: number; name: string; country: string; openReceipts: number };
 
@@ -14,10 +15,17 @@
   const columns: DataTableColumn[] = [
     { key: 'name', label: 'Name', sortable: true },
     { key: 'country', label: 'Country', sortable: true },
-    { key: 'openReceipts', label: 'Open receipts', sortable: true, align: 'right' },
+    { key: 'openReceipts', label: 'Open receipts', sortable: true, align: 'end' },
   ];
 
   const perPage = 8;
+
+  const labels = {
+    empty: 'No suppliers.',
+    pagination: 'Supplier pages',
+    previousPage: 'Previous page',
+    nextPage: 'Next page',
+  };
   let page = $state(1);
   let sortKey = $state('name');
   let sortDirection = $state<'asc' | 'desc'>('asc');
@@ -32,6 +40,9 @@
   const visible = $derived(sorted.slice((page - 1) * perPage, page * perPage));
 
   let standalonePage = $state(3);
+
+  const sortCalls: [string, 'asc' | 'desc'][] = $state([]);
+  const pageCalls: number[] = $state([]);
 </script>
 
 {#snippet supplierCell(supplier: Supplier, column: DataTableColumn)}
@@ -55,14 +66,20 @@
       {sortKey}
       {sortDirection}
       onSortChange={(key, direction) => {
+        sortCalls.push([key, direction]);
         sortKey = key;
         sortDirection = direction;
         page = 1;
       }}
       bind:page
+      onPageChange={(next) => pageCalls.push(next)}
       {perPage}
       total={suppliers.length}
+      labels={{ ...labels, empty: 'No suppliers.' }}
     />
+    <CallbackLog name="onSortChange" calls={sortCalls} />
+    <CallbackLog name="onPageChange" calls={pageCalls} />
+    <p role="status">Page {page}, sorted by {sortKey} {sortDirection}</p>
   </div>
 </Example>
 
@@ -74,12 +91,19 @@
       rows={[] as Supplier[]}
       rowKey={(supplier) => supplier.id}
       cell={supplierCell}
-      emptyLabel="No suppliers match."
+      labels={{ ...labels, empty: 'No suppliers match.' }}
     />
   </div>
 </Example>
 
 <Example title="Pagination on its own">
-  <Pagination count={240} perPage={10} bind:page={standalonePage} label="Receipt pages" />
+  <Pagination
+    count={240}
+    perPage={10}
+    bind:page={standalonePage}
+    label="Receipt pages"
+    previousLabel="Previous page"
+    nextLabel="Next page"
+  />
   <p role="status">Page {standalonePage}</p>
 </Example>

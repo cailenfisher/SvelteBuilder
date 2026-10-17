@@ -119,7 +119,7 @@ create or replace trigger cycle_count_set_updated_at
 create or replace function public.logistic_adjust_stock(
   p_stock_level_id  bigint,
   p_delta           integer,
-  p_reason          public.adjustment_reason,
+  p_reason          public.stock_adjustment_reason,
   p_user_account_id bigint,
   p_note            text default null
 )
@@ -189,7 +189,7 @@ end; $$;
 create or replace function public.logistic_consume_stock(
   p_stock_level_id  bigint,
   p_quantity        integer,
-  p_reason          public.adjustment_reason,
+  p_reason          public.stock_adjustment_reason,
   p_user_account_id bigint,
   p_note            text default null
 )
@@ -241,13 +241,13 @@ end; $$;
 -- These had no explicit grant and were relying on Postgres defaulting EXECUTE to PUBLIC.
 -- Stated rather than inherited, and never to anon: every one of them writes stock.
 grant execute on function
-  public.logistic_adjust_stock(bigint, integer, public.adjustment_reason, bigint, text)
+  public.logistic_adjust_stock(bigint, integer, public.stock_adjustment_reason, bigint, text)
   to authenticated;
 grant execute on function public.logistic_reserve_stock(bigint, integer) to authenticated;
 grant execute on function
   public.logistic_release_stock_reservation(bigint, integer) to authenticated;
 grant execute on function
-  public.logistic_consume_stock(bigint, integer, public.adjustment_reason, bigint, text)
+  public.logistic_consume_stock(bigint, integer, public.stock_adjustment_reason, bigint, text)
   to authenticated;
 grant execute on function
   public.logistic_ensure_stock_level(bigint, text) to authenticated;
@@ -529,7 +529,7 @@ declare
 begin
   -- The status update goes first so RLS decides before any stock moves, the same ordering
   -- rule as receiving and grading.
-  update public.cycle_count set status = 'complete' where id = p_cycle_count_id;
+  update public.cycle_count set status = 'completed' where id = p_cycle_count_id;
 
   get diagnostics v_updated = row_count;
   if v_updated = 0 then
@@ -754,7 +754,7 @@ begin
 
   update public.inbound_receipt
   set status = case
-        when v_all_complete then 'complete'
+        when v_all_complete then 'completed'
         when v_any_received then 'partial'
         else 'pending'
       end::public.inbound_receipt_status,
@@ -829,7 +829,7 @@ drop policy if exists "logistic_inbound_receipt_worker_update" on public.inbound
 -- forward within the receiving lifecycle (cancellation is admin-only).
 create policy "logistic_inbound_receipt_worker_update" on public.inbound_receipt for update to authenticated
   using (status in ('pending', 'partial'))
-  with check (status in ('pending', 'partial', 'complete'));
+  with check (status in ('pending', 'partial', 'completed'));
 
 alter table public.inbound_receipt_line enable row level security;
 drop policy if exists "logistic_inbound_receipt_line_read" on public.inbound_receipt_line;

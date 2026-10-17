@@ -1,0 +1,23 @@
+.article-admin-list-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.article-admin-list-screen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.article-admin-list-screen__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  margin: 0;
+}

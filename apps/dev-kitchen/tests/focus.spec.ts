@@ -29,7 +29,7 @@ test('every focus stop in the theme panels shows a visible indicator', async ({ 
       const label =
         element.getAttribute('aria-label') ?? element.textContent?.trim().slice(0, 40) ?? '';
       return {
-        panel: element.closest('.theme__panel')?.id ?? null,
+        panel: element.closest('.theme-screen__panel')?.id ?? null,
         description: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''} “${label}”`,
         visible: outline || shadow,
       };

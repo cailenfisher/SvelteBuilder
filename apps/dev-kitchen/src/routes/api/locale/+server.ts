@@ -2,7 +2,7 @@ import { LOCALES } from '@sveltebuilder/local-text-schema/seed';
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-// The base chrome's LocaleSwitcher posts here. The base template ships no locale endpoint
+// The base chrome's LocalePicker posts here. The base template ships no locale endpoint
 // (SuperPrototype's validates the code against Postgres), so this is the one piece of
 // locale plumbing the harness owns. It keeps SuperPrototype's contract: a `code` form
 // field, the `locale` cookie, and a 303 back to the referring page.

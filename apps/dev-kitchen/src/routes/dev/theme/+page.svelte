@@ -3,6 +3,7 @@
      are written, so all three render side by side whatever the system preference.
      The keyboard walk and the axe run in tests/ start here. -->
 <script lang="ts">
+  import './theme-screen.css';
   import {
     Accordion,
     AccordionItem,
@@ -19,11 +20,10 @@
     Pagination,
     ProgressBar,
     RadioGroup,
-    RadioItem,
+    RadioGroupItem,
     Select,
     SelectItem,
     Spinner,
-    StatusBadge,
     Switch,
     Tabs,
     TabsContent,
@@ -53,7 +53,7 @@
 </p>
 
 {#snippet gallery(prefix: string)}
-  <div class="theme__row">
+  <div class="theme-screen__row">
     <Button>Primary</Button>
     <Button variant="secondary">Secondary</Button>
     <Button variant="ghost">Ghost</Button>
@@ -61,19 +61,18 @@
     <Button variant="link" href="#{prefix}-top">Link</Button>
     <Button disabled>Disabled</Button>
   </div>
-  <div class="theme__row">
+  <div class="theme-screen__row">
     <Badge>Default</Badge>
     <Badge variant="brand">Brand</Badge>
     <Badge variant="success">Success</Badge>
     <Badge variant="warning">Warning</Badge>
     <Badge variant="danger">Danger</Badge>
     <Badge variant="info">Info</Badge>
-    <Tag onremove={() => {}} removeLabel="Remove tag">Tag</Tag>
-    <StatusBadge label="Published" variant="success" />
+    <Tag onRemove={() => {}} removeLabel="Remove tag">Tag</Tag>
   </div>
   <Alert variant="warning" title="Low stock">Twelve units left at A-04-2.</Alert>
   <InlineNotification
-    severity="error"
+    severity="danger"
     summary="The carrier rejected the address."
     dismissible
     onDismiss={() => {}}
@@ -88,18 +87,18 @@
     <Textarea value="Keep upright." rows={2} />
   </Field>
   <Field id="{prefix}-carrier" label="Carrier">
-    <Select value="express">
+    <Select value="express" placeholder="Choose a carrier">
       <SelectItem value="ground" label="Ground" />
       <SelectItem value="express" label="Express" />
     </Select>
   </Field>
-  <div class="theme__row">
+  <div class="theme-screen__row">
     <Checkbox checked label="Partial shipments" />
     <Switch checked label="Notify" />
   </div>
   <RadioGroup value="list" orientation="horizontal" name="{prefix}-layout">
-    <RadioItem value="list" label="List" />
-    <RadioItem value="grid" label="Grid" />
+    <RadioGroupItem value="list" label="List" />
+    <RadioGroupItem value="grid" label="Grid" />
   </RadioGroup>
   <Tabs value="details">
     <TabsList>
@@ -114,7 +113,7 @@
     <AccordionItem value="putaway" title="Put-away">Moved to storage.</AccordionItem>
   </Accordion>
   <ProgressBar value={60} label="Picking" />
-  <div class="theme__row">
+  <div class="theme-screen__row">
     <Spinner size="sm" label="Loading" />
     <Avatar fallback="AL" alt="Ada Lovelace" size="sm" />
   </div>
@@ -126,55 +125,28 @@
       <TimelineItem label="Packed" current>Two cartons.</TimelineItem>
     </Timeline>
   </Card>
-  <Pagination count={60} perPage={10} page={2} label="{prefix} pages" />
+  <Pagination
+    count={60}
+    perPage={10}
+    page={2}
+    label="{prefix} pages"
+    previousLabel="Previous page"
+    nextLabel="Next page"
+  />
 {/snippet}
 
-<div class="theme">
+<div class="theme-screen">
   {#each panels as panel (panel.id)}
     <section
-      class="theme__panel"
+      class="theme-screen__panel"
       id="{panel.id}-top"
       data-color-scheme={panel.scheme}
       dir={panel.dir}
       lang={panel.dir === 'rtl' ? 'ar' : undefined}
       aria-labelledby="{panel.id}-title"
     >
-      <h2 id="{panel.id}-title" class="theme__title">{panel.title}</h2>
+      <h2 id="{panel.id}-title" class="theme-screen__title">{panel.title}</h2>
       {@render gallery(panel.id)}
     </section>
   {/each}
 </div>
-
-<style>
-  .theme {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-    gap: var(--space-4);
-    margin-block-start: var(--space-4);
-  }
-
-  .theme__panel {
-    display: grid;
-    gap: var(--space-3);
-    align-content: start;
-    padding: var(--space-4);
-    border: var(--border);
-    border-radius: var(--radius);
-    /* The tokens change on this element; the panel has to paint with them itself,
-       since the page behind it is still in the outer scheme. */
-    background: var(--surface);
-    color: var(--text);
-  }
-
-  .theme__title {
-    margin: 0;
-    font-size: var(--text-lg);
-  }
-
-  .theme__row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    align-items: center;
-  }
-</style>

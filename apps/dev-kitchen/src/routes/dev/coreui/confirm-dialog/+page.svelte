@@ -1,10 +1,15 @@
 <script lang="ts">
   import { Button, ConfirmDialog } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   let open = $state(false);
   let busyOpen = $state(false);
   let outcome = $state('Nothing chosen yet.');
+
+  const confirmCalls: true[] = $state([]);
+  const cancelCalls: true[] = $state([]);
+  const openCalls: boolean[] = $state([]);
 </script>
 
 <Example title="ConfirmDialog">
@@ -16,12 +21,20 @@
     confirmLabel="Delete"
     cancelLabel="Keep"
     onConfirm={() => {
+      confirmCalls.push(true);
       outcome = 'Confirmed.';
       open = false;
     }}
-    onCancel={() => (outcome = 'Cancelled.')}
+    onCancel={() => {
+      cancelCalls.push(true);
+      outcome = 'Cancelled.';
+    }}
+    onOpenChange={(next) => openCalls.push(next)}
   />
   <p role="status">{outcome}</p>
+  <CallbackLog name="onConfirm" calls={confirmCalls} />
+  <CallbackLog name="onCancel" calls={cancelCalls} />
+  <CallbackLog name="onOpenChange" calls={openCalls} />
 </Example>
 
 <Example title="Loading">
@@ -29,6 +42,8 @@
   <ConfirmDialog
     bind:open={busyOpen}
     title="Publishing…"
+    confirmLabel="Publish"
+    cancelLabel="Cancel"
     loading
     onConfirm={() => (busyOpen = false)}
     onCancel={() => (busyOpen = false)}

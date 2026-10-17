@@ -1,14 +1,17 @@
 <script lang="ts">
   import { Alert, Banner, Button, InlineNotification, getMessageBus } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   const messageBus = getMessageBus();
 
   const alertVariants = ['info', 'success', 'warning', 'danger'] as const;
-  const severities = ['info', 'success', 'warning', 'error'] as const;
+  const severities = ['info', 'success', 'warning', 'danger'] as const;
 
   let dismissed = $state(false);
   let retries = $state(0);
+
+  const dismissCalls: true[] = $state([]);
 </script>
 
 <Example title="Alert">
@@ -31,7 +34,7 @@
       <InlineNotification {severity} summary={`A ${severity} notification`} />
     {/each}
     <InlineNotification
-      severity="error"
+      severity="danger"
       summary="The shipment could not be saved."
       detail="The carrier rejected the address."
       technicalId="ERR-4182"
@@ -42,10 +45,14 @@
         severity="info"
         summary="Dismissible"
         dismissible
-        onDismiss={() => (dismissed = true)}
+        onDismiss={() => {
+          dismissCalls.push(true);
+          dismissed = true;
+        }}
       />
     {/if}
     <p role="status">Retries: {retries}</p>
+    <CallbackLog name="onDismiss" calls={dismissCalls} />
   </div>
 </Example>
 

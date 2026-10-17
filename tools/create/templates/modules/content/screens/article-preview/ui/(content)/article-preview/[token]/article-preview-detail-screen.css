@@ -1,0 +1,12 @@
+.article-preview-detail-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.article-preview-detail-screen__article {
+  max-width: 48rem;
+  margin-inline: auto;
+  width: 100%;
+}

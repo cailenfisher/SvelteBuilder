@@ -318,7 +318,7 @@ The admin area has four screens:
 
 | Screen          | Path                     | What it is for                                                                                       |
 | --------------- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| Dashboard       | `/admin/dashboard`       | Landing page after sign-in.                                                                          |
+| Dashboard       | `/admin/dashboard`       | Landing page after sign-in: links to each admin area in the admin navigation.                       |
 | Localized copy  | `/admin/local-text`      | Every piece of UI text, in every locale. Edit copy here without a deploy.                            |
 | Locales         | `/admin/locale`          | Add, edit, or remove the languages the app offers.                                                    |
 | Navigation      | `/admin/navigation-item` | The admin menu entries, their order, and their labels.                                               |
@@ -436,7 +436,11 @@ source into its layer:
 @import '@sveltebuilder/coreui/styles/base.css' layer(base);
 @import './chrome.css' layer(chrome);
 @import '@sveltebuilder/coreui/styles/components.css' layer(components);
+@import './utilities.css' layer(utilities);
 ```
+
+Each domain module you selected adds its own line after coreui's
+(`@import '@sveltebuilder/logistic/styles/components.css' layer(components);`).
 
 Anything you write **after the imports, outside a layer**, beats every layered rule regardless
 of selector specificity. That is the override mechanism: no `!important`, no specificity fights.
@@ -447,7 +451,7 @@ You will touch, from most to least common:
 | ----------------------------------------------------- | ------------------------------------------------------------------------- |
 | Brand color, neutrals, status colors, font, radius    | The `:root` token block in `src/app.css`                                  |
 | A specific component's look                           | Unlayered rules at the bottom of `src/app.css`                            |
-| The base structure of `.btn`, `.input`, `.card`, etc. | `src/chrome.css` (it is yours, not a package file)                        |
+| The base structure of `.button`, `.input`, `.card`, etc. | `src/chrome.css` (it is yours, not a package file)                        |
 | The app shell: header, footer, page padding           | `src/routes/+layout.svelte`                                               |
 
 ### 8.2 The tokens
@@ -504,29 +508,31 @@ The scaffold loads no web fonts. To use one:
 
 ### 8.4 Overriding a specific component
 
-coreui components use plain class names (`.btn`, `.btn.primary`, `.card`, `.alert`, ...) and
-target Bits UI state through data attributes (`[data-state='open']`, `[data-highlighted]`,
-`[data-disabled]`), never toggled classes. Write unlayered rules against those:
+coreui components use BEM class names (`.button`, `.button--primary`, `.card__body`, `.alert`, ...)
+and target Bits UI state through data attributes (`[data-state='open']`, `[data-highlighted]`,
+`[data-disabled]`), never toggled classes. The public list is in `docs/COREUI-COMPATIBILITY.md`.
+Write unlayered rules against those:
 
 ```css
 /* bottom of src/app.css — unlayered, so it wins */
-.btn {
+.button {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.btn.primary {
+.button--primary {
   box-shadow: 0 1px 0 rgb(0 0 0 / 0.15);
 }
 
-.accordion-trigger[data-state='open'] {
+.accordion-item__trigger[data-state='open'] {
   background: var(--brand-soft);
 }
 ```
 
 Reading the internal tokens (`var(--brand-soft)`, `var(--text-soft)`) inside your own rules is
 fine; it is overriding them that is unsupported. To find a component's classes, look in
-`node_modules/@sveltebuilder/coreui/styles/components.css`.
+the stylesheet beside it in `node_modules/@sveltebuilder/coreui/dist/<Component>/` (for example
+`dist/Button/button.css`), or in `docs/COREUI-COMPATIBILITY.md`, which lists the public ones.
 
 ### 8.5 Dark mode
 

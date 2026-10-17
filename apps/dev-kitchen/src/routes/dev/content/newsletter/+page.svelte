@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { NewsletterSignup, SubscriberList } from '@sveltebuilder/content';
-  import Example from '$lib/Example.svelte';
+  import { NewsletterSubscriptionForm, SubscriberList } from '@sveltebuilder/content';
+  import Example from '$lib/Example/Example.svelte';
   import { NEWSLETTER, SUBSCRIBERS, contentDictionary } from '$lib/fixtures/content';
 
   const dictionary = contentDictionary();
@@ -8,16 +8,16 @@
 </script>
 
 <div style:display="grid" style:gap="var(--space-2)" style:max-inline-size="36rem">
-  <Example title="NewsletterSignup">
-    <NewsletterSignup newsletter={NEWSLETTER} action="#subscribe" {dictionary} />
+  <Example title="NewsletterSubscriptionForm">
+    <NewsletterSubscriptionForm newsletter={NEWSLETTER} action="#subscribe" {dictionary} />
   </Example>
 
   <Example title="After a successful submit">
-    <NewsletterSignup newsletter={NEWSLETTER} formResult={{ success: true }} {dictionary} />
+    <NewsletterSubscriptionForm newsletter={NEWSLETTER} formResult={{ success: true }} {dictionary} />
   </Example>
 
   <Example title="After a failed submit">
-    <NewsletterSignup
+    <NewsletterSubscriptionForm
       newsletter={NEWSLETTER}
       formResult={{ success: false, error: '' }}
       {dictionary}
@@ -35,6 +35,7 @@
       perPage={20}
       onPageChange={(next) => (page = next)}
       locale="en"
+      {dictionary}
     />
   </div>
 </Example>

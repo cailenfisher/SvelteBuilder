@@ -1,0 +1,133 @@
+<script module lang="ts">
+  export type SelectSize = 'sm' | 'md' | 'lg';
+</script>
+
+<script lang="ts">
+  import type { Snippet } from 'svelte';
+  import { Select } from 'bits-ui';
+  import { getFieldContext } from '../Field/use-field.js';
+  import SelectItemCollector from './SelectItemCollector.svelte';
+  import type { SelectItemRecord, SelectItemRegistry } from './select-items.js';
+
+  type Props = {
+    value?: string;
+    /** Shown when nothing is selected. Optional, with no default: the accessible name comes from
+        the surrounding Field's label, not from this. */
+    placeholder?: string;
+    size?: SelectSize;
+    disabled?: boolean;
+    error?: string | boolean;
+    name?: string;
+    /** Called when the value changes, with the new value. See Checkbox's `onCheckedChange`. */
+    onValueChange?: (value: string) => void;
+    children: Snippet;
+    class?: string | undefined;
+  };
+
+  let {
+    value = $bindable(''),
+    placeholder,
+    size = 'md',
+    disabled,
+    error,
+    name,
+    onValueChange,
+    children,
+    class: extraClass,
+  }: Props = $props();
+
+  // The whole context, not useField(): the trigger is named by the Field's label id.
+  const field = getFieldContext();
+
+  // What each SelectItem child is called, so the trigger can show a label instead of the
+  // selected value while the list is closed. See select-items.ts.
+  let itemRecords = $state<Record<string, SelectItemRecord>>({});
+  const registry: SelectItemRegistry = {
+    set: (record) => {
+      const current = itemRecords[record.value];
+      if (current?.label === record.label && current?.disabled === record.disabled) return;
+      itemRecords[record.value] = record;
+    },
+    delete: (itemValue) => {
+      delete itemRecords[itemValue];
+    },
+  };
+  const items = $derived(Object.values(itemRecords));
+
+  const resolvedDisabled = $derived(disabled ?? field?.disabled ?? false);
+
+  const hasError = $derived(!!error || !!field?.error);
+
+  // The trigger is a select-only combobox (role="combobox" on the button, the ARIA APG
+  // pattern): Bits UI sets aria-activedescendant on it while open, which a plain button may
+  // not carry. A combobox takes no name from its contents, so it is named explicitly: inside
+  // a Field by that Field's label plus the current value ("Carrier, Express"), with the
+  // trigger taking the Field's id so the <label for> points at it; outside one, by the value.
+  const ownId = $props.id();
+  const valueId = $derived(`${field?.id ?? ownId}-value`);
+  // ARIA 1.2 requires an expanded combobox to name its popup; Bits UI does not set it here.
+  const listboxId = $derived(`${field?.id ?? ownId}-listbox`);
+  const labelledBy = $derived(field ? `${field.labelId} ${valueId}` : valueId);
+  // The Field's, which names only what it renders: its own `error` marks the trigger invalid, but
+  // only the Field shows a message.
+  const describedBy = $derived(field?.describedBy);
+
+  const triggerClasses = $derived(
+    ['select__trigger', `select__trigger--${size}`, hasError ? 'select__trigger--error' : ''].filter(Boolean).join(' ')
+  );
+
+  const wrapperClasses = $derived(
+    ['select', extraClass ?? ''].filter(Boolean).join(' ')
+  );
+</script>
+
+<div class={wrapperClasses}>
+  <!-- Registration pass: renders nothing, but lets every SelectItem report its label before the
+       Root below reads `items`. Must stay ahead of the Root in this template. -->
+  <SelectItemCollector {registry}>{@render children()}</SelectItemCollector>
+
+  <Select.Root type="single" bind:value {onValueChange} {name} {items} disabled={resolvedDisabled}>
+    <Select.Trigger
+      class={triggerClasses}
+      role="combobox"
+      id={field?.id}
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy}
+      aria-controls={listboxId}
+      aria-invalid={hasError || undefined}
+    >
+      <Select.Value placeholder={placeholder} class="select__value" id={valueId} />
+      <span class="select__chevron" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" width="16" height="16">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </Select.Trigger>
+
+    <Select.Portal>
+      <!-- The listbox is a separate widget once open and needs its own name. -->
+      <Select.Content
+        id={listboxId}
+        class="select__content"
+        sideOffset={4}
+        aria-labelledby={field?.labelId}
+      >
+        <Select.ScrollUpButton class="select__scroll-button select__scroll-button--up">
+          <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden="true">
+            <path d="M4 10l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </Select.ScrollUpButton>
+
+        <Select.Viewport class="select__viewport">
+          {@render children()}
+        </Select.Viewport>
+
+        <Select.ScrollDownButton class="select__scroll-button select__scroll-button--down">
+          <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </Select.ScrollDownButton>
+      </Select.Content>
+    </Select.Portal>
+  </Select.Root>
+</div>

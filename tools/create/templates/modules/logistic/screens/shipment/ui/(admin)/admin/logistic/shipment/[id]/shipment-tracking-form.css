@@ -1,0 +1,10 @@
+.shipment-tracking-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.shipment-tracking-form__actions {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -1,0 +1,12 @@
+.supplier-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.supplier-list__empty {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  margin: 0;
+  padding: var(--space-8) 0;
+}

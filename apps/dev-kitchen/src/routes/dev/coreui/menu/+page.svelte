@@ -10,11 +10,17 @@
     MenuSeparator,
     MenuSub,
   } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   let last = $state('(nothing yet)');
   let showArchived = $state(false);
   let sort = $state('newest');
+
+  const openCalls: boolean[] = $state([]);
+  const selectCalls: string[] = $state([]);
+  const checkedCalls: boolean[] = $state([]);
+  const valueCalls: string[] = $state([]);
 </script>
 
 <Example title="Everything a menu can hold">
@@ -38,7 +44,8 @@
       <MenuRadioItem value="oldest">Oldest first</MenuRadioItem>
     </MenuRadioGroup>
     <MenuSeparator />
-    <MenuSub triggerLabel="Export">
+    <MenuSub>
+      {#snippet trigger()}Export{/snippet}
       <MenuItem onSelect={() => (last = 'Export CSV')}>CSV</MenuItem>
       <MenuItem onSelect={() => (last = 'Export PDF')}>PDF</MenuItem>
     </MenuSub>
@@ -54,4 +61,20 @@
     <MenuLabel>Shipment 4183</MenuLabel>
     <MenuItem onSelect={() => (last = 'Print')}>Print</MenuItem>
   </Menu>
+</Example>
+
+<Example title="Callbacks">
+  <Menu onOpenChange={(next) => openCalls.push(next)}>
+    {#snippet trigger()}Line actions{/snippet}
+    <MenuItem onSelect={() => selectCalls.push('Split')}>Split</MenuItem>
+    <MenuCheckboxItem onCheckedChange={(next) => checkedCalls.push(next)}>Flag line</MenuCheckboxItem>
+    <MenuRadioGroup value="unit" onValueChange={(next) => valueCalls.push(next)}>
+      <MenuRadioItem value="unit">Count in units</MenuRadioItem>
+      <MenuRadioItem value="case">Count in cases</MenuRadioItem>
+    </MenuRadioGroup>
+  </Menu>
+  <CallbackLog name="onOpenChange" calls={openCalls} />
+  <CallbackLog name="onSelect" calls={selectCalls} />
+  <CallbackLog name="onCheckedChange" calls={checkedCalls} />
+  <CallbackLog name="onValueChange" calls={valueCalls} />
 </Example>

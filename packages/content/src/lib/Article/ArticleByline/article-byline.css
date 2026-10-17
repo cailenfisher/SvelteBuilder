@@ -1,0 +1,18 @@
+/* ── ArticleBylineList ─────────────────────────────────────────────────────────────────────────── */
+
+/* Inline text, not flex: the separators Intl.ListFormat supplies (", ", " and ") carry their own
+   spaces, which flex layout would trim. */
+.article-byline-list {
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.article-byline-list__link {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: var(--weight-medium);
+}
+
+.article-byline-list__link:hover {
+  color: var(--link-text);
+}

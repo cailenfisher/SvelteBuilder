@@ -1,11 +1,18 @@
 <script lang="ts">
-  import { Field, Select, SelectItem } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import { Button, Field, Select, SelectItem } from '@sveltebuilder/coreui';
+  import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   const sizes = ['sm', 'md', 'lg'] as const;
 
   let carrier = $state('');
   let license = $state('creative_commons');
+
+  let controlledValue = $state('');
+  const controlledCalls: string[] = $state([]);
+  let boundValue = $state('');
+  const boundCalls: string[] = $state([]);
+  let submitted = $state('');
 </script>
 
 <div style:display="grid" style:gap="var(--space-2)" style:max-inline-size="28rem">
@@ -22,7 +29,7 @@
 
   <Example title="Preselected value shows its label">
     <Field id="select-license" label="License">
-      <Select bind:value={license}>
+      <Select bind:value={license} placeholder="Choose a license">
         <SelectItem value="all_rights_reserved" label="All rights reserved" />
         <SelectItem value="creative_commons" label="Creative Commons" />
       </Select>
@@ -36,7 +43,7 @@
       </Select>
     </Field>
     <Field id="select-disabled" label="Region" disabled>
-      <Select value="eu" disabled>
+      <Select value="eu" placeholder="Choose a region" disabled>
         <SelectItem value="eu" label="Europe" />
       </Select>
     </Field>
@@ -52,3 +59,37 @@
     {/each}
   </Example>
 </div>
+
+<Example title="Callbacks">
+  <form
+    onsubmit={(event) => {
+      event.preventDefault();
+      submitted = String(new FormData(event.currentTarget).get('bound-service') ?? '');
+    }}
+  >
+    <Field id="select-controlled" label="Controlled service">
+      <Select
+        value={controlledValue}
+        onValueChange={(next) => {
+          controlledCalls.push(next);
+          controlledValue = next;
+        }}
+        placeholder="Choose a service"
+      >
+        <SelectItem value="ground" label="Ground" />
+        <SelectItem value="express" label="Express" />
+        <SelectItem value="freight" label="Freight (unavailable)" disabled />
+      </Select>
+    </Field>
+    <CallbackLog name="Controlled onValueChange" calls={controlledCalls} />
+    <Field id="select-bound" label="Bound service">
+      <Select bind:value={boundValue} onValueChange={(next) => boundCalls.push(next)} placeholder="Choose a service" name="bound-service">
+        <SelectItem value="ground" label="Ground" />
+        <SelectItem value="express" label="Express" />
+      </Select>
+    </Field>
+    <CallbackLog name="Bound onValueChange" calls={boundCalls} />
+    <p role="status">Bound value: {boundValue || '(none)'}. Submitted: {submitted || '(nothing)'}</p>
+    <Button type="submit" variant="secondary">Submit services</Button>
+  </form>
+</Example>

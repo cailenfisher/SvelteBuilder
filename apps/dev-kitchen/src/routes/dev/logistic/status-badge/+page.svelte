@@ -2,7 +2,7 @@
      shipment and return screens resolve from the seed. -->
 <script lang="ts">
   import { ReturnConditionBadge, ShipmentStatusBadge } from '@sveltebuilder/logistic';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
 
   const shipmentStatuses = [
     ['created', 'Created'],

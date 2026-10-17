@@ -2,7 +2,7 @@
 
 Universal UI component library for [SvelteBuilder](https://github.com/cailenfisher/SvelteBuilder). Interactive components are built on [Bits UI](https://bits-ui.com) primitives; the rest are plain HTML — see [Bits UI or native](#bits-ui-or-native).
 
-Every component in coreui is Camp 1 (application-level UI) — plain `label: string` props, no `diglossia` import, no dependency on an entity `id`. `LocalTextLinkEdit`, `LocalTextEdit`, and `LocaleEdit` are admin editors for the i18n tables themselves, but they take plain props (slugs, scopes, locale codes) like any other coreui component; they only import `diglossia`'s types (`Locale`), never its runtime. Camp 2 (entity-aware) components live in the domain modules (`@sveltebuilder/content`, `@sveltebuilder/logistic`), not here.
+Every component in coreui is application-level UI — plain `label: string` props, no `diglossia` import, no dependency on an entity `id`. Entity components, which resolve their own copy, live in the domain modules (`@sveltebuilder/content`, `@sveltebuilder/logistic`), not here.
 
 ## Install
 
@@ -38,16 +38,14 @@ import { Button, Card, Input, Select, Table, DataTable, /* ...and more */ } from
 
 - **Layout & display:** `Card`, `Divider`
 - **Typography & decoration:** `Badge`, `Tag`, `Avatar`
-- **Feedback & status:** `Alert`, `ProgressBar`, `Skeleton`, `Spinner`
-- **Messaging:** `createMessageBus`/`setMessageBus`/`getMessageBus`, `Toast`, `ToastRegion`, `InlineNotification`, `Banner`, `ConfirmDialog`, `MessageAriaLive`
-- **Forms:** `Field`, `Label`, `Input`, `Textarea`, `Checkbox`, `RadioGroup`/`RadioItem`, `Switch`, `Select`/`SelectItem`, `BarcodeInput`, `DateTimePicker`, `useField`
+- **Feedback & status:** `Alert`, `ProgressBar`, `Skeleton`, `Spinner`. `Alert` is static page content the page itself writes ("This supplier is inactive"); for the result of something the user just did, use the message system's `InlineNotification`
+- **Messaging:** `createMessageBus`/`setMessageBus`/`getMessageBus`, `Toast`, `ToastRegion`, `InlineNotification`, `Banner`, `ConfirmDialog`, `MessageLiveRegion`
+- **Forms:** `Field`, `Label`, `Input`, `Textarea`, `Checkbox`, `RadioGroup`/`RadioGroupItem`, `Switch`, `Select`/`SelectItem`, `DateTimePicker`, `useField`
 - **Actions:** `Button`
 - **Overlay:** `Dialog`, `Popover`, `Tooltip`, `Drawer`
 - **Menus:** `Menu` and related sub-components
-- **Navigation:** `LocaleSwitcher`, `Pagination`
-- **Data display:** `MetricCard`, `Timeline`, `StatusBadge`, `Table`/`DataTable`
-- **Editing:** `BlockEditor`
-- **LocalText admin:** `LocaleEdit`, `LocalTextLinkEdit`, `LocalTextEdit`
+- **Navigation:** `LocalePicker`, `Pagination`
+- **Data display:** `MetricCard`, `Timeline`, `Table`/`DataTable`
 
 All interactive state (open/closed, checked, disabled, highlighted) is exposed via Bits UI `data-*` attributes, so component behavior stays consistent even if you write custom CSS against it.
 
@@ -57,18 +55,26 @@ A component wraps a Bits UI primitive when it has interaction a native element d
 
 Everything else is plain HTML on purpose:
 
-- **Static display** — `Alert`, `Badge`, `Card`, `Tag`, `Skeleton`, `Spinner`, `StatusBadge`, `MetricCard`, `Timeline`, `Table`. There is no behavior to borrow.
-- **Native controls that are already the accessible primitive** — `Button`, `Input`, `Textarea`, `BarcodeInput`. Bits UI's own `Button` adds nothing over `<button>`.
+- **Static display** — `Alert`, `Badge`, `Card`, `Tag`, `Skeleton`, `Spinner`, `MetricCard`, `Timeline`, `Table`. There is no behavior to borrow.
+- **Native controls that are already the accessible primitive** — `Button`, `Input`, `Textarea`. Bits UI's own `Button` adds nothing over `<button>`.
 - **`DateTimePicker`** uses `<input type="datetime-local">`: it handles date *and* time (Bits UI's date pickers are date-only), and gets the platform's mobile picker and screen-reader support for free.
-- **`LocaleSwitcher`** uses `<select>`, so it posts and works before hydration and gets the native picker on small screens.
+- **`LocalePicker`** uses `<select>`, so it posts and works before hydration and gets the native picker on small screens.
 - **`Avatar`** is an `<img>` with a CSS fallback; the image-loading state Bits UI tracks isn't needed for it.
-- **Messaging surfaces** (`Toast`, `Banner`, `InlineNotification`, `MessageAriaLive`) sit on coreui's own message bus.
+- **Messaging surfaces** (`Toast`, `Banner`, `InlineNotification`, `MessageLiveRegion`) sit on coreui's own message bus.
 
 ## Copy
 
-Every string a component shows comes in as a prop, with an English default for consumers without a dictionary — pass your own for any other locale. `Dialog` and `Drawer` take `closeLabel`; `ConfirmDialog` takes `confirmLabel` and `cancelLabel`; `Pagination` takes `previousLabel`, `nextLabel` and `label`. The messaging surfaces share one set of labels, passed once to `createMessageBus({ labels })` and read by `Toast`, `ToastRegion`, `Banner` and `InlineNotification` from context — see `MessageLabels` for the keys.
+Every string a component shows comes in as a prop, and none has an English default: a default would ship English to screen-reader users in every other locale. Strings that are accessible names are required — `Dialog` and `Drawer` take `closeLabel`; `ConfirmDialog` takes `confirmLabel` and `cancelLabel`; `Pagination` takes `previousLabel`, `nextLabel` and `label`; `DataTable` takes one `labels` object; `Spinner` and `ProgressBar` take `label`; a removable `Tag` takes `removeLabel`. Optional text such as `Select`'s `placeholder` simply renders nothing when omitted. The messaging surfaces share one set of labels, passed once to `createMessageBus({ labels })` and read by `Toast`, `ToastRegion`, `Banner` and `InlineNotification` from context — see `MessageLabels` for the keys.
 
-`BlockEditor` is the exception: its toolbar and block-type labels are still hardcoded English.
+## Attributes
+
+The component surface is closed: a component takes the props its type declares and nothing else.
+Only `Input`, `Textarea` and `Button`, which wrap one native element, pass other attributes through
+to it. Anything another component needs from its caller (an accessible name, a `name` for form
+submission, a `class`) is a declared prop. Opening the surface later is additive; closing it after
+1.0 would not be. A custom control inside a `Field` calls `useField()` and spreads the result on its focusable
+element (`<input {...useField()} />`): it gets the Field's `id`, `aria-describedby`, `aria-invalid`,
+`required` and `disabled`, typed as `FieldControl`.
 
 ## Part of the SvelteBuilder ecosystem
 

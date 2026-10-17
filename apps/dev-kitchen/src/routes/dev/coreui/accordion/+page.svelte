@@ -1,9 +1,13 @@
 <script lang="ts">
   import { Accordion, AccordionItem } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   let single = $state('receiving');
   let multiple = $state<string[]>(['picking']);
+
+  let controlledValue = $state('');
+  const controlledCalls: string[] = $state([]);
 </script>
 
 <div style:display="grid" style:gap="var(--space-2)" style:max-inline-size="36rem">
@@ -36,3 +40,20 @@
     <p role="status">Open: {multiple.join(', ') || '(none)'}</p>
   </Example>
 </div>
+
+<Example title="Callbacks">
+  <div style:inline-size="100%">
+    <Accordion
+      type="single"
+      value={controlledValue}
+      onValueChange={(next) => {
+        controlledCalls.push(next);
+        controlledValue = next;
+      }}
+    >
+      <AccordionItem value="returns" title="Controlled returns">Graded on arrival.</AccordionItem>
+      <AccordionItem value="counts" title="Controlled counts">Counted by location.</AccordionItem>
+    </Accordion>
+    <CallbackLog name="onValueChange" calls={controlledCalls} />
+  </div>
+</Example>

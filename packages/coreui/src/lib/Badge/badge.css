@@ -1,0 +1,14 @@
+/* =============================================================================
+   Badge — @layer chrome provides base display/layout structure
+   ============================================================================= */
+
+.badge--sm { height: 1.25rem; padding: 0 var(--space-1-5); font-size: var(--text-xs); }
+.badge--md { height: 1.5rem;  padding: 0 var(--space-2);   font-size: var(--text-xs); }
+.badge--lg { height: 1.75rem; padding: 0 var(--space-2-5); font-size: var(--text-sm); }
+
+.badge--default { background: var(--surface-overlay); color: var(--text);          border-color: var(--border-color); }
+.badge--brand   { background: var(--brand-soft);      color: var(--brand-text);    border-color: var(--brand); }
+.badge--success { background: var(--success-soft);    color: var(--success-text);  border-color: var(--success-border); }
+.badge--warning { background: var(--warning-soft);    color: var(--warning-text);  border-color: var(--warning-border); }
+.badge--danger  { background: var(--danger-soft);     color: var(--danger-text);   border-color: var(--danger-border); }
+.badge--info    { background: var(--info-soft);       color: var(--info-text);     border-color: var(--info-border); }

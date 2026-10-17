@@ -3,9 +3,12 @@
 /src/app.html
 /src/app.css
 /src/chrome.css
+/src/utilities.css
 /src/app.d.ts
 /src/hooks.server.ts
 /src/routes/+layout.svelte
+/src/routes/app-layout.css
+/src/routes/full-page-layout.css
 /src/routes/+error.svelte
 
 /test-results/

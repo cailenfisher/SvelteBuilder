@@ -1,6 +1,6 @@
 # Conformance manifest
 
-The approved name list for [`CONFORMANCE-PLAN.md`](./CONFORMANCE-PLAN.md). Every rename in Phases 3–11 comes from this file. A name not listed here is added as **pending** and approved before its phase closes.
+The approved name list for [`CONFORMANCE-PLAN.md`](./CONFORMANCE-PLAN.md). Every rename in Phases 3–12 comes from this file. A name not listed here is added as **pending** and approved before its phase closes.
 
 **Approved 2026-10-13**: every `proposed` entry, every recommendation in the decisions section, and the resolutions recorded in the pending rows below.
 
@@ -87,7 +87,7 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | `logistic.field.location`, `logistic.field.location_type` | `logistic.field.storage_location`, `logistic.field.storage_location_type` | proposed |
 | `logistic.admin.dashboard.title` | `logistic.dashboard.title` (one prefix for the dashboard) | proposed |
 | `logistic.dashboard.pending_receipts`, `open_picks`, `open_returns` | `pending_inbound_receipt`, `open_pick_task`, `open_return_authorization` | proposed |
-| `logistic.admin.nav.*` (8) | seeded, never rendered: no `navigation_item` row uses them, and `storage_location` has no screen | approved: delete them. Seeds are per module but screens are per bundle, so seeded nav rows would dead-link. Recorded in `DEFERRED.md` |
+| `logistic.admin.nav.*` (8) | keep, labels per D13. **Corrected in Phase 8:** Phase 0 recorded these as never rendered and approved deleting them, but the logistic dashboard renders them as its section links; the inventory search missed that file | corrected |
 | English labels "Receiving", "Returns", "Stock", "Locations" | "Inbound receipts", "Return authorizations", "Stock levels", "Storage locations" (and French equivalents) | decision D13 |
 
 ### dev-kitchen
@@ -193,7 +193,7 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | --- | --- | --- |
 | `RadioItem` | `RadioGroupItem` | proposed |
 | `TableHead` (`<thead>`), `TableHeader` (`<th>`) | `TableHead` kept; `TableHeader` → `TableHeaderCell` | proposed |
-| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit` | moved to the base template as `LocaleForm`, `LocalTextForm`, `LocalTextLinkForm` | proposed (A-2) |
+| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit` | moved to the base template as `LocaleFieldset`, `LocalTextFieldset`, `LocalTextLinkFieldset` | approved 2026-10-13 (A-2). First approved as `…Form`; renamed because none owns a `<form>`, they group inputs inside the page's form |
 | `LocaleSwitcher` | `LocalePicker` | proposed |
 | `StatusBadge` | removed | proposed (A-3) |
 | `BlockEditor`, type `EditorBlock` | moved to content as `ArticleBlockEditor`; type `ArticleBlockDraft` | approved |
@@ -223,7 +223,7 @@ All live in scope `logistic`. Both seeded locales (en, fr) and every `manifest.j
 | `.checkbox-wrap`, `.switch-wrap` | `.checkbox`, `.switch` become the wrapping root; the inputs become `.checkbox__control`, `.switch__control` |
 | `.table-wrap` | `.table` becomes the scroll root; `<table>` becomes `.table__element` |
 | `.block-editor`, `.block-*`, `.add-block-btn`, `.embed-*`, `.heading-level-select` | move with the component as `.article-block-editor__*` |
-| `.locale-edit`, `.local-text-edit`, `.local-text-link-edit` | move with the components as `.locale-form`, `.local-text-form`, `.local-text-link-form` |
+| `.locale-edit`, `.local-text-edit`, `.local-text-link-edit` | move with the components as `.locale-fieldset`, `.local-text-fieldset`, `.local-text-link-fieldset` |
 
 **Internal elements that become `__part`:**
 
@@ -322,7 +322,7 @@ REST paths (`/api/locale`, `/api/local-text/...`) are already singular. Only `CL
 | A-2 | Boundary | **Agree.** `BarcodeInput`: commerce is a stub with no planned scanning screen, so **move it to logistic** now. Adding it back to coreui later is additive; removing it from coreui after 1.0 would be breaking. |
 | A-3 | Duplicates | **Agree:** remove `StatusBadge`; keep `Alert` (static page content) and `InlineNotification` (a message-system result). |
 | A-4 | Severity word | **`danger`.** Note that `MessageSeverity` also has `critical`, which `Badge`/`Alert` lack; it stays message-only. |
-| A-5 | Attribute forwarding | **Closed and explicit.** `useField` and `FieldContext` are **public**: `BarcodeInput` moving to logistic (A-2) is a custom control that must read `Field`'s wiring. F3 ships in Phase 1. Approved as the best option today, to be revisited; see `DEFERRED.md`. |
+| A-5 | Attribute forwarding | **Closed and explicit.** `useField` and `FieldContext` are **public**: `BarcodeInput` moving to logistic (A-2) is a custom control that must read `Field`'s wiring. F3 ships in Phase 1. Approved as the best option today, to be revisited; see `DEFERRED.md`. **Revised 2026-10-15:** `useField()` stays public but returns `FieldControl`; `FieldContext` is no longer exported. |
 | A-6 | CSS contract | **Agree,** using the tables above. |
 | A-6b | Modifier form (new) | Modifiers are mixed today: `.btn.primary`, `.progress.lg`, `.toast.success` but `.drawer--left`. **Recommend BEM `--`** (`.button--primary`), which CLAUDE.md already names as the structure convention. |
 | A-7 | Callback and text conventions | **Agree.** |
@@ -337,3 +337,124 @@ REST paths (`/api/locale`, `/api/local-text/...`) are already singular. Only `CL
 | D14 | Module UI copy slug convention | Screens use `logistic.receipt.title` in scope `logistic` (module prefix repeated in slug and scope). Content's components use `newsletter.signup_heading` in scope `content` (no prefix). **Recommend keeping the prefix everywhere**, which changes only content's components (about 15 slugs) instead of every screen; the screen-bundle test and manifests are written against prefixed slugs. |
 | D15 | `Item` in domain table names | `publish_checklist_item` and `navigation_item` are domain tables, but D9 limits `Item` to coreui primitives. **Recommend allowing `Item` where the domain itself says it** ("checklist item", "navigation item" are the domain's terms) and banning it only as a stand-alone generic name. Otherwise: `publish_checklist_requirement`, `navigation_link`. |
 | D16 | `Screen*` view types duplicated | `ScreenCopy`, `ScreenLocale`, `ScreenPage` and `ScreenFormResult` are declared identically in both `views.ts` files (content adds `ScreenStorage`, `ScreenAttribution`). A helper declared twice is a bug under the single-source rule. **Recommend moving the shared ones into coreui as types-only exports** (`ScreenCopy` needs only a type import from diglossia, which guardrail 1 allows). Keep content's two extras in content. |
+| D17 | Timestamp type (found in Phase 4) | `timestamptz` (`withTimezone: true`) in content and `user_account`; plain `timestamp` in logistic, `navigation_item` and local-text-schema's `local_text`. Same idea, two types, sometimes in one schema file. **Recommend `timestamptz` everywhere**, Postgres's own advice for points in time. A Phase 5 column type change (`ALTER COLUMN … TYPE timestamptz`), with existing values read as UTC. **Pending.** |
+
+---
+
+## Added during Phase 8 (approved 2026-10-14)
+
+Applied in Phase 8 because they follow from approved rules.
+
+| Old | New | Rule |
+| --- | --- | --- |
+| view fields `receipts`, `receipt` (admin inbound receipt), `returns`, `counts`, `locations` (3 views), `task`, `active`, `recent`, `openTotal` | `inboundReceipts`, `inboundReceipt`, `returnAuthorizations`, `cycleCounts`, `storageLocations`, `pickTask`, `activeInboundReceipts`, `recentInboundReceipts`, `openPickTaskTotal` | never drop the parent concept (same as the approved `pendingReceipts` → `pendingInboundReceipts`) |
+| warehouse copy `logistic.pick.*`, `logistic.count.*`, `logistic.receive.*`; nav `logistic.warehouse.pick` (+ `.hint`) etc. | `logistic.warehouse.pick_task.*`, `logistic.warehouse.cycle_count.*`, `logistic.warehouse.inbound_receipt.*`; `logistic.warehouse.pick_task.title` (+ `.hint`) | D3: warehouse slugs under `logistic.warehouse.<concept>.*`; avoids colliding with the admin `logistic.cycle_count.empty`, `.lines` |
+| `logistic.pick.task` (dashboard label) | `logistic.pick_task.one` | matches `logistic.cycle_count.one`, `logistic.shipment.one` |
+| form actions `gradeLine`, `addContact`, `deleteContact`, `addEvent` | `gradeReturnAuthorizationLine`, `addSupplierContact`, `deleteSupplierContact`, `addTrackingEvent` | approved rule for every bundle's actions |
+| form fields `line_id`, `task_id`, `count_id`, `contact_id`, `location_ids` | `inbound_receipt_line_id`, `return_authorization_line_id`, `pick_task_line_id`, `cycle_count_line_id`, `pick_task_id`, `cycle_count_id`, `supplier_contact_id`, `storage_location_ids` | approved rule for every bundle's fields |
+| English "RMA" (`logistic.return_authorization.one`) | "Return authorization" | no abbreviations; D13 |
+| D14: `newsletter.*` and `action.submit_for_review` … `action.unpublish` in scope `content` | `content.newsletter_subscription_form.*`, `content.article_workflow.*` | D14 prefix, grouped by the component that renders them, like `content.article_block_editor.*` |
+| dev-kitchen `/dev/content/taxonomy` | `/dev/content/article-byline`, `/dev/content/section`, `/dev/content/topic` | the page also showed `ArticleBylineList`, so it splits three ways |
+| page-local CSS `admin-article`, `admin-article-list` | `article-admin`, `article-admin-list` | follows the screen id |
+
+## Added during Phase 9 (approved 2026-10-14)
+
+New names, not renames. Data module functions follow `<verb><Table>` with the table's full name
+(`listInboundReceipt`, `getPickTaskLine`, `receiveInboundReceiptLine`) and are not listed one by
+one; the files are one per table, named like the schema file. The rest:
+
+| Name | What it is | Rule |
+| --- | --- | --- |
+| file per table, not per concept (`inbound-receipt-line.ts` beside `inbound-receipt.ts`) | data module layout; amends the D5 wording in `CLAUDE.md` and `MODULE-ROUTES.md`, whose example put `addInboundReceiptLine` in `inbound-receipt.ts` | layers mirror each other: a query's file follows from its table's name, as the schema file does |
+| `QueryResult<T>` | every data module function's return: supabase-js's `{ data, error }`, data in camelCase | one way to report a failure; the route decides what it means |
+| `QueryRange` (`offset`, `limit`), `CountedRows<T>` (`rows`, `total`) | a list function's slice argument and its counted result | generic names, allowed because `postgrest.ts` is shared infrastructure, not domain code |
+| `LocaleFields`, `NavigationItemFields`, `SupplierFields`, `SupplierContactFields`, `LocalTextEntryFields` | what an administrator edits, as a data module argument | `<Table>Fields`, a suffix for a data module's argument type |
+| `NavigationItemWithLocalTextLink` | a navigation item with its copy link embedded | composite types are `<Concept>With<Concept>` |
+| `listActiveInboundReceipt`, `listRecentInboundReceipt`, `listAssignedPickTask`, `listOpenPickTask`, `listAssignedCycleCount`, `listOpenCycleCount`, `countOpenCycleCount`, `listActiveSection`, `listActiveTopic`, `listLatestArticle`, `getInitialArticleStatus` | lists named for what they select, where one table has several | qualifier before the table, as the view fields they fill (`activeInboundReceipts`) already do |
+| `getDictionaryPayload` | the `get_dictionary` RPC, in `local-text.ts` | avoids `getDictionary`, which diglossia/svelte already exports |
+| `getArticleByPreviewToken` | the two preview RPCs, in `article-preview-token.ts` | a function lives in the file of the table its query starts from |
+
+## Abbreviation cleanup (2026-10-14, between Phases 9 and 10, at the user's request)
+
+| Old | New |
+| --- | --- |
+| copy slugs `nav.*`, `admin.nav.*`, `logistic.admin.nav.*`, `logistic.warehouse.nav` | `navigation.*`, `admin.navigation.*`, `logistic.admin.navigation.*`, `logistic.warehouse.navigation` |
+| data keys and locals `navItems`, `navItem`, `NavItem`, `navLinks`, `navId`, `navResult` | `navigationItems`, `navigationItem`, `NavigationItem`, `navigationLinks`, `navigationItemId`, `navigationItemResult` |
+| CSS `__nav`, `__nav-link`, `.pagination__button--nav`, `.nav-item-edit-page`, `.warehouse-home__flow-desc` | `__navigation`, `__navigation-link`, `.pagination__button--navigation`, `.navigation-item-edit-page`, `.warehouse-home__flow-hint` |
+| element ids `nav-href`, `nav-menu`, `nav-position` | `navigation-item-href`, `navigation-item-menu`, `navigation-item-position` |
+| locals `msg`, `imgError`, `str`, `e` (multi-line or non-lambda), `urlEls`, field `desc` | `message`, `imageError`, `text`, `entry`/`event`, `urlElements`, `hint` |
+
+Kept: `src`, `params` and `e` in one-line lambdas, which are platform names or allowed by `CLAUDE.md`.
+
+## Added during Phase 10 (approved 2026-10-14)
+
+| Old | New | Rule |
+| --- | --- | --- |
+| screen root blocks named freely (`.receipt-list`, `.count-detail`, `.pick-task`, `.article-page`, `.preview-page`, `.stock-page`, `.dashboard`, …) | the view type with `View` → `Screen`: `.inbound-receipt-list-screen`, `.cycle-count-detail-screen`, `.pick-task-warehouse-detail-screen`, `.article-detail-screen`, `.article-preview-detail-screen`, `.stock-level-list-screen`; base screens by concept and role: `.admin-dashboard-screen`, `.locale-admin-list-screen`, `.local-text-admin-detail-screen`, `.navigation-item-admin-list-screen`, `.sign-in-screen`; `.warehouse-home-screen` (the home page has no view type of its own) | amends the plan's "view type without `View`", which made the article page `.article-detail`, colliding with the `ArticleDetail` component it renders |
+| sub-blocks of a screen: `.cycle-count-new-form`, `.receipt-new-form`, `.return-new-form`, `.shipment-new-form`, `.sign-in-card`, `.stat` | `.<screen>__new-form`, `.sign-in-screen__card`, `.admin-dashboard-screen__stat` | elements of the screen until Phase 11 extracts them |
+| root layout `.app`, `.full-page` | `.app-layout`, `.full-page-layout` | layouts are `<group>-layout`, like `.admin-layout` |
+| `.sr-only` (three copies) | `.visually-hidden` in `src/utilities.css`, `layer(utilities)` | no abbreviations; one helper, in the reserved utilities layer |
+| bare elements under a block (`__pullquote p`, `__embed iframe`, `__live-update p`, `__detail dt`/`dd`, `__meta dt`/`code`, `__filing dt`/`dd`, `__meta-item dt`/`dd`, `__logo a`, `kitchen__pages a`) | `__pullquote-text`, `__embed-frame`, `__live-update-text`, `__detail-term`/`-value`, `__meta-term`/`-code`, `__filing-term`/`-value`, `__meta-term`/`-value`, `__logo-link`, `__page-link` | every element a rule reaches has a class |
+| coreui table rules on `tr`, `td`, `th`, `thead` | `.table-row`, `.table-cell`, `.table-header-cell`, `.table-head` | same |
+| dev-kitchen `.kitchen`, `.theme` | `.kitchen-layout`, `.theme-screen` | same naming as the templates |
+| — | `src/lib/components.css` in each package (the stylesheet index, exported as `styles/components.css`), `src/utilities.css`, `scripts/css-check.mjs`, `pnpm css:check` | new files |
+
+## Added during Phase 11 (approved 2026-10-14)
+
+New components. "Package" ones only take props and render markup (D6) and have dev-kitchen
+showcases; "bundle" ones post to their route's actions or build its links, and sit beside the page.
+
+| Component | Where | Notes |
+| --- | --- | --- |
+| `FilterLinkList` (+ type `FilterLink`) | coreui | a list's server-side filter as a `<nav>` of links; replaces the same markup in six screens across two modules (promotion rule) |
+| `StockAdjustmentList`, `StorageLocationFieldset`, `InboundReceiptSummary`, `InboundReceiptList`, `CycleCountLineTable`, `ShipmentLineTable`, `LogisticMetricSummary` | logistic | `InboundReceiptList` is used by the admin list and the warehouse queue, with the link per receipt as a prop |
+| `CommentList` | content | renders readers' own words, so it needs no dictionary |
+| `<Concept>CreateForm`: `InboundReceiptCreateForm`, `ShipmentCreateForm`, `ReturnAuthorizationCreateForm`, `CycleCountCreateForm`, `SupplierCreateForm`, `ArticleCreateForm`, `LocalTextCreateForm`, `LocaleCreateForm`, `NavigationItemCreateForm` | bundle | named after the `create` action they post to |
+| `<Concept>Table`: `ShipmentTable`, `ReturnAuthorizationTable`, `CycleCountTable`, `StockLevelTable`, `StockLevelLowTable`, `LocalTextTable`, `LocaleTable`, `NavigationItemTable`; line tables `InboundReceiptLineTable`, `ReturnAuthorizationLineTable` | bundle | tables whose rows link to a route or post to one |
+| `<Concept>DetailHeader`: `InboundReceiptDetailHeader`, `ReturnAuthorizationDetailHeader`, `CycleCountDetailHeader`, `ShipmentDetailHeader`, `ArticleAdminDetailHeader` | bundle | named after the view type, like the screen root (`ArticleAdminDetailView` → `ArticleAdminDetailHeader`) |
+| child-row forms: `InboundReceiptLineAddForm`, `InboundReceiptLineReceiveForm`, `ReturnAuthorizationLineGradeForm`, `SupplierContactAddForm`, `TrackingEventAddForm`; edits: `SupplierUpdateForm`, `NavigationItemUpdateForm`, `ShipmentStatusForm`, `ShipmentTrackingForm`, `StockAdjustmentForm`, `StockLevelReorderPointForm`, `CommentForm` | bundle | `Add` for a child row, `Create` for a root, `Update` for the row itself |
+| `StockAdjustmentModal`, `StockAdjustmentPanel` | bundle | the stock-level screen's adjust dialog and history panel |
+| `SupplierList`, `SupplierContactList` | bundle | |
+| `LogisticDashboardSection`, `LogisticDashboardLinkList` | bundle | one frame and one preview list for the dashboard's four sections |
+| warehouse: `PickTaskAssignedList`, `PickTaskQueue`, `PickTaskLineList`, `CycleCountAssignedList`, `CycleCountQueue`, `CycleCountLineList`, `InboundReceiptLineList` | bundle | `Assigned` matches the data module's `listAssignedPickTask`; `Queue` is the open work a worker takes from |
+| `LocalTextForm` | base template `$lib/LocalText/` | one locale's copy, shared by the local-text and navigation-item detail screens, posting to the action the page names |
+
+Also: `class:negative` and `class:done` (bare classes) became BEM modifiers (`__discrepancy--negative`,
+`__line--done`), and text coloured `--danger` became `--danger-text`, which axe found failing contrast
+once the rules reached a showcased component.
+
+
+## Added during Phase 12 (approved 2026-10-15)
+
+Includes the names the three Phase 11 decisions brought in (2026-10-14).
+
+| Name | What it is |
+| --- | --- |
+| `ArticleList` props `href`, `onPageChange` (now required), `locale`; `ArticleWorkflowPanel` props `statusSlug`, `statuses`, `checklist`, `transitionAction`, `checklistAction`, `enhance` | the adapted content components; `href` matches `InboundReceiptList`'s, the action props `NewsletterSubscriptionForm`'s `action` |
+| slugs `content.article_list.canonical_slug`, `content.article_list.created_at`, `content.article_workflow.transition`, `content.article_workflow.save`, `content.article_workflow.publish_blocked`, `content.article_block_editor.empty` | copy for the adapted components |
+| `toLocalDateTime`, `toIsoDateTime` in `DateTimePicker/date-time-picker.ts` | the picker's timezone conversions, internal (not exported from the package) |
+| dev-kitchen `CallbackLog` (`$lib/CallbackLog/`), `tests/behaviour.spec.ts`, script `test:browser` (was `test:a11y`), fixtures `ARTICLE_ROWS`, `ARTICLE_STATUSES`, `CHECKLIST` | the behaviour test layer; the script runs accessibility and behaviour, so it no longer says only one |
+| slugs `content.article_block_renderer.{gallery,embed}`, `content.article_byline_list.by`, `content.article_card.topics`, `content.article_detail.{published,updated}`, `content.author_profile_detail.articles`, `content.front_detail.brief`, `content.front_curation_board.{empty,list,move_up,move_down,remove}`, `content.live_coverage_detail.{region,live,ended,pinned,all,empty}` | component copy, named after the component, like `content.article_list.*` |
+| slugs `content.live_update.{label,pinned_label,pinned}`, `content.front_layout_variant.{lead,secondary,river,brief}` | named after the concept rather than a component: the first is shared by `LiveUpdateCard` and `ArticleBlockRenderer`, the second is the enum's value names, like `content.article_block_type.*` |
+| slugs `logistic.inbound_receipt.{number,discrepancy_alert}`, `logistic.pick_task.{number,lines,lines_completed}`, `logistic.stock_level.below_reorder_point`, `logistic.storage_location.path`, `logistic.supplier.{inactive,lead_time,contact_more}`, `logistic.tracking_event.empty` | logistic component copy; the cards reuse `logistic.inbound_receipt.expected_at`, `received_at`, `lines`, `logistic.field.{available,reserved,on_hand}` and `logistic.warehouse.inbound_receipt.received_of` rather than add twins |
+| "application-level" and "entity" components | the descriptive terms replacing "Camp 1" and "Camp 2", taken from CLAUDE.md's own table |
+
+## Added with the `useField` decision (2026-10-15)
+
+| Name | What it is | Status |
+| --- | --- | --- |
+| `FieldControl` | the type `useField()` returns: `id`, `aria-describedby`, `aria-invalid`, `required`, `disabled`, under their HTML names so a native control can spread it. Replaces `FieldContext` in coreui's exports | approved 2026-10-15 |
+| `FieldContext` | stays as the internal type of the context `Field` sets; no longer exported | approved 2026-10-15 |
+| internal accessor for `Select` and `RadioGroup` (proposed `getFieldContext`, in `Field/use-field.ts`, not exported) | gives the two controls that need `aria-labelledby` the label's id | pending |
+
+## Added during Phase 13 (pending approval)
+
+| Name | What it is |
+| --- | --- |
+| coreui type `FieldControl` | what `useField()` returns: `id`, `aria-describedby`, `aria-invalid`, `required`, `disabled` (decided 2026-10-15) |
+| `setFieldContext`, `getFieldContext`, `FieldContext.describedBy` | internal to coreui: `Field`'s side of the context, and `Select`/`RadioGroup`'s accessor for the label id |
+| coreui type `ScreenFormError` (`slug`, `detail?`) | a form action's error as copy |
+| `formError(status, slug, detail?)` in the flavour's `src/lib/server/form-error.ts`; `formErrorText(error, screenDictionary, globalDictionary)` in the base template's `src/lib/FormError/form-error.ts` | the action side and the screen side; the folder is the concept, like `LocalText/` |
+| slugs `logistic.error.*` (66), `content.error.*` (15), global `error.*` (19) | one per distinct failure, named for what went wrong (`sku_required`, `inbound_receipt_closed`, `pick_task_not_yours`); `error` is a category segment like the existing `logistic.field.*` and global `feedback.*` |
+| slugs `content.publish_validation.*` (19); type `PublishValidationIssue` (was `PublishValidationError`), fields `slug`, `values` | the publish check's reasons, returned instead of thrown |
+| test fixtures `FieldWithControl.svelte` (was `FieldControl.svelte`, which now collides with the type) and `CustomFieldControl.svelte`; `tools/create/test/form-error.test.ts` | |

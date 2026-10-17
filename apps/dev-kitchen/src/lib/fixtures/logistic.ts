@@ -9,7 +9,10 @@ import type {
   InboundReceipt,
   InboundReceiptLine,
   PickTask,
+  CycleCountLine,
   PickTaskLine,
+  ShipmentLine,
+  StockAdjustment,
   StorageLocation,
   Supplier,
   SupplierContact,
@@ -49,14 +52,14 @@ const location = (
   slug: string,
   locationType: StorageLocation['locationType'],
   parentStorageLocationId: number | null,
-  sortOrder: number
+  position: number
 ): StorageLocation => ({
   id,
   slug,
   locationType,
   parentStorageLocationId,
   active: true,
-  sortOrder,
+  position,
   createdAt: CREATED_AT,
 });
 
@@ -126,7 +129,7 @@ const receipt = (
 export const RECEIPTS = [
   receipt(41, 1, 'partial', '2026-10-07T09:40:00.000Z'),
   receipt(42, 1, 'pending', null),
-  receipt(43, null, 'complete', '2026-10-06T15:10:00.000Z'),
+  receipt(43, null, 'completed', '2026-10-06T15:10:00.000Z'),
 ];
 
 export const RECEIPT_LINES: InboundReceiptLine[] = [
@@ -182,6 +185,61 @@ export const TRACKING_EVENTS: TrackingEvent[] = [
   },
 ];
 
+export const SHIPMENT_LINES: ShipmentLine[] = [
+  { id: 1, shipmentId: 4182, pickTaskLineId: null, sku: 'BOLT-M8', quantity: 120, createdAt: CREATED_AT },
+  { id: 2, shipmentId: 4182, pickTaskLineId: null, sku: 'NUT-M8', quantity: 96, createdAt: CREATED_AT },
+];
+
+const cycleCountLine = (
+  id: number,
+  storageLocation: StorageLocation,
+  sku: string,
+  expectedQuantity: number,
+  countedQuantity: number | null
+): CycleCountLine => ({
+  id,
+  cycleCountId: 7,
+  stockLevelId: id,
+  storageLocationId: storageLocation.id,
+  sku,
+  expectedQuantity,
+  countedQuantity,
+  variance: countedQuantity === null ? null : countedQuantity - expectedQuantity,
+  createdAt: CREATED_AT,
+});
+
+/** One line matched, one short, one not yet counted. */
+export const CYCLE_COUNT_LINES = [
+  cycleCountLine(1, BIN, 'BOLT-M8', 120, 120),
+  cycleCountLine(2, BIN, 'WASHER-M8', 300, 288),
+  cycleCountLine(3, NEXT_BIN, 'NUT-M8', 240, null),
+];
+
+export const STOCK_ADJUSTMENTS: StockAdjustment[] = [
+  {
+    id: 2,
+    stockLevelId: 1,
+    userAccountId: 1,
+    delta: -3,
+    onHandBefore: 120,
+    onHandAfter: 117,
+    reason: 'damage',
+    note: 'Crushed in the aisle',
+    createdAt: '2026-10-07T09:15:00.000Z',
+  },
+  {
+    id: 1,
+    stockLevelId: 1,
+    userAccountId: 1,
+    delta: 20,
+    onHandBefore: 100,
+    onHandAfter: 120,
+    reason: 'inbound_receipt',
+    note: null,
+    createdAt: '2026-10-02T14:00:00.000Z',
+  },
+];
+
 type CopyRow = [string, string, number | null, string];
 
 const COPY: CopyRow[] = [
@@ -194,13 +252,51 @@ const COPY: CopyRow[] = [
   ['name', 'storage_location', 5, 'Bin A-04-3'],
   ['logistic.inbound_receipt.status.pending', 'logistic', null, 'Pending'],
   ['logistic.inbound_receipt.status.partial', 'logistic', null, 'Partial'],
-  ['logistic.inbound_receipt.status.complete', 'logistic', null, 'Complete'],
+  ['logistic.inbound_receipt.status.completed', 'logistic', null, 'Completed'],
   ['logistic.inbound_receipt.status.cancelled', 'logistic', null, 'Cancelled'],
   ['logistic.inbound_receipt.blind', 'logistic', null, 'Blind receipt'],
   ['logistic.pick_task.status.open', 'logistic', null, 'Open'],
   ['logistic.pick_task.status.in_progress', 'logistic', null, 'In progress'],
   ['logistic.pick_task.status.completed', 'logistic', null, 'Completed'],
   ['logistic.pick_task.status.cancelled', 'logistic', null, 'Cancelled'],
+  ['logistic.stock_adjustment_reason.damage', 'logistic', null, 'Damage'],
+  ['logistic.stock_adjustment_reason.inbound_receipt', 'logistic', null, 'Inbound receipt'],
+  ['logistic.stock_level.history_after', 'logistic', null, '→ {$count} on hand'],
+  ['logistic.stock_level.history_empty', 'logistic', null, 'No adjustments recorded for this stock level.'],
+  ['logistic.field.sku', 'logistic', null, "SKU"],
+  ['logistic.field.storage_location', 'logistic', null, "Location"],
+  ['logistic.shipment.quantity', 'logistic', null, "Quantity"],
+  ['logistic.shipment.lines_empty', 'logistic', null, "No lines on this shipment."],
+  ['logistic.cycle_count.expected', 'logistic', null, "Expected"],
+  ['logistic.cycle_count.counted', 'logistic', null, "Counted"],
+  ['logistic.cycle_count.variance', 'logistic', null, "Variance"],
+  ['logistic.cycle_count.matched', 'logistic', null, "Matched"],
+  ['logistic.inbound_receipt.expected_at', 'logistic', null, "Expected"],
+  ['logistic.inbound_receipt.received_at', 'logistic', null, "Received"],
+  ['logistic.admin.navigation.inbound_receipt', 'logistic', null, "Inbound receipts"],
+  ['logistic.admin.navigation.pick_task', 'logistic', null, "Pick tasks"],
+  ['logistic.admin.navigation.return_authorization', 'logistic', null, "Return authorizations"],
+  ['logistic.admin.navigation.cycle_count', 'logistic', null, "Cycle counts"],
+  ['logistic.dashboard.low_stock', 'logistic', null, "Low stock"],
+  ['logistic.dashboard.pending', 'logistic', null, "Pending"],
+  ['logistic.dashboard.open', 'logistic', null, "Open"],
+  ['logistic.dashboard.below_reorder', 'logistic', null, "Below reorder point"],
+  ['logistic.inbound_receipt.lines', 'logistic', null, 'Lines'],
+  ['logistic.warehouse.inbound_receipt.received_of', 'logistic', null, '{$received} of {$expected} received'],
+  ['logistic.inbound_receipt.number', 'logistic', null, 'Receipt #{$id}'],
+  ['logistic.inbound_receipt.discrepancy_alert', 'logistic', null, 'Quantity discrepancy on one or more lines.'],
+  ['logistic.pick_task.number', 'logistic', null, 'Pick task #{$id}'],
+  ['logistic.pick_task.lines', 'logistic', null, 'Pick lines'],
+  ['logistic.pick_task.lines_completed', 'logistic', null, '{$completed} of {$total} lines picked'],
+  ['logistic.field.available', 'logistic', null, 'Available'],
+  ['logistic.field.reserved', 'logistic', null, 'Reserved'],
+  ['logistic.field.on_hand', 'logistic', null, 'On hand'],
+  ['logistic.stock_level.below_reorder_point', 'logistic', null, 'Below reorder point ({$reorderPoint})'],
+  ['logistic.storage_location.path', 'logistic', null, 'Storage location path'],
+  ['logistic.supplier.inactive', 'logistic', null, 'Inactive'],
+  ['logistic.supplier.lead_time', 'logistic', null, '.input {$days :number} .match $days one {{Lead time: {$days} day}} * {{Lead time: {$days} days}}'],
+  ['logistic.supplier.contact_more', 'logistic', null, '.input {$count :number} .match $count one {{+{$count} more contact}} * {{+{$count} more contacts}}'],
+  ['logistic.tracking_event.empty', 'logistic', null, 'No tracking events yet.'],
 ];
 
 const COPY_PAYLOAD: DictionaryPayload = COPY.map(([slug, scope, entityId, content], index) => ({

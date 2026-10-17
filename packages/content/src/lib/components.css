@@ -1,0 +1,24 @@
+/* =============================================================================
+   SvelteBuilder Content — Component Styles
+   components.css
+
+   The module stylesheet a scaffold imports after coreui's, in the same layer:
+     @import '@sveltebuilder/content/styles/components.css' layer(components);
+   Each component's rules live beside it, in its concept folder; this file only
+   lists them.
+   ============================================================================= */
+
+@import './Article/ArticleAssignment/article-assignment.css';
+@import './Article/ArticleBlock/article-block.css';
+@import './Article/ArticleByline/article-byline.css';
+@import './Article/article.css';
+@import './AuthorProfile/author-profile.css';
+@import './Comment/comment.css';
+@import './Front/front.css';
+@import './LiveCoverage/live-coverage.css';
+@import './LiveUpdate/live-update.css';
+@import './MediaAsset/media-asset.css';
+@import './Newsletter/NewsletterSubscription/newsletter-subscription.css';
+@import './Section/section.css';
+@import './Subscriber/subscriber.css';
+@import './Topic/topic.css';

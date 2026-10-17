@@ -1,25 +1,22 @@
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { LOCALE_COLUMNS, toLocale } from '$lib/server/postgrest';
+import { listLocale } from '$lib/server/locale';
+import {
+  deleteLocalTextEntry,
+  getLocalTextLink,
+  listLocalText,
+  saveLocalText,
+} from '$lib/server/local-text';
+import { formError } from '$lib/server/form-error';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const id = parseInt(params.id);
   if (isNaN(id)) throw error(404, 'Not found');
 
   const [entryResult, translationResult, localeResult] = await Promise.all([
-    locals.supabase
-      .from('local_text_link')
-      .select('id, slug, scope, entity_id')
-      .eq('id', id)
-      .maybeSingle(),
-    locals.supabase
-      .from('local_text')
-      .select('id, link, locale, content')
-      .eq('link', id),
-    locals.supabase
-      .from('locale')
-      .select(LOCALE_COLUMNS)
-      .order('code'),
+    getLocalTextLink(locals.supabase, id),
+    listLocalText(locals.supabase, id),
+    listLocale(locals.supabase),
   ]);
 
   if (entryResult.error || translationResult.error || localeResult.error) {
@@ -28,14 +25,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (!entryResult.data) throw error(404, 'Entry not found');
 
   return {
-    entry: {
-      id: entryResult.data.id,
-      slug: entryResult.data.slug,
-      scope: entryResult.data.scope,
-      entityId: entryResult.data.entity_id,
-    },
-    translations: translationResult.data ?? [],
-    locales: (localeResult.data ?? []).map(toLocale),
+    entry: entryResult.data,
+    translations: translationResult.data,
+    locales: localeResult.data,
   };
 };
 
@@ -47,28 +39,26 @@ export const actions: Actions = {
     const localeId = parseInt(form.get('locale_id') as string);
     const content = (form.get('content') as string | null)?.trim() ?? '';
 
-    if (isNaN(linkId) || isNaN(localeId)) return fail(422, { error: 'Invalid parameters.' });
+    if (isNaN(linkId) || isNaN(localeId)) return formError(422, 'error.parameters_invalid');
 
-    // uq_local_text_entry (link, locale) is what makes this an upsert rather than
-    // a read-then-write.
-    const { error: upsertError } = await locals.supabase
-      .from('local_text')
-      .upsert({ link: linkId, locale: localeId, content }, { onConflict: 'link,locale' });
+    const { error: upsertError } = await saveLocalText(locals.supabase, {
+      link: linkId,
+      locale: localeId,
+      content,
+    });
 
-    if (upsertError) return fail(500, { error: 'Failed to save translation.' });
+    if (upsertError) return formError(500, 'error.translation_save_failed');
 
-    return { success: true };
+    return { success: true as const };
   },
 
   delete: async ({ params, locals }) => {
     const id = parseInt(params.id);
-    if (isNaN(id)) return fail(422, { error: 'Invalid ID.' });
+    if (isNaN(id)) return formError(422, 'error.id_invalid');
 
-    const { error: rpcError } = await locals.supabase.rpc('delete_local_text_entry', {
-      p_link_id: id,
-    });
+    const { error: rpcError } = await deleteLocalTextEntry(locals.supabase, id);
 
-    if (rpcError) return fail(500, { error: 'Failed to delete copy entry.' });
+    if (rpcError) return formError(500, 'error.local_text_delete_failed');
 
     throw redirect(303, '/admin/local-text');
   },

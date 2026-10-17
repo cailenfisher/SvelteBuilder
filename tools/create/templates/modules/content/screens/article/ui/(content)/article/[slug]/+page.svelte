@@ -1,18 +1,25 @@
 <script lang="ts">
+  import { getDictionary } from 'diglossia/svelte';
+  import './article-detail-screen.css';
   import { createDictionary } from 'diglossia';
-  import { Button, Field, InlineNotification, Input, Textarea } from '@sveltebuilder/coreui';
-  import { ArticleView } from '@sveltebuilder/content';
+  import { InlineNotification } from '@sveltebuilder/coreui';
+  import { ArticleDetail, CommentList } from '@sveltebuilder/content';
   import { buildArticleMetaTags, buildNewsArticleJsonLd } from '@sveltebuilder/content/publishing';
-  import type { ArticlePageView, ScreenFormResult } from '@sveltebuilder/content/views';
+  import type { ArticleDetailView } from '@sveltebuilder/content/views';
+  import type { ScreenFormResult } from '@sveltebuilder/coreui';
+  import CommentForm from './CommentForm.svelte';
+  import { formErrorText } from '$lib/FormError/form-error';
 
-  let { data, form }: { data: ArticlePageView; form?: ScreenFormResult } = $props();
+  let { data, form }: { data: ArticleDetailView; form?: ScreenFormResult } = $props();
+
+  const globalDictionary = getDictionary();
 
   // A fresh instance from this screen's payload, not `getDictionary().merge(...)`. Merging
   // would mutate the dictionary the root layout put in context, which on the server is shared
   // by everything rendering that request and on the client accumulates every article the
   // reader has visited. createDictionary() is request-scoped by construction.
   const scoped = $derived(createDictionary(data.copy));
-  const t = (slug: string) => scoped.localText(slug, 'content');
+  const localText = (slug: string) => scoped.localText(slug, 'content');
 
   const siteUrl = $derived(new URL(data.canonicalUrl).origin);
 
@@ -63,10 +70,10 @@
   {/if}
 </svelte:head>
 
-<main class="article-page">
-  <!-- Camp 2 component: it resolves the headline, dek and every block's text from the
+<main class="article-detail-screen">
+  <!-- An entity component: it resolves the headline, dek and every block's text from the
        dictionary by entity id, so it takes this screen's instance rather than context. -->
-  <ArticleView
+  <ArticleDetail
     article={data.article}
     {mediaAssets}
     {attributions}
@@ -75,105 +82,23 @@
     dictionary={scoped}
   >
     {#snippet after()}
-      {#if data.article.allowComment}
-        <section class="article-page__comments" aria-label={t('content.comments.heading')}>
-          <h2 class="article-page__comments-heading">{t('content.comments.heading')}</h2>
+      {#if data.article.commentAllowed}
+        <section class="article-detail-screen__comments" aria-label={localText('content.comment.heading')}>
+          <h2 class="article-detail-screen__comments-heading">{localText('content.comment.heading')}</h2>
 
           {#if data.comments.length > 0}
-            <ol class="article-page__comment-list">
-              {#each data.comments as comment (comment.id)}
-                <li class="article-page__comment">
-                  <p class="article-page__comment-author">{comment.authorName}</p>
-                  <p class="article-page__comment-body">{comment.body}</p>
-                </li>
-              {/each}
-            </ol>
+            <CommentList comments={data.comments} />
           {/if}
 
           {#if commentAccepted}
             <!-- role="status" rather than an alert: a successful submission is confirmation,
                  not a problem, and should not interrupt a screen reader. -->
-            <InlineNotification severity="success" summary={t('content.comments.pending')} />
+            <InlineNotification severity="success" summary={localText('content.comment.pending')} />
           {:else}
-            <form class="article-page__comment-form" method="POST" action="?/comment">
-              <h3 class="article-page__comment-form-heading">{t('content.comments.leave')}</h3>
-
-              {#if form?.error}
-                <InlineNotification severity="error" summary={form.error} />
-              {/if}
-
-              <Field label={t('content.comments.name')} id="comment-name" required>
-                <Input name="author_name" required />
-              </Field>
-              <Field label={t('content.comments.email')} id="comment-email" required>
-                <Input name="author_email" type="email" required />
-              </Field>
-              <Field label={t('content.comments.body')} id="comment-body" required>
-                <Textarea name="body" rows={5} required />
-              </Field>
-
-              <!-- No status field: a comment is created pending, and the RLS insert policy is
-                   what enforces that rather than this form omitting it. -->
-              <Button type="submit" variant="primary">{t('content.comments.submit')}</Button>
-            </form>
+            <CommentForm error={form?.error ? formErrorText(form.error, scoped, globalDictionary) : undefined} dictionary={scoped} />
           {/if}
         </section>
       {/if}
     {/snippet}
-  </ArticleView>
+  </ArticleDetail>
 </main>
-
-<style>
-  .article-page {
-    padding: var(--space-8) var(--space-4);
-  }
-
-  .article-page__comments {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    padding-block-start: var(--space-8);
-    max-width: 40rem;
-  }
-
-  .article-page__comments-heading {
-    margin: 0;
-    font-size: var(--text-xl);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-  }
-
-  .article-page__comment-form-heading {
-    margin: 0;
-    font-size: var(--text-base);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-  }
-
-  .article-page__comment-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .article-page__comment-author {
-    margin: 0;
-    font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
-    color: var(--text);
-  }
-
-  .article-page__comment-body {
-    margin: var(--space-1) 0 0;
-    color: var(--text-soft);
-  }
-
-  .article-page__comment-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-</style>

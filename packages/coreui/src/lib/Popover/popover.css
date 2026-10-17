@@ -1,0 +1,43 @@
+/* =============================================================================
+   Popover — @layer chrome provides popup container structure
+   ============================================================================= */
+
+/* A real <button> wrapping the caller's snippet, styled away but keeping a box: see
+   .dialog__trigger in dialog.css for why it is not display: contents. */
+.popover__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.popover {
+  z-index: var(--z-popover);
+  padding: var(--space-4);
+  max-width: 20rem;
+  animation: popover-in var(--duration) var(--ease);
+}
+.popover[data-state='closed'] {
+  animation: popover-out var(--duration) var(--ease);
+}
+
+.popover[data-side='top']    { transform-origin: bottom center; }
+.popover[data-side='bottom'] { transform-origin: top center; }
+.popover[data-side='left']   { transform-origin: right center; }
+.popover[data-side='right']  { transform-origin: left center; }
+
+@keyframes popover-in  { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes popover-out { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+
+.popover__arrow {
+  fill: var(--surface);
+  stroke: var(--border-color);
+  stroke-width: 1px;
+}

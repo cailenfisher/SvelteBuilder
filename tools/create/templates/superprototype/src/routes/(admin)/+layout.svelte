@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './admin-layout.css';
   import type { Snippet } from 'svelte'
   import { Avatar, Button } from '@sveltebuilder/coreui'
   import { getDictionary } from 'diglossia/svelte'
@@ -8,8 +9,8 @@
 
   const dictionary = getDictionary()
 
-  const navLinks = $derived(
-    data.navItems.map((item) => ({
+  const navigationLinks = $derived(
+    data.navigationItems.map((item) => ({
       href: item.href,
       label: item.localTextLink ? dictionary.localText(item.localTextLink.slug) : item.href,
     }))
@@ -17,14 +18,14 @@
 </script>
 
 <div class="admin-layout">
-  <nav class="admin-layout__sidebar" aria-label={dictionary.localText('admin.nav.label')}>
+  <nav class="admin-layout__sidebar" aria-label={dictionary.localText('admin.navigation.label')}>
     <div class="admin-layout__logo">
-      <a href="/admin/dashboard">{dictionary.localText('admin.title')}</a>
+      <a class="admin-layout__logo-link" href="/admin/dashboard">{dictionary.localText('admin.title')}</a>
     </div>
-    <ul class="admin-layout__nav">
-      {#each navLinks as link}
+    <ul class="admin-layout__navigation">
+      {#each navigationLinks as link}
         <li>
-          <a href={link.href} class="admin-layout__nav-link">{link.label}</a>
+          <a href={link.href} class="admin-layout__navigation-link">{link.label}</a>
         </li>
       {/each}
     </ul>
@@ -52,85 +53,3 @@
     </main>
   </div>
 </div>
-
-<style>
-  .admin-layout {
-    display: flex;
-    flex: 1;
-    min-height: 100dvh;
-  }
-
-  .admin-layout__sidebar {
-    width: 224px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.25rem 0.75rem;
-    border-right: 1px solid var(--border-color, currentColor);
-    background-color: var(--surface-raised, transparent);
-  }
-
-  .admin-layout__logo a {
-    font-weight: 600;
-    font-size: 1rem;
-    text-decoration: none;
-    color: inherit;
-    padding: 0 0.5rem;
-  }
-
-  .admin-layout__nav {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-  }
-
-  .admin-layout__nav-link {
-    display: block;
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius);
-    text-decoration: none;
-    font-size: 0.875rem;
-    color: var(--text, inherit);
-    transition: background-color 0.12s;
-  }
-
-  .admin-layout__nav-link:hover {
-    background-color: var(--surface-overlay, rgba(0, 0, 0, 0.05));
-  }
-
-  .admin-layout__body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .admin-layout__header {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 0.625rem 1.25rem;
-    border-bottom: 1px solid var(--border-color, currentColor);
-    min-height: 3.25rem;
-  }
-
-  .admin-layout__user {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .admin-layout__email {
-    font-size: 0.875rem;
-    color: var(--text-soft, inherit);
-  }
-
-  .admin-layout__main {
-    padding: 1.5rem;
-    flex: 1;
-  }
-</style>

@@ -1,0 +1,22 @@
+/* =============================================================================
+   Textarea — @layer chrome + state provide base structure and interactive states
+   ============================================================================= */
+
+.textarea {
+  transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+}
+
+.textarea--sm { min-height: 4rem;   font-size: var(--text-xs); }
+.textarea--md { min-height: 5.5rem; }
+.textarea--lg { min-height: 7.5rem; font-size: var(--text-base); }
+
+.textarea::placeholder { color: var(--text-muted); }
+.textarea:disabled::placeholder { color: var(--disabled-text); }
+
+/* Structural wrapper: layout only, no visual properties. */
+.textarea__wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}

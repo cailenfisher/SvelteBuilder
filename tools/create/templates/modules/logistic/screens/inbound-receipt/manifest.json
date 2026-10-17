@@ -1,0 +1,57 @@
+{
+  "id": "inbound-receipt",
+  "module": "logistic",
+  "label": "Inbound receipts",
+  "hint": "Receiving against a supplier or blind, line by line, with stock moved as goods land",
+  "routes": ["/admin/logistic/inbound-receipt", "/admin/logistic/inbound-receipt/[id]"],
+  "requires": [],
+  "views": [
+    "InboundReceiptListView",
+    "InboundReceiptDetailView",
+    "InboundReceiptRow",
+    "InboundReceiptLineRow"
+  ],
+  "actions": {
+    "/admin/logistic/inbound-receipt": {
+      "create": ["supplier_id", "expected_at", "note"]
+    },
+    "/admin/logistic/inbound-receipt/[id]": {
+      "addInboundReceiptLine": ["storage_location_id", "sku", "expected_quantity"],
+      "receiveInboundReceiptLine": ["inbound_receipt_line_id", "received_quantity"]
+    }
+  },
+  "copySlugs": [
+    "logistic.inbound_receipt.title",
+    "logistic.inbound_receipt.one",
+    "logistic.inbound_receipt.new",
+    "logistic.inbound_receipt.create",
+    "logistic.inbound_receipt.empty",
+    "logistic.inbound_receipt.filter_all",
+    "logistic.inbound_receipt.filter_status",
+    "logistic.inbound_receipt.pagination",
+    "logistic.inbound_receipt.supplier",
+    "logistic.inbound_receipt.expected_at",
+    "logistic.inbound_receipt.received_at",
+    "logistic.inbound_receipt.lines",
+    "logistic.inbound_receipt.lines_empty",
+    "logistic.inbound_receipt.line_add",
+    "logistic.inbound_receipt.expected_quantity",
+    "logistic.inbound_receipt.received_quantity",
+    "logistic.inbound_receipt.discrepancy",
+    "logistic.inbound_receipt.receive",
+    "logistic.inbound_receipt.blind",
+    "logistic.inbound_receipt.status.pending",
+    "logistic.inbound_receipt.status.partial",
+    "logistic.inbound_receipt.status.completed",
+    "logistic.inbound_receipt.status.cancelled",
+    "logistic.field.sku",
+    "logistic.field.storage_location",
+    "logistic.field.note",
+    "action.add",
+    "action.cancel",
+    "pagination.previous",
+    "pagination.next",
+    "navigation.pagination",
+    "action.close"
+  ]
+}

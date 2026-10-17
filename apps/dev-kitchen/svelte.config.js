@@ -13,14 +13,17 @@ const config = {
     // server and svelte-check agree on what an import means. Subpaths come before their
     // package root: a bare package alias also matches anything beneath it.
     alias: {
+      '@sveltebuilder/coreui/styles/components.css': packages('coreui/src/lib/components.css'),
       '@sveltebuilder/coreui/styles': packages('coreui/styles'),
       '@sveltebuilder/coreui': packages('coreui/src/lib/index.ts'),
+      '@sveltebuilder/content/styles/components.css': packages('content/src/lib/components.css'),
       '@sveltebuilder/content/views': packages('content/src/lib/views.ts'),
-      '@sveltebuilder/content/schema': packages('content/src/lib/schema.ts'),
+      '@sveltebuilder/content/schema': packages('content/src/lib/schema/index.ts'),
       '@sveltebuilder/content/publishing': packages('content/src/lib/publishing/index.ts'),
       '@sveltebuilder/content': packages('content/src/lib/index.ts'),
+      '@sveltebuilder/logistic/styles/components.css': packages('logistic/src/lib/components.css'),
       '@sveltebuilder/logistic/views': packages('logistic/src/lib/views.ts'),
-      '@sveltebuilder/logistic/schema': packages('logistic/src/lib/schema.ts'),
+      '@sveltebuilder/logistic/schema': packages('logistic/src/lib/schema/index.ts'),
       '@sveltebuilder/logistic': packages('logistic/src/lib/index.ts'),
       '@sveltebuilder/local-text-schema/seed': packages('local-text-schema/src/seed.ts'),
     },

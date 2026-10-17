@@ -13,7 +13,7 @@ queries `event.locals.supabase`, every screen is internationalised (the original
 English throughout), and what a module offers is read from the template tree, so the create CLI's
 hint now reports "8 screen bundles" with nothing left pending.
 
-The warehouse app is one bundle rather than four. Its shell nav and home screen link to all three
+The warehouse app is one bundle rather than four. Its shell navigation and home screen link to all three
 flows, so any subset renders dead links, and a warehouse app without picking is not a configuration
 anyone wants. `MODULE-ROUTES.md` already defines the selectable unit as a coherent feature carrying
 its shared layout, so this applies that rule rather than bending it.
@@ -67,10 +67,11 @@ and gate admin through `public.current_user_admin()`, and `pnpm sql:check` asser
 Outstanding for the package: a vitest suite (it still runs `--passWithNoTests` with no test files).
 All 9 components now render in `apps/dev-kitchen`, including the 3 no screen bundle uses.
 
-No admin navigation reaches the module's screens. The seed carried eight `logistic.admin.nav.*`
-slugs that no `navigation_item` row ever rendered; the conformance plan deletes them (2026-10-13).
-Seeding nav rows is not the fix: seeds are per module but screens are per bundle, so a row for an
-unselected bundle is a dead link. It needs the create CLI to emit nav rows per selected bundle.
+No admin navigation reaches the module's screens: the admin layout's `navigation_item` rows come
+only from the base seed, so the logistic screens are reachable from the dashboard's section links
+(`logistic.admin.navigation.*`) and nowhere else. Seeding navigation rows is not the fix: seeds are per module but
+screens are per bundle, so a row for an unselected bundle is a dead link. It needs the create CLI to
+emit navigation rows per selected bundle.
 
 ---
 
@@ -116,7 +117,7 @@ blocks and a byline — EN and FR throughout.
 ### Types narrowed, and why it kept happening
 
 Five types in the package demanded resolved copy that the code reading them never used:
-`ArticleView`'s prop, `ArticleForStructuredData`, `RssFeedArticle`, `NewsSitemapArticle` and
+`ArticleDetail`'s prop, `ArticleForStructuredData`, `RssFeedArticle`, `NewsSitemapArticle` and
 `validateArticleForPublish`. Each was an `ArticleWithCopy` or an `Omit<>` of one, while the function
 or component already took a `DictionaryInstance` and resolved the headline through it — then read
 byline names, section names and block text as baked strings off the row.
@@ -148,8 +149,8 @@ Unit tests now exist (`packages/content/test/`, five files rendering 9 of the 18
 server-side, including a no-`[missing:]` gate), but the other 9 have none. The live-coverage,
 front-curation, author-profile, newsletter and
 media screens were never written — only the thirteen route files that existed were ported, and
-`SectionFront`, `FrontCurationBoard`, `AssignmentQueue`, `SubscriberList`, `LiveCoverageView` and
-`AuthorProfileView` are components with no screen rendering them. They render in `apps/dev-kitchen`
+`FrontDetail`, `FrontCurationBoard`, `ArticleAssignmentQueue`, `SubscriberList`, `LiveCoverageDetail`
+and `AuthorProfileDetail` are components with no screen rendering them. They render in `apps/dev-kitchen`
 and pass its accessibility audit, but no scaffold can show them. That is the next content gap, and
 it is feature work rather than a port.
 
@@ -223,19 +224,14 @@ Standing rules:
 - **No favicon in any scaffold.** Both templates' `app.html` link `%sveltekit.assets%/favicon.png`,
   and neither ships a `static/` directory, so every page of every scaffolded app requests a file
   that does not exist and logs a 404. Fixing it needs an icon, which is a branding decision.
-- **`ArticleWorkflowPanel` is hard-coded English** ("Article Workflow", "Status", "Checklist",
-  "Team", "Required", the role names). It now works and is accessible, but showing it in another
-  locale needs copy slugs and seed rows.
-- **coreui's internal `class="label"`.** Seven components besides `Field` and `LocaleSwitcher` use
-  it for an internal element, so the form `Label`'s rules apply to them too. `Button`'s use failed
-  contrast and was renamed; the others pass, by luck rather than design.
-- **Right-to-left mirroring is unreviewed.** `components.css` has 15 physical-direction
-  declarations (`left`, `margin-right`, …) against 5 logical ones. axe passes under `dir="rtl"`,
-  but mirroring is visual.
+- **Right-to-left mirroring is partly reviewed.** The package stylesheets are down to two physical
+  declarations, both direction-neutral, and the `Switch` thumb that escaped its track in
+  right-to-left was fixed (2026-10-14). axe passes under `dir="rtl"`; the rest of mirroring is the
+  release candidate's visual review.
 
 ---
 
-## `useField` as public API: revisit (open, 2026-10-13)
+## `useField` as public API: revisit (decided and implemented 2026-10-15)
 
 The conformance plan makes `useField()` and `FieldContext` public coreui exports (decision A-5,
 option (a) in `docs/conformance-manifest.md`). That was forced by one case: `BarcodeInput` moves to
@@ -248,6 +244,58 @@ contract. Revisit whether that is the right mechanism, for example whether `Fiel
 its wiring to a child through a snippet parameter instead, before a second module depends on it.
 Narrowing it after 1.0 is breaking, so the revisit has to land with a major or before anything
 other than `BarcodeInput` consumes it.
+
+The options weighed on 2026-10-15 were keeping `FieldContext` public as it is; `Field` passing its
+wiring to its child as a snippet parameter (`children: Snippet<[FieldControl]>`); and keeping the
+hook but narrowing what it returns. The snippet parameter makes the wiring visible at the call site,
+but it either leaves coreui with two ways to read a `Field` (snippet for custom controls, context
+for its own) or rewrites every one of the ~85 `<Field>` usages, and one spreadable object cannot
+serve every control: `Select` and `RadioGroup` need the label's id, `Checkbox` only `disabled`. It
+also has to be forwarded through every wrapper between the `Field` and the control.
+
+**Decision:** keep `useField()`, narrow what it returns.
+
+- `useField()` returns `FieldControl | null`. `FieldControl` holds only the attributes a control
+  puts on its focusable element, under their HTML names so a native control can spread it:
+  `id`, `aria-describedby`, `aria-invalid`, `required`, `disabled`.
+- `Field` computes `aria-describedby` once (the error's id when there is an error, otherwise the
+  hint's id, otherwise nothing). Today `Input`, `Textarea`, `Switch`, `Select`, `DateTimePicker`
+  and `BarcodeInput` each repeat that rule.
+- `FieldContext` stops being exported. It remains the context's internal type, and `Select` and
+  `RadioGroup`, which also need the label's id for `aria-labelledby`, read it through an internal
+  accessor that the package does not export.
+- Controls that take their own `error` prop (`Input`, `Textarea`, `Select`) keep combining it
+  with the `Field`'s. Check while doing this that `aria-describedby` never names an error element
+  the `Field` did not render: `Input` and `Textarea` point at the `Field`'s error id whenever
+  either error is set.
+
+Why: it removes the actual problem, a public type exposing the context's internals (`hintId`,
+`errorId`, the raw `error` and `hint` strings), and the 1.0 contract becomes five standard
+attribute names. No call site changes. The only consumer outside coreui is `BarcodeInput`, whose
+only caller is its dev-kitchen page, so it lands on the 1.0 train without another major. The
+snippet parameter stays available as a later, additive option if call-site visibility is ever
+wanted. Implemented before Phase 13 of `docs/CONFORMANCE-PLAN.md` enters pre mode.
+
+---
+
+## Styling a class passed to a child component: revisit (decided 2026-10-14)
+
+The base template's local-text admin page gives `TableCell` the class
+`local-text-admin__content-cell` and styles it in its own `<style>` block. Svelte scopes that block
+to elements the page renders itself, so the rule never matched, and `svelte-check` reported it as
+unused. The fix applied was `:global(.local-text-admin__content-cell)`. Content's `ArticleCard`
+does the same to crop `MediaAssetFigure`'s image.
+
+`:global` was a stopgap. It escapes scoping for a page-specific class, and the pattern recurs
+anywhere a component styles a child it composes. The options were a wrapper element plus
+`:global`, a coreui prop for each need, CSS custom properties exposed by the child, or plain
+stylesheets with no Svelte scoping at all.
+
+**Decision:** plain stylesheets. BEM names already scope every rule, so Svelte's scoping is a
+second, redundant system and the one that breaks here. No component has a `<style>` block;
+packages export stylesheets the app layers, and app code imports its own. This costs more files
+and loses `svelte-check`'s unused-selector warning, which `scripts/css-check.mjs` replaces. Applied
+in Phase 10 of `docs/CONFORMANCE-PLAN.md`; the rules are in `CLAUDE.md`.
 
 ---
 

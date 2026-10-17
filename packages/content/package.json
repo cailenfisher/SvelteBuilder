@@ -33,9 +33,10 @@
       "svelte": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./styles/components.css": "./dist/components.css",
     "./schema": {
-      "types": "./dist/schema.d.ts",
-      "default": "./dist/schema.js"
+      "types": "./dist/schema/index.d.ts",
+      "default": "./dist/schema/index.js"
     },
     "./publishing": {
       "types": "./dist/publishing/index.d.ts",

@@ -5,10 +5,17 @@
  */
 import { describe, expect, it } from 'vitest';
 import { render } from 'svelte/server';
-import FieldControl from './fixtures/FieldControl.svelte';
+import FieldWithControl from './fixtures/FieldWithControl.svelte';
 
-const html = (props: { control: 'switch' | 'radio-group'; hint?: string; error?: string }) =>
-  render(FieldControl, { props }).body;
+type Fixture = {
+  control: 'switch' | 'radio-group' | 'input' | 'custom';
+  hint?: string;
+  error?: string;
+  controlError?: boolean;
+  disabled?: boolean;
+};
+
+const html = (props: Fixture) => render(FieldWithControl, { props }).body;
 
 describe('Switch inside a Field', () => {
   it('takes the id the Field label points at', () => {
@@ -36,5 +43,38 @@ describe('RadioGroup inside a Field', () => {
     expect(html({ control: 'radio-group' })).toMatch(
       /role="radiogroup"[^>]*aria-labelledby="notify-label"|aria-labelledby="notify-label"[^>]*role="radiogroup"/
     );
+  });
+});
+
+describe('Input inside a Field', () => {
+  it('is described by the hint', () => {
+    expect(html({ control: 'input', hint: 'Sent once' })).toMatch(
+      /<input[^>]*aria-describedby="notify-hint"/
+    );
+  });
+
+  it("is invalid by its own error, but never described by an error the Field did not render", () => {
+    const out = html({ control: 'input', hint: 'Sent once', controlError: true });
+    expect(out).toMatch(/<input[^>]*aria-invalid="true"/);
+    expect(out).not.toContain('notify-error');
+    expect(out).toMatch(/<input[^>]*aria-describedby="notify-hint"/);
+  });
+});
+
+describe('a custom control spreading useField()', () => {
+  it('gets the id, description, invalid state, required and disabled under their HTML names', () => {
+    const out = html({ control: 'custom', error: 'Required', disabled: true });
+    const input = out.match(/<input class="custom-field-control"[^>]*>/)?.[0] ?? '';
+    expect(input).toContain('id="notify"');
+    expect(input).toContain('aria-describedby="notify-error"');
+    expect(input).toContain('aria-invalid="true"');
+    expect(input).toContain('required');
+    expect(input).toContain('disabled');
+  });
+
+  it('is described by nothing when the Field has neither hint nor error', () => {
+    const input = html({ control: 'custom' }).match(/<input class="custom-field-control"[^>]*>/)?.[0] ?? '';
+    expect(input).not.toContain('aria-describedby');
+    expect(input).not.toContain('aria-invalid');
   });
 });

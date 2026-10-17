@@ -130,13 +130,40 @@ A bundle is a **coherent feature**, not a route file — its list, its detail, a
 share. `requires` names sibling bundles it links to, and selection expands through it, because a
 screen that hardcodes an href to a sibling renders a dead link without it. Where the links are dense
 enough that no subset makes sense, the feature is one bundle: logistic's warehouse app ships its
-shell, pick, receive and count together for exactly that reason.
+shell and its pick-task, inbound-receipt and cycle-count screens together for exactly that reason.
 
 `routes` means "has a page". A bundle shipping `+server.ts` endpoints declares them separately under
-`endpoints` — content's feeds bundle is three of them and no pages. Code that several routes in one
+`endpoints` — content's feed bundle is three of them and no pages. Code that several routes in one
 bundle share goes in an ordinary module beside them in the routes tree (SvelteKit treats only `+page`,
 `+layout`, `+server` and `+error` as special), not in `$lib`, which a scaffold without that module
 would also receive.
+
+**Data access goes through one data module per table.** A module's template directory carries a
+module-level `server.<flavour>/` overlay, which the create CLI copies to `src/lib/server/<module>/`
+whenever the module is selected, with or without any of its screens. It holds one file per table,
+named like that table's schema file, and each function lives in the file of the table its query
+starts from: `inbound-receipt.ts` exports `listInboundReceipt` and `getInboundReceipt` (which embeds
+the lines), while `inbound-receipt-line.ts` exports `addInboundReceiptLine`. The scaffold's own
+tables follow the same rule in the flavour's `src/lib/server/` (`locale.ts`, `navigation-item.ts`).
+
+Each function takes the request's `supabase` client as its first argument, so every query still
+runs through `event.locals.supabase` (guardrail 8) with RLS applied. It owns the table, the columns,
+the embeds and the `snake_case` → `camelCase` conversion, and returns supabase-js's own
+`{ data, error }` shape (`QueryResult<T>`) with the data already converted. The route checks `error`
+where it calls and decides what a failure means to the person on the other end: a 500, a form
+error, or a logged fallback. Route files never call `.from(` or `.rpc(` themselves, which
+`tools/create/test/data-module.test.ts` enforces. Helpers every data module needs (`toOne`,
+`QueryResult`) live once in the flavour's `src/lib/server/postgrest.ts`.
+
+**Where a screen's extracted components go.** A sub-block of a screen that names a concept becomes
+its own component. If it is presentational (props in, markup out), it goes in the module package's
+concept folder, with a dev-kitchen showcase. If it is bound to its route (posts to that page's form
+actions, or builds that route's hrefs), it stays in the bundle, beside the `+page.svelte` that uses
+it.
+
+**Shared screen-contract types are declared once.** `ScreenCopy`, `ScreenLocale`, `ScreenPage` and
+`ScreenFormResult` are type-only exports of `@sveltebuilder/coreui`, and every module's `views.ts`
+imports them. A module declares only the screen types particular to it.
 
 Package manager: **pnpm**. Task orchestration: **Turborepo**. Publishing: **Changesets**.
 
@@ -193,7 +220,7 @@ opposite failure mode: it's shared across concurrent requests on the server, lea
 visitor's locale into another's response. `createDictionary()` returns a fresh, request-scoped
 instance each call — call it in the component's `<script>` body, not inside an effect.
 
-**Feature module packages split internally (Camp 1 / Camp 2):**
+**Feature module packages hold two kinds of component:**
 
 | Component kind                                          | i18n dependency                                 | Receives                                                                                      |
 | ------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -229,7 +256,7 @@ on an empty-string scope, and when an `entityId` is given with no scope.
 ### Scope convention
 
 Scope matches the table/model name for entity-bound copy (`product` model → `product` scope).
-For UI copy not bound to an entity, use a logical grouping (`nav`, `auth`, `checkout`).
+For UI copy not bound to an entity, use a logical grouping (`navigation`, `auth`, `checkout`).
 Scope is open-ended — `store` instead of `commerce` is valid if more idiomatic for a module.
 
 **Scope is never a schema column, never a component prop.** It is implied by convention.
@@ -321,7 +348,7 @@ Full reference: https://github.com/cailenfisher/SvelteBuilder/wiki/Naming-Conven
 | SQL boolean                | state name, no `is_`/`has_` prefix                   | `active`, `email_verified`      |
 | SQL timestamp              | `_at` suffix                                         | `created_at`, `published_at`    |
 | SQL index/constraint       | prefixed, descriptive                                | `idx_user_account_email`        |
-| REST path                  | plural `kebab-case` (only plural exception)          | `/user-accounts`                |
+| REST path                  | singular `kebab-case`                                | `/user-account`                 |
 | JSON key                   | `camelCase`, singular unless collection              | `emailAddress`, `eventSessions` |
 | TS type / interface / enum | `PascalCase`, singular, no `I`/`T` prefix            | `UserAccount`, `Locale`         |
 | TS variable / function     | `camelCase`                                          | `userAccount`, `loadUser()`     |
@@ -341,6 +368,47 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
 **Acronyms** follow Google JS Style Guide — capitalize first letter only: `getHttpUrl`,
 `HtmlParser`, never `getHTTPURL`.
 
+### Concepts, roles and folders
+
+- **Never drop the parent concept**, in any layer: `inbound_receipt` is `InboundReceiptCard`,
+  `/admin/logistic/inbound-receipt`, `logistic.inbound_receipt.title`, and "Inbound receipts" in
+  the UI. Qualifiers come after the parent: `ArticleAdminListView`, screen id `article-admin`.
+- **UI labels use the full concept name** in headings, navigation and page titles. A short verb is
+  fine on a button or a worker's action menu ("Receive", "Pick"), because it names an action, not
+  the concept.
+- **Every concept gets a folder** in every component library and app: `Article/ArticleCard.svelte`,
+  `Article/ArticleBlock/ArticleBlockRenderer.svelte`, `Menu/MenuItem.svelte`. A folder's primary
+  component shares its name. No flat component directories. Non-component modules sit beside the
+  component they serve.
+- **Role suffixes** are the global list (`Form`, `List`, `Table`, `Row`, `Card`, `Detail`,
+  `Summary`, `Drawer`, `Modal`, `Header`, `Footer`, `Search`, `Filter`, `Picker`, `Field`, `Badge`,
+  `Link`, `Empty`, `Skeleton`) plus, in this repo: `Fieldset`, `Queue`, `Board`, `Panel`,
+  `Renderer`, `Figure`, `Bar`, `Path`, `Editor`, `Region`, and `Option` (a view-model type for one
+  `<Select>` option).
+- **Inputs are `Field`s and `Fieldset`s; only a component that owns the `<form>` is a `Form`.** A
+  `…Form` renders the `<form>` element itself, with its action and submit button, and is the clear
+  parent of everything inside it. A component holding one input with its label is a `…Field`. One
+  grouping several related inputs, to be placed inside a form someone else owns, is a
+  `…Fieldset` and renders a real `<fieldset>`, with an optional `<legend>` when nothing around it
+  already names the group. So `LocaleFieldset` sits inside the locale page's form, while
+  `NewsletterSubscriptionForm` posts its own.
+- **`View` means a view-model type**, never a component: `InboundReceiptDetailView` is the type a
+  loader returns; the component showing one is `…Detail`.
+- **`Item`** is allowed where the domain itself uses the word (`navigation_item`,
+  `publish_checklist_item`) and for coreui primitives that are items of a parent (`MenuItem`,
+  `AccordionItem`, `SelectItem`). Never as a stand-alone generic name.
+
+### Shared vocabulary
+
+One word per idea, across every module:
+
+| Idea | Word | Not |
+| --- | --- | --- |
+| A finished lifecycle state | `completed` | `complete`, `done` |
+| A time something stops applying | `<thing>_expires_at` | `<thing>_until` |
+| Manual ordering of sibling rows | `position` | `ordinal`, `sort_order` |
+| Severity of something gone wrong | `danger` | `error` |
+
 ---
 
 ## Svelte 5 / Framework Conventions
@@ -351,13 +419,28 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
 - **Derive, don't sync.** Prefer `$derived` over an `$effect` that writes to `$state`.
   Use `$effect` only for genuine side effects (DOM mutations, subscriptions, external logging).
 - **Component communication:** callback props (`onSessionSelect`) over `createEventDispatcher`.
+- **Callback names:** `on<Event>` in camelCase (`onRemove`, `onDismiss`). Every bindable value has
+  an `on<Value>Change` callback beside it (`onCheckedChange`, `onValueChange`, `onOpenChange`), so
+  a caller can react to a change without an `$effect` watching the bound value.
+- **Text props:** a `string` where the value names something (an accessible name, a title, a
+  label, an attribute); a snippet where it is content. An overlay's opener is always a `trigger`
+  snippet.
+- **No English defaults.** No user-facing string prop on a coreui component has a default, and every
+  one that is an accessible name is required. A default would ship English to screen-reader users in
+  every other locale, and nothing would warn the caller. Optional text (a placeholder) renders
+  nothing when omitted. A component with many strings takes one typed `labels` prop.
 - **Snippets** (`{#snippet}` / `{@render}`) replace slots in all new code.
 - **Data loading:** `+page.server.ts` / `+layout.server.ts` load functions. Keep components
-  presentational.
+  presentational. Loaders and actions call the table's data module rather than building queries
+  inline (see _Screen bundles_).
 - **Mutations:** form actions in `+page.server.ts`, not ad hoc `fetch`, unless the interaction
   is genuinely client-only.
 - **Errors / redirects:** throw `error()` and `redirect()` from `@sveltejs/kit`. Never return
-  ad hoc error shapes.
+  ad hoc error shapes. A form action reports failure with `formError(status, slug, detail?)`
+  (`$lib/server/form-error`), returning a copy slug rather than English (`ScreenFormError`), and the
+  screen shows it with `formErrorText` (`$lib/FormError/form-error`), which falls back to the
+  global `feedback.error` when a slug has no copy. `tools/create/test/screen-bundle.test.ts` fails
+  on an unseeded error slug or on English passed to `fail()`.
 - **Secrets:** `$env/static/private` or `$env/dynamic/private` for server-only values. Public
   config uses the `PUBLIC_` prefix.
 
@@ -368,6 +451,8 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
 - `strict` is on. No implicit `any`. Use `unknown` and narrow explicitly.
 - Prefer `type` aliases for object shapes and unions. Reserve `interface` for declaration merging.
 - No non-null assertions (`!`). Narrow so the failure path is real code.
+- Single-letter parameters are fine in a one-line lambda (`rows.map((r) => r.id)`), nowhere else.
+  A screen's copy lookup is `localText`, not `t`.
 - Export types from a colocated `types.ts` (or the dominant `PascalCase.ts` module).
 - Collections: the type is singular; pluralize the variable —
   `const userAccounts: UserAccount[]`.
@@ -384,7 +469,8 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
   `hooks.server.ts`). The browser client uses the anon key.
 - `snake_case` → `camelCase` conversion happens once, at the serialization boundary. DB code
   stays `snake_case` end to end. Nothing downstream of the boundary sees `snake_case`.
-- Prefer a single typed query helper per entity over inline queries scattered across loaders.
+- One data module per table holds that table's queries; loaders never build queries inline
+  (see _Screen bundles_).
 
 ### Schema file layout (per module)
 
@@ -394,8 +480,24 @@ artifact — never hand-authored for a domain module.
 ```
 packages/<module>/
 └── src/lib/
-    └── schema.ts             ← Drizzle table defs, exported as `<pkg>/schema`
+    └── schema/
+        ├── index.ts          ← barrel, exported as `<pkg>/schema`
+        ├── <concept>.ts      ← one table, its pgEnums and its inferred types
+        └── <enum>.ts         ← one enum's values, with no drizzle-orm import (see below)
 ```
+
+For example, `inbound-receipt.ts` holds the `inbound_receipt` table, and
+`inbound-receipt-status.ts` exports `INBOUND_RECEIPT_STATUSES` and the `InboundReceiptStatus` type.
+An enum is a concept of its own in the layer map, so its file is named after it.
+
+Each concept's types are **inferred** from its table (`typeof inboundReceipt.$inferSelect`), never
+hand-written beside it. Composite types (`InboundReceiptWithCopy`) are intersections of inferred
+types.
+
+**Enum values are declared once**, as a plain `as const` array in the enum's own module, which does
+not import `drizzle-orm` (guardrail 8 bans runtime `drizzle-orm`, and screens need the values at runtime for
+filters and validation). The `pgEnum` and the type union are both built from that array. A second
+hand-written list of the same values is a bug.
 
 A scaffolded project registers every module's schema in `.sveltebuilder/registry/*.json`:
 
@@ -456,6 +558,11 @@ translations at minimum — both entity-bound names and UI application-level cop
 **UI copy scope.** Application-level copy within a module uses `scope = '<module-name>'` and
 `entity_id = null`. Entity-bound copy uses `scope = '<table_name>'` and
 `entity_id = <entity>.id`.
+
+**UI copy slugs.** A module's application-level slug always starts with the module name, even
+though its scope already says it: `logistic.inbound_receipt.title` in scope `logistic`. The second
+segment is the full, singular concept name (`inbound_receipt`, never `receipt` or `receipts`).
+Screens, components, manifests and seeds all use the same full slug.
 
 ---
 
@@ -540,11 +647,9 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
 
 6. **Scope is implied, never stored as a schema column or passed as a component prop.**
 
-7. **Visual styles for coreui components live in `packages/coreui/styles/components.css`, not in
-   Svelte `<style>` blocks.** A component `<style>` block may only contain private structural
-   wrapper rules (layout/sizing with no visual properties). Any color, border, background, shadow,
-   radius, padding, or transition that a developer should be able to override belongs in
-   `components.css` under `@layer components`.
+7. **Styles are plain stylesheets, never Svelte `<style>` blocks, and never `:global`.** Every
+   rule lives in a `.css` file named after its block, beside the component or route that renders
+   it (see [Plain stylesheets](#plain-stylesheets)). `pnpm css:check` enforces this.
 
 8. **Route code accesses the database only through `event.locals.supabase`.** Never open a
    direct Postgres connection from application code, and never introduce a `DATABASE_URL`.
@@ -574,16 +679,16 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
 
 ### The scaffold is the integrator
 
-`@sveltebuilder/coreui` ships style files but never self-applies them. The scaffold `app.css`
-is responsible for importing each coreui stylesheet into the correct layer position. This is
-intentional: the scaffold controls the cascade; the library supplies the rules.
+`@sveltebuilder/coreui` and every domain module ship stylesheets but never self-apply them. The
+scaffold `app.css` imports each package's stylesheet into the correct layer position. This is
+intentional: the scaffold controls the cascade; the libraries supply the rules.
 
 ### Layer cascade
 
 All styles in a SvelteBuilder application flow through named CSS cascade layers in this order:
 
 ```
-base  →  chrome  →  components  →  unlayered (developer)
+base  →  chrome  →  components  →  utilities  →  unlayered (developer)
 ```
 
 The layer order is declared explicitly at the top of `app.css` before any imports — this
@@ -606,11 +711,14 @@ The scaffold `app.css` wires everything together:
 @import '@sveltebuilder/coreui/styles/base.css' layer(base);
 @import './chrome.css' layer(chrome);
 @import '@sveltebuilder/coreui/styles/components.css' layer(components);
+@import '@sveltebuilder/logistic/styles/components.css' layer(components); /* one per module */
+@import './utilities.css' layer(utilities);
 
 /* developer overrides below — unlayered, always wins */
 ```
 
-`reset` and `utilities` are reserved layer slots. No files target them yet.
+The create CLI writes each selected module's line after coreui's, so a module rule that styles a
+coreui part wins a tie by order. `reset` is a reserved layer slot; no file targets it yet.
 
 ### What each layer owns
 
@@ -618,32 +726,58 @@ The scaffold `app.css` wires everything together:
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | _(none)_     | `packages/coreui/styles/tokens.css`     | CSS custom properties (design tokens) — not layered                                                     |
 | `base`       | `packages/coreui/styles/base.css`       | Box-sizing reset, `html` typography defaults, global `:focus-visible` ring, `prefers-reduced-motion`    |
-| `chrome`     | `src/chrome.css` (scaffold)             | Structural base for element classes (`.input`, `.btn`, `.card`, etc.) plus all interactive field states |
-| `components` | `packages/coreui/styles/components.css` | All coreui component visual styles                                                                      |
-| _(none)_     | developer CSS / app-specific files      | Theme overrides and project-specific styles                                                             |
+| `chrome`     | `src/chrome.css` (scaffold)             | Structural base for element classes (`.input`, `.button`, `.card`, etc.) plus all interactive field states |
+| `components` | each package's `styles/components.css`  | Every coreui and domain-module component's styles, coreui first                                         |
+| `utilities`  | `src/utilities.css` (scaffold)          | Single-purpose classes such as `.visually-hidden`                                                       |
+| _(none)_     | the app's screens, layouts and components, and `app.css` | Each screen's and app component's own stylesheet, theme overrides                      |
 
 **Why `chrome` owns field interaction states:** focus, error, disabled, and read-only rules
 modify the same `.input`/`.textarea` classes that `chrome` establishes. Keeping them together
 in one layer and one file removes the ordering dependency that made `state` a separate layer.
 
-### coreui component style rules
+### Plain stylesheets
 
-**Visual styles belong in `packages/coreui/styles/components.css`.** A coreui Svelte component's
-`<style>` block may only contain private structural wrappers — `display: flex`, `width: 100%`,
-`position: relative` on an internal `div.wrap` — with no visual properties (color, border,
-background, shadow, radius, font, padding, transition).
+BEM class names scope every rule, which is what BEM was designed for, so no component uses Svelte's
+compiled scoping: no `<style>` blocks and no `:global`, anywhere. Styles are plain CSS files the page
+links.
 
-If you are adding a visual rule to a coreui `<style>` block, stop and put it in
-`components.css` instead.
+- **One stylesheet per concept folder**, named after the folder in kebab case and placed in it:
+  `Table/table.css` holds `.table`, `.table-row`, `.table-cell` and the rest of the folder's
+  blocks; a nested concept has its own (`Article/ArticleBlock/article-block.css`). A route
+  directory works the same way, its stylesheet named after its root block.
+- **A package's stylesheets are listed in its `src/lib/components.css`**, exported as
+  `<package>/styles/components.css` and layered by the app (above). Its order is the cascade
+  order within the layer.
+- **An app's own stylesheets are imported by the component that renders the block**
+  (`import './supplier-list-screen.css';`) and stay unlayered, like the rest of the developer's CSS.
+- **Every selector names its own block, and every element it reaches is named by a class.** A
+  rule in a plain stylesheet applies to the whole app, so `.article-card__dek p` would also hit
+  the paragraphs of every child component; give the element a class (`__dek-text`). A rule may
+  reach into a child component only through that child's public classes
+  (`.article-card__media .media-asset-figure__img`).
+- **A screen's root block is its view-model type, with `View` replaced by `Screen`**:
+  `InboundReceiptWarehouseQueueView` renders `.inbound-receipt-warehouse-queue-screen`. The
+  suffix keeps it from colliding with the component the screen renders (`.article-detail`). A
+  base-template screen with no view type is named after its concept and role
+  (`.locale-admin-list-screen`); a layout after its route group (`.admin-layout`).
+- **Visual rules are overridable.** A coreui stylesheet may hold anything; there is no separate
+  place for structural rules any more.
 
-**Internal sub-elements** that have no public BEM class are namespaced under their parent in
-`components.css`:
+`pnpm css:check` (`scripts/css-check.mjs`, also in the Test workflow) enforces all of this, and
+reports a class no component mentions, which replaces svelte-check's unused-selector warning.
+
+**Class names are BEM, and they are public API.** A component's root class is its name in kebab
+case (`.date-time-picker`). Every styled element inside it is `<root>__<part>`, and every variant,
+size or class-expressed state is `<root>--<modifier>`. Never give an internal element a bare
+generic class (`.icon`, `.body`, `.label`): bare names collide with other components' roots and
+with application CSS. The full list, and what changing it costs, is in
+`docs/COREUI-COMPATIBILITY.md`.
 
 ```css
-/* correct: parent context scopes the internal element */
-.alert .icon { … }
-.card .body  { … }
-.toast .close:hover { … }
+.alert__icon { … }
+.card__body  { … }
+.toast__close:hover { … }
+.button--primary { … }
 ```
 
 **CSS custom property bridge for inherited state.** When a Bits UI data-attribute on a parent
@@ -651,35 +785,35 @@ element needs to affect a non-Bits child element, use a CSS custom property as t
 
 ```css
 /* declare on the state-carrying parent — --_ prefix marks it private */
-.accordion-trigger {
+.accordion-item__trigger {
   --_icon-rotate: 0deg;
 }
-.accordion-trigger[data-state='open'] {
+.accordion-item__trigger[data-state='open'] {
   --_icon-rotate: 180deg;
 }
 
 /* consume via inheritance in the child */
-.accordion-trigger .chevron {
+.accordion-item__chevron {
   transform: rotate(var(--_icon-rotate, 0deg));
 }
 ```
 
-This avoids mixed `:global(parent) .svelte-scoped-child` selectors that cannot be moved to a
-global file.
+This keeps a parent's state reaching a child through inheritance rather than a selector that
+depends on the parent's markup.
 
 **Private component tokens (`--_` prefix).** When a component needs an internal CSS variable
 that is not part of the public theming surface — to share a value between two selectors within
-one component's ruleset in `components.css` — name it with a `--_` prefix:
+one component's ruleset in its stylesheet — name it with a `--_` prefix:
 
 ```css
 /* private: consumers must not reference this */
-.accordion-trigger {
+.accordion-item__trigger {
   --_icon-rotate: 0deg;
 }
-.accordion-trigger[data-state='open'] {
+.accordion-item__trigger[data-state='open'] {
   --_icon-rotate: 180deg;
 }
-.accordion-trigger .chevron {
+.accordion-item__chevron {
   transform: rotate(var(--_icon-rotate, 0deg));
 }
 ```
@@ -735,7 +869,7 @@ are the correct pattern for visual indicators (e.g., radio dot via `::after`).
 
 When building a feature for a domain module, check whether the UI element could be useful in
 at least one other domain module. If yes, it belongs in `@sveltebuilder/coreui`, not in the
-module package. Common candidates: `DataTable`, `StatusBadge`, `Timeline`, `Money`, `Address`.
+module package. Common candidates: `DataTable`, `Timeline`, `Money`, `Address`.
 Propose coreui additions in comments when you identify overlap; do not build them in a module
 silently.
 
@@ -780,7 +914,6 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | WCAG 2.2 AA audit                         | Half done. The automated half runs in CI over every component (`apps/dev-kitchen`, Accessibility workflow), and its first run found keyboard-unreachable overlays, an unlabeled `Select` and 862 contrast failures, all fixed 2026-10-07. The human half — screen-reader flow, reading order, 400% zoom, RTL mirroring — has not been done. Required before any module is marked production-ready. See `docs/DEV-KITCHEN.md` §5.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `apps/docs`                               | Placeholder only — no content, no structure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Changesets peer cascade                   | A **minor** coreui changeset bumps `content` and `logistic` a **major**: their `workspace:^` peer on 0.x coreui excludes the next minor, and Changesets treats widening a peer range as breaking. Until fixed (coreui 1.0, or wider peer ranges), write coreui changesets as `patch` wherever defensible and check `pnpm changeset status --verbose` before merging. See `docs/DEFERRED.md`. |
-| `navigation_item.scope` naming collision  | SuperPrototype's `navigation_item.scope` (which menu an item renders in, e.g. `'admin'`) is a documented exception to guardrail 6 — see the comment above its definition in `tools/create/templates/superprototype/src/lib/server/schema.ts`. It's a business grouping unrelated to the i18n scope convention, but the shared name reads as a violation at a glance. Documented for now rather than renamed; find a name that doesn't collide with the i18n vocabulary (`menu`, `nav_group`) when touching this table next.                                                                                                                                                                                                      |
 
 ---
 
@@ -790,17 +923,17 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `diglossia` 0.1.0                  | Complete and tested — split into a framework-agnostic core (`createDictionary`, per-request `DictionaryInstance`, `formatText` MF2 interpolation/pluralization) and a Svelte adapter (`diglossia/svelte`: `setDictionary`/`getDictionary`/`<LocalText />`); full test suite; extracted from this repo (formerly `@sveltebuilder/hermes`) into its own repo/npm package, consumed here as an external dependency                                                                                                                                                                                                                                     |
 | `@sveltebuilder/local-text-schema` | Complete — pure TS + Drizzle package (no Svelte), renamed from `@sveltebuilder/hermes-schema`; exports `./schema` (locale/local_text_link/local_text Drizzle tables) and `./seed` (canonical `LOCALES`/`BASE_SLUGS` data consumed by `sveltebuilder sync:supabase`)                                                                                                                                                                                                                                                                                                                                                                                 |
-| `@sveltebuilder/coreui`            | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocaleSwitcher, Menu, MessageAriaLive, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `BlockEditor`/`DateTimePicker` added for content, `BarcodeInput`/`MetricCard`/`StatusBadge`/`Timeline` added for logistic); all visual styles extracted to `styles/components.css` under `@layer components`; Bits UI data-attribute wiring throughout; builds cleanly |
-| `@sveltebuilder/content`           | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data; Camp 1/2 diglossia boundary respected. Route port to screen bundles is complete as of 2026-10-01 (article, section, feeds, preview, admin-article; `screens/_unsorted/` is gone) — see `docs/MODULE-ROUTES.md`. Vitest suite in `packages/content/test/` renders 9 of its 18 components server-side, including the no-`[missing:]` gate.                  |
-| `@sveltebuilder/logistic`          | Schema, components and SQL complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; SECURITY DEFINER SQL for concurrency-sensitive stock mutations; README with v1-scope statement. Its Drizzle query layer is removed (guardrail 11) and its route port to screen bundles is complete as of 2026-09-30 (8 bundles: supplier, stock, receipt, shipment, return, cycle-count, warehouse, dashboard; `screens/_unported/` is gone). See Known Open Issues and `docs/MODULE-ROUTES.md`.                                                                                                                                                        |
+| `@sveltebuilder/coreui`            | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocalePicker, Menu, MessageLiveRegion, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `DateTimePicker` added for content, `MetricCard`/`Timeline` added for logistic; the article block editor, `BarcodeInput` and the locale admin editors have since moved to content, logistic and the base template, and `StatusBadge` was removed in favour of `Badge`); styles in one plain stylesheet per component folder, listed by `styles/components.css` and imported `layer(components)`; Bits UI data-attribute wiring throughout; builds cleanly |
+| `@sveltebuilder/content`           | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data; Camp 1/2 diglossia boundary respected. Route port to screen bundles is complete as of 2026-10-01 (article, section, feed, article-preview, article-admin; `screens/_unsorted/` is gone) — see `docs/MODULE-ROUTES.md`. Vitest suite in `packages/content/test/` renders 9 of its 18 components server-side, including the no-`[missing:]` gate.                  |
+| `@sveltebuilder/logistic`          | Schema, components and SQL complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; SECURITY DEFINER SQL for concurrency-sensitive stock mutations; README with v1-scope statement. Its Drizzle query layer is removed (guardrail 11) and its route port to screen bundles is complete as of 2026-09-30 (8 bundles: supplier, stock-level, inbound-receipt, shipment, return-authorization, cycle-count, warehouse, dashboard; `screens/_unported/` is gone). See Known Open Issues and `docs/MODULE-ROUTES.md`.                                                                                                                                                        |
 | `@sveltebuilder/cli`               | Complete — `sveltebuilder sync:supabase` working (`.sveltebuilder/registry/` manifest discovery, topological sort, Drizzle schema barrel + `drizzle-kit generate`, supplemental SQL append, seed.sql generation); bare `sync` kept as a deprecated alias; the dead `sync:drizzle` stub was removed                                                                                                                                                                                                                                                                                                                                                  |
 | `create-sveltebuilder`             | Complete — interactive CLI with project name, scaffold template, package manager, and module selection prompts; overlays templates, runs `sveltebuilder sync:supabase`, installs dependencies                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Local-text DB schema               | Finalized with RLS — `locale`, `local_text_link`, `local_text`, `get_dictionary` SQL function (`security invoker`, explicit predicate parens); schema of record is the Drizzle defs in `@sveltebuilder/local-text-schema`, SQL is generated; RLS + `get_dictionary` now ship from `tools/create/templates/base/supabase/supplemental/`, applying to every scaffold flavor                                                                                                                                                                                                                                                                           |
 | Auth architecture                  | Principal–identity split; `current_user_id()` + `current_user_admin()` SECURITY DEFINER helpers resolving `auth.uid()` → `user_account.id`; `ensure_user_account()` JIT provisioning in SQL; all policies call the helpers as `(select fn())` and name their role with `to`                                                                                                                                                                                                                                                                                                                                                                         |
 | SuperPrototype template            | Supabase-native — all admin + API routes query through `event.locals.supabase` (PostgREST), so RLS applies to every request with no session variable or transaction wrapper. `getClaims()` for guards, publishable key, SECURITY INVOKER RPCs for compound writes. No direct Postgres connection; no `DATABASE_URL`. Sign-in/out remain Supabase OAuth.                                                                                                                                                                                                                                                                                             |
 | Native template                    | **ON HOLD 2026-09-29** — built but frozen and unreachable from the create CLI. Auth.js (`@auth/sveltekit`) with Entra/Google/GitHub; Drizzle adapter tables in `auth` schema; `events.createUser` provisions `user_account`; same `hooks.server.ts` shape as SuperPrototype; full `withUser` DB pattern. Will diverge from SuperPrototype from here; see `docs/DEFERRED.md`.                                                                                                                                                                                                                                                                        |
-| Base scaffold template             | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocaleSwitcher`, seed data (8 locales, EN + FR dictionary) generated via `sync:supabase`; CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`)                                                                                                                                                                                                                                                                     |
-| Messaging system                   | Universal message surface in coreui — `createMessageBus`/`setMessageBus`/`getMessageBus` (context-provided, same shape as diglossia's dictionary, replacing a module-level `$state` singleton), `Toast`/`ToastRegion`, `Banner`, `InlineNotification`, `ConfirmDialog`, `MessageAriaLive`; wired into the base scaffold template's root layout.                                                                                                                                                                                                                                                                                                     |
+| Base scaffold template             | Supabase client, `hooks.server.ts` (auth + locale resolution), root layout load, `/api/local-text` endpoints, `/api/locale` GET + POST, `LocalePicker`, seed data (8 locales, EN + FR dictionary) generated via `sync:supabase`; CSS layer cascade established (`base`, `chrome`, `components` layers; explicit `@layer` declaration; `state.css` absorbed into `chrome.css`)                                                                                                                                                                                                                                                                     |
+| Messaging system                   | Universal message surface in coreui — `createMessageBus`/`setMessageBus`/`getMessageBus` (context-provided, same shape as diglossia's dictionary, replacing a module-level `$state` singleton), `Toast`/`ToastRegion`, `Banner`, `InlineNotification`, `ConfirmDialog`, `MessageLiveRegion`; wired into the base scaffold template's root layout.                                                                                                                                                                                                                                                                                                     |
 | Component harness                  | `apps/dev-kitchen`, rebuilt 2026-10-07 after the first rotted (see `docs/DEV-KITCHEN.md`) — renders all 92 components of coreui, content and logistic from source in base-template chrome copied at sync time, server-rendered and hydrated; typed fixtures; `*_COVERAGE` types fail `pnpm check` on an unshowcased export; `/dev/theme` shows the set in forced light, forced dark and RTL; the Accessibility workflow runs axe (WCAG 2.2 A/AA) on every page in three modes, overlays opened by keyboard, and a focus-visibility walk |
 | Publishing pipeline                | `.changeset/` configured (GitHub changelog, public npm access) — packages are versioned independently (e.g. `coreui@0.1.0`, `logistic@0.0.10`) via Changesets                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Monorepo structure                 | Clean — pnpm workspaces, Turborepo task graph, all workspace references correct                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |

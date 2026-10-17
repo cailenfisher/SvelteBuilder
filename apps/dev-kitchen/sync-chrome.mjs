@@ -16,7 +16,7 @@
  *
  * See docs/DEV-KITCHEN.md, Requirement 1.
  */
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -28,9 +28,12 @@ const CHROME = [
   'src/app.html',
   'src/app.css',
   'src/chrome.css',
+  'src/utilities.css',
   'src/app.d.ts',
   'src/hooks.server.ts',
   'src/routes/+layout.svelte',
+  'src/routes/app-layout.css',
+  'src/routes/full-page-layout.css',
   'src/routes/+error.svelte',
 ];
 
@@ -43,6 +46,25 @@ for (const file of CHROME) {
   mkdirSync(path.dirname(to), { recursive: true });
   copyFileSync(from, to);
 }
+
+// The harness renders every module, so its app.css imports every module's stylesheet, as
+// create-sveltebuilder's addModuleStylesheet does for the modules a project selects.
+const COREUI_STYLESHEET = "@import '@sveltebuilder/coreui/styles/components.css' layer(components);";
+const MODULE_STYLESHEETS = ['content', 'logistic'].map(
+  (module) => `@import '@sveltebuilder/${module}/styles/components.css' layer(components);`
+);
+const appCssPath = path.join(APP, 'src/app.css');
+const appCss = readFileSync(appCssPath, 'utf8').split('\n');
+const coreui = appCss.indexOf(COREUI_STYLESHEET);
+if (coreui === -1) {
+  throw new Error("dev-kitchen: the base template's app.css no longer imports coreui's stylesheet");
+}
+let insertAt = coreui;
+if (appCss[coreui + 1]?.startsWith('/*')) {
+  while (!appCss[insertAt].includes('*/')) insertAt += 1;
+}
+appCss.splice(insertAt + 1, 0, ...MODULE_STYLESHEETS);
+writeFileSync(appCssPath, appCss.join('\n'));
 
 // The chrome reads PUBLIC_DEFAULT_LOCALE through $env/static/public, which fails the
 // build when the variable is undefined. It is the only variable the harness needs, and it

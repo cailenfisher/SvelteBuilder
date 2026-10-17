@@ -1,0 +1,9 @@
+.stock-adjustment-modal__context {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-4);
+}
+
+.stock-adjustment-modal__sku {
+  font-family: var(--font-mono);
+}

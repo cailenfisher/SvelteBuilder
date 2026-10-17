@@ -46,12 +46,43 @@ produced are stated here. Read alongside `CLAUDE.md`'s _Template Status_ and `do
    blocker — `withUser` + GUC still bypasses RLS against a table-owning role, and the non-owner role
    plus `ALTER DEFAULT PRIVILEGES` remains prerequisite.
 
+Added 2026-10-13 with the conformance plan (`docs/CONFORMANCE-PLAN.md`, decisions D5 and D6):
+
+9. **Queries live in one data module per table, shipped per module, not per bundle.** A module's
+   template directory gains a module-level `server.<flavor>/` overlay, which the CLI copies to
+   `src/lib/server/<module>/` whenever the module is selected, exactly as it already copies the
+   module's `supplemental/` and `seed/`. Each file is named like a schema file of the module
+   (`inbound-receipt.ts`, `inbound-receipt-line.ts`) and holds the functions whose query starts from
+   that table. Each function takes the request's `supabase` client and returns supabase-js's
+   `{ data, error }` with the rows already in camelCase; route files call these instead of
+   `.from(…)`. This keeps decision 1 intact (the package still ships no queries) and fixes what
+   decision 6 left open: code two bundles share had nowhere to live, because a bundle-local module
+   is invisible to its siblings and `$lib` would reach scaffolds without the module. Rejected
+   alternative: bundle-local `<concept>.server.ts` files, which duplicate across bundles that read
+   the same concept. One file per table rather than per concept (amended 2026-10-14, Phase 9) so
+   that a query's location follows from its table's name alone, as the schema's does.
+
+10. **A screen's extracted components go where their dependencies point.** Presentational ones
+    (props in, markup out) go in the module package's concept folder and get a dev-kitchen
+    showcase. Ones bound to a route (posting to its form actions, building its hrefs) stay in the
+    bundle beside the page.
+
+11. **Screen ids and route segments name the concept in full, singular, parent first:**
+    `inbound-receipt`, `return-authorization`, `article-admin`, `article-preview`, `feed`. The
+    bundle names in _What this became_ below are the ones the port shipped with, before this rule.
+
+12. **A screen's styles are a plain stylesheet beside it**, named after its root block and
+    imported by the page (`import './supplier-list-screen.css';`), so it ships in the bundle's
+    `ui/` half with the markup it styles. The root block is the view type with `View` replaced by
+    `Screen`. Added 2026-10-14 (Phase 10), when every `<style>` block became a stylesheet; see
+    CLAUDE.md, _Plain stylesheets_.
+
 ## Flagged for later
 
 | Severity                       | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Important — later**          | Logistic's 40 RLS policies call `public.current_user_id()` bare rather than as `(select …)`, so they evaluate once per row instead of once per statement, and they re-implement the admin check as an inline `exists (select 1 from public.user_account …)` subquery instead of calling `public.current_user_admin()`. On warehouse-scale tables this is a real cost. Downgraded from critical: the port left them untouched as planned, and `pnpm sql:check` now exercises them as an admin, a non-admin and an anonymous caller, so they are known to work. What is left is one mechanical pass for cost and consistency. |
-| **Important — later**          | Nav, seed and supplemental data are module-granular while routes are screen-granular. Harmless today because logistic seeds no nav items at all and base's admin layout returns an empty `navItems` stub — but module screens are currently reachable only through hardcoded links between sibling screens, which is why bundles need `requires`. A real nav story would let selection drive discoverability.                                                                                                                                                                                                               |
+| **Important — later**          | Navigation, seed and supplemental data are module-granular while routes are screen-granular. Harmless today because logistic seeds no nav items at all and base's admin layout returns an empty `navigationItems` stub — but module screens are currently reachable only through hardcoded links between sibling screens, which is why bundles need `requires`. A real nav story would let selection drive discoverability.                                                                                                                                                                                                               |
 | **Needs its own conversation** | What of logistic's 45 removed query functions belongs in Postgres as views or `SECURITY INVOKER` functions rather than in route loaders. Some already are (`logistic_adjust_stock`, `logistic_reserve_stock`, …). This pass does a quick pass on the obvious candidates and moves the rest into SuperPrototype loaders.                                                                                                                                                                                                                                                                                                     |
 | **Revisit**                    | Feature-bundle granularity may need a second pass once several modules use it; cross-bundle hardcoded links are the pressure point.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | **Revisit**                    | Screens-as-components (a `<PickTaskListScreen>` in the package with a five-line route) preserves markup upgradeability and follows from screens being the valuable artifact. Declined for now in favour of editable template files; worth reopening if real consumers appear or a second flavour lands.                                                                                                                                                                                                                                                                                                                     |
@@ -262,7 +293,7 @@ Three things the port taught that the analysis above did not anticipate.
 
 **The bundle granularity question answered itself.** The doc listed "feature-bundle granularity may
 need a second pass" as a Revisit, with cross-bundle hardcoded links as the pressure point. It was:
-the warehouse shell's nav links to picking, receiving and counting, so no subset of those is
+the warehouse shell's navigation links to picking, receiving and counting, so no subset of those is
 installable. That is not a flaw in the rule but the rule working — a coherent feature carries its
 shared layout, and here the feature is the whole floor app. The dashboard is the other shape:
 it links to everything, so it simply `requires` everything, and selection expands through it.

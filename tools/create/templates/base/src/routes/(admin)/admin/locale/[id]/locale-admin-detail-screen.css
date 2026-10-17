@@ -1,0 +1,42 @@
+.locale-admin-detail-screen {
+  max-width: 32rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.locale-admin-detail-screen__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.locale-admin-detail-screen__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  margin: 0;
+}
+
+.locale-admin-detail-screen__error {
+  color: var(--danger-text);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.locale-admin-detail-screen__success {
+  color: var(--success-text);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.locale-admin-detail-screen__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.locale-admin-detail-screen__danger {
+  padding-block-start: var(--space-6);
+  border-block-start: 1px solid var(--border-color);
+}

@@ -1,0 +1,28 @@
+.inbound-receipt-detail-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.inbound-receipt-detail-screen__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.inbound-receipt-detail-screen__lines-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.inbound-receipt-detail-screen__section-title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  margin: 0;
+}

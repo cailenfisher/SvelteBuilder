@@ -57,33 +57,25 @@ export const userAccount = pgTable(
 
 // ── Navigation menu entry ──────────────────────────────────────────────────────
 //
-// navigation_item.scope below is a deliberate exception to "scope is never a schema
-// column" (CLAUDE.md's Domain Schema Rules / Architecture Guardrail #6). It names
-// which menu a nav item renders in (e.g. 'admin') — a business grouping, unrelated
-// to the i18n LocalTextLink scope convention. The shared name is a collision, not a
-// reuse of the concept: this item's label is linked via local_text_link_id, and that
-// link's own scope is null (nav labels are global/UI copy, not entity-bound).
-//
-// Documented here per the required-deviation rule rather than renamed for now. A
-// name that doesn't collide with the i18n vocabulary (e.g. menu, nav_group) is worth
-// revisiting.
+// `menu` names which menu an item renders in (for example 'admin'). Its label is copy, linked
+// through local_text_link_id with a null scope (navigation labels are global UI copy).
 
 export const navigationItem = pgTable(
   'navigation_item',
   {
     id: bigint('id', { mode: 'number' }).generatedByDefaultAsIdentity().primaryKey(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     localTextLinkId: bigint('local_text_link_id', { mode: 'number' })
       .notNull()
       .references(() => localTextLink.id),
     href: text('href').notNull(),
-    scope: text('scope').notNull(),
-    sortOrder: integer('sort_order').notNull().default(0),
+    menu: text('menu').notNull(),
+    position: integer('position').notNull().default(0),
     active: boolean('active').notNull().default(true),
   },
   (table) => [
-    uniqueIndex('uq_navigation_item_href_scope').on(table.href, table.scope),
+    uniqueIndex('uq_navigation_item_href_menu').on(table.href, table.menu),
   ],
 );
 

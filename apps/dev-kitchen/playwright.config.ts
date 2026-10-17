@@ -15,7 +15,15 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // Three engines: the color tokens rely on CSS relative color syntax, and focus, overlay and
+  // keyboard behaviour differ between them. CI runs one engine per job (--project).
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    // axe runs several times slower in Firefox and WebKit; 30s timed out on whichever large pages
+    // a busy run happened to schedule together.
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] }, timeout: 60_000 },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] }, timeout: 60_000 },
+  ],
   webServer: {
     command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
     port: PORT,

@@ -29,9 +29,10 @@ import type {
   NewsletterWithCopy,
   PublishChecklistItem,
   Section,
-  Subscriber,
+  SubscriberWithLocale,
   Topic,
 } from '@sveltebuilder/content';
+import type { ArticleChecklistEntry, ArticleRow } from '@sveltebuilder/content/views';
 
 /** Served from this app's static/media/, so pages need no network. */
 export const STORAGE_BASE_URL = '/media';
@@ -41,14 +42,14 @@ const CREATED_AT = '2026-09-01T08:00:00.000Z';
 // ── Taxonomy and people ──────────────────────────────────────────────────────
 
 export const STATUS = {
-  draft: { id: 1, slug: 'draft', ordinal: 20 },
-  inReview: { id: 2, slug: 'in_review', ordinal: 30 },
-  published: { id: 5, slug: 'published', ordinal: 50 },
+  draft: { id: 1, slug: 'draft', position: 20 },
+  inReview: { id: 2, slug: 'in_review', position: 30 },
+  published: { id: 5, slug: 'published', position: 50 },
 } as const satisfies Record<string, ArticleStatus>;
 
 export const SECTIONS = [
-  { id: 1, parentSectionId: null, slug: 'news', ordinal: 10, active: true, createdAt: CREATED_AT },
-  { id: 2, parentSectionId: 1, slug: 'local', ordinal: 11, active: true, createdAt: CREATED_AT },
+  { id: 1, parentSectionId: null, slug: 'news', position: 10, active: true, createdAt: CREATED_AT },
+  { id: 2, parentSectionId: 1, slug: 'local', position: 11, active: true, createdAt: CREATED_AT },
 ] satisfies Section[];
 
 export const TOPICS = [
@@ -71,7 +72,7 @@ export const MEDIA = [
     width: 1600,
     height: 900,
     mimeType: 'image/svg+xml',
-    uploadedBy: 1,
+    userAccountId: 1,
     createdAt: CREATED_AT,
   },
   {
@@ -81,7 +82,7 @@ export const MEDIA = [
     width: 1600,
     height: 900,
     mimeType: 'image/svg+xml',
-    uploadedBy: 1,
+    userAccountId: 1,
     createdAt: CREATED_AT,
   },
 ] satisfies MediaAsset[];
@@ -110,8 +111,8 @@ export const ARTICLES = [
     publishedAt: '2026-09-30T04:03:54.000Z',
     updatedAt: '2026-09-30T06:03:54.000Z',
     deletedAt: null,
-    embargoUntil: null,
-    allowComment: true,
+    embargoExpiresAt: null,
+    commentAllowed: true,
     leadMediaAssetId: 10,
     createdAt: '2026-09-29T04:03:54.000Z',
   },
@@ -122,8 +123,8 @@ export const ARTICLES = [
     publishedAt: null,
     updatedAt: '2026-10-02T10:00:00.000Z',
     deletedAt: null,
-    embargoUntil: null,
-    allowComment: false,
+    embargoExpiresAt: null,
+    commentAllowed: false,
     leadMediaAssetId: null,
     createdAt: '2026-10-02T09:00:00.000Z',
   },
@@ -134,8 +135,8 @@ export const ARTICLES = [
     publishedAt: null,
     updatedAt: '2026-10-03T10:00:00.000Z',
     deletedAt: null,
-    embargoUntil: '2026-10-08T06:00:00.000Z',
-    allowComment: true,
+    embargoExpiresAt: '2026-10-08T06:00:00.000Z',
+    commentAllowed: true,
     leadMediaAssetId: null,
     createdAt: '2026-10-03T09:00:00.000Z',
   },
@@ -232,28 +233,116 @@ const COPY: CopyRow[] = [
   ['label', 'publish_checklist_item', 2, 'Copy edited'],
   ['label', 'publish_checklist_item', 3, 'Images credited'],
   // Module UI copy, as tools/create/templates/modules/content/seed/seed.sql seeds it.
-  ['action.submit_for_review', 'content', null, 'Submit for review'],
-  ['action.approve', 'content', null, 'Approve'],
-  ['action.send_back', 'content', null, 'Send back to draft'],
-  ['action.publish', 'content', null, 'Publish'],
-  ['action.unpublish', 'content', null, 'Unpublish'],
-  ['newsletter.signup_heading', 'content', null, 'Get the newsletter'],
+  ['content.newsletter_subscription_form.signup_heading', 'content', null, 'Get the newsletter'],
   [
-    'newsletter.signup_description',
+    'content.newsletter_subscription_form.signup_description',
     'content',
     null,
     "The day's most important stories, in your inbox.",
   ],
-  ['newsletter.email_label', 'content', null, 'Email address'],
-  ['newsletter.email_placeholder', 'content', null, 'you@example.com'],
-  ['newsletter.submit_label', 'content', null, 'Subscribe'],
-  ['newsletter.success_message', 'content', null, 'Check your inbox to confirm your subscription.'],
+  ['content.newsletter_subscription_form.email_label', 'content', null, 'Email address'],
+  ['content.newsletter_subscription_form.email_placeholder', 'content', null, 'you@example.com'],
+  ['content.newsletter_subscription_form.submit_label', 'content', null, 'Subscribe'],
+  ['content.newsletter_subscription_form.success_message', 'content', null, 'Check your inbox to confirm your subscription.'],
   [
-    'newsletter.error_message',
+    'content.newsletter_subscription_form.error_message',
     'content',
     null,
     'We could not subscribe that address. Please try again.',
   ],
+  ['content.article_list.headline', 'content', null, 'Headline'],
+  ['content.article_list.status', 'content', null, 'Status'],
+  ['content.article_list.empty', 'content', null, 'No articles found.'],
+  ['content.article_list.canonical_slug', 'content', null, 'URL slug'],
+  ['content.article_list.created_at', 'content', null, 'Created'],
+  ['content.article_assignment_queue.article', 'content', null, 'Article'],
+  ['content.article_assignment_queue.role', 'content', null, 'Role'],
+  ['content.article_assignment_queue.assignee', 'content', null, 'Assignee'],
+  ['content.article_assignment_queue.status', 'content', null, 'Status'],
+  ['content.article_assignment_queue.due_at', 'content', null, 'Due'],
+  ['content.article_assignment_queue.empty', 'content', null, 'No assignments in the queue.'],
+  ['content.article_assignment_role.author', 'content', null, 'Author'],
+  ['content.article_assignment_role.editor', 'content', null, 'Editor'],
+  ['content.article_assignment_role.photo', 'content', null, 'Photo'],
+  ['content.article_assignment_role.copy', 'content', null, 'Copy editing'],
+  ['content.subscriber_list.email_address', 'content', null, 'Email address'],
+  ['content.subscriber_list.locale', 'content', null, 'Language'],
+  ['content.subscriber_list.confirmed_at', 'content', null, 'Confirmed'],
+  ['content.subscriber_list.created_at', 'content', null, 'Joined'],
+  ['content.subscriber_list.pending', 'content', null, 'Pending'],
+  ['content.subscriber_list.empty', 'content', null, 'No subscribers yet.'],
+  ['content.subscriber_list.count', 'content', null, '.input {$count :number} .match $count one {{{$count} subscriber}} * {{{$count} subscribers}}'],
+  ['content.pagination.label', 'content', null, 'Pagination'],
+  ['content.pagination.previous', 'content', null, 'Previous page'],
+  ['content.pagination.next', 'content', null, 'Next page'],
+  ['content.article_workflow.title', 'content', null, 'Article workflow'],
+  ['content.article_workflow.status', 'content', null, 'Status'],
+  ['content.article_workflow.checklist', 'content', null, 'Checklist'],
+  ['content.article_workflow.required', 'content', null, 'Required'],
+  ['content.article_workflow.transition', 'content', null, 'Move to'],
+  ['content.article_workflow.save', 'content', null, 'Save'],
+  [
+    'content.article_workflow.publish_blocked',
+    'content',
+    null,
+    'Publishing is blocked until every required item is ticked.',
+  ],
+  ['content.article_block_editor.region', 'content', null, 'Article block editor'],
+  ['content.article_block_editor.block_list', 'content', null, 'Content blocks'],
+  ['content.article_block_editor.block_controls', 'content', null, 'Block controls'],
+  ['content.article_block_editor.move_up', 'content', null, 'Move block {$position} up'],
+  ['content.article_block_editor.move_down', 'content', null, 'Move block {$position} down'],
+  ['content.article_block_editor.remove', 'content', null, 'Remove block {$position}'],
+  ['content.article_block_editor.heading_level', 'content', null, 'Heading level'],
+  ['content.article_block_editor.text', 'content', null, '{$blockType} text, block {$position}'],
+  ['content.article_block_editor.media', 'content', null, '{$blockType}: select a media asset in the media panel.'],
+  ['content.article_block_editor.media_selected', 'content', null, 'Asset selected'],
+  ['content.article_block_editor.provider', 'content', null, 'Provider'],
+  ['content.article_block_editor.provider_youtube', 'content', null, 'YouTube'],
+  ['content.article_block_editor.provider_vimeo', 'content', null, 'Vimeo'],
+  ['content.article_block_editor.provider_self', 'content', null, 'Self-hosted'],
+  ['content.article_block_editor.provider_twitter', 'content', null, 'Twitter / X'],
+  ['content.article_block_editor.provider_instagram', 'content', null, 'Instagram'],
+  ['content.article_block_editor.provider_other', 'content', null, 'Other'],
+  ['content.article_block_editor.url', 'content', null, 'URL'],
+  ['content.article_block_editor.add', 'content', null, 'Add block'],
+  ['content.article_block_editor.add_after', 'content', null, 'Add block after block {$position}'],
+  ['content.article_block_editor.add_first', 'content', null, 'Add first block'],
+  ['content.article_block_editor.empty', 'content', null, 'No blocks yet.'],
+  ['content.article_block_type.paragraph', 'content', null, 'Paragraph'],
+  ['content.article_block_type.heading', 'content', null, 'Heading'],
+  ['content.article_block_type.image', 'content', null, 'Image'],
+  ['content.article_block_type.gallery', 'content', null, 'Gallery'],
+  ['content.article_block_type.video', 'content', null, 'Video'],
+  ['content.article_block_type.embed', 'content', null, 'Embed'],
+  ['content.article_block_type.pullquote', 'content', null, 'Pull quote'],
+  ['content.article_block_type.live_update', 'content', null, 'Live update'],
+  ['content.article_block_renderer.gallery', 'content', null, 'Photo gallery'],
+  ['content.article_block_renderer.embed', 'content', null, '{$provider} embed'],
+  ['content.article_byline_list.by', 'content', null, 'By'],
+  ['content.article_card.topics', 'content', null, 'Topics'],
+  ['content.article_detail.published', 'content', null, 'Published {$date}'],
+  ['content.article_detail.updated', 'content', null, 'Updated {$date}'],
+  ['content.author_profile_detail.articles', 'content', null, 'Articles by {$name}'],
+  ['content.front_detail.brief', 'content', null, 'Briefs'],
+  ['content.front_curation_board.empty', 'content', null, 'No articles on this front.'],
+  ['content.front_curation_board.list', 'content', null, 'Article slots on {$front}'],
+  ['content.front_curation_board.move_up', 'content', null, 'Move {$headline} up'],
+  ['content.front_curation_board.move_down', 'content', null, 'Move {$headline} down'],
+  ['content.front_curation_board.remove', 'content', null, 'Remove {$headline} from the front'],
+  ['content.front_layout_variant.lead', 'content', null, 'Lead'],
+  ['content.front_layout_variant.secondary', 'content', null, 'Secondary'],
+  ['content.front_layout_variant.river', 'content', null, 'River'],
+  ['content.front_layout_variant.brief', 'content', null, 'Brief'],
+  ['content.live_coverage_detail.region', 'content', null, 'Live coverage'],
+  ['content.live_coverage_detail.live', 'content', null, 'Live'],
+  ['content.live_coverage_detail.ended', 'content', null, 'Coverage ended'],
+  ['content.live_coverage_detail.pinned', 'content', null, 'Pinned updates'],
+  ['content.live_coverage_detail.all', 'content', null, 'All updates'],
+  ['content.live_coverage_detail.empty', 'content', null, 'No updates yet.'],
+  ['content.live_update.label', 'content', null, 'Live update'],
+  ['content.live_update.pinned_label', 'content', null, 'Pinned live update'],
+  ['content.live_update.pinned', 'content', null, 'Pinned'],
 ];
 
 const COPY_PAYLOAD: DictionaryPayload = COPY.map(([slug, scope, entityId, content], index) => ({
@@ -303,6 +392,25 @@ function withCopy(article: Article, status: ArticleStatus): ArticleWithCopy {
   };
 }
 
+/** Articles as an admin list loads them: copy resolved through the dictionary, not baked in. */
+const articleRow = (article: Article, status: ArticleStatus): ArticleRow => ({
+  ...article,
+  status,
+  sections: SECTIONS.slice(1),
+  topics: TOPICS,
+  tags: [],
+  bylines: AUTHORS.slice(0, 1),
+});
+
+export const ARTICLE_ROWS: ArticleRow[] = [
+  articleRow(LEAD_ARTICLE, STATUS.published),
+  articleRow(DRAFT_ARTICLE, STATUS.draft),
+  articleRow(REVIEW_ARTICLE, STATUS.inReview),
+];
+
+/** Every workflow status the fixtures use, in position order. */
+export const ARTICLE_STATUSES: ArticleStatus[] = [STATUS.draft, STATUS.inReview, STATUS.published];
+
 export const ARTICLES_WITH_COPY: ArticleWithCopy[] = [
   withCopy(LEAD_ARTICLE, STATUS.published),
   withCopy(DRAFT_ARTICLE, STATUS.draft),
@@ -320,7 +428,7 @@ const slot = (
   articleId: article.id,
   position,
   layoutVariant,
-  pinnedUntil: null,
+  pinExpiresAt: null,
   createdAt: CREATED_AT,
   article,
   overrideHeadline: '',
@@ -382,25 +490,28 @@ export const NEWSLETTER: NewsletterWithCopy = {
   description: "The day's most important stories.",
 };
 
-export const SUBSCRIBERS: Subscriber[] = [
+export const SUBSCRIBERS: SubscriberWithLocale[] = [
   {
     id: 1,
     emailAddress: 'ada@example.com',
-    locale: 'en',
+    localeId: 1,
+    localeCode: 'en',
     confirmedAt: '2026-09-02T10:00:00.000Z',
     createdAt: CREATED_AT,
   },
   {
     id: 2,
     emailAddress: 'marie@example.fr',
-    locale: 'fr',
+    localeId: 2,
+    localeCode: 'fr',
     confirmedAt: null,
     createdAt: CREATED_AT,
   },
   {
     id: 3,
     emailAddress: 'kenji@example.jp',
-    locale: 'ja',
+    localeId: 3,
+    localeCode: 'ja',
     confirmedAt: '2026-09-04T10:00:00.000Z',
     createdAt: CREATED_AT,
   },
@@ -428,9 +539,9 @@ export const ASSIGNMENTS: ArticleAssignment[] = [
 ];
 
 export const CHECKLIST_ITEMS: PublishChecklistItem[] = [
-  { id: 1, slug: 'headline_approved', ordinal: 10, required: true },
-  { id: 2, slug: 'copy_edited', ordinal: 20, required: true },
-  { id: 3, slug: 'images_credited', ordinal: 40, required: false },
+  { id: 1, slug: 'headline_approved', position: 10, required: true },
+  { id: 2, slug: 'copy_edited', position: 20, required: true },
+  { id: 3, slug: 'images_credited', position: 40, required: false },
 ];
 
 export const CHECKLIST_STATES: ArticleChecklistState[] = [
@@ -442,3 +553,11 @@ export const CHECKLIST_STATES: ArticleChecklistState[] = [
     satisfiedAt: CREATED_AT,
   },
 ];
+
+/** The publish checklist as the article admin screen loads it, for the article in review. */
+export const CHECKLIST: ArticleChecklistEntry[] = CHECKLIST_ITEMS.map((item) => ({
+  ...item,
+  completed: CHECKLIST_STATES.some(
+    (state) => state.publishChecklistItemId === item.id && state.satisfied
+  ),
+}));

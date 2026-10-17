@@ -1,0 +1,11 @@
+.return-authorization-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.return-authorization-create-form__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}

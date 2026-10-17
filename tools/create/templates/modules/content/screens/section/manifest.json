@@ -5,7 +5,7 @@
   "hint": "A section's published articles as a lead plus river, with child sections and server paging",
   "routes": ["/section/[slug]"],
   "requires": ["article"],
-  "views": ["SectionPageView", "ArticleRow"],
+  "views": ["SectionDetailView", "ArticleRow"],
   "actions": {},
   "copySlugs": [
     "content.section.subsections",
@@ -13,6 +13,6 @@
     "content.section.empty",
     "pagination.previous",
     "pagination.next",
-    "nav.pagination"
+    "navigation.pagination"
   ]
 }

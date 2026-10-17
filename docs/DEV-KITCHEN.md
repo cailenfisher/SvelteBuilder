@@ -250,15 +250,14 @@ on its first server render, its first axe run, or its first keyboard walk.
   ARIA misuse, target size and invisible focus. Screen-reader flow, reading order, whether an
   announcement makes sense, and zoom to 400% are still unreviewed, so the Known Open Issue in
   `CLAUDE.md` stays open.
-- **Right-to-left beyond what axe can see.** Every page renders under `dir="rtl"` and passes, but
-  `components.css` still has 15 physical `left`/`right` declarations against 5 logical ones. Mirroring
-  is a visual review.
-- **Chromium only.** The audit runs one browser.
-- **The `.label` collision elsewhere.** Seven more coreui components (`Checkbox`, `RadioItem`,
-  `Switch`, `Tag`, `MetricCard`, `TimelineItem`, `BarcodeInput`) use an internal `class="label"` and
-  so inherit the form `Label`'s rules. None fails today; `Button`'s did.
-- **Overlays inside module components**, such as `ArticleWorkflowPanel`'s drawer, are rendered
-  closed; only coreui's own overlays are audited open.
+- **Right-to-left beyond what axe can see.** Every page renders under `dir="rtl"` and passes, and
+  the package stylesheets are down to two physical declarations, both direction-neutral (centring
+  a dialog, and a full-screen one). Overlap is invisible to axe: a `Switch` thumb slid out of its
+  track in right-to-left until 2026-10-14, and a behaviour spec now measures it. The rest of
+  mirroring is a visual review.
+- **Overlays inside module components** would be rendered closed; only coreui's own overlays are
+  audited open. None remains since `ArticleWorkflowPanel` stopped being a drawer (2026-10-14), but a
+  new one would need adding to the overlay suite.
 - **Loaders and SQL.** The harness renders fixtures; screens against a database remain
   `scaffold:check`'s and `sql:check`'s job. Neither gate subsumes the other.
 

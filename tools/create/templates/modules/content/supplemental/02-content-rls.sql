@@ -45,7 +45,7 @@ as $$
     where a.id = p_article_id
       and a.deleted_at is null
       and s.slug = 'published'
-      and (a.embargo_until is null or a.embargo_until <= now())
+      and (a.embargo_expires_at is null or a.embargo_expires_at <= now())
   )
 $$;
 
@@ -96,7 +96,7 @@ drop policy if exists "content_article_public_read" on public.article;
 create policy "content_article_public_read" on public.article for select to anon, authenticated
   using (
     deleted_at is null
-    and (embargo_until is null or embargo_until <= now())
+    and (embargo_expires_at is null or embargo_expires_at <= now())
     and article_status_id = (select id from public.article_status where slug = 'published')
   );
 
@@ -224,7 +224,7 @@ create policy "content_comment_public_insert" on public.comment for insert to an
   with check (
     status = 'pending'
     and (select public.content_article_public(article_id))
-    and exists (select 1 from public.article a where a.id = article_id and a.allow_comment)
+    and exists (select 1 from public.article a where a.id = article_id and a.comment_allowed)
   );
 
 drop policy if exists "content_comment_admin" on public.comment;
@@ -254,6 +254,7 @@ as $$
 declare
   v_subscriber_id bigint;
   v_newsletter_id bigint;
+  v_locale_id     bigint;
 begin
   if p_email_address is null or btrim(p_email_address) = '' then
     raise exception 'an email address is required';
@@ -267,9 +268,22 @@ begin
     raise exception 'no such newsletter';
   end if;
 
-  insert into public.subscriber (email_address, locale)
-  values (lower(btrim(p_email_address)), coalesce(nullif(btrim(p_locale), ''), 'en'))
-  on conflict (email_address) do update set locale = excluded.locale
+  -- An unknown or empty code falls back to English rather than failing the signup: the reader's
+  -- address is what matters, and the language can be corrected later.
+  select id into v_locale_id
+  from public.locale
+  where code = coalesce(nullif(btrim(p_locale), ''), 'en');
+
+  if not found then
+    select id into v_locale_id from public.locale where code = 'en';
+    if not found then
+      raise exception 'no locale to subscribe in: neither % nor en is seeded', p_locale;
+    end if;
+  end if;
+
+  insert into public.subscriber (email_address, locale_id)
+  values (lower(btrim(p_email_address)), v_locale_id)
+  on conflict (email_address) do update set locale_id = excluded.locale_id
   returning id into v_subscriber_id;
 
   -- Re-subscribing clears a previous unsubscribe rather than inserting a second row.
@@ -318,7 +332,7 @@ begin
     -- An item with no state row is unsatisfied, which is why this is a left join from the
     -- required items rather than a filter over the state table: never having ticked a box is
     -- the common case, not a missing record.
-    select string_agg(i.slug, ', ' order by i.ordinal) into v_unsatisfied
+    select string_agg(i.slug, ', ' order by i.position) into v_unsatisfied
     from public.publish_checklist_item i
     left join public.article_checklist_state s
       on s.publish_checklist_item_id = i.id and s.article_id = p_article_id

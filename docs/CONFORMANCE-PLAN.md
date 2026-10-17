@@ -25,10 +25,10 @@ Why this shape:
 
 ### Branching
 
-All work happens on `dev`. It already runs every CI gate on push, and the Release workflow only runs on `main`, so nothing on `dev` can publish. `dev` is reserved for this plan until Phase 12: no unrelated work lands on it.
+All work happens on `dev`. It already runs every CI gate on push, and the Release workflow only runs on `main`, so nothing on `dev` can publish. `dev` is reserved for this plan until Phase 13: no unrelated work lands on it.
 
 - **Non-breaking fixes** (Phase 1) are committed on `dev`, then `dev` merges to `main` and releases as patches, per the interim rule in `docs/DEFERRED.md`.
-- **All breaking work** (Phases 2–12) continues on `dev`. Changesets are written as the work happens, but `dev` does not merge to `main` again until pre mode is entered in Phase 12. Changesets' `version` consumes every pending changeset, so a merge before then would ship the majors.
+- **All breaking work** (Phases 2–13) continues on `dev`. Changesets are written as the work happens, but `dev` does not merge to `main` again until pre mode is entered in Phase 13. Changesets' `version` consumes every pending changeset, so a merge before then would ship the majors.
 - **A hotfix during the train** goes on a short branch off `main`, and `main` is then merged back into `dev`.
 
 ## Ground rules
@@ -42,13 +42,30 @@ All work happens on `dev`. It already runs every CI gate on push, and the Releas
 - Do not edit historical `CHANGELOG.md` entries.
 - Run `pnpm changeset status --verbose` after writing any changeset. If it shows a major for any package other than coreui, content or logistic, stop.
 
+### Deferred decisions and their deadlines
+
+Choices taken provisionally during the run, each with the phase it has to be settled before. Report
+this table at the end of every phase, and update it when an item lands or a new one is deferred.
+
+| Item | Where it is recorded | Must land before | Status |
+| --- | --- | --- | --- |
+| Styling a class passed to a child component (`:global` stopgap on the base local-text page) | `docs/DEFERRED.md` | Phase 11 (screen decomposition multiplies the cases) | landed in Phase 10: plain stylesheets, no `<style>` blocks or `:global` |
+| `useField`/`FieldContext` as public API, or another way for a custom control to read `Field`. **Decided 2026-10-15: keep `useField()`, narrowed to return `FieldControl` (`id`, `aria-describedby`, `aria-invalid`, `required`, `disabled`); `FieldContext` becomes internal** | `docs/DEFERRED.md` | Phase 13 step 1 (1.0 freezes it), or before a second consumer | landed in Phase 13 step 1 |
+| Hard-coded English found along the way: `PickTaskCard` progress `aria-label`; `LiveUpdateItem` ("Pinned"), `LiveCoverageView` ("Live", "Coverage ended"), `BylineList` ("By"), `FrontCurationBoard` (layout names, slot labels), `InboundReceiptCard` ("Expected", "Received", "Lines", "units"), `StorageLocationPath` ("Storage location path"), `ArticleBlockRenderer` ("Live update"). `SubscriberList`, `ArticleList`, `AssignmentQueue` and `ArticleWorkflowPanel` were done in Phase 7 | this table | Phase 12 (copy sweep) | landed in Phase 12: every module component takes its copy from the dictionary, EN and FR |
+| Right-to-left: a `Checkbox` label's first letter is hidden ("artial shipments" on `/dev/theme`). Present before the Phase 7 rename too; axe does not see it | this table | Phase 13 (the RC's human RTL pass), or fix in Phase 12 | landed in Phase 12: it was the `Switch` beside it, whose thumb left its track in right-to-left; a behaviour spec measures it now |
+| Validate the upgrade SQL against a database built from the 1.x schema | `docs/MIGRATION-2.0.md` | Phase 13 | landed in Phase 13: passes the 2.0 assertions; schema, grants and copy match a fresh 2.0 database |
+| Content's `ArticleList`, `ArticleWorkflowPanel` and `ArticleBlockEditor` are used by no screen, while the article admin screens render the same three concepts by hand (a table, an inline workflow with forms, a read-only block table). One concept, one component. **Decided 2026-10-14: adapt the components to the screens** | this table | Phase 13 (1.0 and 2.0 freeze the package API) | landed after Phase 11 (3d819a4) |
+| The base admin dashboard is a placeholder: null stats, an always-empty "recent items" table with generic names, a "view all" button with no link, badges that print their variant name. **Decided 2026-10-14: remove the placeholders** | this table | Phase 13 (production-ready bar) | landed after Phase 11 (3d819a4) |
+| Return grading's condition, disposition and location `Select`s, in table cells, have no accessible name: `Select` takes it only from a `Field`. Needs visible labels or a coreui prop. **Decided 2026-10-14: visible labels** | this table | Phase 12 (with the copy sweep) | landed after Phase 11: visible labels |
+| Form actions return 138 hard-coded English error messages (26 files), shown to the user as `form.error`. Translating them changes `ScreenFormResult` (a coreui type, frozen at 1.0): an action would return a copy slug, with a way to pass through a database message. Needs a decision on the contract | this table | Phase 13 (1.0 freezes `ScreenFormResult`) | landed in Phase 13: `formError` and `formErrorText`, with a localized fallback for a slug with no copy |
+
 ### Gate (run at the end of every phase)
 
 ```sh
 pnpm lint && pnpm check && pnpm test && pnpm scaffold:check
 ```
 
-Add `pnpm sql:check` (needs Docker) whenever a phase touches SQL, migrations, seeds, enums or column names. A phase is complete only when the full gate passes.
+Add `pnpm sql:check` (needs Docker) whenever a phase touches SQL, migrations, seeds, enums or column names. Add `pnpm --filter dev-kitchen test:browser` (the Accessibility workflow's suites; `--project=chromium --project=firefox` where WebKit cannot launch, leaving WebKit to CI) whenever a phase touches components, stylesheets or dev-kitchen; Phase 10 shipped a failing run because the gate left it out. A phase is complete only when the full gate passes.
 
 ---
 
@@ -107,7 +124,7 @@ Add `pnpm sql:check` (needs Docker) whenever a phase touches SQL, migrations, se
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------ | -------------------------- |
 | `RadioItem`                                         | `RadioGroupItem`                                                                           | parent-first               |
 | `TableHead` vs `TableHeader`                        | e.g. keep `TableHead` (thead), `TableHeader` → `TableHeaderCell` (th)                      |                            |
-| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit`  | move to the base template (audit B2) as `LocaleForm`, `LocalTextForm`, `LocalTextLinkForm` |                            |
+| `LocaleEdit`, `LocalTextEdit`, `LocalTextLinkEdit`  | move to the base template (audit B2) as `LocaleFieldset`, `LocalTextFieldset`, `LocalTextLinkFieldset` |                            |
 | `LocaleSwitcher`                                    | `LocalePicker`                                                                             | stays in coreui (audit B2) |
 | `StatusBadge`                                       | removed                                                                                    | audit B4                   |
 | `MessageAriaLive`, `SelectItemCollector`            | verify; propose names                                                                      |                            |
@@ -187,7 +204,7 @@ On `dev`, as patch changesets per `docs/DEFERRED.md`:
 - **C5:** add `class` to every component with a styled root.
 - **D3:** convert physical-direction CSS to logical properties.
 
-Skip anything a later breaking phase will rewrite anyway (for example, ids inside the locale editors if they're moving). Gate, merge `dev` to `main`, release. From here on, `dev` does not merge to `main` until Phase 12.
+Skip anything a later breaking phase will rewrite anyway (for example, ids inside the locale editors if they're moving). Gate, merge `dev` to `main`, release. From here on, `dev` does not merge to `main` until Phase 13.
 
 ---
 
@@ -309,20 +326,50 @@ Write changesets. Gate, including `pnpm sql:check`. Pause for review.
 
 ---
 
-## Phase 10: Screen decomposition
+## Phase 10: Plain stylesheets ⏸
+
+**Goal:** every style is a plain CSS file that the page links, and no component has a `<style>` block. Decided 2026-10-14, replacing the `:global` stopgap (`docs/DEFERRED.md`).
+
+BEM class names already scope every rule, which is what BEM was designed for. Svelte's compiled scoping is a second system on top, and it is the one that breaks when a component styles part of a child it composes, which is exactly what Phase 11 multiplies. The native pattern costs more files and loses `svelte-check`'s unused-selector warning; the check in step 2 replaces that warning.
+
+### Rules (written into `CLAUDE.md` in step 1)
+
+- **No `<style>` blocks and no `:global`** in packages, templates or dev-kitchen. This supersedes guardrail 7's allowance for structural wrapper rules.
+- **One stylesheet per concept folder**, named after the folder in kebab case and placed in it: `Table/table.css` holds `.table`, `.table-row`, `.table-cell` and the rest of that folder's blocks; a nested concept has its own (`Article/ArticleBlock/article-block.css`). A route directory works the same way, and its stylesheet is named after the screen's root block.
+- **Every selector names its own block.** A bare element selector (`h2`, `ul`) was scoped to its component inside a `<style>` block; as plain CSS it would apply to the whole app, so it becomes a class. A rule may reach into a child component only through that child's public classes (`.article-card__media .media-asset-figure__img`).
+- **Screen root blocks are named after the screen's view-model type**, with `View` replaced by `Screen`: `InboundReceiptWarehouseDetailView` renders `.inbound-receipt-warehouse-detail-screen`. (Amended during the phase: without the suffix, the article page's block was `.article-detail`, the block of the `ArticleDetail` component it renders.) A base-template screen with no view type is named after its concept and role (`.local-text-admin`). Screen classes become app-wide, so drifted or generic ones (`.dashboard`, `.count-detail`, `.receive-queue`) are renamed. New names are added to the manifest as pending.
+- **Package stylesheets are layered by the app.** Each package exports `./styles/components.css`, a list of `@import`s of its folder stylesheets. The scaffold's `app.css` imports coreui's into the `components` layer, then each selected module's into the same layer after it, so a module rule that styles a coreui part wins by order, and the developer's unlayered CSS still overrides both. The create CLI writes the module lines.
+- **App stylesheets are unlayered.** A screen, layout or template component imports its own stylesheet (`import './stock-level-admin.css';`), and SvelteKit links it for that route. It is the developer's code, so it sits with the developer's other unlayered CSS.
+
+### Steps
+
+1. Write the rules into `CLAUDE.md` (guardrail 7, CSS Style System), `docs/COREUI-COMPATIBILITY.md` (the stylesheet exports and their layer), `docs/coreui-theming.md` and `docs/MODULE-ROUTES.md`.
+2. Add `scripts/css-check.mjs` to `pnpm lint`. It fails on any `<style>` block or `:global` in the covered trees, on a selector that does not start with its own file's block, on a stylesheet nothing imports, and on a class defined in a stylesheet that no component or route mentions.
+3. Take a dev-kitchen screenshot baseline (the Phase 7 method) before changing any CSS.
+4. **coreui:** split `styles/components.css` into folder stylesheets beside the components, and make `components.css` the import list. Its export path does not change. Move the `Input`, `Textarea` and `Select` `<style>` rules into their folders' stylesheets.
+5. **content and logistic:** convert every `<style>` block into folder stylesheets, and add the `./styles/components.css` export and its `files` entry. Remove `ArticleCard`'s `:global`.
+6. **Templates:** the create CLI adds each selected module's stylesheet import to `app.css`, with a test in `tools/create/test/`. Convert screens, layouts and the base template's components, renaming screen root blocks per the rule above. Remove the local-text page's `:global`.
+7. **dev-kitchen:** `sync-chrome.mjs` writes the module imports into its copy of `app.css`, aliases the module stylesheets to source, and converts its own pages.
+8. Screenshot every dev-kitchen page again. Explain every difference or fix it. No browser harness reaches the screens, so for them `css-check` (every selector names its own block, and blocks are unique) is what shows that a rule matches the same elements it did when it was scoped.
+9. Changesets: content and logistic consumers must now import the module stylesheet, so record it in `docs/MIGRATION-2.0.md` along with the renamed screen classes.
+10. Close the `docs/DEFERRED.md` entry. Gate. Pause for review.
+
+---
+
+## Phase 11: Screen decomposition
 
 **Goal:** every screen reads as layout plus named domain components.
 
 1. For each `+page.svelte`, largest first (stock-level list, inbound-receipt detail, logistic dashboard, article admin detail, return-authorization detail), identify each structural sub-block (BEM `__element` groups with their own heading, form, table or list) that names a concept.
 2. Extract each one per D6, named `<ParentConcept><Qualifier?><Role>`. For example, inbound-receipt detail becomes `InboundReceiptDetailHeader`, `InboundReceiptLineAddForm`, `InboundReceiptLineTable`, `InboundReceiptLineRow` and `InboundReceiptLineReceiveForm`. The view type `InboundReceiptLineRow` already exists; the component takes it as its prop.
 3. Before creating any component, search all packages for an existing one representing the same concept. Promote to coreui per the promotion rule when a second module needs it.
-4. Give every new package component a dev-kitchen showcase.
+4. Give every new package component a dev-kitchen showcase. Its styles go in its folder's stylesheet (Phase 10 rules), and a screen's extracted bundle-local component takes the matching part of the screen's stylesheet with it.
 5. Report each screen's line count before and after.
 6. Gate.
 
 ---
 
-## Phase 11: Behaviour tests, browsers and final audit
+## Phase 12: Behaviour tests, browsers and final audit
 
 **Goal:** the parts of COREUI-1.0 stage 2 that protect this release, plus a final conformance check.
 
@@ -341,16 +388,17 @@ Write changesets. Gate, including `pnpm sql:check`. Pause for review.
 
 ---
 
-## Phase 12: Release candidate ⏸
+## Phase 13: Release candidate ⏸
 
 **Goal:** publish the RC versions and hand off to the human RC window.
 
-1. Enter pre mode: `pnpm changeset pre enter rc`.
-2. Confirm with `pnpm changeset status --verbose` that the plan is exactly: coreui `1.0.0-rc.0`, content `2.0.0-rc.0`, logistic `2.0.0-rc.0`, and only minors or patches for everything else. Stop if not.
-3. Confirm content and logistic peer on coreui `^1.0.0-rc.0` (which also admits `1.0.0` and every later 1.x).
-4. Write `docs/MIGRATION-2.0.md`: every old → new export, component, prop, callback, route, view type, copy slug, CSS class, enum value and column, with the SQL for existing databases.
-5. Update `docs/COREUI-1.0.md` to show stages 1, 2 (partial) and 4 (policy) done, and stages 3 and 5 in progress.
-6. Pause. The release itself is the maintainer's call: merging `dev` to `main` publishes the RC.
+1. Implement the `useField` decision in `docs/DEFERRED.md`, unless it has already landed: add `FieldControl` and have `useField()` return it; stop exporting `FieldContext`, and give `Select` and `RadioGroup` an internal accessor for the label's id; compute `aria-describedby` once in `Field` and remove the copies from `Input`, `Textarea`, `Switch`, `Select`, `DateTimePicker` and logistic's `BarcodeInput`; rewrite `useField()`'s doc comment, the coreui README line and `docs/COREUI-COMPATIBILITY.md`'s Field integration entry; add `FieldContext` → `FieldControl` to `docs/MIGRATION-2.0.md`; cover it in `packages/coreui/test/field.test.ts` and the behaviour specs; write the coreui changeset (part of the 1.0 major). Gate, including `test:browser`.
+2. Enter pre mode: `pnpm changeset pre enter rc`.
+3. Confirm with `pnpm changeset status --verbose` that the plan is exactly: coreui `1.0.0-rc.0`, content `2.0.0-rc.0`, logistic `2.0.0-rc.0`, and only minors or patches for everything else. Stop if not.
+4. Confirm content and logistic peer on coreui `^1.0.0-rc.0` (which also admits `1.0.0` and every later 1.x).
+5. Complete `docs/MIGRATION-2.0.md` (drafted from Phase 5 on): every old → new export, component, prop, callback, route, view type, copy slug, CSS class, enum value and column, with the SQL for existing databases. **Validate the SQL**: build a database from the last 1.x scaffold, run the upgrade, re-apply the supplemental files, and confirm `pnpm sql:check`'s assertions pass against it.
+6. Update `docs/COREUI-1.0.md` to show stages 1, 2 (partial) and 4 (policy) done, and stages 3 and 5 in progress.
+7. Pause. The release itself is the maintainer's call: merging `dev` to `main` publishes the RC.
 
 ### The RC window (human, not Claude Code)
 
@@ -365,7 +413,7 @@ Write changesets. Gate, including `pnpm sql:check`. Pause for review.
 
 **From the coreui 1.0 roadmap, deliberately not fully folded in:**
 
-- **Full behaviour coverage.** Phase 11 covers the changed and high-risk components. The rest of the 65 still need behaviour tests.
+- **Full behaviour coverage.** Phase 12 covers the changed and high-risk components. The rest of the 65 still need behaviour tests.
 - **Per-component reference docs** (COREUI-1.0 stage 4, audit G1). The compatibility policy and CSS contract are written; the reference pages for every component, and `apps/docs`, are not.
 - **The human accessibility pass and beta use** (stages 3 and 5) happen in the RC window and are only as complete as the time given to them. This is what makes the 1.0 "slightly premature."
 

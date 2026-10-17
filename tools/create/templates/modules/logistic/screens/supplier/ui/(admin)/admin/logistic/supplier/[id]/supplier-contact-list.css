@@ -1,0 +1,27 @@
+.supplier-contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.supplier-contact-list__contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.supplier-contact-list__name {
+  margin: 0;
+  font-weight: var(--weight-medium);
+}
+
+.supplier-contact-list__detail,
+.supplier-contact-list__empty {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}

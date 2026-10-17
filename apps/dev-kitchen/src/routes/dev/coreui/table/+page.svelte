@@ -5,10 +5,11 @@
     TableCell,
     TableFoot,
     TableHead,
-    TableHeader,
+    TableHeaderCell,
     TableRow,
   } from '@sveltebuilder/coreui';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
+  import CallbackLog from '$lib/CallbackLog/CallbackLog.svelte';
 
   type Line = { sku: string; quantity: number; location: string };
   const lines: Line[] = [
@@ -24,6 +25,8 @@
     )
   );
   const total = $derived(lines.reduce((sum, line) => sum + line.quantity, 0));
+
+  const sortCalls: true[] = $state([]);
 </script>
 
 <Example title="Caption, sortable header, footer">
@@ -31,19 +34,22 @@
     <Table caption="Pick list 0091">
       <TableHead>
         <TableRow>
-          <TableHeader>SKU</TableHeader>
-          <TableHeader
+          <TableHeaderCell>SKU</TableHeaderCell>
+          <TableHeaderCell
             sortable
             sorted={direction}
-            onSort={() => (direction = direction === 'asc' ? 'desc' : 'asc')}>Quantity</TableHeader
+            onSort={() => {
+              sortCalls.push(true);
+              direction = direction === 'asc' ? 'desc' : 'asc';
+            }}>Quantity</TableHeaderCell
           >
-          <TableHeader>Location</TableHeader>
+          <TableHeaderCell>Location</TableHeaderCell>
         </TableRow>
       </TableHead>
       <TableBody>
         {#each sorted as line (line.sku)}
           <TableRow>
-            <TableHeader scope="row">{line.sku}</TableHeader>
+            <TableHeaderCell scope="row">{line.sku}</TableHeaderCell>
             <TableCell>{line.quantity}</TableCell>
             <TableCell>{line.location}</TableCell>
           </TableRow>
@@ -51,10 +57,11 @@
       </TableBody>
       <TableFoot>
         <TableRow>
-          <TableHeader scope="row">Total</TableHeader>
+          <TableHeaderCell scope="row">Total</TableHeaderCell>
           <TableCell colspan={2}>{total}</TableCell>
         </TableRow>
       </TableFoot>
     </Table>
+    <CallbackLog name="onSort" calls={sortCalls} />
   </div>
 </Example>

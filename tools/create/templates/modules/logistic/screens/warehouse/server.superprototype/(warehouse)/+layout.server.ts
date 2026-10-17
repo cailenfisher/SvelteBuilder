@@ -11,7 +11,7 @@ export const load: LayoutServerLoad = async ({ locals }): Promise<WarehouseShell
   if (locals.userAccountId === null) redirect(303, '/sign-in');
 
   // The shell's own copy lives in the module's scope, not the base seed's global scope: a
-  // bare scaffold has no warehouse, so its nav labels are not application chrome every
+  // bare scaffold has no warehouse, so its navigation labels are not application chrome every
   // project carries. Page data inherits this, which is how the home screen — which has no
   // loader of its own — gets its labels.
   return {

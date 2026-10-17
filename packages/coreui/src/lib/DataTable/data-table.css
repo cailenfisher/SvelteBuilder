@@ -1,0 +1,20 @@
+/* =============================================================================
+   Data table
+   ============================================================================= */
+
+.data-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.data-table__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.data-table .data-table__empty {
+  text-align: center;
+  color: var(--text-soft);
+  padding: var(--space-6) var(--space-4);
+}

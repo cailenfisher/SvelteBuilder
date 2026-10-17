@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "lint": "turbo lint",
+    "lint": "turbo lint && node scripts/css-check.mjs",
+    "css:check": "node scripts/css-check.mjs",
     "check": "turbo check",
     "format": "prettier --write .",
     "test": "turbo test",

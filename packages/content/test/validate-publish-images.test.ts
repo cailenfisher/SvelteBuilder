@@ -50,8 +50,8 @@ const article = (mediaAssetId: number | null = 4): ArticleForStructuredData =>
     publishedAt: null,
     updatedAt: '2026-10-01T00:00:00.000Z',
     deletedAt: null,
-    embargoUntil: null,
-    allowComment: true,
+    embargoExpiresAt: null,
+    commentAllowed: true,
     createdAt: '2026-10-01T00:00:00.000Z',
     bylines: [{ id: 1 }],
     sections: [{ id: 1 }],
@@ -81,17 +81,12 @@ function errorsFor(
   options: { mediaAssetId?: number | null; locale?: string } = {}
 ): string[] {
   const imageProvenance = new Map<number, ImageProvenance>(provenance ? [[4, provenance]] : []);
-  try {
-    validateArticleForPublish(
-      article(options.mediaAssetId === undefined ? 4 : options.mediaAssetId),
-      publisher,
-      dictionaryOf(entries),
-      { imageProvenance, locale: options.locale ?? 'en', now: NOW }
-    );
-    return [];
-  } catch (error) {
-    return (error as Error).message.split('\n').slice(1);
-  }
+  return validateArticleForPublish(
+    article(options.mediaAssetId === undefined ? 4 : options.mediaAssetId),
+    publisher,
+    dictionaryOf(entries),
+    { imageProvenance, locale: options.locale ?? 'en', now: NOW }
+  ).map((issue) => `[${issue.field}] ${issue.slug}`);
 }
 
 describe('validateArticleForPublish: image provenance', () => {
@@ -100,9 +95,13 @@ describe('validateArticleForPublish: image provenance', () => {
   });
 
   it('rejects an image block with no asset, even without provenance options', () => {
-    expect(() =>
-      validateArticleForPublish(article(null), publisher, dictionaryOf(BASE_COPY))
-    ).toThrow(/\[block\.11\.mediaAsset\] Image block 2 has no image attached/);
+    expect(validateArticleForPublish(article(null), publisher, dictionaryOf(BASE_COPY))).toEqual([
+      {
+        field: 'block.11.mediaAsset',
+        slug: 'content.publish_validation.image_missing',
+        values: { position: 2 },
+      },
+    ]);
   });
 
   it('rejects an asset with no rights row', () => {
@@ -203,8 +202,6 @@ describe('validateArticleForPublish: image provenance', () => {
   });
 
   it('checks only alt text when no provenance is given', () => {
-    expect(() =>
-      validateArticleForPublish(article(), publisher, dictionaryOf(BASE_COPY))
-    ).not.toThrow();
+    expect(validateArticleForPublish(article(), publisher, dictionaryOf(BASE_COPY))).toEqual([]);
   });
 });

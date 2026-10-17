@@ -1,0 +1,28 @@
+.shipment-detail-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.shipment-detail-screen__columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.shipment-detail-screen__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.shipment-detail-screen__section-title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  margin: var(--space-4) 0 0;
+}

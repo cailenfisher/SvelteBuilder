@@ -1,0 +1,23 @@
+.stock-adjustment-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stock-adjustment-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.stock-adjustment-panel__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  margin: 0;
+}
+
+.stock-adjustment-panel__sku {
+  font-family: var(--font-mono);
+}

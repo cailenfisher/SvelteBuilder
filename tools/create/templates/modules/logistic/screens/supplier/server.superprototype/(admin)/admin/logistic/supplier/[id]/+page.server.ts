@@ -1,7 +1,10 @@
-import { error, fail } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
+import { addSupplierContact, deleteSupplierContact } from '$lib/server/logistic/supplier-contact';
+import { getSupplier, updateSupplier } from '$lib/server/logistic/supplier';
 import type { SupplierDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
+import { formError } from '$lib/server/form-error';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless of what reaches here. See the list screen's loader for the reasoning.
@@ -11,13 +14,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<Supplier
   if (!Number.isInteger(id)) throw error(404, 'Not found.');
 
   const [supplierResult, copy] = await Promise.all([
-    locals.supabase
-      .from('supplier')
-      .select(
-        'id, slug, lead_time_day, active, created_at, supplier_contact(id, supplier_id, role, name, email, phone, created_at)'
-      )
-      .eq('id', id)
-      .maybeSingle(),
+    getSupplier(locals.supabase, id),
     loadScopedCopy(
       locals.supabase,
       ['logistic', 'supplier'],
@@ -27,30 +24,14 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<Supplier
   ]);
 
   if (supplierResult.error) throw error(500, 'Failed to load supplier.');
-  // Null here also covers "RLS refused the row", which is the correct response to
-  // give either way: a caller who may not read it should not learn it exists.
   if (!supplierResult.data) throw error(404, 'Supplier not found.');
 
-  const row = supplierResult.data;
+  const supplier = supplierResult.data;
 
   return {
     supplier: {
-      id: row.id,
-      slug: row.slug,
-      leadTimeDay: row.lead_time_day,
-      active: row.active,
-      createdAt: row.created_at,
-      contacts: (row.supplier_contact ?? [])
-        .map((contact) => ({
-          id: contact.id,
-          supplierId: contact.supplier_id,
-          role: contact.role,
-          name: contact.name,
-          email: contact.email,
-          phone: contact.phone,
-          createdAt: contact.created_at,
-        }))
-        .sort((a, b) => a.role.localeCompare(b.role)),
+      ...supplier,
+      contacts: [...supplier.contacts].sort((a, b) => a.role.localeCompare(b.role)),
     },
     copy,
   };
@@ -68,28 +49,25 @@ export const actions: Actions = {
     const slug = (form.get('slug') as string | null)?.trim();
     const leadTimeRaw = (form.get('lead_time_day') as string | null)?.trim();
 
-    if (!slug) return fail(422, { error: 'Slug is required.' });
+    if (!slug) return formError(422, 'logistic.error.slug_required');
 
     const leadTimeDay = leadTimeRaw ? Number(leadTimeRaw) : null;
     if (leadTimeDay !== null && (!Number.isInteger(leadTimeDay) || leadTimeDay < 0)) {
-      return fail(422, { error: 'Lead time must be a whole number of days.' });
+      return formError(422, 'logistic.error.lead_time_invalid');
     }
 
-    const { error: updateError } = await locals.supabase
-      .from('supplier')
-      .update({
-        slug,
-        lead_time_day: leadTimeDay,
-        active: form.get('active') === 'true',
-      })
-      .eq('id', id);
+    const { error: updateError } = await updateSupplier(locals.supabase, id, {
+      slug,
+      leadTimeDay,
+      active: form.get('active') === 'true',
+    });
 
-    if (updateError) return fail(500, { error: 'Failed to save the supplier.' });
+    if (updateError) return formError(500, 'logistic.error.supplier_save_failed');
 
     return { success: true as const };
   },
 
-  addContact: async ({ locals, params, request }) => {
+  addSupplierContact: async ({ locals, params, request }) => {
     const supplierId = Number(params.id);
     if (!Number.isInteger(supplierId)) throw error(404, 'Not found.');
 
@@ -97,38 +75,34 @@ export const actions: Actions = {
     const role = (form.get('role') as string | null)?.trim();
     const name = (form.get('name') as string | null)?.trim();
 
-    if (!role || !name) return fail(422, { error: 'Role and name are required.' });
+    if (!role || !name) return formError(422, 'logistic.error.contact_incomplete');
 
-    const { error: insertError } = await locals.supabase.from('supplier_contact').insert({
-      supplier_id: supplierId,
+    const { error: insertError } = await addSupplierContact(locals.supabase, supplierId, {
       role,
       name,
       email: (form.get('email') as string | null)?.trim() || null,
       phone: (form.get('phone') as string | null)?.trim() || null,
     });
 
-    if (insertError) return fail(500, { error: 'Failed to add the contact.' });
+    if (insertError) return formError(500, 'logistic.error.contact_add_failed');
 
     return { success: true as const };
   },
 
-  deleteContact: async ({ locals, params, request }) => {
+  deleteSupplierContact: async ({ locals, params, request }) => {
     const supplierId = Number(params.id);
     const form = await request.formData();
-    const contactId = Number(form.get('contact_id'));
+    const contactId = Number(form.get('supplier_contact_id'));
 
-    if (!Number.isInteger(contactId)) return fail(422, { error: 'Invalid contact.' });
+    if (!Number.isInteger(contactId)) return formError(422, 'logistic.error.contact_invalid');
 
-    // Scoped to this supplier as well as the contact id: without it, a crafted form
-    // post could delete a contact belonging to a different supplier. RLS permits the
-    // delete for any admin, so narrowing it is this route's job.
-    const { error: deleteError } = await locals.supabase
-      .from('supplier_contact')
-      .delete()
-      .eq('id', contactId)
-      .eq('supplier_id', supplierId);
+    const { error: deleteError } = await deleteSupplierContact(
+      locals.supabase,
+      supplierId,
+      contactId
+    );
 
-    if (deleteError) return fail(500, { error: 'Failed to remove the contact.' });
+    if (deleteError) return formError(500, 'logistic.error.contact_remove_failed');
 
     return { success: true as const };
   },

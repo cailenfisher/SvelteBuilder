@@ -1,0 +1,31 @@
+.theme-screen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+}
+
+.theme-screen__panel {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  padding: var(--space-4);
+  border: var(--border);
+  border-radius: var(--radius);
+  /* The tokens change on this element; the panel has to paint with them itself,
+     since the page behind it is still in the outer scheme. */
+  background: var(--surface);
+  color: var(--text);
+}
+
+.theme-screen__title {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.theme-screen__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}

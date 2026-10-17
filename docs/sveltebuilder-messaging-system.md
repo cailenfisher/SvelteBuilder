@@ -77,7 +77,7 @@ The research points toward one clear conclusion: **a unified messaging system ne
 
 ### The Message Taxonomy
 
-Define a single `SBMessage` type with a `severity` discriminant:
+Define a single `Message` type with a `severity` discriminant:
 
 | Severity | Intent | Auto-dismiss? | Blocks interaction? |
 |---|---|---|---|
@@ -134,15 +134,15 @@ This is faster, less friction, and empirically more trusted by users than "Are y
 
 ### Error Message Structure
 
-Every `SBMessage` of severity `warning` or `error` should carry:
+Every `Message` of severity `warning` or `error` should carry:
 
 - **`summary`** — one sentence, plain language, no jargon. What happened. ("The shipment could not be saved.")
 - **`detail`** *(optional)* — one to two sentences of helpful guidance. What to do next. ("Check that the destination address is complete and try again.")
 - **`technicalId`** *(optional)* — an opaque correlation ID, never a stack trace. Shown collapsed behind a "Show details" disclosure, aimed at users who will contact support. Helps your support team look up the actual error log server-side without exposing anything sensitive.
 - **`actions`** *(optional array)* — labeled CTA buttons. "Retry", "Contact support", "Review address" — whatever is contextually actionable.
-- **`source`** *(optional)* — the module or layer that emitted the message (`hermes`, `sveltebuilder-commerce`, `api`, `network`). Used internally for filtering and display in a notification center, not necessarily shown to users.
+- **`source`** *(optional)* — the module or layer that emitted the message (`diglossia`, `sveltebuilder-commerce`, `api`, `network`). Used internally for filtering and display in a notification center, not necessarily shown to users.
 
-This structure is i18n-aware by design: `summary` and `detail` should be `LocalText` values when the message originates from a domain module. Messages from the application shell (auth failures, network, etc.) are supplied as plain strings by the consuming app, consistent with the existing hermes boundary.
+This structure is i18n-aware by design: `summary` and `detail` should be `LocalText` values when the message originates from a domain module. Messages from the application shell (auth failures, network, etc.) are supplied as plain strings by the consuming app, consistent with the existing diglossia boundary.
 
 ---
 
@@ -179,11 +179,11 @@ The components to add to `sveltebuilder-coreui` to support this system:
 
 | Component | Role |
 |---|---|
-| `<SBToast>` | Single toast unit; receives an `SBMessage`, handles timer, pause-on-hover, dismiss |
+| `<SBToast>` | Single toast unit; receives an `Message`, handles timer, pause-on-hover, dismiss |
 | `<SBToastRegion>` | Fixed-position container managing the stack and queue; owns the polite ARIA live region |
 | `<SBInlineNotification>` | Persistent contextual notification for use inside domain components and forms |
 | `<SBBanner>` | App-shell-level persistent notification |
 | `<SBNotificationCenter>` | Slide-out panel with session history |
 | `<SBConfirmDialog>` | Modal wrapper for `critical` confirmations, with built-in focus trap and `Escape` dismiss |
 
-All of these are i18n-agnostic at the component level (they accept resolved strings), consistent with the established pattern. The domain modules that emit messages are responsible for resolving their copy through hermes before dispatching to the message bus.
+All of these are i18n-agnostic at the component level (they accept resolved strings), consistent with the established pattern. The domain modules that emit messages are responsible for resolving their copy through diglossia before dispatching to the message bus.

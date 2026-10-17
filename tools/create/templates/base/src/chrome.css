@@ -33,7 +33,7 @@
 /* ---- Popup containers (menu, popover, select) ---- */
 .menu,
 .popover,
-.select-content {
+.select__content {
   background: var(--surface);
   border: var(--border);
   border-radius: var(--radius-lg);
@@ -41,7 +41,7 @@
 }
 
 /* ---- Button base ---- */
-.btn {
+.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -76,7 +76,7 @@
 
 /* ---- Notification blocks (alert, notification) ---- */
 .alert,
-.notification {
+.inline-notification {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
@@ -94,13 +94,13 @@
 }
 
 /* ---- Field error ---- */
-.input.error,
-.textarea.error {
+.input--error,
+.textarea--error {
   border-color: var(--danger);
 }
 
-.input.error:focus-visible,
-.textarea.error:focus-visible {
+.input--error:focus-visible,
+.textarea--error:focus-visible {
   border-color: var(--danger);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
 }

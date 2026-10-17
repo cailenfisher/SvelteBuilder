@@ -50,10 +50,10 @@ Use whichever package manager the project uses (check for a lockfile). Examples 
 Each of these has a reason further down. If a request seems to require breaking one, stop and
 say so instead of working around it.
 
-1. **All database access goes through `event.locals.supabase`**, in `+page.server.ts`,
-   `+layout.server.ts`, `+server.ts` or `hooks.server.ts`. Never open a direct Postgres
-   connection, never add a `DATABASE_URL`, never import `drizzle-orm` at runtime, never use
-   the service-role or secret key.
+1. **All database access goes through `event.locals.supabase`**, passed by a route or hook to
+   the table's data module in `src/lib/server/`. Never open a direct Postgres connection, never
+   add a `DATABASE_URL`, never import `drizzle-orm` at runtime, never use the service-role or
+   secret key.
 2. **Every table in `public` has RLS enabled and explicit policies**, written in
    `supabase/supplemental/`. A table without RLS is readable and writable by anyone holding the
    public key.
@@ -80,14 +80,18 @@ say so instead of working around it.
 ```
 src/
 ├── app.css                  CSS layer order + design token overrides
-├── chrome.css               structural styles for .btn, .input, .card (project-owned)
+├── chrome.css               structural styles for .button, .input, .card (project-owned)
+├── utilities.css            single-purpose classes such as .visually-hidden (utilities layer)
 ├── app.d.ts                 App.Locals: supabase, userAccountId, locale, defaultLocale
 ├── hooks.server.ts          per-request Supabase client → userAccountId → locale
 ├── lib/server/
 │   ├── schema.ts            this project's tables (Drizzle; build-time only)
 │   ├── supabase.ts          createSupabaseServerClient (do not create clients elsewhere)
 │   ├── auth-resolver.ts     session → user_account.id via ensure_user_account()
-│   ├── postgrest.ts         toOne(), toLocale(), LOCALE_COLUMNS, toDictionaryPayload()
+│   ├── postgrest.ts         QueryResult, toOne(): what every data module shares
+│   ├── locale.ts, local-text.ts, navigation-item.ts, user-account.ts
+│   │                        data modules: one per table, every query the routes make
+│   ├── <module>/            each installed module's data modules, one per table
 │   └── scoped-copy.ts       loadScopedCopy(), loadEntityCopy()
 └── routes/
     ├── +layout.server.ts    loads the global dictionary + locale list
@@ -108,7 +112,8 @@ supabase/
 **Examples to copy from.** If a module was installed, its screens and SQL are the best
 reference for every pattern in this file:
 
-- `src/routes/(admin)/admin/<module>/**/+page.server.ts`: loaders, form actions, RPC calls, copy loading
+- `src/lib/server/<module>/*.ts`: data modules, one per table: queries, RPC calls, the camelCase boundary
+- `src/routes/(admin)/admin/<module>/**/+page.server.ts`: loaders and form actions calling them, copy loading
 - `src/routes/(admin)/admin/<module>/**/+page.svelte`: screens using coreui and scoped dictionaries
 - `supabase/supplemental/05-<module>-*.sql`: RLS policies and RPCs
 - `supabase/seeds/<module>.sql`: seed data with en/fr copy
@@ -131,31 +136,62 @@ which is why rule 1 exists.
 Components never query. Load in `+page.server.ts` or `+layout.server.ts`, mutate in form
 actions, and pass plain data to components.
 
-### The serialization boundary
+### Data modules
 
-The database is `snake_case`, and everything after the loader is `camelCase`. Convert once, in
-the loader, and nothing downstream sees a snake_case key:
+Routes don't query either. Every query lives in the data module of the table it starts from,
+`src/lib/server/<table>.ts` with the table's name in kebab case (`ticket.ts`,
+`ticket-comment.ts`), or `src/lib/server/<module>/<table>.ts` for an installed module's tables.
+A route calls `listTicket(locals.supabase, …)`, never `locals.supabase.from('ticket')`.
 
 ```ts
-const tickets: Ticket[] = (result.data ?? []).map((row) => ({
+// src/lib/server/ticket.ts
+export async function listTicket(supabase: SupabaseClient): Promise<QueryResult<Ticket[]>> {
+  const { data, error } = await supabase
+    .from('ticket')
+    .select('id, status, assigned_user_account_id, created_at')
+    .order('created_at', { ascending: false });
+  if (error) return { data: null, error };
+  return { data: data.map(toTicket), error: null };
+}
+
+// +page.server.ts
+const { data: tickets, error: ticketError } = await listTicket(locals.supabase);
+if (ticketError) throw error(500, 'Failed to load tickets.');
+```
+
+- Each function takes the `SupabaseClient` as its first argument, so RLS still applies.
+- It returns `QueryResult<T>` from `$lib/server/postgrest`: supabase-js's own `{ data, error }`,
+  with the data already converted to camelCase. The route checks `error` and decides what it
+  means: a 500 in a load, a `fail()` in an action, or a logged fallback.
+- A function that reads a parent with its children embedded belongs to the parent's file;
+  one that writes only a child table belongs to the child's.
+
+### The serialization boundary
+
+The database is `snake_case`, and everything after the data module is `camelCase`. Convert once,
+in the data module, and nothing downstream sees a snake_case key:
+
+```ts
+const toTicket = (row: TicketRecord): Ticket => ({
   id: row.id,
   status: row.status,
   assignedUserAccountId: row.assigned_user_account_id,
   createdAt: row.created_at,
-}));
+});
 ```
 
-- The project does not generate Supabase database types, so query results are untyped. Make
-  the loader's **return type** explicit (a view type, see below) so a mismatch fails
-  `pnpm check` instead of rendering `undefined`.
+- The project does not generate Supabase database types. supabase-js still checks column names
+  against the `.select()` string, but every value is `any`. Make each data module function's and
+  each loader's **return type** explicit (a domain or view type, see below) so a mismatch fails
+  `pnpm check` instead of rendering `undefined`. To name the row type a select produces, put the
+  select in a small function and take `NonNullable<Awaited<ReturnType<typeof selectTicket>>['data']>[number]`,
+  as the installed modules do, rather than writing the row type by hand.
 - supabase-js types every embedded relation as an array. For a to-one embed
   (`navigation_item → local_text_link`), unwrap it with `toOne()` from `$lib/server/postgrest`.
   To-many embeds really are arrays.
 - `bigint` values returned from SQL functions can arrive as strings. Convert with `Number()` at
-  the boundary (`toDictionaryPayload` does this for dictionary rows).
+  the boundary (`getDictionaryPayload` in `local-text.ts` does this for dictionary rows).
 - Select the columns you need, not `*`.
-- Put a query used by more than one route in a typed helper in `src/lib/server/<entity>.ts`
-  that takes the `SupabaseClient` as an argument. Don't copy query strings between routes.
 
 If the user asks for generated types, run `pnpm supabase gen types typescript --local >
 src/lib/database.types.ts`, then type the client in `supabase.ts` and `app.d.ts` as
@@ -168,9 +204,14 @@ Check `error` on every Supabase result, every time.
 
 - **In a load:** `throw error(500, 'Failed to load tickets.')` (from `@sveltejs/kit`). Use
   `error(404, …)` when a single row is missing (`.maybeSingle()` returned null).
-- **In a form action:** `return fail(4xx|500, { error: '…' })`, validating input first with
-  `fail(422, …)`. Map Postgres codes that are really user errors: `23505` (unique violation)
-  → `fail(409, …)`, `23503` (foreign key) → `fail(409, …)`.
+- **In a form action:** `return formError(4xx|500, 'ticket.error.title_required')` from
+  `$lib/server/form-error`, validating input first with `formError(422, …)`. The error is a copy
+  slug, never English: the screen shows it in the reader's language with `formErrorText` from
+  `$lib/FormError/form-error`, and a slug with no copy shows "Something went wrong" in that
+  language and logs the slug. Seed every slug you return in every locale. Map Postgres codes that
+  are really user errors: `23505` (unique violation) → `formError(409, …)`, `23503` (foreign key)
+  → `formError(409, …)`. Text the action cannot turn into a slug goes in the third argument,
+  `detail`, shown as it is.
 - **Redirect** after a successful create with `redirect(303, …)`.
 - Log the underlying Supabase error with `console.error` before throwing a generic message.
   Never send raw database errors to the browser.
@@ -180,7 +221,7 @@ Check `error` on every Supabase result, every time.
 
 | Write                                                                 | How                                                                 |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| One statement (insert, update, delete, upsert on a unique constraint) | Plain supabase-js call in the form action                           |
+| One statement (insert, update, delete, upsert on a unique constraint) | Plain supabase-js call in the table's data module                   |
 | Several statements that must succeed or fail together                 | `SECURITY INVOKER` function in `supabase/supplemental/`, `.rpc()`   |
 | Something RLS cannot express safely (rare)                            | `SECURITY DEFINER` function, following the rules under Auth below   |
 
@@ -414,8 +455,9 @@ grant execute on function public.create_ticket(text, text, bigint, integer) to a
   `public`.
 - Changing a function's parameters creates a new overload. `drop function if exists` the old
   signature first.
-- Call it from the action:
-  `await locals.supabase.rpc('create_ticket', { p_slug, p_name, p_locale_id: locals.locale.id })`.
+- Call it from the data module of the table it writes first (`createTicket` in
+  `src/lib/server/ticket.ts`), and call that from the action:
+  `await createTicket(locals.supabase, { slug, name, localeId: locals.locale.id })`.
 
 `SECURITY DEFINER` is for the rare case where the caller must not have the privilege directly
 (see `admin_set_user_admin()` in `05-user-account-hardening.sql`). A definer function must check
@@ -439,7 +481,7 @@ local_text      (link, locale, content)    one row per translation
 
 | Kind of copy                                  | `scope`                            | `entity_id` | Example                          |
 | --------------------------------------------- | ---------------------------------- | ----------- | -------------------------------- |
-| App-wide chrome (nav, common actions)         | `null`                             | `null`      | `nav.home`, `action.save`        |
+| App-wide chrome (navigation, common actions)  | `null`                             | `null`      | `navigation.home`, `action.save`        |
 | UI copy for one feature area                  | the feature or module name         | `null`      | `ticket.list.title` / `ticket`   |
 | Copy belonging to one row                     | the table name                     | the row id  | `name` / `ticket` / `42`         |
 
@@ -447,7 +489,7 @@ Scope is implied by convention. It is never a column on a domain table and never
 prop. Slugs are lowercase, dot-separated, and specific: `ticket.list.empty`, not `empty_text`.
 
 Before adding a global slug, check whether one already exists (`action.save`, `action.cancel`,
-`feedback.not_found`, `nav.back` and about a hundred others are seeded). Browse them at
+`feedback.not_found`, `navigation.back` and about a hundred others are seeded). Browse them at
 `/admin/local-text`.
 
 ### Loading copy
@@ -477,7 +519,7 @@ Before adding a global slug, check whether one already exists (`action.save`, `a
 
     const dictionary = getDictionary();                    // global copy
     const scoped = $derived(createDictionary(data.copy));  // this page's copy
-    const t = (slug: string) => scoped.localText(slug, 'ticket');
+    const localText = (slug: string) => scoped.localText(slug, 'ticket');
   </script>
   ```
 
@@ -573,7 +615,7 @@ on conflict (slug) do nothing;
 Define the shape a page receives as a type, and annotate the loader's return type with it:
 
 ```ts
-// src/lib/types/ticket.ts
+// src/lib/Ticket/ticket.ts
 export type Ticket = { id: number; slug: string; status: string; createdAt: string };
 export type TicketListView = { tickets: Ticket[]; copy: DictionaryPayload };
 
@@ -588,22 +630,25 @@ Domain types mirror the table without copy fields. Name them after the table in 
 Check `@sveltebuilder/coreui` before building any UI. It exports:
 
 - **Layout and display:** Card, Divider, Badge, Tag, Avatar, Alert, ProgressBar, Skeleton,
-  Spinner, MetricCard, StatusBadge, Timeline/TimelineItem
-- **Forms:** Field, Label, Input, Textarea, Checkbox, RadioGroup/RadioItem, Switch,
-  Select/SelectItem, DateTimePicker, BarcodeInput, BlockEditor, Button
+  Spinner, MetricCard, Timeline/TimelineItem
+- **Forms:** Field, Label, Input, Textarea, Checkbox, RadioGroup/RadioGroupItem, Switch,
+  Select/SelectItem, DateTimePicker, Button
 - **Disclosure and overlays:** Accordion/AccordionItem, Tabs (List, Trigger, Content), Dialog,
   Drawer, Popover, Tooltip, Menu (with Item, Separator, Label, Group, CheckboxItem, RadioGroup,
-  RadioItem, Sub), ConfirmDialog
+  RadioGroupItem, Sub), ConfirmDialog
 - **Data:** Table (Head, Body, Foot, Row, Header, Cell), DataTable, Pagination
-- **Messages:** Toast/ToastRegion, Banner, InlineNotification, MessageAriaLive, and
+- **Messages:** Toast/ToastRegion, Banner, InlineNotification, MessageLiveRegion, and
   `getMessageBus()` for raising them from code
-- **Localization admin:** LocaleSwitcher, LocaleEdit, LocalTextLinkEdit, LocalTextEdit
+- **Localization:** LocalePicker. The admin's locale and copy editors are this project's own,
+  in `src/lib/Locale/`, `src/lib/LocalText/` and `src/lib/LocalTextLink/`.
 
 Read the component's props in `node_modules/@sveltebuilder/coreui` rather than guessing them.
 Wrap form controls in `Field` (which wires up the label, `hint` and `error` with the right `aria-describedby`). Use
 `InlineNotification` for a form error and the message bus for toasts. If something reusable is
-missing, build it in `src/lib/components/` with the same conventions, and tell the user it
-might belong in coreui.
+missing, build it in the folder of the concept it represents (`src/lib/Ticket/TicketCard.svelte`,
+a child concept nested inside its parent's folder) with the same conventions, and tell the user
+it might belong in coreui. Group components by concept, never by kind: no `components/`,
+`forms/` or `utils/` folders.
 
 ### Styling
 
@@ -611,13 +656,25 @@ might belong in coreui.
   `--danger`, `--warning`, `--success`, `--info`, `--font`, `--font-mono`, `--font-size-base`,
   `--leading-base`, `--radius`. Never assign the derived tokens (`--brand-hover`,
   `--surface-raised`, …).
-- In component styles, use tokens (`var(--space-4)`, `var(--text-soft)`, `var(--radius)`) rather
+- **No `<style>` blocks and no `:global`.** Styles are plain CSS files. A screen, layout or
+  component imports its own stylesheet, named after its root block and placed beside it:
+  `import './ticket-list-screen.css';` in `src/routes/ticket/+page.svelte`, or
+  `src/lib/Ticket/ticket.css` (one per concept folder) imported by the components in that folder.
+  They stay unlayered, so they override coreui's layered rules.
+- **Every selector names the file's own block, and every element it reaches has a class.** The
+  stylesheet applies to the whole app, so `.ticket-card__body p` would also hit the paragraphs of
+  any component rendered inside; write `.ticket-card__summary` on the element instead. Reach into a
+  coreui component only through its public classes (`.ticket-card .badge`).
+- A screen's root block is its view type with `View` replaced by `Screen`
+  (`TicketListView` → `.ticket-list-screen`), so it never collides with a component's block.
+- In stylesheets, use tokens (`var(--space-4)`, `var(--text-soft)`, `var(--radius)`) rather
   than raw colors and pixel values, so dark mode and re-theming keep working.
 - Global overrides of coreui components are unlayered rules at the bottom of `app.css`,
   targeting coreui's classes and data attributes. No `!important`.
 - Interactive state is expressed in data attributes (`[data-state='open']`, `[data-disabled]`),
   never toggled classes. Dark mode is `data-color-scheme` on `<html>`.
-- CSS classes are `kebab-case` BEM: `.ticket-list__header`.
+- CSS classes are `kebab-case` BEM: `.ticket-list-screen__header`. Hide text visually but keep
+  it for screen readers with `.visually-hidden` from `src/utilities.css`.
 
 ### Accessibility (WCAG 2.2 AA)
 
@@ -625,7 +682,7 @@ might belong in coreui.
   `<table>` for tabular data, headings in order. ARIA only when HTML can't express it.
 - Every input has a visible label (`Field` does this). Errors are announced and tied to the field.
 - Everything works by keyboard, with a visible focus indicator. Don't remove outlines.
-- Color is never the only signal. Pair status color with text or an icon (`StatusBadge` does this).
+- Color is never the only signal. Pair status color with text or an icon (`Badge` takes its text as content).
 - Images have meaningful `alt`, or `alt=""` when decorative.
 - Each page sets a localized `<title>` in `<svelte:head>`.
 - When you change `--brand` or a status color, check its contrast.
@@ -653,13 +710,12 @@ One concept, one name, at every layer: `ticket` table → `Ticket` type → `Tic
 | Svelte component       | `PascalCase.svelte`                            | `TicketCard.svelte`                  |
 | Other module           | `kebab-case.ts`                                | `format-date.ts`                     |
 | Route directory        | `kebab-case`, singular                         | `user-account/[id]/`                 |
-| REST endpoint          | plural `kebab-case` (the only plural)          | `/api/user-accounts`                 |
+| REST endpoint          | singular `kebab-case`                          | `/api/user-account`                  |
 | JSON key               | `camelCase`                                    | `emailAddress`                       |
 | CSS class / property   | `kebab-case` / `--kebab-case`                  | `.ticket-card__title`                |
 
-No abbreviations: `configuration`, not `cfg`; `button`, not `btn` in new names (`.btn` is
-coreui's existing class). `id`, `url`, `http` and `api` are fine. Acronyms are capitalized as
-words: `getHttpUrl`, `HtmlParser`.
+No abbreviations: `configuration`, not `cfg`; `button`, not `btn`. `id`, `url`, `http` and `api`
+are fine. Acronyms are capitalized as words: `getHttpUrl`, `HtmlParser`.
 
 TypeScript is `strict`. No `any` (use `unknown` and narrow), and no non-null assertions (`!`).
 Narrow so the failure path is real code.
@@ -681,13 +737,14 @@ starting the next.
 6. **Generate and apply:** `pnpm sveltebuilder sync:supabase` → read the generated migration →
    `pnpm db:reset`.
 7. **Types:** the domain type and view type.
-8. **Loader and actions** in `+page.server.ts`, with the return type annotated, the boundary
-   mapped to camelCase, every error checked, and copy loaded with `loadScopedCopy` or
-   `loadEntityCopy`.
-9. **Page and components** using coreui, entity components resolving their own copy.
-10. **Link it in:** an admin feature needs a navigation entry (`/admin/navigation-item`, or a
-    seed row in `navigation_item` with scope `'admin'`).
-11. **Verify** (below).
+8. **Data module** in `src/lib/server/<table>.ts`: the queries, the RPC calls and the
+   camelCase boundary, each function returning `QueryResult<T>`.
+9. **Loader and actions** in `+page.server.ts`, calling the data module, with the return type
+   annotated, every error checked, and copy loaded with `loadScopedCopy` or `loadEntityCopy`.
+10. **Page and components** using coreui, entity components resolving their own copy.
+11. **Link it in:** an admin feature needs a navigation entry (`/admin/navigation-item`, or a
+    seed row in `navigation_item` with menu `'admin'`).
+12. **Verify** (below).
 
 Show the user the schema and the policies (steps 1 to 3) before building UI on top of them when
 the access rules are not obvious. They are the most expensive part to change later.
@@ -715,7 +772,7 @@ Don't call a change finished until:
 
 - [ ] `DATABASE_URL`, `postgres(…)`, `drizzle(…)`, or `drizzle-orm` imported outside `schema.ts`
 - [ ] A Supabase client created anywhere but `src/lib/server/supabase.ts`, or the service-role key in use
-- [ ] A query in a `.svelte` file
+- [ ] A query in a `.svelte` file, or a `.from(` or `.rpc(` in a route file instead of a data module
 - [ ] A Supabase result used without checking `error`
 - [ ] A new table without `enable row level security`, or a policy without `to <role>`
 - [ ] `auth.uid()` in a policy, or a helper called without `(select …)`
@@ -734,7 +791,8 @@ Don't call a change finished until:
 - [ ] `export let`, `$:`, `<slot>`, `createEventDispatcher`
 - [ ] `$effect` that writes `$state` that could have been `$derived`
 - [ ] A hand-built component that duplicates one in coreui
-- [ ] Raw hex colors or pixel spacing in component styles instead of tokens
+- [ ] A `<style>` block, `:global`, or a bare element selector (`.x p`) in a stylesheet
+- [ ] Raw hex colors or pixel spacing in stylesheets instead of tokens
 - [ ] `<div onclick>` where a `<button>` or `<a>` belongs
 - [ ] `isActive`/`hasAccess` naming, `I`/`T` type prefixes, abbreviations
 - [ ] Hand edits to `supabase/migrations/*` or `supabase/seed.sql`

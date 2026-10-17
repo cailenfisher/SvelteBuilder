@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "node sync-chrome.mjs && svelte-kit sync && eslint src",
     "check": "node sync-chrome.mjs && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "test:a11y": "playwright test"
+    "test:browser": "playwright test"
   },
   "dependencies": {
     "@sveltebuilder/content": "workspace:*",

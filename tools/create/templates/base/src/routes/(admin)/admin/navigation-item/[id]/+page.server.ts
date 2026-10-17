@@ -1,11 +1,11 @@
 import { error } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 
-type NavItem = {
+type NavigationItem = {
   id: number
   href: string
-  scope: string
-  sortOrder: number
+  menu: string
+  position: number
   active: boolean
   localTextLink: { id: number; slug: string; scope: string | null } | null
 }
@@ -17,14 +17,14 @@ export const load: PageServerLoad = async ({ params }) => {
   if (isNaN(id)) throw error(404, 'Not found')
 
   return {
-    navItem: {
+    navigationItem: {
       id,
       href: '',
-      scope: '',
-      sortOrder: 0,
+      menu: '',
+      position: 0,
       active: true,
       localTextLink: null,
-    } as NavItem,
+    } as NavigationItem,
     translations: [] as LocalText[],
     locales: [] as Locale[],
   }

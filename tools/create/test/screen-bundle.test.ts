@@ -191,7 +191,7 @@ function readSlugUses(bundleDir: string): SlugUse[] {
     const source = fs.readFileSync(path.join(uiDir, rel), 'utf8');
 
     // A screen conventionally wraps its own scope in a one-line helper:
-    //   const t = (slug: string) => scoped.localText(slug, 'logistic');
+    //   const localText = (slug: string) => scoped.localText(slug, 'logistic');
     // Learn each helper's name and scope so its call sites resolve.
     const helpers = new Map<string, string>();
     for (const m of source.matchAll(
@@ -201,7 +201,9 @@ function readSlugUses(bundleDir: string): SlugUse[] {
     }
 
     for (const [name, scope] of helpers) {
-      for (const m of source.matchAll(new RegExp(`\\b${name}\\('([^']+)'\\)`, 'g'))) {
+      // Not after a `.`: `globalDictionary.localText('…')` is a direct call, read below, even
+      // when the helper shares the method's name.
+      for (const m of source.matchAll(new RegExp(`(?<![.\\w])${name}\\('([^']+)'\\)`, 'g'))) {
         uses.push({ slug: m[1], scope, entityBound: false, file: rel });
       }
     }
@@ -440,21 +442,27 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
 // ── Module components ────────────────────────────────────────────────────────
 
 /**
- * Module-scoped copy a module's own components ask for: `localText('slug', '<module>')`.
+ * Module-scoped copy a module's own components ask for: `localText('slug', '<module>')`, or
+ * `formatText('slug', { … }, '<module>')`, whose values object sits between slug and scope.
  * Entity-bound copy (`'article'`, `'supplier'`) is seeded per row and is not checkable
  * here; UI copy under the module's own scope is, and a component no screen renders is
- * otherwise invisible to every check above. NewsletterSignup and ArticleWorkflowPanel
+ * otherwise invisible to every check above. NewsletterSubscriptionForm and ArticleWorkflowPanel
  * asked for twelve such slugs that nothing seeded.
  */
 function readComponentSlugs(module: string): string[] {
-  const dir = path.join(REPO, 'packages', module, 'src', 'lib', 'components');
+  // Components live in concept folders at any depth (Article/ArticleBlock/…), so walk the whole
+  // library rather than one directory: a flat read would silently find nothing.
+  const dir = path.join(REPO, 'packages', module, 'src', 'lib');
   if (!fs.existsSync(dir)) return [];
   const call = new RegExp(
-    String.raw`(?:localText|formatText)\(\s*'([^']+)'\s*,\s*'${module}'`,
+    String.raw`(?:localText|formatText)\(\s*'([^']+)'\s*,\s*(?:\{[^}]*\}\s*,\s*)?'${module}'`,
     'g'
   );
   const slugs = new Set<string>();
-  for (const file of fs.readdirSync(dir).filter((name) => name.endsWith('.svelte'))) {
+  const files = fs
+    .readdirSync(dir, { recursive: true, encoding: 'utf8' })
+    .filter((name) => name.endsWith('.svelte'));
+  for (const file of files) {
     for (const match of fs.readFileSync(path.join(dir, file), 'utf8').matchAll(call))
       slugs.add(match[1]);
   }
@@ -481,5 +489,76 @@ describe.each(MODULES_WITH_COMPONENTS)('%s components', (module) => {
       }
     }
     expect(gaps, `component copy the seed does not provide: ${gaps.join(', ')}`).toEqual([]);
+  });
+});
+
+// ── Form-action errors ───────────────────────────────────────────────────────
+
+/**
+ * Every slug a form action returns through `formError(status, 'slug')`, and every
+ * `content.publish_validation.*` slug the publish check returns. An action's error reaches the
+ * reader only as copy, so a slug nothing seeds would show "Something went wrong" instead of the
+ * reason. A module's slugs must be in its seed; the base template's are global.
+ */
+function readFormErrorSlugs(): { slug: string; file: string }[] {
+  const templatesDir = path.join(REPO, 'tools', 'create', 'templates');
+  const roots = [path.join(templatesDir, 'modules'), path.join(templatesDir, 'superprototype', 'src')];
+  const uses: { slug: string; file: string }[] = [];
+  for (const root of roots) {
+    const files = fs
+      .readdirSync(root, { recursive: true, encoding: 'utf8' })
+      .filter((name) => name.endsWith('.ts'));
+    for (const file of files) {
+      const source = fs.readFileSync(path.join(root, file), 'utf8');
+      for (const match of source.matchAll(/formError\(\s*\d+\s*,\s*'([^']+)'/g)) {
+        uses.push({ slug: match[1], file: path.relative(REPO, path.join(root, file)) });
+      }
+    }
+  }
+  const validator = path.join(REPO, 'packages', 'content', 'src', 'lib', 'publishing', 'validate-publish.ts');
+  for (const match of fs.readFileSync(validator, 'utf8').matchAll(/slug:\s*'([^']+)'/g)) {
+    uses.push({ slug: match[1], file: path.relative(REPO, validator) });
+  }
+  return uses;
+}
+
+describe('form-action errors', () => {
+  const uses = readFormErrorSlugs();
+
+  it('finds the actions to check', () => {
+    expect(uses.length).toBeGreaterThan(100);
+  });
+
+  it('are all seeded, in every required locale', () => {
+    const gaps: string[] = [];
+    for (const { slug, file } of uses) {
+      const module = slug.split('.')[0];
+      if (!fs.existsSync(path.join(MODULES_DIR, module))) {
+        if (!GLOBAL_SLUGS.has(slug)) gaps.push(`${file}: '${slug}' (global)`);
+        continue;
+      }
+      const seed = readSeed(module);
+      if (!seed.links.get(module)?.has(slug)) {
+        gaps.push(`${file}: '${slug}' (no link)`);
+        continue;
+      }
+      for (const locale of REQUIRED_LOCALES) {
+        if (!seed.copy.get(locale)?.has(slug)) gaps.push(`${file}: '${slug}' (${locale})`);
+      }
+    }
+    expect(gaps, `errors with no copy:\n  ${gaps.join('\n  ')}`).toEqual([]);
+  });
+
+  it('are never English text passed straight to fail()', () => {
+    const templatesDir = path.join(REPO, 'tools', 'create', 'templates');
+    const offenders: string[] = [];
+    for (const root of [path.join(templatesDir, 'modules'), path.join(templatesDir, 'superprototype', 'src')]) {
+      for (const file of fs.readdirSync(root, { recursive: true, encoding: 'utf8' })) {
+        if (!file.endsWith('.ts')) continue;
+        const source = fs.readFileSync(path.join(root, file), 'utf8');
+        if (/\bfail\(\s*\d+\s*,\s*\{\s*error:/.test(source)) offenders.push(file);
+      }
+    }
+    expect(offenders, 'use formError(status, slug) from $lib/server/form-error').toEqual([]);
   });
 });

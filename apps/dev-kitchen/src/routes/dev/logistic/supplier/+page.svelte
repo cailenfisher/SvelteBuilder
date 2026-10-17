@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SupplierCard } from '@sveltebuilder/logistic';
-  import Example from '$lib/Example.svelte';
+  import Example from '$lib/Example/Example.svelte';
   import { CONTACTS, SUPPLIERS, logisticDictionary } from '$lib/fixtures/logistic';
 
   const dictionary = logisticDictionary();

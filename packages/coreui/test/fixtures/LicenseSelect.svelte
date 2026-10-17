@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Select from '../../src/lib/Select.svelte';
-  import SelectItem from '../../src/lib/SelectItem.svelte';
+  import Select from '../../src/lib/Select/Select.svelte';
+  import SelectItem from '../../src/lib/Select/SelectItem.svelte';
 
   let { value = '' }: { value?: string } = $props();
   const licenses = [

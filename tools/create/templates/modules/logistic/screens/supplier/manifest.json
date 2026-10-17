@@ -12,8 +12,8 @@
     },
     "/admin/logistic/supplier/[id]": {
       "update": ["slug", "lead_time_day", "active"],
-      "addContact": ["role", "name", "email", "phone"],
-      "deleteContact": ["contact_id"]
+      "addSupplierContact": ["role", "name", "email", "phone"],
+      "deleteSupplierContact": ["supplier_contact_id"]
     }
   },
   "copySlugs": [

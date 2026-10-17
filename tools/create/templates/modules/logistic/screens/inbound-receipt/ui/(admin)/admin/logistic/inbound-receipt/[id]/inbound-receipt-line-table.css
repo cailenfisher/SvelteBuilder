@@ -1,0 +1,17 @@
+.inbound-receipt-line-table__sku {
+  font-family: var(--font-mono);
+}
+
+.inbound-receipt-line-table__discrepancy {
+  font-weight: var(--weight-semibold);
+}
+
+.inbound-receipt-line-table__discrepancy--negative {
+  color: var(--danger-text);
+}
+
+.inbound-receipt-line-table__empty {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  margin: var(--space-1) 0 0;
+}

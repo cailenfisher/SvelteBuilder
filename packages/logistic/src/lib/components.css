@@ -1,0 +1,21 @@
+/* =============================================================================
+   SvelteBuilder Logistic — Component Styles
+   components.css
+
+   The module stylesheet a scaffold imports after coreui's, in the same layer:
+     @import '@sveltebuilder/logistic/styles/components.css' layer(components);
+   Each component's rules live beside it, in its concept folder; this file only
+   lists them.
+   ============================================================================= */
+
+@import './BarcodeInput/barcode-input.css';
+@import './CycleCount/cycle-count.css';
+@import './InboundReceipt/inbound-receipt.css';
+@import './LogisticMetric/logistic-metric.css';
+@import './PickTask/pick-task.css';
+@import './Shipment/shipment.css';
+@import './StockAdjustment/stock-adjustment.css';
+@import './StockLevel/stock-level.css';
+@import './StorageLocation/storage-location.css';
+@import './Supplier/supplier.css';
+@import './TrackingEvent/tracking-event.css';

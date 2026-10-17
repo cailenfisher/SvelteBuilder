@@ -7,10 +7,15 @@ project, see the variants no screen uses, and audit the set for accessibility.
 The design and the history behind it are in [`docs/DEV-KITCHEN.md`](../../docs/DEV-KITCHEN.md).
 
 ```sh
-pnpm --filter dev-kitchen dev        # http://localhost:5173
-pnpm --filter dev-kitchen check      # svelte-check, including showcase coverage
-pnpm --filter dev-kitchen test:a11y  # the accessibility audit (needs `playwright install chromium` once)
+pnpm --filter dev-kitchen dev                             # http://localhost:5173
+pnpm --filter dev-kitchen check                           # svelte-check, including showcase coverage
+pnpm --filter dev-kitchen test:browser                    # accessibility and behaviour, three engines
+pnpm --filter dev-kitchen test:browser --project=chromium # one engine
 ```
+
+The browser suites need Playwright's engines once: `pnpm --filter dev-kitchen exec playwright install
+--with-deps chromium firefox webkit`. WebKit also needs system media libraries that `--with-deps`
+installs with `sudo`; without them it fails to launch, and CI is where it runs.
 
 No database, no Supabase, and no `.env` to write: `sync-chrome.mjs` creates the one variable the
 chrome needs.
@@ -28,7 +33,7 @@ Everything else is committed and owned here:
 | Path                                 | Purpose                                                                             |
 | ------------------------------------ | ----------------------------------------------------------------------------------- |
 | `src/routes/+layout.server.ts`       | The root load the base chrome expects, built from the canonical seed instead of SQL |
-| `src/routes/api/locale/+server.ts`   | Where `LocaleSwitcher` posts; the base template ships no locale endpoint            |
+| `src/routes/api/locale/+server.ts`   | Where `LocalePicker` posts; the base template ships no locale endpoint            |
 | `src/lib/catalog.ts`                 | Every showcase page and the components it renders — and the coverage gate           |
 | `src/routes/dev/<package>/<page>/`   | The showcase pages                                                                  |
 | `svelte.config.js`, `vite.config.ts` | Source aliases and SSR settings                                                     |

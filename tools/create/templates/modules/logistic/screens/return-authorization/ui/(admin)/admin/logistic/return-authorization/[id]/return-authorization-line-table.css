@@ -1,0 +1,9 @@
+.return-authorization-line-table__sku {
+  font-family: var(--font-mono);
+}
+
+.return-authorization-line-table__empty {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  margin: var(--space-1) 0 0;
+}

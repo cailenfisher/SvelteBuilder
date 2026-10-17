@@ -6,8 +6,8 @@ import type { ArticleWithRelations } from '../schema/index.js';
 /** Structure only — see RssFeedArticle for why. */
 export type NewsSitemapArticle = ArticleWithRelations;
 
-function xmlEscape(str: string): string {
-  return str
+function xmlEscape(text: string): string {
+  return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -88,19 +88,19 @@ ${entries.join('\n')}
 }
 
 export function generateStandardSitemap(entries: SitemapEntry[]): string {
-  const urlEls = entries
+  const urlElements = entries
     .map(
-      (e) => `  <url>
-    <loc>${xmlEscape(e.url)}</loc>
-    <lastmod>${xmlEscape(e.lastmod)}</lastmod>
-    <changefreq>${xmlEscape(e.changefreq)}</changefreq>
-    <priority>${xmlEscape(e.priority)}</priority>
+      (entry) => `  <url>
+    <loc>${xmlEscape(entry.url)}</loc>
+    <lastmod>${xmlEscape(entry.lastmod)}</lastmod>
+    <changefreq>${xmlEscape(entry.changefreq)}</changefreq>
+    <priority>${xmlEscape(entry.priority)}</priority>
   </url>`
     )
     .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urlEls}
+${urlElements}
 </urlset>`;
 }

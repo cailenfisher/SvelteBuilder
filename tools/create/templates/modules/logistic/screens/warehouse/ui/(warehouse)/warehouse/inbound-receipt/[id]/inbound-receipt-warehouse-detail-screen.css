@@ -1,0 +1,35 @@
+.inbound-receipt-warehouse-detail-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  max-width: 48rem;
+  margin-inline: auto;
+  width: 100%;
+}
+
+.inbound-receipt-warehouse-detail-screen__back {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.inbound-receipt-warehouse-detail-screen__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+.inbound-receipt-warehouse-detail-screen__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+  margin: 0;
+}
+
+.inbound-receipt-warehouse-detail-screen__meta {
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  margin: var(--space-1) 0 0;
+}
