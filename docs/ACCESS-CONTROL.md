@@ -271,7 +271,7 @@ packages/access/
 ```
 
 The static tables are Drizzle definitions, like every other package, until Drizzle's role is settled (`CLAUDE.md` Tech Stack).
-The generated tables are SQL only. Their row types come from Supabase's generated types, which `CLAUDE.md` already makes the source of truth for shape.
+The generated tables are SQL only. The scaffold does not generate Supabase types, and every read of an access table goes through an RPC, so each RPC's result row type is declared at its data module, as `article-preview-token.ts` does for content's preview RPCs. The view types those rows convert to live in `views.ts`.
 
 The package ships no queries (guardrail 11).
 

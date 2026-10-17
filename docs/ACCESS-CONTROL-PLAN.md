@@ -54,7 +54,9 @@ Report this table at the end of every phase. Update it when an item lands or som
 | `explain_access()` | DECISIONS exclusions | not v1 | excluded |
 | Replace filename-prefix ordering of supplemental SQL | `docs/DEFERRED.md` | not v1 | recorded |
 | `article_assignment.role` column name | DESIGN §8 note | Phase 8 | open |
-| Content's seeded role set | DESIGN §7 | Phase 8 | open |
+| Content's seeded role set, and further content scopes (P3) | DESIGN §7, appendix §5 | Phase 8 | open |
+| P1 article insert constraint | appendix §5 | Phase 8 | proposed |
+| P2 logistic non-admin access on adoption | appendix §5 | Phase 9, and O4 | proposed |
 
 ---
 
@@ -83,7 +85,7 @@ Read-only, plus one docs commit.
 1. Create `packages/access` following an existing module package's layout (`package.json`, `svelte.config.js`, `tsconfig.json`, `README.md`, `LICENSE`, `CHANGELOG.md` left to Changesets).
 2. Add the §2.1 tables as Drizzle definitions, one file per table, with inferred types and an `index.ts` barrel exported as `@sveltebuilder/access/schema`.
 3. Add `views.ts` with the view-model types the components and screens will need. Export as `@sveltebuilder/access/views`. Import `ScreenCopy` and friends from coreui; do not redeclare them.
-4. Register the package in the base scaffold's `.sveltebuilder/registry/` so every scaffold includes it, sorted after `@sveltebuilder/local-text-schema` and the flavour.
+4. Register the package in the base scaffold's `.sveltebuilder/registry/` so every scaffold includes it, with `after: ["@sveltebuilder/local-text-schema"]` only. Its foreign keys to `user_account` are added in `01-access.sql`, not in Drizzle, as content does (Phase 0 appendix §4).
 5. Pin it in the create CLI the way other SvelteBuilder dependencies are pinned (`package-version.test.ts` must cover it).
 6. Changeset: new package.
 
@@ -99,7 +101,7 @@ In the location settled by O2, as `01-access.sql` (A21).
 2. `current_user_group_ids()` and `current_user_can()` (§3.1).
 3. RLS on every §2.1 table. Reads go through the RPCs; admins may select directly for the admin screens. Write the policy intent in a comment block at the top of the file, as `02-content-rls.sql` does.
 4. Revoke `insert`, `update`, `delete`, `truncate`, `references`, `trigger` on every access table from `anon` and `authenticated` (A12). Write the reason in the file, pointing at `05-user-account-hardening.sql`.
-5. Admin RPCs (§3.3), each checking `current_user_admin()` itself. `set_role_permissions` and `delete_role` refuse a role with a non-null `slug`.
+5. Admin RPCs (§3.3), each checking `current_user_admin()` itself. `set_role_permissions` and `delete_role` refuse a role with a non-null `slug`. Those that call `04-admin-write-rpc.sql`'s link-plus-copy function are `plpgsql`, since `04-` applies after `01-` (Phase 0 appendix §4).
 6. Grant `execute` explicitly on every function to exactly the roles that call it.
 7. Seed EN and FR copy for the `access` module UI scope.
 8. Extend `00-supabase-stub.sql` with whatever Phase 0 found missing (a second non-admin, a group member).
@@ -223,3 +225,81 @@ Do not start this phase unless O5 has been answered "yes, in v1".
 
 Scope: a role assigned on a `section` covers the articles linked to it through `article_section`.
 Design it first, as an addition to `docs/ACCESS-CONTROL.md`, covering at least: how a manifest declares the parent relation, how `current_user_article_ids()` unions container grants without per-row cost, what `list_article_access()` reports, and how `RoleAssignmentPanel` shows "via Sports section". Stop for approval before writing code.
+
+---
+
+## Appendix — Phase 0 findings (2026-10-17)
+
+### 1. Repository facts
+
+| Fact the design relies on | Result | Evidence |
+| --- | --- | --- |
+| `current_user_id()` returns `bigint`, `current_user_admin()` `boolean`, both `STABLE SECURITY DEFINER`, `search_path = ''` | Confirmed | `superprototype/supabase/supplemental/00-auth-functions.sql:36-63` |
+| Entity PKs in content and logistic are `bigint` | Confirmed: all 41 tables | `packages/{content,logistic}/src/lib/schema/*.ts` |
+| Supplemental files from base, flavour and modules merge into one directory and apply in one sort | Confirmed. Module files are copied in with `overwrite: true`, so two packages shipping the same filename would silently replace one another | `tools/create/src/module-template.ts:35-41`, `tools/cli/src/commands/sync-supabase.ts:91-92` |
+| `01-access.sql` sorts after `00-auth-functions.sql` and before every file that will call the access helpers | Confirmed. Today's order: `00-auth-functions`, `00-local-text-rls`, `01-access` (new), `01-content-supplements`, `01-get-dictionary`, `02-content-rls`, `03-base-rls`, `03-content-media`, `04-admin-write-rpc`, `05-logistic-supplements`, `05-user-account-hardening` | as above |
+| An edited supplemental file is carried forward in full, by content comparison | Confirmed. It is skipped when its trimmed text appears in any migration, which is why Phase 3's byte-identical-output test matters: unstable output would add a migration on every sync | `sync-supabase.ts:94-108` |
+| `discover()` ignores an extra `access` key | Confirmed: plain `JSON.parse`, cast to `SchemaManifest` | `tools/cli/src/lib/discover.ts:28` |
+| The stub can impersonate a second non-admin and a group member | Confirmed, and the stub needs nothing. Assertions create principals themselves (insert into `auth.users`, then `ensure_user_account()` under that subject), and can write group membership as the owner before `set local role authenticated` | `scripts/sql-check/20-assert-base.sql:188-231` |
+| Supabase type generation picks up tables created in supplemental SQL | **Wrong premise.** The scaffold does not generate Supabase types; its client is untyped unless the developer asks (`superprototype/CLAUDE.md:196`). Every read of an access table goes through an RPC anyway, and an RPC result needs a declared row type at the data module, as `article-preview-token.ts` already does. DESIGN §5.1 is corrected to say so | |
+| Column grants (A19) work alongside RLS | Confirmed on `postgres:17-alpine`: with table `UPDATE` revoked and re-granted per column, updating a granted column succeeds (with `returning *`); setting a guarded column, alone or with others, or through `insert … on conflict do update`, is refused; a definer RPC writes it; a column added later is not updatable; `has_column_privilege` gives an assertion what it needs. PostgREST's `PATCH` sets only the payload's columns, so it behaves the same | throwaway container |
+
+### 2. Writes of `article_status_id` and `published_at`
+
+Besides `content_transition_article_status`, one: `createArticle` inserts `article_status_id` (`modules/content/server.superprototype/article.ts:211`), with the lowest-positioned status from `getInitialArticleStatus`. Nothing in content issues an `UPDATE` on `article` from TypeScript.
+
+That insert is a gap A19 does not cover: column `UPDATE` grants say nothing about `INSERT`, so a user holding `article.create` could insert an article already `published`, skipping both `publish` and the checklist. See proposal P1.
+
+### 3. Adoption worklist
+
+**Content** (`modules/content/supplemental/02-content-rls.sql`):
+
+| Tables | Policies today | Kind |
+| --- | --- | --- |
+| `article` | public read of published; admin all | Access-controlled entity. §3.4 shape, A19 on `article_status_id`, `published_at`, and P1 for insert |
+| `article_block`, `article_byline`, `article_section`, `article_topic`, `article_tag` (loop, line 118) | public read via `content_article_public(article_id)`; admin all | Children (A18) |
+| `live_coverage`; `live_update` through `live_coverage_id` | public read via the article; admin all | Children (A18); `live_update` checks through its coverage's `article_id` |
+| `article_revision`, `article_checklist_state`, `article_preview_token` (loop, line 192) | admin all | Children (A18) |
+| `article_assignment` (same loop) | admin all | Relationship (A13): writes need `article.share` and `article.update` |
+| `section`, `media_asset` (loop, line 65) | public read; admin all | Scope-level, in the DESIGN §4 catalog |
+| `media_asset_rights`, `media_asset_source` (loop, line 192) | admin all | Children of `media_asset`, at scope level only |
+| `article_status`, `topic`, `tag`, `author_profile`, `publisher_profile`, `newsletter`, `front`, `front_slot` (line 65) | public read; admin all | Not in the DESIGN §4 catalog, so they stay admin-only unless Phase 8 adds scopes. Fronts and tags are plausibly editor work |
+| `publish_checklist_item`, `subscriber`, `newsletter_subscription` (line 192) | admin all | Stay admin-only: configuration and reader PII |
+| `comment` | public read, public insert, admin all | Stays as it is unless moderation becomes a scope |
+
+Content functions: `content_transition_article_status` (A19). `set_media_asset_copy`, `set_media_asset_rights`, `create_media_asset` are `SECURITY INVOKER`, so the new policies govern them unchanged. `content_subscribe` and the two preview functions are public-by-design definer functions and are unaffected.
+
+**Logistic** (`modules/logistic/supplemental/05-logistic-supplements.sql:780-950`). The worklist is wider than "policies gating on `current_user_admin()`":
+
+| Tables | Policies today |
+| --- | --- |
+| all 14 tables | `read … to authenticated using (true)`: **any signed-in user reads everything** |
+| all except `stock_adjustment` | admin all |
+| `inbound_receipt`(`_line`), `pick_task`(`_line`), `return_authorization`(`_line`), `cycle_count`(`_line`) | `worker_update`: **any signed-in user** may update within a status window, with no permission check |
+| `stock_adjustment` | insert by self (`user_account_id = current_user_id()`) |
+
+And the five `SECURITY DEFINER` stock functions (`logistic_adjust_stock`, `_reserve_stock`, `_release_stock_reservation`, `_consume_stock`, `_ensure_stock_level`, lines 119-252) are executable by every authenticated user, check nothing, and take the acting `p_user_account_id` as a **parameter**, so a caller can attribute an adjustment to anyone. That is existing drift, not caused by this work, but Phase 9 has to fix it: the definer functions check `current_user_can()` and take the actor from `current_user_id()`. The eight `SECURITY INVOKER` RPCs follow whatever policies Phase 9 writes.
+
+### 4. Corrections made in this commit
+
+Facts, not decisions:
+
+- DESIGN §5.1: generated-table row types come from declared RPC result types, not Supabase type generation (finding 1).
+- PLAN Phase 1 step 4: the access manifest's `after` names only `@sveltebuilder/local-text-schema`. Naming the flavour from a base-template manifest would make `resolve()` throw "Circular dependency" in any scaffold without that flavour (an unknown `after` never reaches in-degree zero, `tools/cli/src/lib/resolve.ts`). FKs to `user_account` go in `01-access.sql`, as content already does for its own (`article-assignment.ts:14`).
+- PLAN Phase 2: core RPCs that call `04-admin-write-rpc.sql`'s link-plus-copy function must be `plpgsql`, which resolves the call at run time. `04-` applies after `01-`, and a `language sql` body is checked at creation.
+
+### 5. Proposals awaiting a decision
+
+**P1. Constrain article inserts too (extends A19).**
+RLS can't see which columns an update changes, but an insert's `with check` sees the whole new row. So the insert policy can require an unpublished status and a null `published_at` unless the caller holds `article.publish`. One policy, no RPC. Recommendation: adopt, as part of A19.
+
+**P2. Logistic adoption changes what non-admins can do.**
+A5 keeps admins' access identical. But today any signed-in user reads all logistic data and can do warehouse work. Gating reads and `worker_update` on permissions (which the model requires) leaves every existing non-admin worker with nothing until someone assigns them a role. The options:
+- (a) Accept it, and make the release note and `MIGRATION` entry tell operators to assign `logistic_operator` to existing staff before upgrading.
+- (b) Gate writes only, and leave reads open to any signed-in user in v1.
+- (c) Add a built-in "every signed-in user" principal that can hold a role.
+
+Recommendation: (a). (b) leaves the whole warehouse readable by anyone who can sign in, including future external-group members. (c) is a second principal kind for a one-time transition. Under (a), Phase 9's behaviour change for non-admins also needs weighing against O4's "2.1 minor".
+
+**P3. Which further content scopes join the catalog.**
+`front`, `front_slot`, `tag`, `topic` and `newsletter` are editorial tables that stay admin-only under the DESIGN §4 example. Recommendation: settle with the seeded role set at the start of Phase 8, as already deferred.
