@@ -23,7 +23,9 @@
     "form-errors-as-copy",
     "no-abbreviations",
     "plain-stylesheets",
+    "scaffold-pins-release-versions",
     "schema-single-source",
-    "screen-decomposition"
+    "screen-decomposition",
+    "supplemental-sql-new-migration"
   ]
 }
