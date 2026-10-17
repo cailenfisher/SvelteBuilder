@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -6,6 +6,9 @@ import { glob } from 'glob';
 import { discover } from '../lib/discover.ts';
 import { resolve } from '../lib/resolve.ts';
 import { generateBaseSeedSql } from '../lib/generate-seed-sql.ts';
+import { collectAccessCatalog } from '../lib/access-manifest.ts';
+import { ACCESS_GENERATED_FILE, generateAccessSql } from '../lib/generate-access-sql.ts';
+import { orderSupplementalFiles } from '../lib/order-supplemental-files.ts';
 import { LOCALES, BASE_SLUGS } from '@sveltebuilder/local-text-schema/seed';
 
 const SVELTEBUILDER_DIR = '.sveltebuilder';
@@ -38,6 +41,9 @@ export async function syncSupabase(root?: string): Promise<void> {
   const ordered = resolve(manifests);
   const orderLog = ordered.map((m, i) => `  ${i + 1}. ${m.package} (${m.schema})`).join('\n');
   console.log(`[sveltebuilder] resolved order:\n${orderLog}`);
+
+  // Validated before anything is written, so a bad manifest changes nothing.
+  const accessSql = generateAccessSql(collectAccessCatalog(ordered));
 
   // ── 1. Generate barrel schema file ─────────────────────────────────────────
   await mkdir(path.join(cwd, SVELTEBUILDER_DIR), { recursive: true });
@@ -88,8 +94,20 @@ export async function syncSupabase(root?: string): Promise<void> {
   // what the earlier one created, which is why supplemental SQL is written to be re-runnable
   // (create or replace, drop policy if exists). Deleting a file undoes nothing; to remove an
   // object, write the drop in a supplemental file.
-  const supplementalFiles = await glob(`${SUPPLEMENTAL_DIR}/*.sql`, { cwd });
-  supplementalFiles.sort();
+  //
+  // The generated access SQL is written here, before the search, so it is carried forward by
+  // exactly the same rule. sync owns that file: when no manifest declares access it is removed,
+  // which, like deleting any supplemental file, undoes nothing already migrated.
+  const accessGeneratedPath = path.join(cwd, SUPPLEMENTAL_DIR, ACCESS_GENERATED_FILE);
+  if (accessSql === null) {
+    await rm(accessGeneratedPath, { force: true });
+  } else {
+    await mkdir(path.join(cwd, SUPPLEMENTAL_DIR), { recursive: true });
+    await writeFile(accessGeneratedPath, accessSql, 'utf-8');
+    console.log(`[sveltebuilder] wrote ${path.join(SUPPLEMENTAL_DIR, ACCESS_GENERATED_FILE)}`);
+  }
+
+  const supplementalFiles = orderSupplementalFiles(await glob(`${SUPPLEMENTAL_DIR}/*.sql`, { cwd }));
 
   const migrationSql = (
     await Promise.all(

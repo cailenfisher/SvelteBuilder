@@ -1,0 +1,6 @@
+{
+  "permission": {
+    "navigation_item": ["read", "update", "share"]
+  },
+  "entity": ["navigation_item"]
+}

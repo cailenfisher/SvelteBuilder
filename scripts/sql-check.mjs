@@ -27,7 +27,7 @@
  *   node scripts/sql-check.mjs --keep              # leave the container running
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, existsSync, readdirSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -160,6 +160,25 @@ if (!reuseProject) {
     });
   }
 
+  // Entity-level access is asserted before any real module adopts it, on a scaffold table:
+  // scripts/sql-check/access-fixture.json is added as the `access` key of the scaffold's own
+  // registry manifest, the way a developer declares access on their own tables. It lives
+  // here, never in a template, so no project ships it.
+  if (ok()) {
+    step('access fixture', () => {
+      const manifestPath = path.join(
+        projectDir,
+        '.sveltebuilder',
+        'registry',
+        '@sveltebuilder-superprototype.json'
+      );
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+      manifest.access = JSON.parse(readFileSync(path.join(ASSERT_DIR, 'access-fixture.json'), 'utf8'));
+      writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+      return '';
+    });
+  }
+
   if (ok()) step('sync:supabase', () => run('node', [SYNC_CLI, 'sync:supabase'], projectDir));
 }
 
@@ -230,6 +249,17 @@ if (ok() && existsSync(seedFile)) {
   // the statements, and `supabase db reset` is not the only thing that replays a seed.
   // The base assertions check no link was duplicated by this.
   if (ok()) step('seed again (re-runnable)', () => psql(seedFile));
+}
+
+// The access SQL again, as sync carries an edited supplemental file forward in full into a new
+// migration that runs over the objects the earlier one created. The generated file is the one
+// most likely to change: every manifest edit regenerates it.
+if (ok()) {
+  for (const file of ['01-access.sql', 'access-generated.sql']) {
+    const source = path.join(projectDir, 'supabase', 'supplemental', file);
+    if (!ok() || !existsSync(source)) continue;
+    step(`${file} again (re-runnable)`, () => psql(source));
+  }
 }
 
 // ── Assertions ───────────────────────────────────────────────────────────────

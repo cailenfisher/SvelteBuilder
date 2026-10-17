@@ -108,7 +108,8 @@ article_role_assignment (
 ```
 
 The FK column follows the naming rule `<singular_table>_id`.
-The generator reads the entity's primary key type from the database shape it is generating against, not from an assumption.
+The generator reads the entity's primary key type from the database shape it is generating against, not from an assumption: the generated SQL looks it up in `pg_index` when it applies, and refuses an entity without a single-column primary key. The functions take and return `bigint`, which holds an `integer` key without conversion.
+Constraints are `<entity>_role_assignment_one_principal` and `uq_<entity>_role_assignment`. Every generated identifier must fit Postgres's 63 characters, which bounds a scope name at 27; sync refuses a longer one rather than let Postgres truncate two names into one.
 
 RLS on the generated table: an admin, the grantee (directly or through a group), and a holder of `article.share` on that article may select. Nobody writes it except through the §3.2 RPCs.
 
@@ -267,6 +268,8 @@ That file must be re-runnable (`create table if not exists`, `create or replace 
 
 Sync orders that file itself, directly after the core `01-access.sql`, rather than by its name (A21).
 
+When no manifest declares `access`, sync writes no file, and removes one it wrote before.
+
 Removing a scope from `access.entity`, or a pair from `access.permission`, removes nothing from the database: sync stops generating the objects, and a deleted supplemental file undoes nothing. Write the `drop` in a supplemental file, as for any other supplemental object.
 
 A shape change to a generated table after it exists (a new column) needs an `alter`, which `create table if not exists` will not perform.
@@ -404,6 +407,7 @@ Not started. It adopts the same shape when it is built.
 | Components | `RolePermissionMatrix`, `RoleAssignmentTable`, `RoleAssignmentPanel`, `UserGroupMemberTable` |
 | Role suffix | `Matrix` |
 | Assertion file | `scripts/sql-check/25-assert-access.sql` |
+| Added in Phase 3 (review in the PR) | CLI: `lib/access-manifest.ts` (`AccessDeclaration`, `AccessCatalog`, `AccessManifestError`, `parseAccessDeclaration`, `collectAccessCatalog`, `POSTGRES_IDENTIFIER_LIMIT`), `lib/generate-access-sql.ts` (`generateAccessSql`, `ACCESS_GENERATED_FILE`, `ACCESS_CORE_FILE`), `lib/order-supplemental-files.ts` (`orderSupplementalFiles`), `DiscoveredSchemaManifest`. Generated SQL: policy `<entity>_role_assignment_read`; `list_<entity>_access` result columns `email_address`, `external`, `granted_by_email_address`. sql-check: `access-fixture.json`, `26-assert-access-entity.sql` |
 | Added in Phase 2 (review in the PR) | Internal SQL functions, not executable by `anon` or `authenticated`: `role_assignment_check_target()` (trigger function, and the trigger's name), `access_require_admin()` (the admin check every admin RPC starts with), `access_delete_entity_copy(scope, entity_id)` (removes a deleted role's or group's copy) |
 | Added in Phase 1 (approved 2026-10-17) | `STANDARD_PERMISSION_ACTIONS` and `StandardPermissionAction` (the five standard actions, declared once; `PermissionAction` admits module verbs beside them); view types `RoleAssignmentRow`, `UserGroupMemberRow`, `UserAccountOption`, `UserGroupOption`, following logistic's `…Row` and `…Option` pattern |
 | TS types | `Permission`, `PermissionAction`, `Role`, `RoleAssignment`, `UserGroup`, `UserGroupMember`, plus `…View` types in `views.ts` |
