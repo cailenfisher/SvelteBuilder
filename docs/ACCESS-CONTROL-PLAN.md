@@ -18,7 +18,7 @@ Read these first, completely, in this order:
 - **Pause for review** at the end of any phase marked ⏸. Otherwise continue once the gate passes.
 - **Never weaken a gate to make it pass.** If a gate fails and the fix isn't obvious, stop and report.
 - **Never reverse a decision quietly.** If building shows a decision in `docs/ACCESS-CONTROL-DECISIONS.md` is wrong, stop, write up what you found against the decision's stated reason, and wait.
-- A name not in the approved list is added as **pending**, and you stop at the end of the phase to get it approved.
+- A name not in the approved list is added to DESIGN §8 under its phase. *(Stopping for approval was suspended on 2026-10-17: every name, approved or new, is reviewed in the branch's pull request. List each phase's new names in its commit message.)*
 - Every new table gets RLS and an explicit policy in the same phase that creates it. A table with RLS and no policy, or no RLS at all, is the content-module incident again.
 - Write changesets as you go. Run `pnpm changeset status --verbose` after each one. The release train is settled in Phase 0 (O4); until then, do not merge this branch.
 - No `TODO`s, placeholders or mocked data paths in anything committed. The production-ready bar in `CLAUDE.md` applies to every phase, not only the last.

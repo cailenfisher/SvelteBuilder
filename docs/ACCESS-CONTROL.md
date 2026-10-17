@@ -404,7 +404,7 @@ Not started. It adopts the same shape when it is built.
 | Components | `RolePermissionMatrix`, `RoleAssignmentTable`, `RoleAssignmentPanel`, `UserGroupMemberTable` |
 | Role suffix | `Matrix` |
 | Assertion file | `scripts/sql-check/25-assert-access.sql` |
-| Added in Phase 2 (**pending**) | Internal SQL functions, not executable by `anon` or `authenticated`: `role_assignment_check_target()` (trigger function, and the trigger's name), `access_require_admin()` (the admin check every admin RPC starts with), `access_delete_entity_copy(scope, entity_id)` (removes a deleted role's or group's copy) |
+| Added in Phase 2 (review in the PR) | Internal SQL functions, not executable by `anon` or `authenticated`: `role_assignment_check_target()` (trigger function, and the trigger's name), `access_require_admin()` (the admin check every admin RPC starts with), `access_delete_entity_copy(scope, entity_id)` (removes a deleted role's or group's copy) |
 | Added in Phase 1 (approved 2026-10-17) | `STANDARD_PERMISSION_ACTIONS` and `StandardPermissionAction` (the five standard actions, declared once; `PermissionAction` admits module verbs beside them); view types `RoleAssignmentRow`, `UserGroupMemberRow`, `UserAccountOption`, `UserGroupOption`, following logistic's `…Row` and `…Option` pattern |
 | TS types | `Permission`, `PermissionAction`, `Role`, `RoleAssignment`, `UserGroup`, `UserGroupMember`, plus `…View` types in `views.ts` |
 | Local-text scopes | `role`, `permission`, `user_group` (entity copy); `access` (module UI copy, slugs `access.<concept>.<key>`) |
