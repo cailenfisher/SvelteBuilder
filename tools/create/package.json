@@ -1,6 +1,6 @@
 {
   "name": "create-sveltebuilder",
-  "version": "0.1.4",
+  "version": "0.2.0-rc.0",
   "description": "Scaffold a production-ready SvelteKit app with SvelteBuilder — i18n, accessible UI components, and domain modules, pre-wired to Supabase or Drizzle.",
   "keywords": [
     "sveltekit",

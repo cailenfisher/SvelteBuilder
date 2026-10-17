@@ -1,5 +1,12 @@
 # @sveltebuilder/cli
 
+## 0.0.16-rc.0
+
+### Patch Changes
+
+- Updated dependencies [[`1e4a485`](https://github.com/cailenfisher/SvelteBuilder/commit/1e4a48532161b74e527af2fafaaf1c14af73ee69), [`1fb15dd`](https://github.com/cailenfisher/SvelteBuilder/commit/1fb15ddc1f2481101b34ecd9654e71e023f6dc4e), [`9ce6154`](https://github.com/cailenfisher/SvelteBuilder/commit/9ce6154fb7c4f8bef568cfae8242d910a431c1d3), [`5a9b980`](https://github.com/cailenfisher/SvelteBuilder/commit/5a9b980d674ed60861ef3eda383d5c82b0833bdf)]:
+  - @sveltebuilder/local-text-schema@0.3.0-rc.0
+
 ## 0.0.15
 
 ### Patch Changes
