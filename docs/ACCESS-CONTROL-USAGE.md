@@ -35,12 +35,12 @@ create policy "article_update"
   to authenticated
   using (
     (select public.current_user_can('article', 'update'))
-    or id = any ((select public.current_user_article_ids('update')))
+    or id = any ((select public.current_user_article_ids('update'))::bigint[])
   )
   with check ( … same … );
 ```
 
-The wrapping lets Postgres run each helper once per statement instead of once per row (A14).
+The wrapping lets Postgres run each helper once per statement instead of once per row (A14). Keep the array cast in `= any ((select …)::bigint[])`: without it Postgres reads the subselect as the subquery form of `ANY` and the policy fails to create.
 `pnpm sql:check` fails a policy that calls a helper bare or passes it a column.
 
 > [!IMPORTANT]
@@ -77,7 +77,7 @@ A table whose rows belong to an access-controlled entity (an article's blocks, a
 ```sql
 using (
   (select public.current_user_can('article', 'update'))
-  or article_id = any ((select public.current_user_article_ids('update')))
+  or article_id = any ((select public.current_user_article_ids('update'))::bigint[])
 )
 ```
 

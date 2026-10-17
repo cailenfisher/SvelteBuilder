@@ -162,7 +162,7 @@ create policy "article_update"
   to authenticated
   using (
     (select public.current_user_can('article', 'update'))
-    or id = any ((select public.current_user_article_ids('update')))
+    or id = any ((select public.current_user_article_ids('update'))::bigint[])
     or exists (                                   -- relationship predicate (A13)
       select 1 from public.article_assignment aa
       where aa.article_id = article.id
@@ -184,7 +184,7 @@ create policy "article_block_update"
   to authenticated
   using (
     (select public.current_user_can('article', 'update'))
-    or article_id = any ((select public.current_user_article_ids('update')))
+    or article_id = any ((select public.current_user_article_ids('update'))::bigint[])
   )
   with check ( … same … );
 ```
@@ -204,7 +204,7 @@ The transition RPC is `SECURITY DEFINER`, `set search_path = ''`, and checks the
 ```sql
 if not (
   (select public.current_user_can('article', v_required_action))
-  or p_article_id = any ((select public.current_user_article_ids(v_required_action)))
+  or p_article_id = any ((select public.current_user_article_ids(v_required_action))::bigint[])
 ) then
   raise exception 'not permitted' using errcode = '42501';
 end if;
@@ -404,7 +404,7 @@ Not started. It adopts the same shape when it is built.
 | Components | `RolePermissionMatrix`, `RoleAssignmentTable`, `RoleAssignmentPanel`, `UserGroupMemberTable` |
 | Role suffix | `Matrix` |
 | Assertion file | `scripts/sql-check/25-assert-access.sql` |
-| Added in Phase 1 (**pending**) | `STANDARD_PERMISSION_ACTIONS` and `StandardPermissionAction` (the five standard actions, declared once; `PermissionAction` admits module verbs beside them); view types `RoleAssignmentRow`, `UserGroupMemberRow`, `UserAccountOption`, `UserGroupOption`, following logistic's `…Row` and `…Option` pattern |
+| Added in Phase 1 (approved 2026-10-17) | `STANDARD_PERMISSION_ACTIONS` and `StandardPermissionAction` (the five standard actions, declared once; `PermissionAction` admits module verbs beside them); view types `RoleAssignmentRow`, `UserGroupMemberRow`, `UserAccountOption`, `UserGroupOption`, following logistic's `…Row` and `…Option` pattern |
 | TS types | `Permission`, `PermissionAction`, `Role`, `RoleAssignment`, `UserGroup`, `UserGroupMember`, plus `…View` types in `views.ts` |
 | Local-text scopes | `role`, `permission`, `user_group` (entity copy); `access` (module UI copy, slugs `access.<concept>.<key>`) |
 | Routes | `/admin/role`, `/admin/user-group`, `/admin/user-account` |

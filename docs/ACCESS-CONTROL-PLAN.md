@@ -103,7 +103,7 @@ In the location settled by O2, as `01-access.sql` (A21).
 4. Revoke `insert`, `update`, `delete`, `truncate`, `references`, `trigger` on every access table from `anon` and `authenticated` (A12). Write the reason in the file, pointing at `05-user-account-hardening.sql`. *(Landed in Phase 1.)*
 5. Admin RPCs (§3.3), each checking `current_user_admin()` itself. `set_role_permissions` and `delete_role` refuse a role with a non-null `slug`. Those that call `04-admin-write-rpc.sql`'s link-plus-copy function are `plpgsql`, since `04-` applies after `01-` (Phase 0 appendix §4).
 6. Grant `execute` explicitly on every function to exactly the roles that call it.
-7. Seed EN and FR copy for the `access` module UI scope.
+7. Seed EN and FR copy for the `access` module UI scope. *(Moved to Phases 6 and 7: no slug in that scope is rendered until the components and screens exist, and copy seeded ahead of them would be slugs nothing uses.)*
 8. Extend `00-supabase-stub.sql` with whatever Phase 0 found missing (a second non-admin, a group member).
 9. Add the assertion file (DESIGN §9 name) with every §9 bullet this phase makes testable: no-assignment refusal, scope and global grants, groups, expiry, external groups, admin RPC refusal, revoked DML, module-managed roles, admins with no assignments. Behaviour is asserted in the phase that builds it, not two phases later.
 

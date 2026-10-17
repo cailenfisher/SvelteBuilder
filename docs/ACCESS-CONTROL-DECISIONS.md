@@ -161,7 +161,7 @@ The rule is checked when the grant is made, and only then. What that leaves open
 
 "Edit your own article" is `user_account_id = (select public.current_user_id())` in the policy, with its own action (for example `update_own`).
 "The assigned editor can edit this article" is an `exists` against `article_assignment`.
-"A carrier sees its shipments" is `carrier_user_group_id = any ((select public.current_user_group_ids()))`.
+"A carrier sees its shipments" is `carrier_user_group_id = any ((select public.current_user_group_ids())::integer[])`.
 
 You must not create a role assignment row per author, per assignment, or per record an outside party owns.
 The data already says who is related. Copying it into grants creates two sources of truth that drift.
@@ -179,9 +179,11 @@ Every check is wrapped as `(select …)` with constant arguments, so the planner
 ```sql
 using (
   (select public.current_user_can('article', 'update'))
-  or id = any ((select public.current_user_article_ids('update')))
+  or id = any ((select public.current_user_article_ids('update'))::bigint[])
 )
 ```
+
+The cast is required, not decoration. Without it, `= any ((select …))` is the subquery form of `ANY`, which compares the column with the whole array and fails with `operator does not exist: integer = integer[]`. With it, the parenthesised subselect is a scalar, still hoisted into an InitPlan (found in Phase 2, checked with `explain`).
 
 The scope-level check is one boolean per statement.
 The entity-level check is one array per statement: the IDs this user holds that action on.
@@ -220,7 +222,7 @@ Their policies check the parent, with the parent's permissions:
 ```sql
 using (
   (select public.current_user_can('article', 'update'))
-  or article_id = any ((select public.current_user_article_ids('update')))
+  or article_id = any ((select public.current_user_article_ids('update'))::bigint[])
 )
 ```
 
