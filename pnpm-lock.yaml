@@ -99,6 +99,31 @@ importers:
 
   apps/docs: {}
 
+  packages/access:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.38.0
+        version: 0.38.4
+    devDependencies:
+      '@sveltejs/package':
+        specifier: ^2.3.0
+        version: 2.5.7(svelte@5.57.2(@typescript-eslint/types@8.59.4))(typescript@5.9.3)
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^4.0.0
+        version: 4.0.4(svelte@5.57.2(@typescript-eslint/types@8.59.4))(vite@5.4.21(@types/node@26.6.3)(lightningcss@1.33.0))
+      svelte:
+        specifier: 5.57.2
+        version: 5.57.2(@typescript-eslint/types@8.59.4)
+      svelte-check:
+        specifier: ^4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.2(@typescript-eslint/types@8.59.4))(typescript@5.9.3)
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+      vite:
+        specifier: ^5.3.0
+        version: 5.4.21(@types/node@26.6.3)(lightningcss@1.33.0)
+
   packages/commerce:
     devDependencies:
       '@sveltejs/package':
@@ -4958,9 +4983,9 @@ snapshots:
     dependencies:
       postcss: 8.5.15
 
-  postcss-scss@4.0.9(postcss@8.5.15):
+  postcss-scss@4.0.9(postcss@8.5.29):
     dependencies:
-      postcss: 8.5.15
+      postcss: 8.5.29
 
   postcss-selector-parser@6.1.2:
     dependencies:
@@ -5191,8 +5216,8 @@ snapshots:
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3
       espree: 9.6.1
-      postcss: 8.5.15
-      postcss-scss: 4.0.9(postcss@8.5.15)
+      postcss: 8.5.29
+      postcss-scss: 4.0.9(postcss@8.5.29)
     optionalDependencies:
       svelte: 5.57.2(@typescript-eslint/types@8.59.4)
 
@@ -5372,7 +5397,7 @@ snapshots:
   vite@5.4.21(@types/node@26.6.3)(lightningcss@1.33.0):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.5.15
+      postcss: 8.5.29
       rollup: 4.60.4
     optionalDependencies:
       '@types/node': 26.6.3

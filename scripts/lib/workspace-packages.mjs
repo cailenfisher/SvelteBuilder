@@ -33,6 +33,7 @@ import path from 'node:path';
  * quietly checking the previous release's sync:supabase instead of this one.
  */
 export const WORKSPACE_PACKAGES = {
+  '@sveltebuilder/access': 'packages/access',
   '@sveltebuilder/cli': 'tools/cli',
   '@sveltebuilder/coreui': 'packages/coreui',
   '@sveltebuilder/local-text-schema': 'packages/local-text-schema',

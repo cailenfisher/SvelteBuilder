@@ -12,6 +12,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@sveltebuilder/access": "latest",
     "@sveltebuilder/coreui": "latest",
     "diglossia": "latest"
   },

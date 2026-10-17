@@ -1,0 +1,5 @@
+{
+  "package": "@sveltebuilder/access",
+  "schema": "@sveltebuilder/access/schema",
+  "after": ["@sveltebuilder/local-text-schema"]
+}

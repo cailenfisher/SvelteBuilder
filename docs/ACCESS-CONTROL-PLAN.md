@@ -99,8 +99,8 @@ In the location settled by O2, as `01-access.sql` (A21).
 
 1. Triggers on `role_assignment`: scope must exist in `permission`; external groups refused (A10).
 2. `current_user_group_ids()` and `current_user_can()` (§3.1).
-3. RLS on every §2.1 table. Reads go through the RPCs; admins may select directly for the admin screens. Write the policy intent in a comment block at the top of the file, as `02-content-rls.sql` does.
-4. Revoke `insert`, `update`, `delete`, `truncate`, `references`, `trigger` on every access table from `anon` and `authenticated` (A12). Write the reason in the file, pointing at `05-user-account-hardening.sql`.
+3. RLS on every §2.1 table. Reads go through the RPCs; admins may select directly for the admin screens. Write the policy intent in a comment block at the top of the file, as `02-content-rls.sql` does. *(Landed in Phase 1, with step 4: the ground rule puts RLS in the phase that creates a table, and registering the schema in Phase 1 creates them.)*
+4. Revoke `insert`, `update`, `delete`, `truncate`, `references`, `trigger` on every access table from `anon` and `authenticated` (A12). Write the reason in the file, pointing at `05-user-account-hardening.sql`. *(Landed in Phase 1.)*
 5. Admin RPCs (§3.3), each checking `current_user_admin()` itself. `set_role_permissions` and `delete_role` refuse a role with a non-null `slug`. Those that call `04-admin-write-rpc.sql`'s link-plus-copy function are `plpgsql`, since `04-` applies after `01-` (Phase 0 appendix §4).
 6. Grant `execute` explicitly on every function to exactly the roles that call it.
 7. Seed EN and FR copy for the `access` module UI scope.
