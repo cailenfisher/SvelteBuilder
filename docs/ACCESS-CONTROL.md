@@ -1,7 +1,7 @@
 # Access Control — Design
 
 > [!NOTE]
-> Status: approved design, not yet built. Decisions and their reasons are in `docs/ACCESS-CONTROL-DECISIONS.md` (referenced here as A1–A21, E1–E3, O1–O6). The build order is `docs/ACCESS-CONTROL-PLAN.md`. How developers and admins use it is `docs/ACCESS-CONTROL-USAGE.md`.
+> Status: approved design, not yet built. Decisions and their reasons are in `docs/ACCESS-CONTROL-DECISIONS.md` (referenced here as A1–A22, E1–E3, O1–O6). The build order is `docs/ACCESS-CONTROL-PLAN.md`. How developers and admins use it is `docs/ACCESS-CONTROL-USAGE.md`.
 > Every name in §8 is approved. Module role slugs (§7) are proposals until that module adopts.
 
 This is the shape of roles and permissions in SvelteBuilder.

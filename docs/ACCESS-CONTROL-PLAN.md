@@ -6,7 +6,7 @@ Run it phase by phase on the `feat/access-control` branch.
 Read these first, completely, in this order:
 
 1. `CLAUDE.md` — repository rules. Every guardrail applies.
-2. `docs/ACCESS-CONTROL-DECISIONS.md` — what was decided, and why (A1–A21, E1–E3, O1–O6).
+2. `docs/ACCESS-CONTROL-DECISIONS.md` — what was decided, and why (A1–A22, E1–E3, O1–O6).
 3. `docs/ACCESS-CONTROL.md` — the design. Section numbers below (§2.1 and so on) point into it.
 
 ---

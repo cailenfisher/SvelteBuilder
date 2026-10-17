@@ -271,17 +271,6 @@ Options when it is not:
 - Return display names (the `user_account` copy) and require an exact email to add someone not already listed.
 - Add a `discoverable` flag to `user_account`, so a user can be left out of the picker.
 
-### A22. Logistic reads and warehouse work require a permission.
-
-Today any signed-in user reads every logistic table and may update receipts, picks, returns and counts within their status windows (`using (true)` and the `worker_update` policies).
-Adoption gates all of it on permissions, as the model requires, so an existing non-admin worker holds nothing until someone assigns them a role (adopted 2026-10-17, Phase 0 proposal P2).
-
-Leaving reads open was rejected: the whole warehouse would stay readable by anyone who can sign in, including future external-group members.
-A built-in "every signed-in user" principal was rejected: a second kind of principal for a one-time transition.
-
-The upgrade note tells operators to assign `logistic_operator` to existing staff before they upgrade.
-No deployment depends on SvelteBuilder yet, so a behaviour change like this is acceptable where it is the right design.
-
 ### A21. Sync places the generated access SQL itself, not by filename.
 
 The generated file must apply after the core access SQL it calls and before every module file that calls it.
@@ -293,6 +282,17 @@ So:
 - Sync writes the generated SQL to `supabase/supplemental/access-generated.sql`, and orders it directly after `01-access.sql`, whatever its name. The file still lives in `supplemental/`, so the existing carry-forward-by-content rule applies to it unchanged.
 
 Ordering every supplemental file by filename prefix is itself under question. A replacement is recorded in `docs/DEFERRED.md`, under _Supplemental SQL ordering_.
+
+### A22. Logistic reads and warehouse work require a permission.
+
+Today any signed-in user reads every logistic table and may update receipts, picks, returns and counts within their status windows (`using (true)` and the `worker_update` policies).
+Adoption gates all of it on permissions, as the model requires, so an existing non-admin worker holds nothing until someone assigns them a role (adopted 2026-10-17, Phase 0 proposal P2).
+
+Leaving reads open was rejected: the whole warehouse would stay readable by anyone who can sign in, including future external-group members.
+A built-in "every signed-in user" principal was rejected: a second kind of principal for a one-time transition.
+
+The upgrade note tells operators to assign `logistic_operator` to existing staff before they upgrade.
+No deployment depends on SvelteBuilder yet, so a behaviour change like this is acceptable where it is the right design.
 
 ---
 

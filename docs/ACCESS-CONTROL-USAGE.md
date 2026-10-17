@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > Status: not yet built. This describes how the access system is meant to be used, and is the target the build is checked against (Phase 10 of `docs/ACCESS-CONTROL-PLAN.md`).
-> The data model, SQL and generator are specified in `docs/ACCESS-CONTROL.md` (the design, cited here as DESIGN §n). The reasons behind each rule are in `docs/ACCESS-CONTROL-DECISIONS.md` (A1–A21, E1–E3).
+> The data model, SQL and generator are specified in `docs/ACCESS-CONTROL.md` (the design, cited here as DESIGN §n). The reasons behind each rule are in `docs/ACCESS-CONTROL-DECISIONS.md` (A1–A22, E1–E3).
 
 The first half is for developers building on a SvelteBuilder scaffold. The second describes what admins, and the people they give access to, see and can do.
 
