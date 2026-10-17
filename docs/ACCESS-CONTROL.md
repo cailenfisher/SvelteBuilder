@@ -211,6 +211,24 @@ end if;
 ```
 
 `v_required_action` is `publish` when the article moves to or from `published`, and `update` otherwise.
+
+An insert needs no column grant, because its `with check` sees the whole new row:
+
+```sql
+create policy "article_insert"
+  on public.article for insert
+  to authenticated
+  with check (
+    (select public.current_user_can('article', 'create'))
+    and (
+      (select public.current_user_can('article', 'publish'))
+      or (
+        published_at is null
+        and article_status_id <> (select id from public.article_status where slug = 'published')
+      )
+    )
+  );
+```
 Because it runs as definer, the RPC must also apply whatever row conditions the update policy would have, such as `deleted_at is null`.
 
 > [!WARNING]
@@ -352,7 +370,7 @@ A module adopts access control by:
 
 - `access.entity`: `article`.
 - Child tables (A18): `article_block`, `article_byline`, `article_section`, `article_topic`, `article_tag`, `article_checklist_state`, `live_coverage`, and `live_update` through its coverage. Phase 0's worklist confirms the list.
-- Status (A19): `content_transition_article_status` becomes `SECURITY DEFINER` and the only writer of `article_status_id` and `published_at`; `publish` governs moves to or from `published`.
+- Status (A19): `content_transition_article_status` becomes `SECURITY DEFINER` and the only writer of `article_status_id` and `published_at`; `publish` governs moves to or from `published`. The insert policy refuses a new article that is already published unless the caller holds `article.publish`.
 - Relationship predicates: `article_assignment` (assigned author or editor may update), author ownership if the schema carries it.
 - `article_assignment` writes are gated as grants (A13): insert, update and delete need `article.share` and `article.update` on that article. One statement each, so this is plain RLS, not an RPC.
 - Seeded roles (proposed slugs): `content_editor`, `content_writer`, `content_contributor`. Final set comes from the newsroom's actual workflow, settled at the start of that phase.
@@ -363,6 +381,7 @@ A module adopts access control by:
 - Scope-level only in v1. No `access.entity` unless a real per-record case appears.
 - Seeded roles (proposed): `logistic_manager`, `logistic_operator`.
 - No external-group predicates in v1. Logistic has no outside-party concept on its tables, and this work does not invent one.
+- Reads, `worker_update` and the five stock functions are all gated on permissions (A22). The definer stock functions take the actor from `current_user_id()`, not a parameter.
 
 ### Commerce
 
@@ -414,6 +433,7 @@ A new assertion file (`25-assert-access.sql`) impersonates principals and assert
 - A module-managed role's permissions cannot be changed.
 - Admins keep access with no assignments at all.
 - An entity-level `update` grant admits that article's child rows (A18) and no other article's.
+- A user holding `article.create` but not `article.publish` cannot insert an article that is already published.
 - A user holding `article.update` but not `article.publish` cannot change `article_status_id` directly, cannot move an article to or from `published` through the RPC, and can make other transitions.
 - The `article` column grant names every column except the guarded ones (A19), so a newly added column fails the gate until it is granted.
 - Writing an `article_assignment` row needs `article.share` and `article.update` on that article (A13).

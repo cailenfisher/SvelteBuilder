@@ -55,8 +55,8 @@ Report this table at the end of every phase. Update it when an item lands or som
 | Replace filename-prefix ordering of supplemental SQL | `docs/DEFERRED.md` | not v1 | recorded |
 | `article_assignment.role` column name | DESIGN §8 note | Phase 8 | open |
 | Content's seeded role set, and further content scopes (P3) | DESIGN §7, appendix §5 | Phase 8 | open |
-| P1 article insert constraint | appendix §5 | Phase 8 | proposed |
-| P2 logistic non-admin access on adoption | appendix §5 | Phase 9, and O4 | proposed |
+| P1 article insert constraint | A19 | Phase 8 | adopted |
+| P2 logistic non-admin access on adoption | A22 | Phase 9 | adopted |
 
 ---
 
@@ -176,7 +176,7 @@ Start by settling the two Phase 8 items in the deferred table: the seeded role s
 1. Declare `access` in content's manifest (DESIGN §4 example, adjusted to the approved roles).
 2. Seed roles, `role_permission` rows resolved by `(scope, action)`, EN and FR copy.
 3. Rewrite the admin-gated policies from the Phase 0 worklist to the DESIGN §3.4 shape, with the `article_assignment` relationship predicate on `article`, the parent check on every child table (A18), and the share-and-update gate on `article_assignment` writes (A13).
-4. Make `content_transition_article_status` `SECURITY DEFINER` with the DESIGN §3.5 check, rebuild the `article` update grant per column, and move every write Phase 0 found onto the RPC (A19).
+4. Make `content_transition_article_status` `SECURITY DEFINER` with the DESIGN §3.5 check, rebuild the `article` update grant per column, and add the §3.5 insert policy (A19).
 5. Loaders for article admin screens return `actions` per row (DESIGN §5.3); screens hide controls the user cannot use.
 6. Add `RoleAssignmentPanel` to the article admin detail screen, with its add form using `list_article_principal`.
 7. Extend `40-assert-content.sql` with the content bullets of DESIGN §9, plus: an assigned editor can update their article and its blocks and not another's; a `content_writer` cannot publish by RPC or by `PATCH`; the publish checklist cannot be skipped by an admin either; public reads are unchanged.
@@ -191,10 +191,11 @@ Start by settling the two Phase 8 items in the deferred table: the seeded role s
 
 1. Declare `access.permission` (no `access.entity`).
 2. Seed roles with copy.
-3. Rewrite admin-gated policies to the scope-level shape. SECURITY DEFINER stock-mutation functions check `current_user_can()` themselves, since they bypass RLS.
-4. Loaders return `actions`; screens hide what the user cannot do.
-5. Extend `30-assert-logistic.sql`: an operator can receive and pick but not adjust stock or manage suppliers.
-6. Changeset for logistic.
+3. Rewrite every policy in the Phase 0 worklist to the scope-level shape: admin-gated, `using (true)` reads, and `worker_update` alike (A22).
+4. The five SECURITY DEFINER stock functions check `current_user_can()` themselves, since they bypass RLS, and take the acting user from `current_user_id()` instead of a `p_user_account_id` parameter. Update their callers.
+5. Loaders return `actions`; screens hide what the user cannot do.
+6. Extend `30-assert-logistic.sql`: an operator can receive and pick but not adjust stock or manage suppliers; a signed-in user with no role reads nothing; a stock adjustment cannot be attributed to someone else.
+7. Changeset for logistic, and a `MIGRATION` entry telling operators to assign `logistic_operator` to existing staff before upgrading.
 
 **Gate.**
 
@@ -288,7 +289,7 @@ Facts, not decisions:
 - PLAN Phase 1 step 4: the access manifest's `after` names only `@sveltebuilder/local-text-schema`. Naming the flavour from a base-template manifest would make `resolve()` throw "Circular dependency" in any scaffold without that flavour (an unknown `after` never reaches in-degree zero, `tools/cli/src/lib/resolve.ts`). FKs to `user_account` go in `01-access.sql`, as content already does for its own (`article-assignment.ts:14`).
 - PLAN Phase 2: core RPCs that call `04-admin-write-rpc.sql`'s link-plus-copy function must be `plpgsql`, which resolves the call at run time. `04-` applies after `01-`, and a `language sql` body is checked at creation.
 
-### 5. Proposals awaiting a decision
+### 5. Proposals (decided 2026-10-17: P1 adopted into A19, P2 as A22, P3 deferred to Phase 8 as recommended)
 
 **P1. Constrain article inserts too (extends A19).**
 RLS can't see which columns an update changes, but an insert's `with check` sees the whole new row. So the insert policy can require an unpublished status and a null `published_at` unless the caller holds `article.publish`. One policy, no RPC. Recommendation: adopt, as part of A19.

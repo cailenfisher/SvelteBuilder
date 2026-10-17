@@ -192,6 +192,7 @@ You do not have to be an administrator: anyone with the record's **share** permi
 - **Anyone who can share a record can remove any direct grant on it**, including ones they could not have given (E1).
 - **Editing a role widens or narrows every grant of it**, including grants someone else made when the role was narrower (E2).
 - **Grants stay when the person who made them loses access** (E3).
+- **Warehouse staff need a role.** A signed-in user with no role sees nothing in the logistic screens.
 - **Published content stays public.** Roles govern drafts and editing, not what readers already see.
 
 Not in this version: deny rules, nested groups, access to everything in a section, per-field permissions, and an access history (DECISIONS, _Decided exclusions_).
