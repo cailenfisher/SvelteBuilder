@@ -329,6 +329,27 @@ app a version and a changelog.
 
 ---
 
+## Supplemental SQL ordering: move off filename prefixes (open, 2026-10-17)
+
+`sync:supabase` applies every file in `supabase/supplemental/` in one alphabetical sort, so a
+file's numeric prefix is the only thing that says what it depends on. The prefixes come from base,
+the flavour and every module, which number independently, so the order between two packages'
+files is an accident of their names: today `02-content-rls.sql` runs before `03-base-rls.sql`
+for no reason either file states. The prefix scheme stayed because it solved the earlier problems
+of the day, but it is fragile, and access control (`docs/ACCESS-CONTROL-DECISIONS.md`, A21) is the
+first change that has to work around it: sync places the generated access file by name instead.
+
+The likely replacement: order supplemental files by the package that ships them, in the registry's
+`after` order (which already exists and already says which package depends on which), with
+filename order only within one package. That needs sync to know each file's package, which it
+does not today, because the create CLI copies every package's files into one flat directory. A
+subdirectory per package (`supabase/supplemental/<package>/`) would carry it.
+
+Moving changes the order existing files apply in, so it needs its own `sql:check` pass and a note
+for projects whose supplemental files are already in migrations. Not started.
+
+---
+
 ## Pending manual steps
 
 **Migrate the Supabase project to asymmetric JWT signing keys.** `getClaims()` only verifies
