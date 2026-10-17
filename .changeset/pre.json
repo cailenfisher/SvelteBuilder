@@ -12,5 +12,18 @@
     "@sveltebuilder/cli": "0.0.15",
     "create-sveltebuilder": "0.1.4"
   },
-  "changesets": []
+  "changesets": [
+    "behaviour-and-copy",
+    "coreui-api",
+    "coreui-boundary",
+    "data-modules",
+    "database-vocabulary",
+    "domain-renames",
+    "field-control",
+    "form-errors-as-copy",
+    "no-abbreviations",
+    "plain-stylesheets",
+    "schema-single-source",
+    "screen-decomposition"
+  ]
 }

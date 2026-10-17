@@ -1,5 +1,197 @@
 # @sveltebuilder/logistic
 
+## 2.0.0-rc.0
+
+### Major Changes
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`ca15716`](https://github.com/cailenfisher/SvelteBuilder/commit/ca1571655ee3a49cc587ecefa0a7859afbd85452) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Behaviour tests in three browsers, and the last hard-coded English in the module components.
+
+  coreui fixes found by the new browser tests: `DateTimePicker` reads a typed time in its own
+  `timezone` rather than the browser's, updates a bound `value` even when `onValueChange` is also
+  given, and passes `min` and `max` to the input in the form it accepts; a disabled `SelectItem`
+  carries `aria-disabled`; `Tooltip` content has `role="tooltip"`; a checked `Switch` thumb stays in
+  its track in right-to-left; `MessageLiveRegion` drops two fixed ids nothing referenced.
+
+  content and logistic components take their remaining copy from the dictionary, in English and
+  French: the live coverage and live update labels, bylines (now joined with `Intl.ListFormat`), the
+  article timestamps, the front layout names, the inbound receipt and pick task cards, the stock level
+  bar, the supplier card and the tracking event list. `FrontCurationBoard`, `StockLevelBar` and
+  `TrackingEventList` gain the optional `dictionary` prop; `FrontCurationBoard` no longer takes
+  `locale`, and `PickTaskCard` and `TrackingEventList` require it. `StorageLocationPath` is a labelled
+  list rather than a navigation landmark, and several `aria-label`s on plain elements, which ARIA
+  does not allow, are gone.
+
+  Scaffolded screens name their copy lookup `localText` instead of `t`.
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`b0aeab9`](https://github.com/cailenfisher/SvelteBuilder/commit/b0aeab93b0de2e74f0736f713fb78c8af0395dbf) Thanks [@cailenfisher](https://github.com/cailenfisher)! - coreui's API and CSS settle for 1.0. Every rename is listed in `docs/MIGRATION-2.0.md` (completed for
+  the release candidate); the public CSS surface is in `docs/COREUI-COMPATIBILITY.md`.
+  - **No English defaults.** Accessible-name strings are required: `Dialog`/`Drawer` `closeLabel`,
+    `ConfirmDialog` `confirmLabel`/`cancelLabel`, `Pagination` labels, `Spinner` and `ProgressBar`
+    `label`, and `removeLabel` whenever a `Tag` has `onRemove`. `DataTable` replaces `emptyLabel` with
+    one required `labels` object (`empty`, `pagination`, `previousPage`, `nextPage`). `Select`'s
+    `placeholder` is optional with no default. `createMessageBus()` requires a complete `labels`
+    object, `DEFAULT_MESSAGE_LABELS` is gone, and `InlineNotification` without a message bus in
+    context now throws instead of falling back to English.
+  - **Renamed:** `RadioItem` → `RadioGroupItem`, `TableHeader` → `TableHeaderCell`, `LocaleSwitcher` →
+    `LocalePicker`, `MessageAriaLive` → `MessageLiveRegion`, and the `SBMessage`, `SBMessageAction`,
+    `SBMessageSeverity` types → `Message`, `MessageAction`, `MessageSeverity`.
+  - **One severity word:** the message severity `error` is now `danger`, matching `Badge`, `Alert` and
+    the colour tokens.
+  - **Callbacks and text:** `Tag`'s `onremove` is `onRemove`. `MenuSub` takes a `trigger` snippet
+    instead of `triggerLabel`, and `Tooltip` a `trigger` snippet instead of `children`.
+    `DataTableColumn.align` is `'start' | 'end'`.
+  - **Types:** every variant, size, side and orientation union is exported (`ButtonVariant`,
+    `BadgeSize`, `DrawerSide`, …), as are `DataTableLabels` and the screen-contract types
+    `ScreenCopy`, `ScreenLocale`, `ScreenPage` and `ScreenFormResult`, which content and logistic now
+    import instead of declaring their own.
+  - **CSS is BEM.** Roots match component names (`.btn` → `.button`, `.progress` → `.progress-bar`,
+    `.notification` → `.inline-notification`), parts are `__part` (`.card .body` → `.card__body`) and
+    modifiers `--modifier` (`.btn.primary` → `.button--primary`). Generic internal classes no longer
+    collide: a `Tag`'s text, a `MetricCard` or `TimelineItem` label, a `Select` inside an errored `Field`,
+    a `MenuCheckboxItem` and a `Timeline` inside a `Card` had each been picking up another component's
+    rules. `Table`'s `class` now lands on its scrolling root.
+  - **Peers:** `svelte` `^5.33.0`; `diglossia` is an optional peer, for the screen-contract types.
+  - content's `ArticleList`, `AssignmentQueue`, `SubscriberList` and `ArticleWorkflowPanel` resolve
+    their own column, table and panel copy from the dictionary (scope `content`), seeded in English and
+    French, and take an optional `dictionary` prop.
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`02c0bc7`](https://github.com/cailenfisher/SvelteBuilder/commit/02c0bc7fe1a84c7159543ed3c380a0196c3a8d37) Thanks [@cailenfisher](https://github.com/cailenfisher)! - coreui now holds only domain-agnostic components. Breaking: four things left it.
+  - **`BlockEditor` moved to content** and merged with `BlockEditorHost` into one component,
+    `ArticleBlockEditor`. It takes the article's saved `blocks`, resolves their text and its own
+    controls' copy from the dictionary (no more hard-coded English), and reports changes as
+    `ArticleBlockDraft[]` (formerly coreui's `EditorBlock`). The unused `articleId` and `locale`
+    props are gone. Its classes are `.article-block-editor` and `.article-block-editor__*`. The
+    content seed adds its copy, and a name for each `article_block_type`, in English and French.
+  - **`LocaleEdit`, `LocalTextEdit` and `LocalTextLinkEdit` moved into the base scaffold** as
+    `LocaleFieldset`, `LocalTextFieldset` and `LocalTextLinkFieldset` under `src/lib/`, each a
+    `<fieldset>` the page places inside its own form. They now generate their
+    field ids, so several on one page no longer collide, and no longer show English placeholders.
+  - **`BarcodeInput` moved to logistic**, and composes with coreui's `Field`: wrap it in a `Field`,
+    which supplies the label, hint and error. Its `label` and `error` props are removed, and
+    `placeholder` no longer defaults to English.
+  - **`StatusBadge` is removed.** Use `Badge`, passing the label as its content. The logistic status
+    badges wrap `Badge` directly.
+
+  `Alert` and `InlineNotification` both stay, with the difference now documented: `Alert` is static
+  page content, and `InlineNotification` is the message system's surface for the result of
+  something the user did.
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`1e4a485`](https://github.com/cailenfisher/SvelteBuilder/commit/1e4a48532161b74e527af2fafaaf1c14af73ee69) Thanks [@cailenfisher](https://github.com/cailenfisher)! - One word per idea across every module's database. Existing databases need the upgrade SQL in
+  `docs/MIGRATION-2.0.md` before regenerating migrations.
+  - **Finished states are `completed`.** `inbound_receipt_status` and `cycle_count_status` used
+    `complete`; `pick_task_status` already said `completed`. Their copy slugs follow
+    (`logistic.inbound_receipt.status.completed`).
+  - **Expiry timestamps end in `_expires_at`:** `article.embargo_expires_at` and
+    `front_slot.pin_expires_at` (were `embargo_until`, `pinned_until`).
+  - **Manual ordering is `position`:** `storage_location`, `navigation_item`, `article_status`,
+    `publish_checklist_item` and `section` (were `sort_order` and `ordinal`).
+  - **Every timestamp is `timestamptz`.** logistic, `navigation_item` and `local_text` used plain
+    `timestamp`; content and `user_account` already used `timestamptz`.
+  - **Parent concepts restored:** `adjustment_reason` is `stock_adjustment_reason`
+    (`StockAdjustmentReason`, `STOCK_ADJUSTMENT_REASONS`, `logistic.stock_adjustment_reason.*`),
+    `media_type` is `media_asset_type` (`MediaAssetType`), `media_license` is
+    `media_asset_license` (`MediaAssetLicense`).
+  - **Column names follow the rules:** `media_asset.uploaded_by` is `user_account_id`,
+    `article.allow_comment` is `comment_allowed`, and the base scaffold's `navigation_item.scope`
+    is `menu`, which no longer collides with the i18n scope convention.
+  - **`subscriber.locale` is `locale_id`**, a foreign key to `locale`. `content_subscribe()` still
+    takes a locale code and falls back to English for one the project lacks. `SubscriberList` takes
+    `SubscriberWithLocale[]`.
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`3af07d0`](https://github.com/cailenfisher/SvelteBuilder/commit/3af07d0bf1c631f5bbbf46d70ab7e023e5056df6) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Every content and logistic concept now has one full name in every layer.
+  - **logistic screens and routes:** `inbound-receipt`, `return-authorization` and `stock-level`
+    (`/admin/logistic/inbound-receipt` …); the warehouse app's `/warehouse/pick-task`,
+    `/warehouse/inbound-receipt` and `/warehouse/cycle-count`.
+  - **logistic exports:** `ReceiptCard` → `InboundReceiptCard`; `LocationOption` →
+    `StorageLocationOption`; view types `StockLevelListView`, `ReturnAuthorizationListView`,
+    `ReturnAuthorizationDetailView`, and the warehouse views `PickTaskWarehouseQueueView`,
+    `PickTaskWarehouseDetailView`, `InboundReceiptWarehouseQueueView`,
+    `InboundReceiptWarehouseDetailView`, `CycleCountWarehouseQueueView`,
+    `CycleCountWarehouseDetailView`. View fields name their concept (`inboundReceipts`,
+    `stockLevels`, `myPickTasks`, `storageLocations`, …).
+  - **content screens and routes:** `article-admin`, `article-preview` (`/article-preview/[token]`)
+    and `feed`.
+  - **content exports:** `ArticleDetail`, `AuthorProfileDetail`, `LiveCoverageDetail` (were `…View`),
+    `LiveUpdateCard` (was `LiveUpdateItem`; its `update` prop is `liveUpdate`), `FrontDetail` (was
+    `SectionFront`), `SectionLink`, `TopicLink`, `MediaAssetFigure`, `ArticleBylineList`,
+    `ArticleAssignmentQueue`, `NewsletterSubscriptionForm`; view types `ArticleDetailView`,
+    `SectionDetailView`, `ArticlePreviewDetailView`, `ArticleAdminListView`, `ArticleAdminDetailView`,
+    `ArticleChecklistEntry`; block content types `ArticleBlockParagraphContent` and the rest.
+  - **CSS:** each component's block is its name in kebab case (`.inbound-receipt-card`,
+    `.article-detail`, `.article-workflow-panel`, `.article-block-renderer`, …).
+  - **Copy slugs** use the full concept name: `logistic.inbound_receipt.*`,
+    `logistic.return_authorization.*`, `logistic.stock_level.*`, `logistic.storage_location_type.*`,
+    warehouse copy under `logistic.warehouse.<concept>.*`, `content.article_admin.*`,
+    `content.comment.*`, `content.article_preview.*`, and the components' own copy under
+    `content.newsletter_subscription_form.*` and `content.article_workflow.*`. Headings and navigation
+    use full names ("Inbound receipts", "Return authorizations", "Stock levels").
+  - **Form actions and fields** name their concept (`addInboundReceiptLine`,
+    `inbound_receipt_line_id`, `pick_task_id`, …).
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`7799af6`](https://github.com/cailenfisher/SvelteBuilder/commit/7799af683f657b095a4c58021577c0343078748a) Thanks [@cailenfisher](https://github.com/cailenfisher)! - `useField()` returns `FieldControl`: the five attributes a control puts on its focusable element,
+  under their HTML names (`id`, `aria-describedby`, `aria-invalid`, `required`, `disabled`), so a
+  custom control can spread it. `FieldContext` is no longer exported. `Field` works out the
+  description once, so a control with its own `error` (`Input`, `Textarea`, `Select`) is still
+  marked invalid but never points `aria-describedby` at an error message the `Field` did not render.
+  logistic's `BarcodeInput` uses the new shape.
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`9ce6154`](https://github.com/cailenfisher/SvelteBuilder/commit/9ce6154fb7c4f8bef568cfae8242d910a431c1d3) Thanks [@cailenfisher](https://github.com/cailenfisher)! - `nav` is spelled `navigation` everywhere. Copy slugs `nav.*`, `admin.nav.*`, `logistic.admin.nav.*`
+  and `logistic.warehouse.nav` become `navigation.*`, `admin.navigation.*`,
+  `logistic.admin.navigation.*` and `logistic.warehouse.navigation`; `docs/MIGRATION-2.0.md` has the
+  SQL that renames them in an existing database. coreui's `.pagination__button--nav` becomes
+  `.pagination__button--navigation`. In scaffolded screens, `navItems` and `navItem` become
+  `navigationItems` and `navigationItem`.
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`e5990d4`](https://github.com/cailenfisher/SvelteBuilder/commit/e5990d41b93d10e6be2df17f569603ad24601beb) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Components carry no Svelte `<style>` blocks. Every style is a plain stylesheet beside the component
+  it styles, and each package lists its stylesheets in one entry point the app imports into the
+  `components` layer: `@sveltebuilder/coreui/styles/components.css` (same path as before),
+  `@sveltebuilder/content/styles/components.css` and `@sveltebuilder/logistic/styles/components.css`
+  (new). **Import the module stylesheets you use**, after coreui's, or their components render
+  unstyled; projects from `npm create sveltebuilder` get the lines automatically. coreui's table rules
+  now target `.table-row`, `.table-cell` and `.table-header-cell` instead of `tr`, `td` and `th`.
+
+  Scaffolded screens import their own stylesheets, and their root classes are named after their view
+  types (`.inbound-receipt-list-screen`). The base template gains `src/utilities.css` with
+  `.visually-hidden`, imported into the `utilities` layer. See `docs/MIGRATION-2.0.md`, "Stylesheets".
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`ef79b84`](https://github.com/cailenfisher/SvelteBuilder/commit/ef79b84481723e1846158e50af904dd283eb1393) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Each table, enum and type is now declared once.
+  - Entity types are inferred from the Drizzle tables instead of hand-written beside them. They are
+    unchanged except for content's `Article.leadMediaAssetId`, which is now a required
+    `number | null` rather than optional: a loader that renders an article selects it.
+  - Each enum's values are exported at runtime from the package entry, from a module that does not
+    import drizzle-orm: `INBOUND_RECEIPT_STATUSES`, `SHIPMENT_STATUSES`, `RETURN_CONDITIONS`,
+    `ARTICLE_BLOCK_TYPES`, `COMMENT_STATUSES` and the rest. Use them instead of repeating the values.
+    The view types' `statuses`, `conditions` and `dispositions` fields are now `readonly` arrays.
+  - content's main entry exports its schema as types only. It previously re-exported the schema
+    module wholesale, which would have pulled drizzle-orm into a runtime bundle once that module held
+    tables.
+  - content exports `ArticleSection`, `ArticleTopic` and `ArticleTag`, and no longer exports the
+    unused `PaginatedResult`.
+  - The `./schema` export resolves to `dist/schema/index.js`. The specifier is unchanged, and the
+    generated SQL is identical.
+
+- [#41](https://github.com/cailenfisher/SvelteBuilder/pull/41) [`5a9b980`](https://github.com/cailenfisher/SvelteBuilder/commit/5a9b980d674ed60861ef3eda383d5c82b0833bdf) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Scaffolded screens read as layout plus named components. New package components:
+  `FilterLinkList` in coreui (a server-side filter as a `<nav>` of links); `StockAdjustmentList`,
+  `StorageLocationFieldset`, `InboundReceiptSummary`, `InboundReceiptList`, `CycleCountLineTable`,
+  `ShipmentLineTable` and `LogisticMetricSummary` in logistic; `CommentList` in content. Components
+  bound to a route (forms, tables that link) are scaffolded beside the page that uses them.
+
+  content's `ArticleList`, `ArticleWorkflowPanel` and `ArticleBlockEditor` now fit the article admin
+  screens, which render them in place of hand-built sections. `ArticleList` takes `ArticleRow`s and an
+  `href` per article, resolves headlines and status names through the dictionary, and shows status,
+  canonical slug and creation date. `ArticleWorkflowPanel` is an inline section of plain forms posting
+  to the `transitionAction` and `checklistAction` it is given, with an optional `enhance`, in place of
+  a drawer driven by callbacks; its assignment tab and per-status buttons are gone. `ArticleBlockEditor`
+  shows its `readonly` mode as text rather than disabled controls, with an empty state. The base
+  admin dashboard's placeholder statistics and empty table are gone, with their six base copy slugs: it
+  links to each admin area.
+
+### Patch Changes
+
+- Updated dependencies [[`ca15716`](https://github.com/cailenfisher/SvelteBuilder/commit/ca1571655ee3a49cc587ecefa0a7859afbd85452), [`b0aeab9`](https://github.com/cailenfisher/SvelteBuilder/commit/b0aeab93b0de2e74f0736f713fb78c8af0395dbf), [`02c0bc7`](https://github.com/cailenfisher/SvelteBuilder/commit/02c0bc7fe1a84c7159543ed3c380a0196c3a8d37), [`1e4a485`](https://github.com/cailenfisher/SvelteBuilder/commit/1e4a48532161b74e527af2fafaaf1c14af73ee69), [`7799af6`](https://github.com/cailenfisher/SvelteBuilder/commit/7799af683f657b095a4c58021577c0343078748a), [`1fb15dd`](https://github.com/cailenfisher/SvelteBuilder/commit/1fb15ddc1f2481101b34ecd9654e71e023f6dc4e), [`9ce6154`](https://github.com/cailenfisher/SvelteBuilder/commit/9ce6154fb7c4f8bef568cfae8242d910a431c1d3), [`e5990d4`](https://github.com/cailenfisher/SvelteBuilder/commit/e5990d41b93d10e6be2df17f569603ad24601beb), [`5a9b980`](https://github.com/cailenfisher/SvelteBuilder/commit/5a9b980d674ed60861ef3eda383d5c82b0833bdf)]:
+  - @sveltebuilder/coreui@1.0.0-rc.0
+  - @sveltebuilder/local-text-schema@0.3.0-rc.0
+
 ## 1.0.2
 
 ### Patch Changes
