@@ -242,6 +242,31 @@ begin
   end;
 end $$;
 
+-- At a single-row target only the role's permissions on that row's scope apply (A3): a role
+-- holding update on navigation_item and on another scope, granted on item A, grants nothing on
+-- the other scope.
+do $$
+declare
+  v_wide integer;
+begin
+  insert into public.permission (scope, action) values ('sql_check_other', 'update')
+  on conflict do nothing;
+  insert into public.role (slug) values ('sql_check_wide') returning id into v_wide;
+  insert into public.role_permission (role_id, permission_id)
+  select v_wide, p.id from public.permission p
+  where (p.scope = 'navigation_item' or p.scope = 'sql_check_other') and p.action = 'update';
+  insert into public.navigation_item_role_assignment (navigation_item_id, role_id, user_account_id)
+  values (pg_temp.item_id('a'), v_wide, pg_temp.account_id(3));
+
+  perform pg_temp.sign_in_fixture(3);
+  if not (pg_temp.item_id('a') = any (public.current_user_navigation_item_ids('update'))) then
+    raise exception 'a two-scope role granted on A does not admit update on A';
+  end if;
+  if public.current_user_can('sql_check_other', 'update') then
+    raise exception 'a two-scope role granted on one row admits its other scope';
+  end if;
+end $$;
+
 -- E1, as designed: any sharer of an item may remove any assignment on it.
 do $$
 begin
@@ -339,6 +364,7 @@ begin
   delete from public.navigation_item where menu = 'sql_check';
   delete from public.local_text_link where slug = 'sql_check_entity_item' and scope is null;
   delete from public.role where slug like 'sql_check_%';
+  delete from public.permission where scope = 'sql_check_other';
   delete from public.user_account where auth_user_id::text like 'eeeeeeee-0000-4000-8000-00000000e00%';
   delete from auth.users where id::text like 'eeeeeeee-0000-4000-8000-00000000e00%';
 end $$;

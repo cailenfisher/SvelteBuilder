@@ -243,6 +243,24 @@ if (ok()) {
   }
 }
 
+// The permission catalog comes from the migration, not the seed, because `supabase db push`
+// never runs the seed and the role_assignment trigger refuses a scope the catalog lacks (A11).
+// So it is checked here, between the two, where a seed-borne catalog would be absent.
+if (ok() && existsSync(path.join(projectDir, 'supabase', 'supplemental', 'access-generated.sql'))) {
+  step('access catalog before seed', () => {
+    const check = path.join(workdir ?? tmpdir(), 'access-catalog-before-seed.sql');
+    writeFileSync(
+      check,
+      `do $$ begin
+         if not exists (select 1 from public.permission) then
+           raise exception 'the permission catalog is empty before the seed runs';
+         end if;
+       end $$;\n`
+    );
+    return psql(check);
+  });
+}
+
 if (ok() && existsSync(seedFile)) {
   step('seed', () => psql(seedFile));
   // Twice, because re-runnability is a property of the conflict clauses rather than of

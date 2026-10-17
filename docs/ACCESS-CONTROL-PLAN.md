@@ -317,3 +317,34 @@ Recommendation: (a). (b) leaves the whole warehouse readable by anyone who can s
 
 **P3. Which further content scopes join the catalog.**
 `front`, `front_slot`, `tag`, `topic` and `newsletter` are editorial tables that stay admin-only under the DESIGN §4 example. Recommendation: settle with the seeded role set at the start of Phase 8, as already deferred.
+
+---
+
+## Appendix — Phase 4 assertion review (2026-10-17)
+
+Where each DESIGN §9 bullet is asserted. Files are in `scripts/sql-check/`; "25" is `25-assert-access.sql`, "26" is `26-assert-access-entity.sql`, run against a scope (`sql_check_widget`) and an entity (`navigation_item`, declared by `access-fixture.json`) that no module uses.
+
+| §9 bullet | Asserted in | Note |
+| --- | --- | --- |
+| No assignment: cannot read a non-public row, update, delete | 25 (`current_user_can` false), 26 (`current_user_<entity>_ids` empty) | At the helper level. The same at the row level, through a real module's policies, is Phase 8 and 9 |
+| A scope grant admits that scope and no other | 25 | |
+| An entity grant admits that row only | 26 | |
+| A group grant works; removing the member removes it | 25 (scope, and removal), 26 (entity, internal and external groups) | |
+| An expired assignment admits nothing | 25 (scope), 26 (entity) | |
+| A global two-scope role admits both; at an entity target, only the matching scope | 25 (global), 26 (entity) | The entity half was added in this review |
+| An external group cannot receive a global or scope assignment | 25 | |
+| `share` without a permission cannot grant it | 26 | Also: a holder of every permission without `share` is refused |
+| A non-admin cannot call an admin RPC; direct DML refused on every access table | 25 (core tables and all nine RPCs), 26 (generated table, anon execute) | |
+| Deleting an entity deletes its assignments | 26 | |
+| A module-managed role cannot be changed | 25 | Also cannot be deleted |
+| Admins keep access with no assignments | 25 (`current_user_can`), 26 (`_actions` holds the whole catalog) | |
+| Entity `update` admits that article's child rows only | Phase 8 | Needs content's adopted policies |
+| `article.create` without `publish` cannot insert a published article | Phase 8 | |
+| `article.update` without `publish` cannot change status directly or publish by RPC | Phase 8 | |
+| The `article` column grant names every unguarded column | Phase 8 | |
+| `article_assignment` writes need `share` and `update` | Phase 8 | |
+| `list_<entity>_access` / `_principal` refuse a non-sharer; a sharer cannot read another entity's grants | 26 | |
+| The catalog is present after the migration alone | `sql-check.mjs`, step "access catalog before seed" | Added in this review: the check in 26 ran after the seed, so it could not tell |
+| Policies call access helpers as `(select …)` with literal arguments | `20-assert-base.sql` | Also refuses `_actions` in any policy |
+
+**Mutation testing.** Every assertion file was run against deliberately broken SQL in copies of a kept database: 6 breaks of the core SQL, 7 of the generated SQL, 5 bad policy shapes. All 18 are caught, each by the check written for it, and the unbroken control passes. Three of the generated-SQL breaks first slipped through, or were caught by an unrelated error, and the tests were sharpened until each failed for its own reason.
