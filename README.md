@@ -168,7 +168,7 @@ Schema is organized in three tiers, applied in deterministic order:
 2. **Template schema** — the scaffold template's own tables. SuperPrototype contributes `user_account` (the domain principal every RLS policy resolves to) and `navigation_item`.
 3. **Module schema** — each selected domain module's tables, which may reference the tiers above.
 
-Schema is Drizzle-first, and SQL is a generated artifact. Each project lists its schema sources in `.sveltebuilder/registry/*.json`, where each entry names a Drizzle module and the entries it must follow. `sveltebuilder sync:supabase` sorts the registry topologically, runs `drizzle-kit generate` against the combined schema to produce the Supabase migration, appends the supplemental SQL Drizzle can't express (RLS policies, functions), and regenerates `supabase/seed.sql`.
+Schema is Drizzle-first, and SQL is a generated artifact. Each project lists its schema sources in `.sveltebuilder/registry/*.json`, where each entry names a Drizzle module and the entries it must follow. `sveltebuilder sync:supabase` sorts the registry topologically, runs `drizzle-kit generate` against the combined schema to produce the Supabase migration, writes new or changed supplemental SQL Drizzle can't express (RLS policies, functions) into a new migration of its own, and regenerates `supabase/seed.sql`.
 
 ---
 
