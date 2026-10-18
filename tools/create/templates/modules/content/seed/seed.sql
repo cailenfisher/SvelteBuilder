@@ -490,7 +490,7 @@ values
   ('content.article_list.canonical_slug',        'content', null),
   ('content.article_list.created_at',            'content', null),
   ('content.article_assignment_queue.article',   'content', null),
-  ('content.article_assignment_queue.role',      'content', null),
+  ('content.article_assignment_queue.article_assignment_role', 'content', null),
   ('content.article_assignment_queue.assignee',  'content', null),
   ('content.article_assignment_queue.status',    'content', null),
   ('content.article_assignment_queue.due_at',    'content', null),
@@ -527,7 +527,7 @@ from (values
   ('content.article_list.canonical_slug',        'URL slug'),
   ('content.article_list.created_at',            'Created'),
   ('content.article_assignment_queue.article',   'Article'),
-  ('content.article_assignment_queue.role',      'Role'),
+  ('content.article_assignment_queue.article_assignment_role', 'Role'),
   ('content.article_assignment_queue.assignee',  'Assignee'),
   ('content.article_assignment_queue.status',    'Status'),
   ('content.article_assignment_queue.due_at',    'Due'),
@@ -566,7 +566,7 @@ from (values
   ('content.article_list.canonical_slug',        'Identifiant d''URL'),
   ('content.article_list.created_at',            'Créé'),
   ('content.article_assignment_queue.article',   'Article'),
-  ('content.article_assignment_queue.role',      'Rôle'),
+  ('content.article_assignment_queue.article_assignment_role', 'Rôle'),
   ('content.article_assignment_queue.assignee',  'Responsable'),
   ('content.article_assignment_queue.status',    'Statut'),
   ('content.article_assignment_queue.due_at',    'Échéance'),
@@ -956,10 +956,9 @@ insert into local_text_link (slug, scope, entity_id)
 values
   ('content.error.slug_required',           'content', null),
   ('content.error.headline_required',       'content', null),
-  ('content.error.article_status_missing',  'content', null),
   ('content.error.slug_in_use',             'content', null),
   ('content.error.article_create_failed',   'content', null),
-  ('content.error.headline_save_failed',    'content', null),
+  ('content.error.article_create_forbidden', 'content', null),
   ('content.error.status_required',         'content', null),
   ('content.error.status_change_forbidden', 'content', null),
   ('content.error.checklist_item_invalid',  'content', null),
@@ -976,10 +975,9 @@ select l.id, (select id from locale where code = 'en'), v.content
 from (values
   ('content.error.slug_required',           'A URL slug is required.'),
   ('content.error.headline_required',       'A headline is required.'),
-  ('content.error.article_status_missing',  'No article statuses are configured.'),
   ('content.error.slug_in_use',             'That URL slug is already in use.'),
   ('content.error.article_create_failed',   'Failed to create the article.'),
-  ('content.error.headline_save_failed',    'The article was created but its headline could not be saved. Open it and set one.'),
+  ('content.error.article_create_forbidden', 'You may not create articles.'),
   ('content.error.status_required',         'Choose a status.'),
   ('content.error.status_change_forbidden', 'Not permitted to change this article’s status.'),
   ('content.error.checklist_item_invalid',  'Invalid checklist item.'),
@@ -998,10 +996,9 @@ select l.id, (select id from locale where code = 'fr'), v.content
 from (values
   ('content.error.slug_required',           'Un identifiant d''URL est obligatoire.'),
   ('content.error.headline_required',       'Un titre est obligatoire.'),
-  ('content.error.article_status_missing',  'Aucun statut d''article n''est configuré.'),
   ('content.error.slug_in_use',             'Cet identifiant d''URL est déjà utilisé.'),
   ('content.error.article_create_failed',   'La création de l''article a échoué.'),
-  ('content.error.headline_save_failed',    'L''article a été créé, mais son titre n''a pas pu être enregistré. Ouvrez-le pour en saisir un.'),
+  ('content.error.article_create_forbidden', 'Vous n''êtes pas autorisé à créer des articles.'),
   ('content.error.status_required',         'Choisissez un statut.'),
   ('content.error.status_change_forbidden', 'Vous n''êtes pas autorisé à changer le statut de cet article.'),
   ('content.error.checklist_item_invalid',  'Élément de liste de contrôle non valide.'),
@@ -1092,3 +1089,134 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'content' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Access: the roles this module manages (docs/ACCESS-CONTROL.md §7)
+-- ──────────────────────────────────────────────────────────────────────────────
+--
+-- A role with a slug is module-managed: its permissions are this seed's, and nobody can change
+-- them in the admin screens (O6). Administrators clone one to make a version they can change.
+-- The permissions themselves come from this module's manifest (`access`), written into the
+-- migration by sync:supabase, so they exist before this runs.
+--
+--   Editor       everything content offers, including publishing, sharing and moderation.
+--   Writer       reads every article, creates articles (and is made the author of each one it
+--                creates, which lets it keep editing them), and uploads and edits media. Cannot
+--                publish.
+--   Contributor  reads and edits an article. Meant to be given on single articles, from the
+--                article's access panel, to a freelancer or guest writer; given broadly it would
+--                edit every article.
+
+insert into role (slug) values
+  ('content_editor'), ('content_writer'), ('content_contributor')
+on conflict (slug) do nothing;
+
+insert into role_permission (role_id, permission_id)
+select r.id, p.id
+from role r
+join permission p on (
+  (r.slug = 'content_editor' and p.scope in (
+    'article', 'section', 'topic', 'tag', 'front', 'media_asset', 'newsletter', 'comment'))
+  or (r.slug = 'content_writer' and (
+    (p.scope = 'article' and p.action in ('read', 'create'))
+    or (p.scope = 'media_asset' and p.action in ('read', 'create', 'update'))))
+  or (r.slug = 'content_contributor' and p.scope = 'article' and p.action in ('read', 'update'))
+)
+where r.slug in ('content_editor', 'content_writer', 'content_contributor')
+on conflict do nothing;
+
+insert into local_text_link (slug, scope, entity_id)
+select 'name', 'role', r.id from role r
+where r.slug in ('content_editor', 'content_writer', 'content_contributor')
+on conflict do nothing;
+
+-- Labels for this module's permission scopes and its own verbs, under the access scope, where
+-- the permission grid and the role assignment screens look for them.
+insert into local_text_link (slug, scope, entity_id) values
+  ('access.permission_scope.article',     'access', null),
+  ('access.permission_scope.section',     'access', null),
+  ('access.permission_scope.topic',       'access', null),
+  ('access.permission_scope.tag',         'access', null),
+  ('access.permission_scope.front',       'access', null),
+  ('access.permission_scope.media_asset', 'access', null),
+  ('access.permission_scope.newsletter',  'access', null),
+  ('access.permission_scope.comment',     'access', null),
+  ('access.permission_action.publish',    'access', null),
+  ('access.permission_action.moderate',   'access', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.display
+from (values
+  ('content_editor', 'Editor'), ('content_writer', 'Writer'), ('content_contributor', 'Contributor')
+) as v(role_slug, display)
+join role r on r.slug = v.role_slug
+join local_text_link l on l.slug = 'name' and l.scope = 'role' and l.entity_id = r.id
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.display
+from (values
+  ('content_editor', 'Rédacteur en chef'), ('content_writer', 'Rédacteur'), ('content_contributor', 'Contributeur')
+) as v(role_slug, display)
+join role r on r.slug = v.role_slug
+join local_text_link l on l.slug = 'name' and l.scope = 'role' and l.entity_id = r.id
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('access.permission_scope.article',     'access', 'Articles'),
+  ('access.permission_scope.section',     'access', 'Sections'),
+  ('access.permission_scope.topic',       'access', 'Topics'),
+  ('access.permission_scope.tag',         'access', 'Tags'),
+  ('access.permission_scope.front',       'access', 'Fronts'),
+  ('access.permission_scope.media_asset', 'access', 'Media'),
+  ('access.permission_scope.newsletter',  'access', 'Newsletters'),
+  ('access.permission_scope.comment',     'access', 'Comments'),
+  ('access.permission_action.publish',    'access', 'Publish'),
+  ('access.permission_action.moderate',   'access', 'Moderate')
+) as v(slug, scope, content)
+join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('access.permission_scope.article',     'access', 'Articles'),
+  ('access.permission_scope.section',     'access', 'Rubriques'),
+  ('access.permission_scope.topic',       'access', 'Sujets'),
+  ('access.permission_scope.tag',         'access', 'Mots-clés'),
+  ('access.permission_scope.front',       'access', 'Unes'),
+  ('access.permission_scope.media_asset', 'access', 'Médias'),
+  ('access.permission_scope.newsletter',  'access', 'Infolettres'),
+  ('access.permission_scope.comment',     'access', 'Commentaires'),
+  ('access.permission_action.publish',    'access', 'Publier'),
+  ('access.permission_action.moderate',   'access', 'Modérer')
+) as v(slug, scope, content)
+join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Admin navigation: Articles, for staff who hold anything on articles (A24)
+-- ──────────────────────────────────────────────────────────────────────────────
+--
+-- A navigation label is global copy (scope null): the admin layout reads it from the root
+-- dictionary. permission_scope 'article' shows the entry to anyone holding a role on articles,
+-- broadly or on a single one, as well as to administrators.
+
+insert into local_text_link (slug, scope, entity_id) values
+  ('content.navigation.article', null, null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = v.locale_code), v.content
+from (values ('en', 'Articles'), ('fr', 'Articles')) as v(locale_code, content)
+join local_text_link l on l.slug = 'content.navigation.article' and l.scope is null and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into navigation_item (local_text_link_id, href, menu, position, permission_scope)
+select l.id, '/admin/content/article', 'admin', 100, 'article'
+from local_text_link l
+where l.slug = 'content.navigation.article' and l.scope is null and l.entity_id is null
+on conflict (href, menu) do nothing;

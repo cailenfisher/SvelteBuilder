@@ -4,8 +4,11 @@ import type { UserGroupAdminListView } from '@sveltebuilder/access/views';
 import { createUserGroup, listUserGroup } from '$lib/server/user-group';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { formError } from '$lib/server/form-error';
+import { requireAdministrator } from '../require-administrator';
 
-export const load: PageServerLoad = async ({ locals }): Promise<UserGroupAdminListView> => {
+export const load: PageServerLoad = async ({ locals, parent }): Promise<UserGroupAdminListView> => {
+  await requireAdministrator(parent);
+
   const [userGroupsResult, copy] = await Promise.all([
     listUserGroup(locals.supabase),
     loadScopedCopy(locals.supabase, ['access', 'user_group'], locals.locale.code, locals.defaultLocale.code),

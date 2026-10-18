@@ -97,7 +97,9 @@ insert into local_text_link (slug, scope, entity_id) values
   ('access.user_group_member.add',                'access', null),
   ('access.user_group_member.add_label',          'access', null),
   ('access.role_assignment.role_placeholder',       'access', null),
-  ('access.user_group_member.add_placeholder',      'access', null)
+  ('access.user_group_member.add_placeholder',      'access', null),
+  ('access.role_assignment.principal_placeholder',  'access', null),
+  ('access.error.share_refused',                    'access', null)
 on conflict do nothing;
 
 -- UI copy, en
@@ -194,7 +196,9 @@ from (values
   ('access.user_group_member.add',                'access', 'Add to group'),
   ('access.user_group_member.add_label',          'access', 'User'),
   ('access.role_assignment.role_placeholder',       'access', 'Choose a role'),
-  ('access.user_group_member.add_placeholder',      'access', 'Choose a user')
+  ('access.user_group_member.add_placeholder',      'access', 'Choose a user'),
+  ('access.role_assignment.principal_placeholder',  'access', 'Choose a person or group'),
+  ('access.error.share_refused',                    'access', 'You can give access only to an item you may share, and only with permissions you hold on it yourself.')
 ) as v(slug, scope, content)
 join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -293,7 +297,9 @@ from (values
   ('access.user_group_member.add',                'access', 'Ajouter au groupe'),
   ('access.user_group_member.add_label',          'access', 'Utilisateur'),
   ('access.role_assignment.role_placeholder',       'access', 'Choisissez un rôle'),
-  ('access.user_group_member.add_placeholder',      'access', 'Choisissez un utilisateur')
+  ('access.user_group_member.add_placeholder',      'access', 'Choisissez un utilisateur'),
+  ('access.role_assignment.principal_placeholder',  'access', 'Choisissez une personne ou un groupe'),
+  ('access.error.share_refused',                    'access', 'Vous ne pouvez donner accès qu''à un élément que vous pouvez partager, et seulement avec les permissions que vous y détenez vous-même.')
 ) as v(slug, scope, content)
 join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
 on conflict (link, locale) do nothing;

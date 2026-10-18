@@ -35,11 +35,16 @@ grant select on public.media_asset_attribution to anon, authenticated;
 -- no rights — which publish validation then has to explain. These make it one transaction.
 --
 -- SECURITY INVOKER, like every compound write in 04-admin-write-rpc.sql: the body runs as the
--- caller, so the admin policies on each table still check every statement. They buy atomicity,
--- not privilege.
+-- caller, so the policies on each table still check every statement. They buy atomicity, not
+-- privilege. The one exception is set_media_asset_copy, below, which says why.
 
 -- Copy for one asset in one locale. A null argument leaves that slug alone; a blank one removes
 -- it, so an editor clearing a caption does not leave a stale one behind.
+--
+-- SECURITY DEFINER, unlike its neighbours: local_text_link and local_text are written only by
+-- administrators (00-local-text-rls.sql), and an asset's alt text, caption and credit belong to
+-- whoever may create or edit the asset. So it checks `media_asset.create` or
+-- `media_asset.update` itself, and writes only the three slugs of this one asset.
 create or replace function public.set_media_asset_copy(
   p_media_asset_id bigint,
   p_locale_id      bigint,
@@ -49,7 +54,7 @@ create or replace function public.set_media_asset_copy(
 )
 returns void
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 declare
@@ -57,6 +62,14 @@ declare
   v_content text;
   v_link_id bigint;
 begin
+  if not (
+    (select public.current_user_can('media_asset', 'create'))
+    or (select public.current_user_can('media_asset', 'update'))
+  ) then
+    raise exception 'changing an asset''s copy requires media_asset.create or update'
+      using errcode = '42501';
+  end if;
+
   if not exists (select 1 from public.media_asset where id = p_media_asset_id) then
     raise exception 'media asset % does not exist', p_media_asset_id;
   end if;
@@ -179,3 +192,27 @@ begin
   return v_id;
 end;
 $$;
+
+-- Stated, never inherited: Postgres grants EXECUTE to PUBLIC by default and Supabase to anon as
+-- well, and an anonymous visitor has no business calling any of these.
+revoke execute on function public.set_media_asset_copy(bigint, bigint, text, text, text) from public, anon;
+revoke execute on function
+  public.set_media_asset_rights(bigint, public.media_asset_license, boolean, timestamptz, text, text, timestamptz)
+  from public, anon;
+revoke execute on function
+  public.create_media_asset(
+    public.media_asset_type, text, text, public.media_asset_license, integer, integer, boolean,
+    timestamptz, text, text, timestamptz, bigint, text, text, text
+  )
+  from public, anon;
+
+grant execute on function public.set_media_asset_copy(bigint, bigint, text, text, text) to authenticated;
+grant execute on function
+  public.set_media_asset_rights(bigint, public.media_asset_license, boolean, timestamptz, text, text, timestamptz)
+  to authenticated;
+grant execute on function
+  public.create_media_asset(
+    public.media_asset_type, text, text, public.media_asset_license, integer, integer, boolean,
+    timestamptz, text, text, timestamptz, bigint, text, text, text
+  )
+  to authenticated;

@@ -166,6 +166,58 @@ as $$
     )
 $$;
 
+-- Every scope in which the current user may do anything at all: through any unexpired global
+-- or scope assignment whose role holds a permission there, their own or a group's. An
+-- administrator holds every scope in the catalog. This is what lets staff into the admin area,
+-- and decides which entries of its menu they see (A24); it never decides a single row.
+--
+-- access-generated.sql replaces it, when any manifest declares entity-level access, with a
+-- version that also counts assignments on single rows: a Contributor given one article is staff
+-- too, and sees Articles in the menu.
+create or replace function public.current_user_scopes()
+returns text[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(distinct p.scope order by p.scope), '{}')
+  from public.permission p
+  where coalesce((select public.current_user_admin()), false)
+     or exists (
+       select 1
+       from public.role_assignment ra
+       join public.role_permission rp on rp.role_id = ra.role_id
+       where rp.permission_id = p.id
+         and (ra.scope is null or ra.scope = p.scope)
+         and (ra.expires_at is null or ra.expires_at > now())
+         and (
+           ra.user_account_id = (select public.current_user_id())
+           or ra.user_group_id = any ((select public.current_user_group_ids())::integer[])
+         )
+     )
+$$;
+
+-- The roles that apply to a scope: those holding at least one permission on it. For the sharing
+-- form of an entity's access panel, whose users may not read the role tables themselves. Which
+-- roles exist is not secret; who holds them is, and that stays behind list_<entity>_access.
+create or replace function public.list_scope_role(p_scope text)
+returns table (id integer, slug text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select r.id, r.slug
+  from public.role r
+  where exists (
+    select 1 from public.role_permission rp
+    join public.permission p on p.id = rp.permission_id
+    where rp.role_id = r.id and p.scope = p_scope
+  )
+  order by r.slug nulls last, r.id
+$$;
+
 -- ── Administrator RPCs ────────────────────────────────────────────────────────
 --
 -- The only way to change roles, groups and global or scope assignments (A5, A12). Each
@@ -458,6 +510,8 @@ $$;
 revoke execute on function public.role_assignment_check_target() from public, anon, authenticated;
 revoke execute on function public.current_user_group_ids() from public, anon;
 revoke execute on function public.current_user_can(text, text) from public, anon;
+revoke execute on function public.current_user_scopes() from public, anon;
+revoke execute on function public.list_scope_role(text) from public, anon;
 revoke execute on function public.access_require_admin() from public, anon, authenticated;
 revoke execute on function public.access_delete_entity_copy(text, bigint) from public, anon, authenticated;
 revoke execute on function public.create_role(bigint[], text[], integer[]) from public, anon;
@@ -472,6 +526,8 @@ revoke execute on function public.remove_user_group_member(integer, bigint) from
 
 grant execute on function public.current_user_group_ids() to authenticated, anon;
 grant execute on function public.current_user_can(text, text) to authenticated, anon;
+grant execute on function public.current_user_scopes() to authenticated;
+grant execute on function public.list_scope_role(text) to authenticated;
 grant execute on function public.create_role(bigint[], text[], integer[]) to authenticated;
 grant execute on function public.set_role_permissions(integer, integer[]) to authenticated;
 grant execute on function public.delete_role(integer) to authenticated;

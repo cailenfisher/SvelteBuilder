@@ -84,6 +84,14 @@ export type ArticleRow = Article & {
    */
   bylines: AuthorProfile[];
   /**
+   * What the reader may do to this article, every action named as a permission action is
+   * (`update`, `publish`, `share`). Set on the admin screens, from current_user_article_actions
+   * and the reader's assignments, to show only the controls that will work. A courtesy: RLS
+   * refuses what is not allowed whatever the screen shows. Optional so a loader written before
+   * access control still typechecks.
+   */
+  actions?: string[];
+  /**
    * Present only when a list loads image blocks so its cards can show a picture — and then only
    * those, not the whole body, which is the classic way a listing becomes slow.
    */
@@ -103,13 +111,19 @@ export type ArticleWithBlocks = ArticleRow & {
  * Named ArticleDetailView rather than ArticleDetail because the package already exports a
  * component by that name, and a screen imports both.
  */
+/**
+ * A comment as a reader's page shows it: everything but the commenter's email address, which no
+ * one can read through the API (02-content-rls.sql grants SELECT on every other column).
+ */
+export type CommentRow = Omit<Comment, 'authorEmail'>;
+
 export type ArticleDetailView = ScreenCopy &
   ScreenLocale &
   ScreenStorage &
   ScreenAttribution & {
     article: ArticleWithBlocks;
     /** Approved only, and empty when the article does not accept comments. */
-    comments: Comment[];
+    comments: CommentRow[];
     /** Null when no publisher profile is seeded; the page then omits its structured data. */
     publisherProfile: PublisherProfile | null;
     /** Absolute, for the canonical link and the JSON-LD. */
@@ -152,6 +166,11 @@ export type ArticleAdminListView = ScreenCopy &
     statuses: ArticleStatus[];
     /** Null means unfiltered, which is not the same as any particular status. */
     statusSlug: string | null;
+    /**
+     * What the reader may do to every article, from current_user_can (`create` is the one the
+     * screen asks about). See ArticleRow's `actions`.
+     */
+    articleActions?: string[];
   };
 
 /** `/admin/content/article/[id]` */
@@ -165,6 +184,8 @@ export type ArticleAdminDetailView = ScreenCopy &
     availableSections: Section[];
     availableTopics: Topic[];
     availableTags: Tag[];
+    /** What the reader may do to this article. See ArticleRow's `actions`. */
+    actions?: string[];
   };
 
 export type ArticleChecklistEntry = {

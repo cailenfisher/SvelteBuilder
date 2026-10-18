@@ -350,6 +350,32 @@ for projects whose supplemental files are already in migrations. Not started.
 
 ---
 
+## Access control: deferred during the build (2026-10-18)
+
+Recorded as the phases of `docs/ACCESS-CONTROL-PLAN.md` ran. Phase 10 adds the design's
+exclusions, E1–E3 and the A20 options.
+
+- **The navigation screens cannot set `permission_scope`.** An entry an administrator adds is
+  for administrators only (A24) until the navigation item create and update forms gain the field.
+  Seeds set it for module entries.
+- **The article sharing form lives in content's bundle** (`ArticleRoleAssignmentCreateForm`),
+  because it posts to that route. Every access-controlled entity will want the same form; promote
+  a presentational version to `@sveltebuilder/access` when a second module adopts entity-level
+  access, and have both bundles use it.
+- **Staff cannot edit an article's copy or body from the scaffold's screens.** The article detail
+  screen shows the body read-only and has no headline or dek form (Clarion field test, finding 8),
+  so a Writer's edit rights exist in the database but not in the shipped UI. Entity copy is also
+  administrator-write in `00-local-text-rls.sql`; the forms finding 8 asks for would need
+  definer RPCs that check `article.update`, as `content_create_article` and
+  `set_media_asset_copy` do.
+- **No screen moderates comments.** `comment.read`, `moderate` and `delete` are enforced, but
+  nothing in the scaffold lists pending comments. A moderation screen needing a commenter's email
+  address would read it through a definer function, since no role can select it.
+- **The Changesets bump for content is `major`.** The `article_assignment_role` rename changes the
+  exported `ArticleAssignment` type, which conflicts with releasing this branch as 2.1 (O4).
+
+---
+
 ## Pending manual steps
 
 **Migrate the Supabase project to asymmetric JWT signing keys.** `getClaims()` only verifies

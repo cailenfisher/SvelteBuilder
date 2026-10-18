@@ -16,10 +16,19 @@
 --      depend on user_account's own read policy staying as it is.
 --
 -- The access model in one paragraph: published editorial content is world-readable;
--- editorial workflow (revisions, assignments, checklists), media licensing terms, preview
--- tokens and subscriber PII are admin-only; comments are world-readable once approved and
--- world-insertable as pending; and newsletter signup goes through a SECURITY DEFINER
--- function rather than granting anon any access to `subscriber` at all.
+-- everything else is governed by permissions (docs/ACCESS-CONTROL.md), which an administrator
+-- holds in full. Articles are access-controlled per row as well (`article_role_assignment`),
+-- and anyone assigned to an article (article_assignment) may read and edit it, without publishing,
+-- deleting or sharing it. An article's blocks, bylines, taxonomy links, revisions, checklist,
+-- preview links and live coverage follow the article (A18). Sections, topics, tags, fronts,
+-- media and newsletters are governed per scope. Comments are world-readable once approved,
+-- world-insertable as pending, and moderated with `comment.moderate`; a commenter's email
+-- address is readable by no one through the API. The publish checklist's items, subscribers
+-- and subscriptions stay administrator-only: configuration and reader PII. Newsletter signup
+-- goes through a SECURITY DEFINER function rather than granting anon any access to `subscriber`.
+--
+-- This file applies after access-generated.sql, which defines
+-- current_user_article_ids() for the `article` scope declared in this module's manifest.
 
 -- ── Visibility helper ─────────────────────────────────────────────────────────
 --
@@ -51,12 +60,40 @@ $$;
 
 grant execute on function public.content_article_public(bigint) to anon, authenticated;
 
+-- ── Articles the current user is assigned to ─────────────────────────────────
+--
+-- Being assigned to an article (as its author, editor, photo or copy editor) lets you read and
+-- edit it: the newsroom's own record of who works on what, read as a predicate rather than
+-- copied into grants (A13). It does not let you publish, delete or share the article.
+--
+-- Hoisted like the access helpers: called as `(select …)::bigint[]` with no row-dependent
+-- argument, it runs once per statement. SECURITY DEFINER so it can read article_assignment,
+-- whose own policies call it.
+create or replace function public.content_assigned_article_ids()
+returns bigint[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(distinct aa.article_id), '{}')
+  from public.article_assignment aa
+  where aa.user_account_id = (select public.current_user_id())
+$$;
+
+revoke execute on function public.content_assigned_article_ids() from public, anon;
+grant execute on function public.content_assigned_article_ids() to authenticated;
+
 -- ── Public taxonomy and chrome ────────────────────────────────────────────────
 --
--- Read by anyone, written by admins. None of these carry anything that is not already on
--- the page: a section's name, a tag, the publisher's own profile. article_status is in this
--- group because every public query resolves the slug 'published' through it — with it
--- unreadable, the site shows nothing at all.
+-- Read by anyone. None of these carry anything that is not already on the page: a section's
+-- name, a tag, the publisher's own profile. article_status is in this group because every
+-- public query resolves the slug 'published' through it — with it unreadable, the site shows
+-- nothing at all.
+--
+-- article_status, author_profile and publisher_profile are written by administrators. The rest
+-- are permission scopes declared in this module's manifest: writing one takes that scope's
+-- `create`, `update` or `delete`. A front's slots follow the front.
 
 do $$
 declare
@@ -76,13 +113,42 @@ begin
 
     execute format('drop policy if exists %I on public.%I',
       'content_' || v_table || '_admin', v_table);
+  end loop;
+
+  foreach v_table in array array['article_status', 'author_profile', 'publisher_profile'] loop
     execute format(
       'create policy %I on public.%I for all to authenticated
          using ((select public.current_user_admin()))
          with check ((select public.current_user_admin()))',
       'content_' || v_table || '_admin', v_table);
   end loop;
+
+  foreach v_table in array array['section', 'topic', 'tag', 'media_asset', 'newsletter', 'front'] loop
+    execute format('drop policy if exists %I on public.%I', 'content_' || v_table || '_insert', v_table);
+    execute format(
+      'create policy %I on public.%I for insert to authenticated
+         with check ((select public.current_user_can(%L, %L)))',
+      'content_' || v_table || '_insert', v_table, v_table, 'create');
+
+    execute format('drop policy if exists %I on public.%I', 'content_' || v_table || '_update', v_table);
+    execute format(
+      'create policy %I on public.%I for update to authenticated
+         using ((select public.current_user_can(%L, %L)))
+         with check ((select public.current_user_can(%L, %L)))',
+      'content_' || v_table || '_update', v_table, v_table, 'update', v_table, 'update');
+
+    execute format('drop policy if exists %I on public.%I', 'content_' || v_table || '_delete', v_table);
+    execute format(
+      'create policy %I on public.%I for delete to authenticated
+         using ((select public.current_user_can(%L, %L)))',
+      'content_' || v_table || '_delete', v_table, v_table, 'delete');
+  end loop;
 end $$;
+
+drop policy if exists "content_front_slot_write" on public.front_slot;
+create policy "content_front_slot_write" on public.front_slot for all to authenticated
+  using ((select public.current_user_can('front', 'update')))
+  with check ((select public.current_user_can('front', 'update')));
 
 -- ── Articles ──────────────────────────────────────────────────────────────────
 
@@ -101,15 +167,69 @@ create policy "content_article_public_read" on public.article for select to anon
   );
 
 drop policy if exists "content_article_admin" on public.article;
-create policy "content_article_admin" on public.article for all to authenticated
-  using ((select public.current_user_admin()))
-  with check ((select public.current_user_admin()));
+
+-- Staff: by permission, everywhere or on this article, or by being assigned to it.
+drop policy if exists "content_article_read" on public.article;
+create policy "content_article_read" on public.article for select to authenticated
+  using (
+    (select public.current_user_can('article', 'read'))
+    or id = any ((select public.current_user_article_ids('read'))::bigint[])
+    or id = any ((select public.content_assigned_article_ids())::bigint[])
+  );
+
+-- A new article may not arrive already published, unless its creator may publish (A19). An
+-- insert's `with check` sees the whole new row, so this needs no column grant.
+drop policy if exists "content_article_insert" on public.article;
+create policy "content_article_insert" on public.article for insert to authenticated
+  with check (
+    (select public.current_user_can('article', 'create'))
+    and (
+      (select public.current_user_can('article', 'publish'))
+      or (
+        published_at is null
+        and article_status_id <> (select id from public.article_status where slug = 'published')
+      )
+    )
+  );
+
+drop policy if exists "content_article_update" on public.article;
+create policy "content_article_update" on public.article for update to authenticated
+  using (
+    (select public.current_user_can('article', 'update'))
+    or id = any ((select public.current_user_article_ids('update'))::bigint[])
+    or id = any ((select public.content_assigned_article_ids())::bigint[])
+  )
+  with check (
+    (select public.current_user_can('article', 'update'))
+    or id = any ((select public.current_user_article_ids('update'))::bigint[])
+    or id = any ((select public.content_assigned_article_ids())::bigint[])
+  );
+
+drop policy if exists "content_article_delete" on public.article;
+create policy "content_article_delete" on public.article for delete to authenticated
+  using (
+    (select public.current_user_can('article', 'delete'))
+    or id = any ((select public.current_user_article_ids('delete'))::bigint[])
+  );
+
+-- Status and the date it went live change only through content_transition_article_status,
+-- which checks `article.publish` itself (A19). RLS sees a row, not the columns an UPDATE
+-- touches, so the table-level UPDATE privilege is rebuilt per column: every column but those
+-- two, and the identity. A column added to article later is not updatable until it is added
+-- here; sql:check (40-assert-content.sql) fails until then.
+revoke update on public.article from anon, authenticated;
+grant update (
+  canonical_slug, updated_at, deleted_at, embargo_expires_at, comment_allowed,
+  lead_media_asset_id, created_at
+) on public.article to authenticated;
 
 -- ── Per-article content, visible exactly when its article is ──────────────────
 --
--- Blocks, bylines and the join rows to taxonomy. Each is readable only through a publicly
--- visible article, so an unpublished draft leaks neither its body nor the fact that it is
--- filed under a particular topic.
+-- Blocks, bylines and the join rows to taxonomy. Each is readable by the public only through a
+-- publicly visible article, so an unpublished draft leaks neither its body nor the fact that it
+-- is filed under a particular topic. Staff read and write them exactly as they may read and
+-- edit the article (A18): an article's body is part of the article, not a second thing to
+-- grant.
 
 do $$
 declare
@@ -129,11 +249,37 @@ begin
 
     execute format('drop policy if exists %I on public.%I',
       'content_' || v_table || '_admin', v_table);
-    execute format(
-      'create policy %I on public.%I for all to authenticated
-         using ((select public.current_user_admin()))
-         with check ((select public.current_user_admin()))',
-      'content_' || v_table || '_admin', v_table);
+  end loop;
+end $$;
+
+-- The policies every child of an article carries, for staff. `p_table` holds an article_id.
+do $$
+declare
+  v_table text;
+  v_read  text := $p$
+    (select public.current_user_can('article', 'read'))
+    or article_id = any ((select public.current_user_article_ids('read'))::bigint[])
+    or article_id = any ((select public.content_assigned_article_ids())::bigint[])
+  $p$;
+  v_edit  text := $p$
+    (select public.current_user_can('article', 'update'))
+    or article_id = any ((select public.current_user_article_ids('update'))::bigint[])
+    or article_id = any ((select public.content_assigned_article_ids())::bigint[])
+  $p$;
+begin
+  foreach v_table in array array[
+    'article_block', 'article_byline', 'article_section', 'article_topic', 'article_tag',
+    'article_revision', 'article_checklist_state', 'article_preview_token', 'live_coverage'
+  ] loop
+    execute format('alter table public.%I enable row level security', v_table);
+
+    execute format('drop policy if exists %I on public.%I', 'content_' || v_table || '_read', v_table);
+    execute format('create policy %I on public.%I for select to authenticated using (%s)',
+      'content_' || v_table || '_read', v_table, v_read);
+
+    execute format('drop policy if exists %I on public.%I', 'content_' || v_table || '_write', v_table);
+    execute format('create policy %I on public.%I for all to authenticated using (%s) with check (%s)',
+      'content_' || v_table || '_write', v_table, v_edit, v_edit);
   end loop;
 end $$;
 
@@ -150,10 +296,8 @@ create policy "content_live_coverage_public_read" on public.live_coverage
   for select to anon, authenticated
   using ((select public.content_article_public(article_id)));
 
+-- Staff policies for live_coverage are the per-article ones above (A18).
 drop policy if exists "content_live_coverage_admin" on public.live_coverage;
-create policy "content_live_coverage_admin" on public.live_coverage for all to authenticated
-  using ((select public.current_user_admin()))
-  with check ((select public.current_user_admin()));
 
 alter table public.live_update enable row level security;
 
@@ -168,32 +312,139 @@ create policy "content_live_update_public_read" on public.live_update
     )
   );
 
+-- An update follows its coverage's article. The coverage row is read under its own policies,
+-- which is the point: a staff member who cannot see the coverage cannot touch its updates.
 drop policy if exists "content_live_update_admin" on public.live_update;
-create policy "content_live_update_admin" on public.live_update for all to authenticated
-  using ((select public.current_user_admin()))
-  with check ((select public.current_user_admin()));
 
--- ── Editorial workflow, licensing, and secrets: admin only ────────────────────
+drop policy if exists "content_live_update_read" on public.live_update;
+create policy "content_live_update_read" on public.live_update for select to authenticated
+  using (
+    exists (
+      select 1 from public.live_coverage c
+      where c.id = live_coverage_id
+        and (
+          (select public.current_user_can('article', 'read'))
+          or c.article_id = any ((select public.current_user_article_ids('read'))::bigint[])
+          or c.article_id = any ((select public.content_assigned_article_ids())::bigint[])
+        )
+    )
+  );
+
+drop policy if exists "content_live_update_write" on public.live_update;
+create policy "content_live_update_write" on public.live_update for all to authenticated
+  using (
+    exists (
+      select 1 from public.live_coverage c
+      where c.id = live_coverage_id
+        and (
+          (select public.current_user_can('article', 'update'))
+          or c.article_id = any ((select public.current_user_article_ids('update'))::bigint[])
+          or c.article_id = any ((select public.content_assigned_article_ids())::bigint[])
+        )
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.live_coverage c
+      where c.id = live_coverage_id
+        and (
+          (select public.current_user_can('article', 'update'))
+          or c.article_id = any ((select public.current_user_article_ids('update'))::bigint[])
+          or c.article_id = any ((select public.content_assigned_article_ids())::bigint[])
+        )
+    )
+  );
+
+-- ── Article assignments: a grant in everything but name (A13) ──────────────────
 --
--- No public read of any kind. Revisions carry unpublished drafts; assignments and
--- checklists are internal process; media_asset_rights holds licensing terms that are
--- nobody else's business, and media_asset_source the provenance behind them (the public face
--- of both is the media_asset_attribution view in 03-content-media.sql); and article_preview_token holds the credentials that let someone
--- read an unpublished article, so a public read would make every draft enumerable.
+-- Being assigned to an article lets you edit it, so assigning someone is giving them access.
+-- Writing an assignment therefore takes what giving access takes: `article.share` on that
+-- article and `article.update` on it, so nobody hands out more than they hold. Being assigned
+-- yourself is not enough: assigned staff may not assign others. Readable by anyone who may read
+-- the article.
+
+alter table public.article_assignment enable row level security;
+
+drop policy if exists "content_article_assignment_admin" on public.article_assignment;
+
+drop policy if exists "content_article_assignment_read" on public.article_assignment;
+create policy "content_article_assignment_read" on public.article_assignment for select to authenticated
+  using (
+    (select public.current_user_can('article', 'read'))
+    or article_id = any ((select public.current_user_article_ids('read'))::bigint[])
+    or article_id = any ((select public.content_assigned_article_ids())::bigint[])
+  );
+
+drop policy if exists "content_article_assignment_write" on public.article_assignment;
+create policy "content_article_assignment_write" on public.article_assignment for all to authenticated
+  using (
+    (
+      (select public.current_user_can('article', 'share'))
+      or article_id = any ((select public.current_user_article_ids('share'))::bigint[])
+    )
+    and (
+      (select public.current_user_can('article', 'update'))
+      or article_id = any ((select public.current_user_article_ids('update'))::bigint[])
+    )
+  )
+  with check (
+    (
+      (select public.current_user_can('article', 'share'))
+      or article_id = any ((select public.current_user_article_ids('share'))::bigint[])
+    )
+    and (
+      (select public.current_user_can('article', 'update'))
+      or article_id = any ((select public.current_user_article_ids('update'))::bigint[])
+    )
+  );
+
+-- ── Media licensing: follows the asset ────────────────────────────────────────
 --
--- Note what is deliberately absent: no `for select using (true)`. These tables return
--- nothing to anon, which is why the preview route goes through the functions below rather
--- than reading the token table itself.
+-- No public read of any kind: media_asset_rights holds licensing terms that are nobody else's
+-- business, and media_asset_source the provenance behind them (the public face of both is the
+-- media_asset_attribution view in 03-content-media.sql). Staff read them with `media_asset.read`
+-- and write them as they may create or edit an asset.
 
 do $$
 declare
   v_table text;
 begin
-  foreach v_table in array array[
-    'article_revision', 'article_assignment', 'publish_checklist_item',
-    'article_checklist_state', 'media_asset_rights', 'media_asset_source', 'article_preview_token',
-    'subscriber', 'newsletter_subscription'
-  ] loop
+  foreach v_table in array array['media_asset_rights', 'media_asset_source'] loop
+    execute format('alter table public.%I enable row level security', v_table);
+    execute format('drop policy if exists %I on public.%I', 'content_' || v_table || '_admin', v_table);
+
+    execute format('drop policy if exists %I on public.%I', 'content_' || v_table || '_read', v_table);
+    execute format(
+      'create policy %I on public.%I for select to authenticated
+         using ((select public.current_user_can(%L, %L)))',
+      'content_' || v_table || '_read', v_table, 'media_asset', 'read');
+
+    execute format('drop policy if exists %I on public.%I', 'content_' || v_table || '_write', v_table);
+    execute format(
+      'create policy %I on public.%I for all to authenticated
+         using ((select public.current_user_can(%L, %L)) or (select public.current_user_can(%L, %L)))
+         with check ((select public.current_user_can(%L, %L)) or (select public.current_user_can(%L, %L)))',
+      'content_' || v_table || '_write', v_table,
+      'media_asset', 'create', 'media_asset', 'update', 'media_asset', 'create', 'media_asset', 'update');
+  end loop;
+end $$;
+
+-- ── Configuration and reader PII: administrators only ─────────────────────────
+--
+-- The publish checklist's items are configuration; subscribers and their subscriptions are
+-- reader PII. No permission reaches them. The tables that used to share this block (revisions,
+-- checklist state, preview tokens) follow their article now, above; their old admin policies
+-- are dropped here so an upgraded database does not keep them beside the new ones.
+
+drop policy if exists "content_article_revision_admin" on public.article_revision;
+drop policy if exists "content_article_checklist_state_admin" on public.article_checklist_state;
+drop policy if exists "content_article_preview_token_admin" on public.article_preview_token;
+
+do $$
+declare
+  v_table text;
+begin
+  foreach v_table in array array['publish_checklist_item', 'subscriber', 'newsletter_subscription'] loop
     execute format('alter table public.%I enable row level security', v_table);
 
     execute format('drop policy if exists %I on public.%I',
@@ -205,6 +456,17 @@ begin
       'content_' || v_table || '_admin', v_table);
   end loop;
 end $$;
+
+-- Anyone who may edit some article reads the checklist it has to pass; only administrators
+-- change it.
+drop policy if exists "content_publish_checklist_item_staff_read" on public.publish_checklist_item;
+create policy "content_publish_checklist_item_staff_read" on public.publish_checklist_item
+  for select to authenticated
+  using (
+    (select public.current_user_can('article', 'update'))
+    or cardinality((select public.current_user_article_ids('update'))::bigint[]) > 0
+    or cardinality((select public.content_assigned_article_ids())::bigint[]) > 0
+  );
 
 -- ── Comments ──────────────────────────────────────────────────────────────────
 
@@ -227,10 +489,33 @@ create policy "content_comment_public_insert" on public.comment for insert to an
     and exists (select 1 from public.article a where a.id = article_id and a.comment_allowed)
   );
 
+-- Staff: `comment.read` sees every comment, approved or not; `comment.moderate` changes one
+-- (approves, rejects); `comment.delete` removes one.
 drop policy if exists "content_comment_admin" on public.comment;
-create policy "content_comment_admin" on public.comment for all to authenticated
-  using ((select public.current_user_admin()))
-  with check ((select public.current_user_admin()));
+
+drop policy if exists "content_comment_staff_read" on public.comment;
+create policy "content_comment_staff_read" on public.comment for select to authenticated
+  using ((select public.current_user_can('comment', 'read')));
+
+drop policy if exists "content_comment_moderate" on public.comment;
+create policy "content_comment_moderate" on public.comment for update to authenticated
+  using ((select public.current_user_can('comment', 'moderate')))
+  with check ((select public.current_user_can('comment', 'moderate')));
+
+drop policy if exists "content_comment_delete" on public.comment;
+create policy "content_comment_delete" on public.comment for delete to authenticated
+  using ((select public.current_user_can('comment', 'delete')));
+
+-- A commenter's email address is readable by nobody through the Data API: not the public, not
+-- staff. A row policy restricts rows, not columns, and an approved comment's row is public, so
+-- with table-level SELECT `?select=author_email` returned every commenter's address to anyone
+-- holding the publishable key (Clarion field test, finding 6). So SELECT is rebuilt per column,
+-- leaving that one out. Submitting a comment still writes it: INSERT is untouched.
+revoke select on public.comment from anon, authenticated;
+grant select (
+  id, article_id, user_account_id, parent_comment_id, author_name, body, status, created_at,
+  updated_at
+) on public.comment to anon, authenticated;
 
 -- ── Newsletter signup ─────────────────────────────────────────────────────────
 --
@@ -295,6 +580,73 @@ $$;
 
 grant execute on function public.content_subscribe(text, text, text) to anon, authenticated;
 
+-- ── Creating an article ───────────────────────────────────────────────────────
+--
+-- An article, its headline in the creator's locale, and its creator's authorship, in one
+-- transaction. The headline is what makes an article findable among its siblings, so none is
+-- created without one; it is entity copy, which only this function may write for a non-admin.
+-- The creator is assigned as the article's author, which is what lets a Writer, who may create articles but not edit every
+-- one, keep editing what they wrote (content_assigned_article_ids). SECURITY DEFINER because
+-- the caller may not write article_assignment (that takes `article.share`); it therefore checks
+-- `article.create` itself, and the author is the caller's own principal, never a parameter.
+--
+-- The article starts at the first workflow status, which is never `published`.
+drop function if exists public.content_create_article(text);
+
+create or replace function public.content_create_article(
+  p_canonical_slug text,
+  p_locale_id      bigint,
+  p_headline       text
+)
+returns bigint
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user_account_id bigint := (select public.current_user_id());
+  v_status_id       bigint;
+  v_article_id      bigint;
+  v_link_id         bigint;
+begin
+  if v_user_account_id is null or not (select public.current_user_can('article', 'create')) then
+    raise exception 'creating an article requires article.create' using errcode = '42501';
+  end if;
+  if p_canonical_slug is null or btrim(p_canonical_slug) = ''
+     or p_headline is null or btrim(p_headline) = '' or p_locale_id is null then
+    raise exception 'a canonical slug, a headline and its locale are required' using errcode = '22023';
+  end if;
+
+  select s.id into v_status_id
+  from public.article_status s
+  where s.slug <> 'published'
+  order by s.position
+  limit 1;
+  if not found then
+    raise exception 'no unpublished article_status to start an article in';
+  end if;
+
+  insert into public.article (article_status_id, canonical_slug)
+  values (v_status_id, btrim(p_canonical_slug))
+  returning id into v_article_id;
+
+  insert into public.local_text_link (slug, scope, entity_id)
+  values ('headline', 'article', v_article_id)
+  returning id into v_link_id;
+
+  insert into public.local_text (link, locale, content)
+  values (v_link_id, p_locale_id, btrim(p_headline));
+
+  insert into public.article_assignment (article_id, user_account_id, article_assignment_role)
+  values (v_article_id, v_user_account_id, 'author');
+
+  return v_article_id;
+end;
+$$;
+
+revoke execute on function public.content_create_article(text, bigint, text) from public, anon;
+grant execute on function public.content_create_article(text, bigint, text) to authenticated;
+
 -- ── Moving an article through the workflow ────────────────────────────────────
 --
 -- Three statements: resolve the target status, enforce the publish gate, and update the
@@ -308,24 +660,55 @@ grant execute on function public.content_subscribe(text, text, text) to anon, au
 -- validateArticleForPublish, because SQL has no dictionary and the answer depends on which
 -- locale is being published.
 --
--- SECURITY INVOKER, so the update is still checked against the article admin policy.
+-- The only writer of article_status_id and published_at (A19): the article's UPDATE grant leaves
+-- both out, so this is SECURITY DEFINER and checks the caller itself. Moving an article to or
+-- from `published` takes `article.publish`, everywhere or on this article; any other move takes
+-- `article.update`, or being assigned to it.
 create or replace function public.content_transition_article_status(
   p_article_id  bigint,
   p_status_slug text
 )
 returns void
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 declare
-  v_status_id   bigint;
-  v_unsatisfied text;
-  v_updated     integer;
+  v_status_id      bigint;
+  v_current_slug   text;
+  v_unsatisfied    text;
+  v_needs_publish  boolean;
 begin
+  select s.slug into v_current_slug
+  from public.article a
+  join public.article_status s on s.id = a.article_status_id
+  where a.id = p_article_id and a.deleted_at is null;
+  if not found then
+    raise exception 'no article %', p_article_id using errcode = '42501';
+  end if;
+
   select id into v_status_id from public.article_status where slug = p_status_slug;
   if not found then
     raise exception 'no article_status with slug %', p_status_slug;
+  end if;
+
+  v_needs_publish := p_status_slug = 'published' or v_current_slug = 'published';
+
+  if v_needs_publish then
+    if not (
+      (select public.current_user_can('article', 'publish'))
+      or p_article_id = any ((select public.current_user_article_ids('publish'))::bigint[])
+    ) then
+      raise exception 'publishing or unpublishing requires article.publish'
+        using errcode = '42501';
+    end if;
+  elsif not (
+    (select public.current_user_can('article', 'update'))
+    or p_article_id = any ((select public.current_user_article_ids('update'))::bigint[])
+    or p_article_id = any ((select public.content_assigned_article_ids())::bigint[])
+  ) then
+    raise exception 'changing this article''s status requires article.update'
+      using errcode = '42501';
   end if;
 
   if p_status_slug = 'published' then
@@ -350,17 +733,10 @@ begin
         else published_at
       end
   where id = p_article_id;
-
-  get diagnostics v_updated = row_count;
-  if v_updated = 0 then
-    -- Zero rows is RLS refusing, not a missing article: a caller who cannot see it got a
-    -- different error above.
-    raise exception insufficient_privilege
-      using message = 'not permitted to change this article''s status';
-  end if;
 end;
 $$;
 
+revoke execute on function public.content_transition_article_status(bigint, text) from public, anon;
 grant execute on function
   public.content_transition_article_status(bigint, text) to authenticated;
 

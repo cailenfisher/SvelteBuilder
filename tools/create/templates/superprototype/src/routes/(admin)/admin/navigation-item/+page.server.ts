@@ -6,8 +6,11 @@ import {
   listNavigationItem,
 } from '$lib/server/navigation-item';
 import { formError } from '$lib/server/form-error';
+import { requireAdministrator } from '../require-administrator';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, parent }) => {
+  await requireAdministrator(parent);
+
   const { data: navigationItems, error: queryError } = await listNavigationItem(locals.supabase);
 
   if (queryError) throw error(500, 'Failed to load navigation items.');

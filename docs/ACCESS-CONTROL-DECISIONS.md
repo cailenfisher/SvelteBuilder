@@ -300,9 +300,34 @@ A built-in "every signed-in user" principal was rejected: a second kind of princ
 The upgrade note tells operators to assign `logistic_operator` to existing staff before they upgrade.
 No deployment depends on SvelteBuilder yet, so a behaviour change like this is acceptable where it is the right design.
 
----
+### A23. Content's roles, and what an assignment means (settled 2026-10-18, Phase 8).
 
-## Decided exclusions for v1
+Content seeds three module-managed roles:
+
+| Role | Holds | Meant for |
+| --- | --- | --- |
+| Editor (`content_editor`) | every content permission: articles including publish and share, sections, topics, tags, fronts, media, newsletters, comment moderation | editors-in-chief and desk editors |
+| Writer (`content_writer`) | `article.read`, `article.create`, `media_asset.read`, `.create`, `.update` | staff writers |
+| Contributor (`content_contributor`) | `article.read`, `article.update` | a freelancer or guest, given on single articles from the article's access panel |
+
+Being assigned to an article (`article_assignment`, any assignment role) lets you read and edit it and its body, without publishing, deleting or sharing it. That is the newsroom's own record of who works on what, read as a predicate (A13), so assigning someone takes `article.share` and `article.update` on the article.
+
+Creating an article makes its creator its author, in the same transaction (`content_create_article`). That is what lets a Writer, who may create articles but not edit every one, keep editing what they wrote, without being able to change each other's drafts.
+
+The column `article_assignment.role` is renamed `article_assignment_role`, so it never reads like an access role in a policy.
+
+The permission catalog covers the editorial tables: `article` (per row as well), `section`, `topic`, `tag`, `front` (its slots follow it), `media_asset` (its rights and source follow it), `newsletter` and `comment` (with the verb `moderate`). `article_status`, author and publisher profiles, the publish checklist's items, subscribers and subscriptions stay administrator-only: chrome, configuration and reader PII.
+
+### A24. Staff reach the admin area; each screen decides for itself (settled 2026-10-18, Phase 8).
+
+The `(admin)` layout admits administrators and staff: anyone holding at least one role, broadly or on a single row, through `current_user_scopes()`. Everyone else gets a 403 there.
+
+Screens the base template ships for administration (roles, groups, users, locales, copy, navigation) call `requireAdministrator()` first in their loaders. A module's screen admits staff holding its scope (`requireArticleScope()` for content's article screens). RLS refuses whatever a screen lets through regardless: these are the experience, not the guard.
+
+The menu shows an administrator every entry, and staff the entries whose `navigation_item.permission_scope` they hold anything in. An entry naming no scope is for administrators only, which is what every entry an administrator adds is until the navigation screens can set one.
+
+Rejected: a separate staff area beside `/admin`, which would move content's screens and duplicate the admin chrome.
+
 
 You must not build these in v1. Each is excluded for a reason, and each fits the model later without a redesign.
 

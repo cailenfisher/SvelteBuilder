@@ -109,3 +109,20 @@ export type UserAccountAdminDetailView = ScreenCopy &
     userGroups: UserGroup[];
     roleAssignments: RoleAssignmentRow[];
   };
+
+/**
+ * What a module's detail screen adds to show one row's access panel (RoleAssignmentPanel) and
+ * its sharing form. Null when the reader may not share that row, in which case the panel is not
+ * shown at all. The same for any access-controlled entity, so a module's own view types need not
+ * depend on this package: its screen types `data` as its view intersected with
+ * `{ access: RoleAssignmentPanelView | null }`.
+ */
+export type RoleAssignmentPanelView = {
+  /** list_<entity>_access: assignments on the row, and broader ones that reach it. */
+  roleAssignments: RoleAssignmentRow[];
+  /** list_<entity>_principal: everyone the reader may give access to (A20). */
+  userAccounts: UserAccountOption[];
+  userGroups: UserGroupOption[];
+  /** list_scope_role: the roles that apply to the row's scope. */
+  roles: Pick<Role, 'id' | 'slug'>[];
+};

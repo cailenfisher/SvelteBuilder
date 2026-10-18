@@ -46,6 +46,19 @@ export async function createRole(
   return { data: Number(data), error: null };
 }
 
+/**
+ * The roles that apply to a scope, for a sharing form whose user may not read the role tables
+ * (list_scope_role).
+ */
+export async function listScopeRole(
+  supabase: SupabaseClient,
+  scope: string
+): Promise<QueryResult<Pick<Role, 'id' | 'slug'>[]>> {
+  const { data, error } = await supabase.rpc('list_scope_role', { p_scope: scope });
+  if (error) return { data: null, error };
+  return { data: (data as Pick<Role, 'id' | 'slug'>[] | null) ?? [], error: null };
+}
+
 /** Deletes an administrator's role, its assignments and its name. Refused for a module's role. */
 export async function deleteRole(supabase: SupabaseClient, id: number): Promise<QueryResult<null>> {
   const { error } = await supabase.rpc('delete_role', { p_role_id: id });

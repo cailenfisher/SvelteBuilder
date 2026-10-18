@@ -1,5 +1,18 @@
 {
   "package": "@sveltebuilder/content",
   "schema": "@sveltebuilder/content/schema",
-  "after": ["@sveltebuilder/local-text-schema", "@sveltebuilder/superprototype"]
+  "after": ["@sveltebuilder/local-text-schema", "@sveltebuilder/superprototype"],
+  "access": {
+    "permission": {
+      "article": ["read", "create", "update", "delete", "share", "publish"],
+      "section": ["create", "update", "delete"],
+      "topic": ["create", "update", "delete"],
+      "tag": ["create", "update", "delete"],
+      "front": ["create", "update", "delete"],
+      "media_asset": ["read", "create", "update", "delete"],
+      "newsletter": ["create", "update", "delete"],
+      "comment": ["read", "moderate", "delete"]
+    },
+    "entity": ["article"]
+  }
 }

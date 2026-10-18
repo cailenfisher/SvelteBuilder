@@ -8,8 +8,11 @@ import {
   updateNavigationItem,
 } from '$lib/server/navigation-item';
 import { formError } from '$lib/server/form-error';
+import { requireAdministrator } from '../../require-administrator';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, parent }) => {
+  await requireAdministrator(parent);
+
   const id = parseInt(params.id);
   if (isNaN(id)) throw error(404, 'Not found');
 

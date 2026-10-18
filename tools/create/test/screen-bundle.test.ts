@@ -117,6 +117,9 @@ const BASE_SCOPE_SEEDS: Record<string, string> = {
   access: path.join(REPO, 'tools', 'create', 'templates', 'base', 'supabase', 'seeds', '01-access.sql'),
 };
 
+/** Entity scopes whose rows, and so whose names, are created at runtime rather than seeded. */
+const RUNTIME_ENTITY_SCOPES = new Set(['role', 'user_group']);
+
 function readSeed(module: string) {
   const seedPath = BASE_SCOPE_SEEDS[module] ?? path.join(MODULES_DIR, module, 'seed', 'seed.sql');
   const links = new Map<string, Set<string>>(); // scope → slugs
@@ -395,7 +398,11 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
         if (!GLOBAL_SLUGS.has(use.slug)) missing.push(`${use.file}: '${use.slug}' (global)`);
         continue;
       }
-      const seeded = seed.links.get(use.scope);
+      // Names of roles and groups an administrator creates at runtime, written by the RPC that
+      // creates the row: no seed holds them, and a screen showing them reads whatever exists.
+      if (use.entityBound && RUNTIME_ENTITY_SCOPES.has(use.scope)) continue;
+      // A scope every scaffold carries (access) is seeded by the base template, not the module.
+      const seeded = (use.scope in BASE_SCOPE_SEEDS ? readSeed(use.scope) : seed).links.get(use.scope);
       if (!seeded?.has(use.slug)) {
         missing.push(`${use.file}: '${use.slug}' in scope '${use.scope}'`);
       }
@@ -407,8 +414,11 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
   it('declares copy slugs that the seed creates', () => {
     // The manifest is a bundle's inventory of the copy it needs, so a slug listed here
     // and seeded nowhere is a promise the scaffold cannot keep.
+    const baseScopeSlugs = Object.keys(BASE_SCOPE_SEEDS).flatMap((scope) => [
+      ...(readSeed(scope).links.get(scope) ?? []),
+    ]);
     const unseeded = (manifest.copySlugs ?? []).filter((slug) => {
-      if (GLOBAL_SLUGS.has(slug)) return false;
+      if (GLOBAL_SLUGS.has(slug) || baseScopeSlugs.includes(slug)) return false;
       return ![...seed.links.values()].some((slugs) => slugs.has(slug));
     });
 
@@ -438,8 +448,10 @@ describe.each(BUNDLES)('$module:$id', (bundle) => {
 
     for (const slug of manifest.copySlugs ?? []) {
       if (GLOBAL_SLUGS.has(slug)) continue; // base seed's responsibility, not the module's
+      const scope = slug.split('.')[0] ?? '';
+      const source = scope in BASE_SCOPE_SEEDS ? readSeed(scope) : seed;
       for (const locale of REQUIRED_LOCALES) {
-        if (!seed.copy.get(locale)?.has(slug)) gaps.push(`${slug} (${locale})`);
+        if (!source.copy.get(locale)?.has(slug)) gaps.push(`${slug} (${locale})`);
       }
     }
 

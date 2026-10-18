@@ -2,8 +2,11 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { createLocale, deleteLocale, listLocale } from '$lib/server/locale';
 import { formError } from '$lib/server/form-error';
+import { requireAdministrator } from '../require-administrator';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, parent }) => {
+  await requireAdministrator(parent);
+
   const { data: locales, error: queryError } = await listLocale(locals.supabase);
 
   if (queryError) throw error(500, 'Failed to load locales.');

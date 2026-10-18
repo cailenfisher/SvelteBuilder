@@ -37,7 +37,12 @@ export function generateAccessSql(catalog: AccessCatalog): string | null {
     }
   }
 
-  const sections = [header(), permissionCatalog(catalog), ...catalog.entity.map(entitySql)];
+  const sections = [
+    header(),
+    permissionCatalog(catalog),
+    ...catalog.entity.map(entitySql),
+    currentUserScopesSql(catalog.entity),
+  ];
   return sections.join('\n') + '\n';
 }
 
@@ -64,6 +69,64 @@ function permissionCatalog(catalog: AccessCatalog): string {
 insert into public.permission (scope, action) values
 ${rows.join(',\n')}
 on conflict do nothing;
+`;
+}
+
+/**
+ * current_user_scopes(), replacing 01-access.sql's version with one that also counts assignments
+ * on single rows of each entity scope (A24): someone given one article holds the article scope
+ * as far as reaching the admin area and its menu goes.
+ */
+function currentUserScopesSql(entityScopes: string[]): string {
+  const entityUnions = entityScopes
+    .map(
+      (scope) => `
+  union
+  select p.scope
+  from public.${scope}_role_assignment a
+  join public.role_permission rp on rp.role_id = a.role_id
+  join public.permission p on p.id = rp.permission_id
+  where p.scope = '${scope}'
+    and (a.expires_at is null or a.expires_at > now())
+    and (
+      a.user_account_id = (select public.current_user_id())
+      or a.user_group_id = any ((select public.current_user_group_ids())::integer[])
+    )`
+    )
+    .join('');
+
+  return `-- ── current_user_scopes() ─────────────────────────────────────────────────────
+--
+-- Every scope the current user may do anything in, counting assignments on single rows of
+-- ${entityScopes.length > 0 ? entityScopes.join(', ') : 'no entity scope'} as well as broad ones.
+-- Replaces the core version in ${ACCESS_CORE_FILE}.
+
+create or replace function public.current_user_scopes()
+returns text[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(distinct held.scope order by held.scope), '{}')
+  from (
+  select p.scope
+  from public.permission p
+  where coalesce((select public.current_user_admin()), false)
+     or exists (
+       select 1
+       from public.role_assignment ra
+       join public.role_permission rp on rp.role_id = ra.role_id
+       where rp.permission_id = p.id
+         and (ra.scope is null or ra.scope = p.scope)
+         and (ra.expires_at is null or ra.expires_at > now())
+         and (
+           ra.user_account_id = (select public.current_user_id())
+           or ra.user_group_id = any ((select public.current_user_group_ids())::integer[])
+         )
+     )${entityUnions}
+  ) held
+$$;
 `;
 }
 

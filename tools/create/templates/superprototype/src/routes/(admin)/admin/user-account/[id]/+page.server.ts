@@ -9,8 +9,11 @@ import { listUserGroupOfUserAccount } from '$lib/server/user-group-member';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { formError } from '$lib/server/form-error';
 import { createRoleAssignmentAction, deleteRoleAssignmentAction } from '../../role-assignment-action';
+import { requireAdministrator } from '../../require-administrator';
 
-export const load: PageServerLoad = async ({ params, locals }): Promise<UserAccountAdminDetailView> => {
+export const load: PageServerLoad = async ({ params, locals, parent }): Promise<UserAccountAdminDetailView> => {
+  await requireAdministrator(parent);
+
   const id = parseInt(params.id);
   if (isNaN(id)) throw error(404, 'Not found');
 

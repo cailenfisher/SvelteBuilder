@@ -1,10 +1,10 @@
 <!-- Readers' comments in the order given: who wrote each one and what they said. Both are the
      reader's own words, not copy, so nothing here is resolved from a dictionary. -->
 <script lang="ts">
-  import type { Comment } from '../schema/index.js';
+  import type { CommentRow } from '../views.js';
 
   type Props = {
-    comments: Comment[];
+    comments: CommentRow[];
     class?: string | undefined;
   };
 

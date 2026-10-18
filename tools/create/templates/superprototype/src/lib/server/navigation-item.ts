@@ -6,7 +6,7 @@ import { toOne, type QueryResult } from '$lib/server/postgrest';
 /** A navigation item with the copy link its label is read through. */
 export type NavigationItemWithLocalTextLink = Pick<
   NavigationItem,
-  'id' | 'localTextLinkId' | 'href' | 'menu' | 'position' | 'active'
+  'id' | 'localTextLinkId' | 'href' | 'menu' | 'position' | 'active' | 'permissionScope'
 > & {
   localTextLink: Pick<LocalTextLink, 'id' | 'slug' | 'scope'> | null;
 };
@@ -18,7 +18,7 @@ const selectNavigationItem = (supabase: SupabaseClient) =>
   supabase
     .from('navigation_item')
     .select(
-      'id, local_text_link_id, href, menu, position, active, local_text_link(id, slug, scope)'
+      'id, local_text_link_id, href, menu, position, active, permission_scope, local_text_link(id, slug, scope)'
     );
 
 type NavigationItemRecord = NonNullable<
@@ -32,6 +32,7 @@ const toNavigationItem = (row: NavigationItemRecord): NavigationItemWithLocalTex
   menu: row.menu,
   position: row.position,
   active: row.active,
+  permissionScope: row.permission_scope,
   localTextLink: toOne(row.local_text_link),
 });
 

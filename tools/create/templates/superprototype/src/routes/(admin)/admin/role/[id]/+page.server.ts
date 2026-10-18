@@ -6,8 +6,11 @@ import { createRole, deleteRole, getRole } from '$lib/server/role';
 import { listRolePermissionId, setRolePermission } from '$lib/server/role-permission';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { formError, postgrestFormError } from '$lib/server/form-error';
+import { requireAdministrator } from '../../require-administrator';
 
-export const load: PageServerLoad = async ({ params, locals }): Promise<RoleAdminDetailView> => {
+export const load: PageServerLoad = async ({ params, locals, parent }): Promise<RoleAdminDetailView> => {
+  await requireAdministrator(parent);
+
   const id = parseInt(params.id);
   if (isNaN(id)) throw error(404, 'Not found');
 
