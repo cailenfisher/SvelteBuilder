@@ -371,8 +371,6 @@ exclusions, E1–E3 and the A20 options.
 - **No screen moderates comments.** `comment.read`, `moderate` and `delete` are enforced, but
   nothing in the scaffold lists pending comments. A moderation screen needing a commenter's email
   address would read it through a definer function, since no role can select it.
-- **The Changesets bump for content is `major`.** The `article_assignment_role` rename changes the
-  exported `ArticleAssignment` type, which conflicts with releasing this branch as 2.1 (O4).
 
 ---
 

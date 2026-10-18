@@ -45,7 +45,7 @@ Report this table at the end of every phase. Update it when an item lands or som
 | O1 package name | DECISIONS | Phase 1 | approved: `@sveltebuilder/access` |
 | O2 core SQL location | DECISIONS | Phase 2 | approved: base supplemental |
 | O3 names | DESIGN §8 | Phase 1 | approved |
-| O4 release train | DECISIONS | merge of this branch | approved: hold until 2.0.0 leaves pre mode, ship as 2.1 |
+| O4 release train | DECISIONS | merge of this branch | changed 2026-10-18: fold into the 2.0 RC; Phase 10 merges the upgrade guides and revalidates the 1.x upgrade |
 | O5 container targets | DECISIONS | Phase 11 | approved: excluded from v1 core; Phase 11 only on go-ahead |
 | O6 module-managed roles locked | DECISIONS | Phase 2 | approved |
 | Supplemental ordering for the generated file | A21 | Phase 3 | decided: sync places it after `01-access.sql`; Phase 0 confirms the sort |
@@ -56,8 +56,9 @@ Report this table at the end of every phase. Update it when an item lands or som
 | `article_assignment.role` column name | A23 | Phase 8 | decided: renamed `article_assignment_role` |
 | Content's seeded role set, and further content scopes (P3) | A23 | Phase 8 | decided: Editor, Writer, Contributor; the editorial set of scopes |
 | Staff reaching `/admin` | A24 | Phase 8 | decided and built |
-| Content's changeset is `major` (the `article_assignment_role` rename changes the exported `ArticleAssignment` type) | `.changeset/access-content.md` | merge of this branch | conflicts with O4's 2.1: release as 3.0, or fold this branch into the 2.0 RC |
-| `checkbox-matrix` changeset is `patch` | `.changeset/checkbox-matrix.md` | merge of this branch | A new component is a minor under `docs/COREUI-COMPATIBILITY.md`, but while coreui is pre-1.0 a minor bumps content and logistic a major (the peer cascade). Once 2.0 leaves pre mode (O4), make it `minor` and confirm `pnpm changeset status --verbose` shows no major |
+| Content's changeset is `major` (the `article_assignment_role` rename) | `.changeset/access-content.md` | done | part of 2.0 now (O4) |
+| `checkbox-matrix` changeset | `.changeset/checkbox-matrix.md` | done | `minor`, now that this folds into the RC: content and logistic are already majors there |
+| `@sveltebuilder/access` releases as 1.0.0-rc | Changesets | merge of this branch | its coreui peer makes the new package a major; 1.0 beside coreui 1.0 unless decided otherwise |
 | P1 article insert constraint | A19 | Phase 8 | adopted |
 | P2 logistic non-admin access on adoption | A22 | Phase 9 | adopted |
 
@@ -219,7 +220,8 @@ Write in the house style: second person, imperative, a reason with every rule, a
 3. `packages/access/README.md` and the content and logistic READMEs.
 4. `docs/DEFERRED.md`: everything excluded or deferred, with its reason, including `explain_access()`, E1–E3 and the A20 privacy options.
 5. Mark `docs/ACCESS-CONTROL-DECISIONS.md` and `docs/ACCESS-CONTROL.md` as built, and correct anything the build changed.
-6. Bring `docs/ACCESS-CONTROL-USAGE.md` (written ahead of the build, as the target) and the root `README.md` _Access control_ section in line with what was built: every name, file, RPC and screen behaviour they mention must exist and work as described. Walk the admin section in a scaffolded app. Remove the "not yet built" status notes. Keep the README section short and pointing at the usage doc.
+6. Because this branch folds into the 2.0 RC (O4): merge `docs/MIGRATION-ACCESS-CONTROL.md` into `docs/MIGRATION-2.0.md`, and validate the merged upgrade the way MIGRATION-2.0 was validated on 2026-10-15: a database built from the last 1.x release, upgraded with the guide's SQL and the new supplemental files and seed, must pass every `pnpm sql:check` assertion and re-run its seed cleanly. Drop what only existed to keep a 2.1 additive: the optional `actions` on admin views becomes required where every loader supplies it. Re-run the Clarion journeys (`~/code/testdeploy/puddleby-clarion/e2e`) against a scaffold from this branch.
+7. Bring `docs/ACCESS-CONTROL-USAGE.md` (written ahead of the build, as the target) and the root `README.md` _Access control_ section in line with what was built: every name, file, RPC and screen behaviour they mention must exist and work as described. Walk the admin section in a scaffolded app. Remove the "not yet built" status notes. Keep the README section short and pointing at the usage doc.
 
 **Gate.** Pause for final review before the branch merges on the train settled by O4.
 

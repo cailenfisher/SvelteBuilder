@@ -323,7 +323,7 @@ type ArticleAdminRowView = {
 The screen shows the edit button when `actions.includes('update')`.
 This is cosmetic. If the screen is wrong, RLS still refuses the write, and the form action reports it with `formError`.
 
-Until `2.0.0` leaves pre mode, `actions` is optional on any view type a module already exports (O4), so an existing project's loaders still typecheck.
+`actions` is optional on `ArticleRow`, which public screens share and fill without it. On the admin views it is optional only until Phase 10, which makes it required now that this work ships in 2.0 (O4).
 
 ---
 
