@@ -1,0 +1,11 @@
+.role-permission-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.role-permission-form__empty {
+  margin: 0;
+  color: var(--text-soft);
+}

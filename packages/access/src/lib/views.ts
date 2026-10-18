@@ -10,6 +10,9 @@
  * dictionary under the `role`, `permission` and `user_group` scopes, by id.
  */
 
+import type { ScreenCopy, ScreenLocale } from '@sveltebuilder/coreui';
+import type { Permission, Role, UserGroup } from './schema/index.js';
+
 /** A user as the principal picker and the access tables show one. */
 export type UserAccountOption = {
   id: number;
@@ -43,9 +46,66 @@ export type RoleAssignmentRow = {
   expiresAt: string | null;
 };
 
+/** A user as the administration screens list one. */
+export type UserAccountRow = UserAccountOption & {
+  admin: boolean;
+  createdAt: string;
+};
+
 /** One member of a group. */
 export type UserGroupMemberRow = {
   userGroupId: number;
   userAccount: UserAccountOption;
   createdAt: string;
 };
+
+// ── Screen contracts ─────────────────────────────────────────────────────────
+//
+// The access administration screens ship once, in the base template, and their loaders per
+// scaffold flavour. As for every module's screens, the view type is the contract between the
+// two (docs/MODULE-ROUTES.md): the screen types `data` as it, and the loader returns it. Each
+// carries the `access` scope's copy plus the names of the roles and groups it shows.
+
+/** What RoleAssignmentCreateForm offers: every role, and every scope a role can be given on. */
+export type RoleAssignmentCreateFormView = {
+  roles: Role[];
+  /** Distinct scopes of the permission catalog, for a scope-level assignment. */
+  scopes: string[];
+};
+
+export type RoleAdminListView = ScreenCopy & {
+  roles: Role[];
+};
+
+export type RoleAdminDetailView = ScreenCopy & {
+  role: Role;
+  permissions: Permission[];
+  rolePermissionIds: number[];
+};
+
+export type UserGroupAdminListView = ScreenCopy & {
+  userGroups: UserGroup[];
+};
+
+export type UserGroupAdminDetailView = ScreenCopy &
+  ScreenLocale &
+  RoleAssignmentCreateFormView & {
+    userGroup: UserGroup;
+    userGroupMembers: UserGroupMemberRow[];
+    /** The users who are not yet members, for the add-member form. */
+    userAccounts: UserAccountOption[];
+    roleAssignments: RoleAssignmentRow[];
+  };
+
+export type UserAccountAdminListView = ScreenCopy & {
+  userAccounts: UserAccountRow[];
+};
+
+export type UserAccountAdminDetailView = ScreenCopy &
+  ScreenLocale &
+  RoleAssignmentCreateFormView & {
+    userAccount: UserAccountRow;
+    /** The groups the user belongs to. */
+    userGroups: UserGroup[];
+    roleAssignments: RoleAssignmentRow[];
+  };

@@ -234,6 +234,28 @@ begin
   end if;
 end $$;
 
+-- ── The admin user list names users only to administrators ──────────────────
+
+do $$
+declare
+  v_seen integer;
+begin
+  set local role authenticated;
+  set local request.jwt.claim.sub = 'aaaaaaaa-0000-4000-8000-000000000002';
+  begin
+    perform public.admin_list_user_account();
+    raise exception 'a non-admin read every user''s email address';
+  exception when insufficient_privilege then null;
+  end;
+
+  set local request.jwt.claim.sub = 'aaaaaaaa-0000-4000-8000-000000000001';
+  select count(*) into v_seen from public.admin_list_user_account()
+  where email_address = 'second@example.test' and not admin;
+  if v_seen <> 1 then
+    raise exception 'admin_list_user_account() does not list a user with their email';
+  end if;
+end $$;
+
 -- ── user_account's self-promotion hole stays closed ──────────────────────────
 --
 -- Confirmed exploitable 2026-10-03: the owner-update policy that used to live here let

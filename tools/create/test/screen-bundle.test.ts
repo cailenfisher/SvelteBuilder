@@ -109,8 +109,16 @@ const BUNDLE_KEYS = new Set(BUNDLES.map((b) => `${b.module}:${b.id}`));
  * whose value tuples are `(slug, content)` in some blocks and `(slug, scope, content)`
  * in others. Collecting quoted literals per statement is indifferent to all of that.
  */
+/**
+ * Scopes every scaffold carries whatever modules it selects, with the base template's seed for
+ * each: the access package's UI copy is one, and its slugs are neither a module's nor global.
+ */
+const BASE_SCOPE_SEEDS: Record<string, string> = {
+  access: path.join(REPO, 'tools', 'create', 'templates', 'base', 'supabase', 'seeds', '01-access.sql'),
+};
+
 function readSeed(module: string) {
-  const seedPath = path.join(MODULES_DIR, module, 'seed', 'seed.sql');
+  const seedPath = BASE_SCOPE_SEEDS[module] ?? path.join(MODULES_DIR, module, 'seed', 'seed.sql');
   const links = new Map<string, Set<string>>(); // scope → slugs
   const copy = new Map<string, Set<string>>(); // locale code → slugs
 
@@ -533,7 +541,7 @@ describe('form-action errors', () => {
     const gaps: string[] = [];
     for (const { slug, file } of uses) {
       const module = slug.split('.')[0];
-      if (!fs.existsSync(path.join(MODULES_DIR, module))) {
+      if (!fs.existsSync(path.join(MODULES_DIR, module)) && !(module in BASE_SCOPE_SEEDS)) {
         if (!GLOBAL_SLUGS.has(slug)) gaps.push(`${file}: '${slug}' (global)`);
         continue;
       }
