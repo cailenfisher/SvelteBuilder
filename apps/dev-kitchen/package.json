@@ -13,6 +13,7 @@
     "test:browser": "playwright test"
   },
   "dependencies": {
+    "@sveltebuilder/access": "workspace:*",
     "@sveltebuilder/content": "workspace:*",
     "@sveltebuilder/coreui": "workspace:*",
     "@sveltebuilder/local-text-schema": "workspace:*",

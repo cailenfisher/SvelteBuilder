@@ -130,6 +130,25 @@ describe('addModuleStylesheet', () => {
     ]);
   });
 
+  it("goes after the comment even when an always-present package's line sits beside coreui's", async () => {
+    write(
+      path.join(targetDir, 'src', 'app.css'),
+      APP_CSS.replace(
+        "layer(components);\n/*",
+        "layer(components);\n@import '@sveltebuilder/access/styles/components.css' layer(components);\n/*"
+      )
+    );
+    await addModuleStylesheet(targetDir, 'content');
+
+    expect(appCss().split('\n').slice(2, 7)).toEqual([
+      "@import '@sveltebuilder/coreui/styles/components.css' layer(components);",
+      "@import '@sveltebuilder/access/styles/components.css' layer(components);",
+      "/* Each domain module's stylesheet, in the same layer after coreui's: create-sveltebuilder adds",
+      '   one line per module selected. */',
+      "@import '@sveltebuilder/content/styles/components.css' layer(components);",
+    ]);
+  });
+
   it("refuses an app.css that does not import coreui's stylesheet", async () => {
     write(path.join(targetDir, 'src', 'app.css'), ':root {}\n');
     await expect(addModuleStylesheet(targetDir, 'content')).rejects.toThrow(/coreui/);

@@ -1,0 +1,11 @@
+/* =============================================================================
+   SvelteBuilder Access — Component Styles
+   components.css
+
+   The access stylesheet every scaffold imports after coreui's, in the same layer:
+     @import '@sveltebuilder/access/styles/components.css' layer(components);
+   Each component's rules live beside it, in its concept folder; this file only
+   lists them.
+   ============================================================================= */
+
+@import './Role/RoleAssignment/role-assignment.css';

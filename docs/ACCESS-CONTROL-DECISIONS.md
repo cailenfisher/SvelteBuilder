@@ -199,8 +199,12 @@ It costs one column and one predicate, and it covers contractors, embargoed coll
 ### A16. Role, permission and group copy is localized like any other entity.
 
 `role`, `permission` and `user_group` carry no `name` or `description`.
-Their labels resolve through diglossia under the `role`, `permission` and `user_group` scopes.
-Admin-created roles get their copy through the same atomic link-plus-copy RPC pattern as `04-admin-write-rpc.sql`.
+A role's and a group's names are entity copy (`name` under the `role` or `user_group` scope, by id).
+Admin-created roles and groups get theirs through the RPC that creates them, in the same transaction.
+
+A permission's label is built from two pieces of `access` UI copy rather than copy of its own: its scope's label, `access.permission_scope.<scope>`, and its action's, `access.permission_action.<action>` (amended 2026-10-17, Phase 6).
+The permission grid needs exactly those two, one per row and one per column; a label per (scope, action) row could fill neither, and the scope labels had no home at all.
+The access seed labels the standard actions; a module seeds its own scopes and verbs under the same scope.
 
 That makes the components that render them Camp 2.
 

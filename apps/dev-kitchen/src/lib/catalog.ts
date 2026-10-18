@@ -207,6 +207,22 @@ export const LOGISTIC_PAGES = [
 
 export const LOGISTIC_COVERAGE: Coverage<Logistic, typeof LOGISTIC_PAGES> = true;
 
+// ── @sveltebuilder/access ────────────────────────────────────────────────────
+
+type Access = typeof import('@sveltebuilder/access');
+
+export const ACCESS_PAGES = [
+  { slug: 'role-permission', title: 'RolePermissionMatrix', components: ['RolePermissionMatrix'] },
+  {
+    slug: 'role-assignment',
+    title: 'RoleAssignmentTable, RoleAssignmentPanel',
+    components: ['RoleAssignmentTable', 'RoleAssignmentPanel'],
+  },
+  { slug: 'user-group-member', title: 'UserGroupMemberTable', components: ['UserGroupMemberTable'] },
+] as const satisfies readonly ShowcasePage<ComponentName<Access>>[];
+
+export const ACCESS_COVERAGE: Coverage<Access, typeof ACCESS_PAGES> = true;
+
 // ── Every package ────────────────────────────────────────────────────────────
 
 export type ShowcaseSection = {
@@ -219,6 +235,7 @@ export const SHOWCASE: readonly ShowcaseSection[] = [
   { slug: 'coreui', title: '@sveltebuilder/coreui', pages: COREUI_PAGES },
   { slug: 'content', title: '@sveltebuilder/content', pages: CONTENT_PAGES },
   { slug: 'logistic', title: '@sveltebuilder/logistic', pages: LOGISTIC_PAGES },
+  { slug: 'access', title: '@sveltebuilder/access', pages: ACCESS_PAGES },
 ];
 
 /** The section and page a /dev/<section>/<page> path renders, if it is one. */

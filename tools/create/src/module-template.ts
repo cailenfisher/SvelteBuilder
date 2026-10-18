@@ -87,13 +87,17 @@ export async function addModuleStylesheet(targetDir: string, module: string): Pr
   if (coreui === -1) {
     throw new Error(`src/app.css does not import coreui's stylesheet; cannot add ${module}'s after it`);
   }
-  // After coreui's line, the comment that explains these lines, and any module already added.
+  // After coreui's line, the stylesheets every scaffold imports beside it (access), the comment
+  // that explains the module lines, and any module already added.
+  const packageStylesheet = /^@import '@sveltebuilder\/[a-z-]+\/styles\/components\.css' layer\(components\);$/;
   let last = coreui;
-  if (lines[coreui + 1]?.startsWith('/*')) {
+  while (lines[last + 1] !== undefined && packageStylesheet.test(lines[last + 1] ?? '')) last += 1;
+  if (lines[last + 1]?.startsWith('/*')) {
+    last += 1;
     while (last + 1 < lines.length && !lines[last].includes('*/')) last += 1;
   }
   for (let index = last + 1; index < lines.length; index += 1) {
-    if (/^@import '@sveltebuilder\/[a-z-]+\/styles\/components\.css' layer\(components\);$/.test(lines[index])) {
+    if (packageStylesheet.test(lines[index] ?? '')) {
       last = index;
     }
   }

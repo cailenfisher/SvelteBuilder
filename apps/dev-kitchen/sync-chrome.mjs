@@ -59,8 +59,13 @@ const coreui = appCss.indexOf(COREUI_STYLESHEET);
 if (coreui === -1) {
   throw new Error("dev-kitchen: the base template's app.css no longer imports coreui's stylesheet");
 }
+// After coreui's line, the stylesheets every scaffold imports beside it (access), and the
+// comment that explains the module lines, as addModuleStylesheet places them.
+const packageStylesheet = /^@import '@sveltebuilder\/[a-z-]+\/styles\/components\.css' layer\(components\);$/;
 let insertAt = coreui;
-if (appCss[coreui + 1]?.startsWith('/*')) {
+while (packageStylesheet.test(appCss[insertAt + 1] ?? '')) insertAt += 1;
+if (appCss[insertAt + 1]?.startsWith('/*')) {
+  insertAt += 1;
   while (!appCss[insertAt].includes('*/')) insertAt += 1;
 }
 appCss.splice(insertAt + 1, 0, ...MODULE_STYLESHEETS);

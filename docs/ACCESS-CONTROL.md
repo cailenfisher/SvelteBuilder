@@ -286,10 +286,15 @@ packages/access/
 └── src/lib/
     ├── schema/            Drizzle tables of §2.1, one per file, plus index.ts
     ├── views.ts           view-model types (§6)
-    ├── Role/              RolePermissionMatrix.svelte, role.css
-    ├── RoleAssignment/    RoleAssignmentPanel.svelte, RoleAssignmentTable.svelte, role-assignment.css
-    └── UserGroup/         UserGroupMemberTable.svelte, user-group.css
+    ├── components.css     the package stylesheet, imported by every scaffold after coreui's
+    ├── Role/
+    │   ├── RolePermission/   RolePermissionMatrix.svelte
+    │   └── RoleAssignment/   RoleAssignmentTable.svelte, RoleAssignmentPanel.svelte, role-assignment.css
+    └── UserGroup/
+        └── UserGroupMember/  UserGroupMemberTable.svelte
 ```
+
+Each child concept is a folder inside its parent's (`role_permission` and `role_assignment` belong to `role`), per the global rule. The `access` scope's UI copy is seeded by `tools/create/templates/base/supabase/seeds/01-access.sql`, and `tools/create/test/access-copy.test.ts` checks every slug the components use is seeded there in `en` and `fr`.
 
 The static tables are Drizzle definitions, like every other package, until Drizzle's role is settled (`CLAUDE.md` Tech Stack).
 The generated tables are SQL only. The scaffold does not generate Supabase types, and every read of an access table goes through an RPC, so each RPC's result row type is declared at its data module, as `article-preview-token.ts` does for content's preview RPCs. The view types those rows convert to live in `views.ts`.
@@ -407,6 +412,7 @@ Not started. It adopts the same shape when it is built.
 | Components | `RolePermissionMatrix`, `RoleAssignmentTable`, `RoleAssignmentPanel`, `UserGroupMemberTable` |
 | Role suffix | `Matrix` |
 | Assertion file | `scripts/sql-check/25-assert-access.sql` |
+| Added in Phase 6 (review in the PR) | Copy slugs `access.permission_scope.<scope>`, `access.permission_action.<action>`, `access.role_permission.caption`, `access.role_assignment.*`, `access.role_assignment_panel.*`, `access.user_group.external`, `access.user_group_member.*`; CSS blocks `.role-assignment-table`, `.role-assignment-panel`; seed `supabase/seeds/01-access.sql`; tests `packages/access/test/access-components.test.ts`, `tools/create/test/access-copy.test.ts`; dev-kitchen `/dev/access/*`, `fixtures/access.ts` |
 | Added in Phase 3 (review in the PR) | CLI: `lib/access-manifest.ts` (`AccessDeclaration`, `AccessCatalog`, `AccessManifestError`, `parseAccessDeclaration`, `collectAccessCatalog`, `POSTGRES_IDENTIFIER_LIMIT`), `lib/generate-access-sql.ts` (`generateAccessSql`, `ACCESS_GENERATED_FILE`, `ACCESS_CORE_FILE`), `lib/order-supplemental-files.ts` (`orderSupplementalFiles`), `DiscoveredSchemaManifest`. Generated SQL: policy `<entity>_role_assignment_read`; `list_<entity>_access` result columns `email_address`, `external`, `granted_by_email_address`. sql-check: `access-fixture.json`, `26-assert-access-entity.sql` |
 | Added in Phase 2 (review in the PR) | Internal SQL functions, not executable by `anon` or `authenticated`: `role_assignment_check_target()` (trigger function, and the trigger's name), `access_require_admin()` (the admin check every admin RPC starts with), `access_delete_entity_copy(scope, entity_id)` (removes a deleted role's or group's copy) |
 | Added in Phase 1 (approved 2026-10-17) | `STANDARD_PERMISSION_ACTIONS` and `StandardPermissionAction` (the five standard actions, declared once; `PermissionAction` admits module verbs beside them); view types `RoleAssignmentRow`, `UserGroupMemberRow`, `UserAccountOption`, `UserGroupOption`, following logistic's `…Row` and `…Option` pattern |
