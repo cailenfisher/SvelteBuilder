@@ -14,7 +14,7 @@
 {#if userAccounts.length > 0}
   <form method="post" action="?/addMember" class="user-group-member-create-form">
     <Field label={localText('access.user_group_member.add_label')} id="user-group-member-user-account" required>
-      <Select name="user_account_id">
+      <Select name="user_account_id" placeholder={localText('access.user_group_member.add_placeholder')}>
         {#each userAccounts as userAccount (userAccount.id)}
           <SelectItem value={String(userAccount.id)} label={userAccount.emailAddress} />
         {/each}

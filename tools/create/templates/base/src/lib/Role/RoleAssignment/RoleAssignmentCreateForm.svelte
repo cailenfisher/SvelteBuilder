@@ -27,7 +27,7 @@
   <form method="post" action="?/createRoleAssignment" class="role-assignment-create-form__form">
     <div class="role-assignment-create-form__fields">
       <Field label={localText('access.role_assignment.role')} id="role-assignment-role" required>
-        <Select name="role_id">
+        <Select name="role_id" placeholder={localText('access.role_assignment.role_placeholder')}>
           {#each roles as role (role.id)}
             <SelectItem value={String(role.id)} label={dictionary.localText('name', 'role', role.id)} />
           {/each}

@@ -37,6 +37,6 @@
       ltrLabel={dictionary.localText('admin.locale.dir.ltr')}
       rtlLabel={dictionary.localText('admin.locale.dir.rtl')}
     />
-    <Button type="submit">{newLabel}</Button>
+    <Button type="submit">{dictionary.localText('action.create')}</Button>
   </form>
 </section>

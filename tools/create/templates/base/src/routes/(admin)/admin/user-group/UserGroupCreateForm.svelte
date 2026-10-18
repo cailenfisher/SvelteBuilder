@@ -4,11 +4,13 @@
 <script lang="ts">
   import './user-group-create-form.css';
   import type { DictionaryInstance } from 'diglossia';
+  import { getDictionary } from 'diglossia/svelte';
   import { Button, Checkbox, Field, Input } from '@sveltebuilder/coreui';
 
   let { dictionary }: { dictionary: DictionaryInstance } = $props();
 
   const localText = (slug: string) => dictionary.localText(slug, 'access');
+  const globalDictionary = getDictionary();
 </script>
 
 <section class="user-group-create-form">
@@ -21,6 +23,6 @@
       <Checkbox name="external" value="true" label={localText('access.user_group.external_label')} />
       <p class="user-group-create-form__hint">{localText('access.user_group.external_hint')}</p>
     </div>
-    <Button type="submit">{localText('access.user_group.new')}</Button>
+    <Button type="submit">{globalDictionary.localText('action.create')}</Button>
   </form>
 </section>

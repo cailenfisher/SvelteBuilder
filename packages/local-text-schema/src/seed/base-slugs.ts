@@ -21,6 +21,7 @@ export const BASE_SLUGS: readonly SlugSeed[] = [
   { slug: 'action.back',             translations: { en: 'Back',                                                fr: 'Retour' } },
   { slug: 'action.close',            translations: { en: 'Close',                                               fr: 'Fermer' } },
   { slug: 'action.add',              translations: { en: 'Add',                                                 fr: 'Ajouter' } },
+  { slug: 'action.create',           translations: { en: 'Create',                                              fr: 'Créer' } },
   { slug: 'action.remove',           translations: { en: 'Remove',                                              fr: 'Supprimer' } },
   { slug: 'action.view',             translations: { en: 'View',                                                fr: 'Voir' } },
   { slug: 'action.loading',          translations: { en: 'Loading…',                                       fr: 'Chargement…' } },

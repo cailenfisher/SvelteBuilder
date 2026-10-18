@@ -95,7 +95,9 @@ insert into local_text_link (slug, scope, entity_id) values
   ('access.user_group.new',                       'access', null),
   ('access.user_group.title',                     'access', null),
   ('access.user_group_member.add',                'access', null),
-  ('access.user_group_member.add_label',          'access', null)
+  ('access.user_group_member.add_label',          'access', null),
+  ('access.role_assignment.role_placeholder',       'access', null),
+  ('access.user_group_member.add_placeholder',      'access', null)
 on conflict do nothing;
 
 -- UI copy, en
@@ -190,7 +192,9 @@ from (values
   ('access.user_group.new',                       'access', 'New group'),
   ('access.user_group.title',                     'access', 'Groups'),
   ('access.user_group_member.add',                'access', 'Add to group'),
-  ('access.user_group_member.add_label',          'access', 'User')
+  ('access.user_group_member.add_label',          'access', 'User'),
+  ('access.role_assignment.role_placeholder',       'access', 'Choose a role'),
+  ('access.user_group_member.add_placeholder',      'access', 'Choose a user')
 ) as v(slug, scope, content)
 join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
 on conflict (link, locale) do nothing;
@@ -287,7 +291,9 @@ from (values
   ('access.user_group.new',                       'access', 'Nouveau groupe'),
   ('access.user_group.title',                     'access', 'Groupes'),
   ('access.user_group_member.add',                'access', 'Ajouter au groupe'),
-  ('access.user_group_member.add_label',          'access', 'Utilisateur')
+  ('access.user_group_member.add_label',          'access', 'Utilisateur'),
+  ('access.role_assignment.role_placeholder',       'access', 'Choisissez un rôle'),
+  ('access.user_group_member.add_placeholder',      'access', 'Choisissez un utilisateur')
 ) as v(slug, scope, content)
 join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
 on conflict (link, locale) do nothing;
