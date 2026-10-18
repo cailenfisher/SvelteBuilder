@@ -34,7 +34,7 @@
 <div class="article-admin-list-screen">
   <header class="article-admin-list-screen__header">
     <h1 class="article-admin-list-screen__title">{localText('content.article_admin.article')}</h1>
-    {#if data.articleActions?.includes('create')}
+    {#if data.articleActions.includes('create')}
       <Button variant="primary" onclick={() => (newArticleOpen = true)}>
         {localText('content.article_admin.new')}
       </Button>

@@ -1,7 +1,7 @@
 # Access Control — Decision Record
 
 > [!NOTE]
-> Status: design approved in conversation on 2026-10-17; review findings settled the same day (A18–A21, the sharing edges, and the `explain_access()` exclusion). O1–O6 and every name in `docs/ACCESS-CONTROL.md` §8 were approved on 2026-10-17. The design itself is `docs/ACCESS-CONTROL.md`; how to use it is `docs/ACCESS-CONTROL-USAGE.md`.
+> Status: design approved in conversation on 2026-10-17; review findings settled the same day (A18–A21, the sharing edges, and the `explain_access()` exclusion). O1–O6 and every name in `docs/ACCESS-CONTROL.md` §8 were approved on 2026-10-17. A22–A24 were settled during the build (Phases 8 and 9), and O4 changed on 2026-10-18. Built 2026-10-18 on `feat/access-control`. The design itself is `docs/ACCESS-CONTROL.md`; how to use it is `docs/ACCESS-CONTROL-USAGE.md`.
 
 Every decision has a reason beside it.
 If you want to reverse one, argue with the reason, not the rule.

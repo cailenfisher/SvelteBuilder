@@ -1,8 +1,8 @@
 # Access Control — Design
 
 > [!NOTE]
-> Status: approved design, not yet built. Decisions and their reasons are in `docs/ACCESS-CONTROL-DECISIONS.md` (referenced here as A1–A22, E1–E3, O1–O6). The build order is `docs/ACCESS-CONTROL-PLAN.md`. How developers and admins use it is `docs/ACCESS-CONTROL-USAGE.md`.
-> Every name in §8 is approved. Module role slugs (§7) are proposals until that module adopts.
+> Status: built 2026-10-18 on `feat/access-control`, folding into the 2.0 RC (O4); this describes what was built. Decisions and their reasons are in `docs/ACCESS-CONTROL-DECISIONS.md` (referenced here as A1–A24, E1–E3, O1–O6). The build order is `docs/ACCESS-CONTROL-PLAN.md`. How developers and admins use it is `docs/ACCESS-CONTROL-USAGE.md`.
+> The §8 names approved on 2026-10-17 stand; the rows added during the build are reviewed in the branch's PR.
 
 This is the shape of roles and permissions in SvelteBuilder.
 It covers the data model, the SQL that enforces it, what the sync generator produces, the admin UI, and how a module adopts it.
@@ -323,7 +323,7 @@ type ArticleAdminRowView = {
 The screen shows the edit button when `actions.includes('update')`.
 This is cosmetic. If the screen is wrong, RLS still refuses the write, and the form action reports it with `formError`.
 
-`actions` is optional on `ArticleRow`, which public screens share and fill without it. On the admin views it is optional only until Phase 10, which makes it required now that this work ships in 2.0 (O4).
+`actions` is required on every admin view: logistic's take it from coreui's `ScreenAction`, content's article list carries `articleActions` and each row its own. It stays optional on `ArticleRow` alone, because the public screens share that type and have no controls to hide.
 
 ---
 
@@ -433,9 +433,8 @@ Not started. It adopts the same shape when it is built.
 | Routes | `/admin/role`, `/admin/user-group`, `/admin/user-account` |
 
 > [!NOTE]
-> Content already has `article_assignment.role` (`author`, `editor`, `photo`, `copy`), typed by the enum `article_assignment_role`.
-> That is a workflow concept, not an access role, and its qualified enum name keeps them apart.
-> Phase 0 decides whether the bare column name `role` on `article_assignment` should become `article_assignment_role` to stop the two reading alike in a policy.
+> Content's `article_assignment.article_assignment_role` (`author`, `editor`, `photo`, `copy`) is a workflow concept, not an access role.
+> It was the bare column `role` until Phase 8 renamed it (A23), so the two no longer read alike in a policy.
 
 ---
 

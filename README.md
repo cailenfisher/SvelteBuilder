@@ -186,13 +186,13 @@ Domain schema carries no conventional copy columns (`name`, `title`, `label`, `d
 
 ## Access Control
 
-> In development on `feat/access-control`; not yet released.
+> Part of the 2.0 release candidates.
 
 Roles and permissions are enforced by Postgres, in RLS, so the Data API is checked exactly as your routes are. A **role** bundles **permissions** (`article.update`, `article.publish`), and is assigned to a user or a group either everywhere, on every row of one kind, or on a single row. Grants only add, and administrators can always do everything.
 
 **Developers** declare which tables are access-controlled in their registry manifest, and `sveltebuilder sync:supabase` generates the per-record grant tables and helper functions. Policies call those helpers and check permissions, never role names. Rows that belong to a record follow the record's check, and a column an action guards (an article's status) changes only through an RPC.
 
-**Admins** get screens for roles, groups and users under `/admin`, and an access panel on each controlled record that separates direct access from access inherited through a broader role or a group. Anyone allowed to share a record can grant access to it, up to what they hold themselves.
+**Admins** get screens for roles, groups and users under `/admin`, and an access panel on each controlled record that separates direct access from access inherited through a broader role or a group. Anyone allowed to share a record can grant access to it, up to what they hold themselves. Staff holding a role reach `/admin` too, seeing only what they may work on. Content and logistic ship roles of their own (Editor, Writer, Contributor; Logistics manager, Warehouse operator), held by nobody until an administrator gives them.
 
 [Read how to use it →](docs/ACCESS-CONTROL-USAGE.md)
 

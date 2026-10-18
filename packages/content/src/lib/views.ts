@@ -87,8 +87,8 @@ export type ArticleRow = Article & {
    * What the reader may do to this article, every action named as a permission action is
    * (`update`, `publish`, `share`). Set on the admin screens, from current_user_article_actions
    * and the reader's assignments, to show only the controls that will work. A courtesy: RLS
-   * refuses what is not allowed whatever the screen shows. Optional so a loader written before
-   * access control still typechecks.
+   * refuses what is not allowed whatever the screen shows. Absent on the public screens, which
+   * share this type and have no controls to hide.
    */
   actions?: string[];
   /**
@@ -170,7 +170,7 @@ export type ArticleAdminListView = ScreenCopy &
      * What the reader may do to every article, from current_user_can (`create` is the one the
      * screen asks about). See ArticleRow's `actions`.
      */
-    articleActions?: string[];
+    articleActions: string[];
   };
 
 /** `/admin/content/article/[id]` */
@@ -185,7 +185,7 @@ export type ArticleAdminDetailView = ScreenCopy &
     availableTopics: Topic[];
     availableTags: Tag[];
     /** What the reader may do to this article. See ArticleRow's `actions`. */
-    actions?: string[];
+    actions: string[];
   };
 
 export type ArticleChecklistEntry = {

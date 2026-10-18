@@ -7,7 +7,7 @@
 
 Content adopts roles and permissions (docs/ACCESS-CONTROL.md §7).
 
-**Breaking (content):** `article_assignment.role` is now `article_assignment_role`, and the exported `ArticleAssignment` type's `role` field is `articleAssignmentRole`. Run the rename in `docs/MIGRATION-ACCESS-CONTROL.md` before syncing. `CommentList` takes `CommentRow` (a comment without its author's email address); a `Comment` still satisfies it.
+**Breaking (content):** `article_assignment.role` is now `article_assignment_role`, and the exported `ArticleAssignment` type's `role` field is `articleAssignmentRole`. Run the rename in `docs/MIGRATION-2.0.md` before syncing. `CommentList` takes `CommentRow` (a comment without its author's email address); a `Comment` still satisfies it.
 
 Content's manifest declares its permission catalog and per-article access; its seed adds the Editor, Writer and Contributor roles. Its policies now grant by permission, by role on a single article, and by being assigned to an article, which lets you read and edit it and its body. Creating an article goes through `content_create_article`, which also writes its headline and makes the creator its author. Only `content_transition_article_status` changes an article's status, and moving to or from published takes `article.publish`. Assigning someone to an article takes `article.share`. A commenter's email address is selectable by nobody through the API. The article views gain optional `actions`; `@sveltebuilder/access/views` gains `RoleAssignmentPanelView`.
 

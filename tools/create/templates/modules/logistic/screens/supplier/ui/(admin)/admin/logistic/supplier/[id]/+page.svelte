@@ -13,7 +13,7 @@
   let { data, form }: { data: SupplierDetailView; form?: ScreenFormResult } = $props();
   // Only the controls that will work: `data.actions` is what the reader may do on this screen's
   // scope. Absent, every control shows and the database answers.
-  const can = (action: string) => data.actions?.includes(action) ?? true;
+  const can = (action: string) => data.actions.includes(action);
 
   // Global copy from context, module copy from this screen's own instance — see the
   // list screen for why the module's copy cannot come from the root dictionary.

@@ -8,10 +8,22 @@ Every project made with `npm create sveltebuilder` already depends on it: every 
 
 ## Usage
 
-```ts
-import { role, roleAssignment, STANDARD_PERMISSION_ACTIONS } from '@sveltebuilder/access/schema';
-import type { RoleAssignmentRow } from '@sveltebuilder/access/views';
+Import the stylesheet once, in your app's `app.css`, after coreui's and in the same layer. A
+project made with `npm create sveltebuilder` already has this line.
+
+```css
+@import '@sveltebuilder/coreui/styles/components.css' layer(components);
+@import '@sveltebuilder/access/styles/components.css' layer(components);
 ```
+
+```ts
+import { RoleAssignmentPanel, RolePermissionMatrix } from '@sveltebuilder/access';
+import { role, roleAssignment, STANDARD_PERMISSION_ACTIONS } from '@sveltebuilder/access/schema';
+import type { RoleAssignmentPanelView, RoleAssignmentRow } from '@sveltebuilder/access/views';
+```
+
+- **`@sveltebuilder/access`** — entity components, each resolving its copy through `getDictionary()` from `diglossia/svelte` or a `dictionary` prop: `RolePermissionMatrix` (a role's permissions as a scope × action grid, editable or read-only), `RoleAssignmentTable` (who holds which role, where, and until when), `RoleAssignmentPanel` (an entity's access, direct grants beside inherited ones, for its detail screen) and `UserGroupMemberTable`.
+- **`@sveltebuilder/access/styles/components.css`** — the components' styles, for the `components` layer.
 
 - **`@sveltebuilder/access/schema`** — Drizzle table definitions and inferred types for `permission`, `role`, `role_permission`, `user_group`, `user_group_member` and `role_assignment`, plus the standard permission actions. The per-entity assignment tables are generated as SQL by `sveltebuilder sync:supabase`, not declared here.
 - **`@sveltebuilder/access/views`** — the view-model types a screen and its loader share.

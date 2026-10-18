@@ -57,9 +57,10 @@ say so instead of working around it.
 2. **Every table in `public` has RLS enabled and explicit policies**, written in
    `supabase/supplemental/`. A table without RLS is readable and writable by anyone holding the
    public key.
-3. **Policies call `(select public.current_user_id())` and `(select public.current_user_admin())`**,
+3. **Policies call the helpers** (`current_user_id()`, `current_user_admin()`,
+   `current_user_can(scope, action)` and the generated `current_user_<entity>_ids(action)`),
    wrapped in `select`, and name their role with `to`. Never reference `auth.uid()` or
-   `auth.jwt()` in a policy.
+   `auth.jwt()` in a policy, and never test for a role by name: ask for a permission.
 4. **No user-facing text columns.** No `name`, `title`, `label`, `description`, `summary` or
    similar on any domain table. Copy lives in `local_text`, linked by slug, scope and entity ID.
 5. **A write spanning more than one statement goes in a `SECURITY INVOKER` Postgres function**
@@ -97,7 +98,8 @@ src/
     ├── +layout.server.ts    loads the global dictionary + locale list
     ├── +layout.svelte       setDictionary(), message bus, app shell
     ├── sign-in/ sign-out/ auth/callback/
-    ├── (admin)/+layout.server.ts   auth + admin guard for everything under /admin
+    ├── (admin)/+layout.server.ts   admits administrators and anyone holding a role; filters the menu
+    ├── (admin)/admin/require-access.ts   requireAdministrator(), requireScope() for loaders
     ├── (admin)/admin/…      admin screens (+ module screens under /admin/<module>/)
     └── api/                 /api/locale, /api/local-text
 supabase/
@@ -248,9 +250,13 @@ principal ever created is the admin.
 
 ### Guarding routes
 
-- Everything under `src/routes/(admin)/` is already guarded by `(admin)/+layout.server.ts`:
-  anonymous visitors are redirected to `/sign-in`, non-admins get a 403. Don't repeat that
-  check in each admin route.
+- Everything under `src/routes/(admin)/` passes through `(admin)/+layout.server.ts`: anonymous
+  visitors are redirected to `/sign-in`, and anyone who is neither an administrator nor holds a
+  role gets a 403. Staff get in, and see only the menu entries whose `permission_scope` they hold.
+- So each admin screen says who it is for, first thing in its loader:
+  `await requireAdministrator(parent)` for a screen only administrators use (roles, users,
+  copy), or `await requireScope(parent, 'ticket')` for one staff with a `ticket` permission use.
+  Both come from `(admin)/admin/require-access.ts`.
 - For a signed-in area that is **not** admin-only, create a new route group with its own
   `+layout.server.ts` that redirects when `!locals.userAccountId`.
 - Route guards give a good user experience. **RLS is the actual security boundary.** Every
@@ -271,18 +277,90 @@ Defined in `supabase/supplemental/00-auth-functions.sql`:
 Always wrap them in `(select …)`. That lets Postgres evaluate them once per statement rather
 than once per row.
 
-If you need a new helper (for example `current_user_role()` once roles exist), it must be
-`stable`, `security definer`, `set search_path = ''`, fully schema-qualify every reference, and
-take **no** caller-supplied identity. Derive the identity from `auth.uid()` inside it. Definer is
+If you need a new helper, it must be `stable`, `security definer`, `set search_path = ''`, fully
+schema-qualify every reference, and take **no** caller-supplied identity. Derive the identity from `auth.uid()` inside it. Definer is
 required because these helpers read RLS-protected tables that policies themselves call; as
 invoker they recurse infinitely.
 
-### Roles beyond admin
+### Roles and permissions
 
-The scaffold has one role flag, `user_account.admin`. When the product needs more (dispatcher,
-editor, member of an organization), model it as data: a table such as `user_account_role` or a
-membership table, a definer helper that reads it, and policies that call that helper. Never use
-JWT custom claims for authorization.
+`user_account.admin` is the owner's break-glass: an administrator can do everything. Everyone else
+is authorized by **role**, which the administrator manages at `/admin/role`, `/admin/user-group`
+and `/admin/user-account`. A role is a bundle of permissions; a permission is a scope (the table
+name) plus an action: `read`, `create`, `update`, `delete`, `share`, or a verb of your own
+(`close`, `assign`). A role is given to a user or a group, everywhere, on every row of one table,
+or on one row. Grants only add; there is no deny. Never use JWT custom claims for authorization.
+
+**Make a table access-controlled:**
+
+1. Declare it in the `access` key of `.sveltebuilder/registry/@sveltebuilder-superprototype.json`,
+   the manifest that lists your schema:
+
+   ```json
+   "access": {
+     "permission": { "ticket": ["read", "create", "update", "delete", "share", "close"] },
+     "entity": ["ticket"]
+   }
+   ```
+
+   List a table under `entity` only if people need access to single rows, granted from the row's
+   own screen. It must then have `share`.
+
+2. Run `pnpm sveltebuilder sync:supabase`. It writes `supabase/supplemental/access-generated.sql`:
+   the permission rows, and for each entity a `ticket_role_assignment` table and the
+   `current_user_ticket_ids(action)`, `current_user_ticket_actions(ids)`, `list_ticket_access`,
+   `list_ticket_principal`, `create_ticket_role_assignment` and
+   `delete_ticket_role_assignment` functions. Never edit it; change the manifest and sync again.
+
+3. Write the policies, one per command, in that shape:
+
+   ```sql
+   create policy "ticket_update"
+     on public.ticket for update
+     to authenticated
+     using (
+       (select public.current_user_can('ticket', 'update'))
+       or id = any ((select public.current_user_ticket_ids('update'))::bigint[])
+     )
+     with check (
+       (select public.current_user_can('ticket', 'update'))
+       or id = any ((select public.current_user_ticket_ids('update'))::bigint[])
+     );
+   ```
+
+   - Pass **literal** arguments, and keep the `::bigint[]` cast, or the policy fails to create.
+   - An insert policy uses `current_user_can('ticket', 'create')` alone: there is no row to have
+     been granted yet.
+   - A table without `entity` uses only the `current_user_can` line.
+   - **Child rows follow the parent**: `ticket_comment` checks `ticket`, against `ticket_id`.
+     Writing a child takes the parent's `update`.
+   - **Relationships are predicates**, not grants: `or assigned_user_account_id = (select
+     public.current_user_id())`. Gate writes to whatever column hands out that access as strictly
+     as a grant.
+   - **A column a verb guards** (`status`, guarded by `close`) is not writable directly: revoke
+     `update` on the table, grant it back on the other columns by name, and change the guarded
+     column in a `security definer` RPC that calls `current_user_can` (and the entity helper for
+     one row) before it writes.
+
+4. Seed a role or two, if the feature needs a sensible default: insert into `role` with a `slug`,
+   its `role_permission` rows resolved by `(scope, action)`, and en and fr copy for the role
+   (`name`, scope `role`) and for every new scope and verb (`access.permission_scope.ticket`,
+   `access.permission_action.close`). A role with a slug cannot be edited from the screens, so a
+   re-run seed never undoes an administrator's change; they clone it to customize. Copy an installed
+   module's `supabase/seeds/<module>.sql` for the exact statements.
+
+5. On the screens: `requireScope(parent, 'ticket')` in each loader; return the reader's `actions`
+   (`listCurrentUserAction(locals.supabase, 'ticket')` for the table, or
+   `current_user_ticket_actions(ids)` for its rows) and hide the controls they lack. For an entity,
+   put `RoleAssignmentPanel` from `@sveltebuilder/access` on its detail screen, with an add form
+   posting to that route. Content's article screens (`/admin/content/article/[id]`) are the
+   example. Give the menu entry a `permission_scope` of `ticket` so staff see it.
+
+**Never** write to `role`, `role_assignment`, `user_group` or the other access tables directly from
+the app (every write goes through its RPC), and never decide access in TypeScript: hiding a button
+is courtesy, the policy is the rule. Prove the policies by signing in as a user holding only the
+role in question, as well as one holding none. The full guide is the SvelteBuilder repository's
+`docs/ACCESS-CONTROL-USAGE.md`.
 
 ---
 

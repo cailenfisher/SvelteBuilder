@@ -15,7 +15,7 @@
   let { data, form }: { data: ShipmentDetailView; form?: ScreenFormResult } = $props();
   // Only the controls that will work: `data.actions` is what the reader may do on this screen's
   // scope. Absent, every control shows and the database answers.
-  const can = (action: string) => data.actions?.includes(action) ?? true;
+  const can = (action: string) => data.actions.includes(action);
 
   const globalDictionary = getDictionary();
 

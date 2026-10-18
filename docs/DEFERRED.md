@@ -329,6 +329,24 @@ app a version and a changelog.
 
 ---
 
+## Upgrading across renames: drizzle-kit's snapshot (open, 2026-10-18)
+
+Found validating `docs/MIGRATION-2.0.md` with access control in it. The guide renames columns,
+enums and tables in SQL, but `sync:supabase` runs `drizzle-kit generate`, which diffs its own
+snapshot rather than the database, so it asks about every rename and writes a migration repeating
+them. Without a terminal it stops at the first question and exits 0, and sync then reports success
+having written no schema migration, only the supplemental one. Nothing an existing project does is
+wrong; the guide simply never ran its "regenerate" step.
+
+Options: (a) have the guide stop at the prompts' answers ("renamed"), and drop the SQL renames
+drizzle-kit can express, keeping only data moves and enum value changes; (b) ship a snapshot the
+upgrading project copies over `supabase/migrations/meta/` after running the guide's SQL, so
+drizzle-kit sees only the additions; (c) a `sync:supabase` flag that refuses to run drizzle-kit
+without a terminal unless told how to answer. (c) is worth doing whichever of the others is
+chosen, since the silent success is the dangerous part. The guide carries a warning until then.
+
+---
+
 ## Supplemental SQL ordering: move off filename prefixes (open, 2026-10-17)
 
 `sync:supabase` applies every file in `supabase/supplemental/` in one alphabetical sort, so a
@@ -352,8 +370,31 @@ for projects whose supplemental files are already in migrations. Not started.
 
 ## Access control: deferred during the build (2026-10-18)
 
-Recorded as the phases of `docs/ACCESS-CONTROL-PLAN.md` ran. Phase 10 adds the design's
-exclusions, E1–E3 and the A20 options.
+Recorded as the phases of `docs/ACCESS-CONTROL-PLAN.md` ran. The reasoning, and the option to
+take for each, is in `docs/ACCESS-CONTROL-DECISIONS.md`; this is the list.
+
+Left out of v1 by decision:
+
+- **`explain_access()`**, a per-user "why can they?" function across every scope. The entity access
+  panel and a user's own page already answer it between them. Revisit, as one generated static
+  branch per entity scope, when an administrator cannot answer "why can they still?" from those
+  two screens (DECISIONS, exclusions).
+- **Container targets** ("editor of the Sports section"). O5: Phase 11, only on the owner's
+  go-ahead, once content's use shows how far scope and entity grants plus assignment get.
+- **Nested groups, field-level permissions, conditions beyond expiry, an access audit log,
+  invitations into groups.** No v1 user; each has its later shape in the exclusions table. Deny
+  rules and JWT role claims are not planned at all.
+- **Sharing edges E1–E3**: a sharer can revoke any direct grant on the entity; editing a custom
+  role widens grants non-administrators made; a grant outlives its granter's right to make it.
+  Accepted because sharing is already a statement of trust and the panel shows `granted_by`. Best
+  options: apply the grant check to revoking (E1); list affected grants before saving a role edit
+  (E2); mark grants whose granter no longer qualifies (E3).
+- **The principal picker shows every user's email** to anyone who may share an entity, members of
+  external groups included (A20). Revisit before a deployment admits outside parties it does not
+  trust with the internal directory; the options are internal users only for external callers,
+  display names with exact-email lookup, or a `discoverable` flag on `user_account`.
+
+Found while building:
 
 - **The navigation screens cannot set `permission_scope`.** An entry an administrator adds is
   for administrators only (A24) until the navigation item create and update forms gain the field.

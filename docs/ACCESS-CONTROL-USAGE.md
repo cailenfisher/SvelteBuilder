@@ -1,8 +1,7 @@
 # Access Control — Usage
 
 > [!NOTE]
-> Status: not yet built. This describes how the access system is meant to be used, and is the target the build is checked against (Phase 10 of `docs/ACCESS-CONTROL-PLAN.md`).
-> The data model, SQL and generator are specified in `docs/ACCESS-CONTROL.md` (the design, cited here as DESIGN §n). The reasons behind each rule are in `docs/ACCESS-CONTROL-DECISIONS.md` (A1–A22, E1–E3).
+> The data model, SQL and generator are specified in `docs/ACCESS-CONTROL.md` (the design, cited here as DESIGN §n). The reasons behind each rule are in `docs/ACCESS-CONTROL-DECISIONS.md` (A1–A24, E1–E3).
 
 The first half is for developers building on a SvelteBuilder scaffold. The second describes what admins, and the people they give access to, see and can do.
 
@@ -104,21 +103,33 @@ RLS cannot see which columns an update changes (A19). If an action other than `u
 1. Revoke table-level `UPDATE` and grant `UPDATE` on every other column by name (DESIGN §3.5).
 2. Make one `SECURITY DEFINER` RPC the only writer of that column, and have it check the caller with the same helpers.
 
-When you add a column to such a table later, add it to the grant. `pnpm sql:check` fails until you do, rather than letting users find out.
+When you add a column to such a table later, add it to the grant. For content's `article`, `pnpm sql:check` fails until you do; write the same assertion for a table of your own (`40-assert-content.sql` has the pattern).
 
 ### Definer functions check for themselves
 
-A `SECURITY DEFINER` function bypasses RLS, so it must call `current_user_can()` (and the entity helper, for one row) before it writes. Logistic's stock functions are the example.
+A `SECURITY DEFINER` function bypasses RLS, so it must call `current_user_can()` (and the entity helper, for one row) before it writes, and take the actor from `current_user_id()`, never from a parameter. Logistic's verb functions (`logistic_receive_receipt_line`, `logistic_approve_cycle_count`) are the example: each checks its verb, then calls stock primitives no client can call directly.
 
 ### Show or hide controls from the same answer
 
 A loader asks once for every row on the page and puts the answer in the view model (DESIGN §5.3):
 
 ```ts
-type ProjectAdminRowView = { id: number; actions?: PermissionAction[] };
+type ProjectAdminRowView = { id: number; actions: string[] };   // from current_user_project_actions(ids)
+type ProjectAdminListView = ScreenAction & ScreenCopy & { … };   // `actions` for the scope, from listCurrentUserAction
 ```
 
 Show a control when `actions.includes('update')`. This is cosmetic: if the screen gets it wrong, RLS still refuses the write and the form action reports it with `formError`.
+
+### Say who each screen is for
+
+The `(admin)` layout admits administrators and anyone holding a role, and shows each a menu of the entries whose `navigation_item.permission_scope` they hold. Each screen then says who it is for, first thing in its loader:
+
+```ts
+await requireScope(parent, 'project');   // staff holding any `project` permission
+await requireAdministrator(parent);      // roles, users, copy and the like
+```
+
+Both are in `(admin)/admin/require-access.ts`. Give your screen's menu entry the scope too, or staff will not see it. Like the controls, this is the experience; RLS is the guard.
 
 ### Seed module roles
 
@@ -144,7 +155,7 @@ These are the screens a SvelteBuilder app ships with, under `/admin`. They exist
 
 ### Administrators
 
-An administrator can do everything, everywhere, whether or not they hold any role.
+An administrator can do everything, everywhere, whether or not they hold any role. Everyone else who holds a role reaches the admin area too, and sees only the menu entries for what they may work on: a Writer sees Articles, a Warehouse operator sees Logistics and Warehouse.
 The admin flag is the way back in when roles go wrong, which is why it is not a role. You promote and demote administrators on a user's page, and you cannot demote the last one.
 
 Only administrators manage roles, groups, and access to everything or to every row of one kind.
@@ -192,7 +203,8 @@ You do not have to be an administrator: anyone with the record's **share** permi
 - **Anyone who can share a record can remove any direct grant on it**, including ones they could not have given (E1).
 - **Editing a role widens or narrows every grant of it**, including grants someone else made when the role was narrower (E2).
 - **Grants stay when the person who made them loses access** (E3).
-- **Warehouse staff need a role.** A signed-in user with no role sees nothing in the logistic screens.
+- **Warehouse staff need a role.** A signed-in user with no role sees nothing in the logistic screens and is turned away from the warehouse floor. Give them Warehouse operator (or Logistics manager) on their user page.
+- **Signing up is not access.** Anyone can create an account by signing in; until an administrator gives them a role, the admin area and the warehouse refuse them.
 - **Published content stays public.** Roles govern drafts and editing, not what readers already see.
 
 Not in this version: deny rules, nested groups, access to everything in a section, per-field permissions, and an access history (DECISIONS, _Decided exclusions_).

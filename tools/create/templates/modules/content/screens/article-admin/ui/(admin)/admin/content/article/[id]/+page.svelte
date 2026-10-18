@@ -31,9 +31,8 @@
   // Only the controls that will work. Editing (status changes short of publishing, the checklist)
   // takes `update`; moving to or from `published` takes `publish`. RLS and the transition
   // function refuse the rest regardless.
-  const actions = $derived(data.actions ?? []);
-  const editable = $derived(actions.includes('update'));
-  const publishable = $derived(actions.includes('publish'));
+  const editable = $derived(data.actions.includes('update'));
+  const publishable = $derived(data.actions.includes('publish'));
   const transitionStatuses = $derived(
     publishable
       ? data.statuses

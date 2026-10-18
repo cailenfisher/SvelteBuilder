@@ -47,6 +47,7 @@ SvelteBuilder/
 ├── packages/
 │   ├── local-text-schema/  @sveltebuilder/local-text-schema  Drizzle schema + canonical seed data for the i18n tables
 │   ├── coreui/         @sveltebuilder/coreui         universal UI components
+│   ├── access/         @sveltebuilder/access         roles and permissions: schema, view types, admin components
 │   ├── content/        @sveltebuilder/content        publisher/news domain module
 │   ├── commerce/       @sveltebuilder/commerce
 │   └── logistic/       @sveltebuilder/logistic
@@ -606,9 +607,58 @@ Those functions are **SECURITY INVOKER on purpose**: the body runs as the caller
 
 ### Admin role
 
-`user_account.admin boolean not null default false` is the source of truth. Policies gate writes with `(select public.current_user_admin())`. No JWT role claims are used.
+`user_account.admin boolean not null default false` is the application owner's break-glass (A5): an administrator holds every permission, and every access helper answers yes for one. Everyone else is authorized through roles; see [Access control](#access-control). No JWT role claims are used.
 
 `anon` and `authenticated` hold no write privilege on `user_account` at all — `INSERT`, `UPDATE`, `DELETE` are revoked outright in `supabase/supplemental/05-user-account-hardening.sql`. An owner-update policy ("update your own row") lived here until 2026-10-03 and was a privilege escalation: RLS cannot restrict which *columns* an allowed `UPDATE` may touch, so "your own row" included `admin` and `auth_user_id`, and `PATCH /rest/v1/user_account?id=eq.<own id> {"admin": true}` returned 200. Promoting or demoting an administrator goes through the `admin_set_user_admin(user_account_id, admin)` RPC instead — `SECURITY DEFINER`, checks `current_user_admin()` on the caller itself, and refuses to demote the last remaining admin. Never reintroduce a self-update policy on this table; see the file for the full incident writeup.
+
+### Access control
+
+Everyone who is not an administrator is authorized by **role**. A role is a bundle of
+permissions; a permission is a scope (the table name, the same word as the local-text scope) plus
+an action (`read`, `create`, `update`, `delete`, `share`, or a module's own verb such as
+`publish` or `pick`). A role is assigned to a user or a group, everywhere, on one scope, or on one
+row of an access-controlled entity. Grants only add; there is no deny. The design is
+`docs/ACCESS-CONTROL.md`, the decisions behind it `docs/ACCESS-CONTROL-DECISIONS.md`, and how to
+use it `docs/ACCESS-CONTROL-USAGE.md`. Read the usage doc before touching a policy.
+
+Where it lives:
+
+- `@sveltebuilder/access`: the Drizzle tables (`permission`, `role`, `role_permission`,
+  `role_assignment`, `user_group`, `user_group_member`), view types and the admin components.
+- `tools/create/templates/base/supabase/supplemental/01-access.sql`: the helpers, the admin RPCs and
+  the access tables' own RLS.
+- `access-generated.sql`, written by `sveltebuilder sync:supabase` from each manifest's `access`
+  key: the permission catalog, and for every `access.entity` its `<entity>_role_assignment`
+  table, `current_user_<entity>_ids(action)`, `current_user_<entity>_actions(ids)` and sharing
+  RPCs. Sync places it directly after `01-access.sql` (A21).
+
+A policy asks about a **permission**, through a helper, hoisted:
+
+```sql
+using (
+  (select public.current_user_can('article', 'read'))
+  or id = any ((select public.current_user_article_ids('read'))::bigint[])
+)
+```
+
+- **Ask for permissions, never roles.** A policy or screen that tests for `content_editor` breaks
+  the moment an administrator builds a custom role holding the same permissions.
+- **Wrap every helper call in `(select …)`, with literal arguments.** That is what lets Postgres
+  evaluate it once per statement. The `::bigint[]` cast is required: without it Postgres reads
+  `= any (select …)` as the subquery form and fails with `integer = integer[]`.
+- **Child rows follow the parent's check** (A18): an `article_block` policy asks about `article`,
+  and writing a child takes the parent's `update`.
+- **A column a verb guards is not writable directly** (A19). Revoke `update` on the table, grant
+  back the safe columns, and change the guarded one only in a definer RPC that checks the verb
+  (`content_transition_article_status`, `logistic_record_picked_quantity`).
+- **A definer function takes the actor from `current_user_id()`**, never from a parameter, and
+  checks the permission itself before doing anything, since it bypasses RLS.
+
+Screens mirror the database, they do not decide. A loader calls `requireScope(parent, scope)` or
+`requireAdministrator(parent)` (`(admin)/admin/require-access.ts`) for the experience, and returns
+the reader's `actions` so the screen can hide what will be refused. The `(admin)` layout admits
+anyone holding a role and shows the menu entries whose `navigation_item.permission_scope` they
+hold. RLS is what refuses.
 
 ### Provisioning the principal
 
@@ -648,7 +698,9 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
    polymorphic `entity_id` column on `local_text_link` is `bigint` and holds integer-PK values
    across the ecosystem without conversion, so this doesn't constrain the choice either way.
 
-6. **Scope is implied, never stored as a schema column or passed as a component prop.**
+6. **Scope is implied, never stored as a column on a domain table or passed as a component prop.**
+   Infrastructure tables that address entities of every type carry it, because that is their job:
+   `local_text_link.scope`, `permission.scope`, `role_assignment.scope`. A domain table never does.
 
 7. **Styles are plain stylesheets, never Svelte `<style>` blocks, and never `:global`.** Every
    rule lives in a `.css` file named after its block, beside the component or route that renders
@@ -675,6 +727,20 @@ These rules are enforced by ESLint `no-restricted-imports` where possible. Viola
     reach the database through `event.locals.supabase`, so the module never needs to know how a row
     was fetched. A module's `./server` export reintroducing a query layer is a bug; this is what
     guardrail 8 forbids, stated at the package boundary.
+
+12. **Policies and screens ask about permissions, never role names.** `current_user_can(scope,
+    action)` and the generated `current_user_<entity>_ids(action)`, not `role.slug =
+    'content_editor'`. A role is data an administrator can copy and change; a permission is the
+    contract.
+
+13. **No access decision is made in TypeScript.** A loader may hide a control or turn someone away
+    for a better experience, but every rule it applies must already be a policy or a definer
+    function's check, because the Data API is reachable directly with the public key.
+
+14. **Nothing writes the access tables directly.** `role`, `role_permission`, `role_assignment`,
+    `user_group`, `user_group_member` and the generated `<entity>_role_assignment` tables are
+    written only through their SECURITY DEFINER RPCs (A12); `anon` and `authenticated` hold no
+    `insert`, `update` or `delete` on them. Seeds are the exception: they run as the owner.
 
 ---
 
@@ -915,7 +981,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | `@sveltebuilder/logistic` remaining gaps | The route port is complete (8 screen bundles, `screens/_unported/` is gone) and the RLS policy-pattern pass is done as of 2026-10-01 — all 40 policies now call the helpers as `(select …)` and gate admin through `public.current_user_admin()`, and `pnpm sql:check` asserts both properties for every policy in `public`. Still missing: a vitest suite for the package. |
 | `user_account` self-promotion             | Fixed 2026-10-03, recorded because the shape of the mistake is worth remembering: the base template's `user_account_owner_update` policy let any authenticated principal `PATCH` its own row's `admin` column to `true` — RLS cannot restrict which columns an allowed `UPDATE` may touch, so "update your own row" necessarily included `admin` and `auth_user_id`. Verified exploitable before the fix (an account-takeover primitive via `auth_user_id`, not just privilege escalation via `admin`). Fix is `supabase/supplemental/05-user-account-hardening.sql`: `UPDATE`/`INSERT`/`DELETE` revoked from `anon`/`authenticated` on `user_account` outright, admin promote/demote moved to the `admin_set_user_admin()` SECURITY DEFINER RPC with a last-administrator guard. `pnpm sql:check` now asserts the grant is revoked and that a non-admin calling the RPC is refused. |
 | WCAG 2.2 AA audit                         | Half done. The automated half runs in CI over every component (`apps/dev-kitchen`, Accessibility workflow), and its first run found keyboard-unreachable overlays, an unlabeled `Select` and 862 contrast failures, all fixed 2026-10-07. The human half — screen-reader flow, reading order, 400% zoom, RTL mirroring — has not been done. Required before any module is marked production-ready. See `docs/DEV-KITCHEN.md` §5.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Roles and permissions                     | Designed, not built. Branch `feat/access-control`. Read `docs/ACCESS-CONTROL-DECISIONS.md`, then `docs/ACCESS-CONTROL.md`, then run `docs/ACCESS-CONTROL-PLAN.md` from Phase 0. Until it lands, `user_account.admin` is the only authorization the scaffold has. |
+| Roles and permissions                     | Built on branch `feat/access-control`, folding into the 2.0 RC (O4); final review pending. Base, content and logistic have adopted it. What was left out of v1 (`explain_access()`, the sharing edges E1–E3, the principal-picker privacy options, and the rest) is in `docs/DEFERRED.md`. |
 | `apps/docs`                               | Placeholder only — no content, no structure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Changesets peer cascade                   | A **minor** coreui changeset bumps `content` and `logistic` a **major**: their `workspace:^` peer on 0.x coreui excludes the next minor, and Changesets treats widening a peer range as breaking. Until fixed (coreui 1.0, or wider peer ranges), write coreui changesets as `patch` wherever defensible and check `pnpm changeset status --verbose` before merging. See `docs/DEFERRED.md`. |
 
@@ -928,6 +994,7 @@ management, robotics integration, demand forecasting, and multi-warehouse advanc
 | `diglossia` 0.1.0                  | Complete and tested — split into a framework-agnostic core (`createDictionary`, per-request `DictionaryInstance`, `formatText` MF2 interpolation/pluralization) and a Svelte adapter (`diglossia/svelte`: `setDictionary`/`getDictionary`/`<LocalText />`); full test suite; extracted from this repo (formerly `@sveltebuilder/hermes`) into its own repo/npm package, consumed here as an external dependency                                                                                                                                                                                                                                     |
 | `@sveltebuilder/local-text-schema` | Complete — pure TS + Drizzle package (no Svelte), renamed from `@sveltebuilder/hermes-schema`; exports `./schema` (locale/local_text_link/local_text Drizzle tables) and `./seed` (canonical `LOCALES`/`BASE_SLUGS` data consumed by `sveltebuilder sync:supabase`)                                                                                                                                                                                                                                                                                                                                                                                 |
 | `@sveltebuilder/coreui`            | Complete — 28+ components (Accordion, Alert, Avatar, Badge, Banner, Button, Card, Checkbox, ConfirmDialog, DataTable, Dialog, Divider, Drawer, Field, Input, InlineNotification, Label, LocalePicker, Menu, MessageLiveRegion, Pagination, Popover, ProgressBar, RadioGroup, Select, Skeleton, Spinner, Switch, Table, Tabs, Tag, Textarea, Toast/ToastRegion, Tooltip, plus `DateTimePicker` added for content, `MetricCard`/`Timeline` added for logistic; the article block editor, `BarcodeInput` and the locale admin editors have since moved to content, logistic and the base template, and `StatusBadge` was removed in favour of `Badge`); styles in one plain stylesheet per component folder, listed by `styles/components.css` and imported `layer(components)`; Bits UI data-attribute wiring throughout; builds cleanly |
+| `@sveltebuilder/access`            | Built 2026-10-18 (folding into 2.0) — roles, permissions, groups and per-entity sharing enforced by RLS: Drizzle schema, `01-access.sql` core helpers and admin RPCs, per-entity SQL generated by `sync:supabase` from each manifest's `access` key, `RolePermissionMatrix`/`RoleAssignmentTable`/`RoleAssignmentPanel`/`UserGroupMemberTable`, base admin screens for roles, groups and users, coreui `CheckboxMatrix`; content and logistic seed their own roles. `pnpm sql:check` impersonates admin, staff and strangers through `25-`, `26-`, `30-` and `40-assert-*.sql`. See [Access control](#access-control). |
 | `@sveltebuilder/content`           | Complete (replaces the retired `@sveltebuilder/blog`) — 14-entity publisher/news schema (structured `article_block` body, live coverage, front curation, newsletters, media assets, author profiles, article workflow), 13 Camp 2 components, RSS feed, news + standard sitemaps, NewsArticle JSON-LD + OG/hreflang meta tags, EN+FR seed data; Camp 1/2 diglossia boundary respected. Route port to screen bundles is complete as of 2026-10-01 (article, section, feed, article-preview, article-admin; `screens/_unsorted/` is gone) — see `docs/MODULE-ROUTES.md`. Vitest suite in `packages/content/test/` renders 9 of its 18 components server-side, including the no-`[missing:]` gate.                  |
 | `@sveltebuilder/logistic`          | Schema, components and SQL complete — suppliers, storage locations, stock levels, inbound receiving, pick tasks, shipments, returns, cycle counts; SECURITY DEFINER SQL for concurrency-sensitive stock mutations; README with v1-scope statement. Its Drizzle query layer is removed (guardrail 11) and its route port to screen bundles is complete as of 2026-09-30 (8 bundles: supplier, stock-level, inbound-receipt, shipment, return-authorization, cycle-count, warehouse, dashboard; `screens/_unported/` is gone). See Known Open Issues and `docs/MODULE-ROUTES.md`.                                                                                                                                                        |
 | `@sveltebuilder/cli`               | Complete — `sveltebuilder sync:supabase` working (`.sveltebuilder/registry/` manifest discovery, topological sort, Drizzle schema barrel + `drizzle-kit generate`, supplemental SQL append, seed.sql generation); bare `sync` kept as a deprecated alias; the dead `sync:drizzle` stub was removed                                                                                                                                                                                                                                                                                                                                                  |
