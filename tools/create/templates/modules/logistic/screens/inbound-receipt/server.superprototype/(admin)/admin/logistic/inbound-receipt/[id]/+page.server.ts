@@ -10,11 +10,18 @@ import { listStorageLocationOption } from '$lib/server/logistic/storage-location
 import type { InboundReceiptDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../../require-access';
 
 export const load: PageServerLoad = async ({
+  parent,
   locals,
   params,
 }): Promise<InboundReceiptDetailView> => {
+  await requireScope(parent, 'inbound_receipt');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'inbound_receipt');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   const id = Number(params.id);
   if (!Number.isInteger(id)) throw error(404, 'Not found.');
 
@@ -39,6 +46,7 @@ export const load: PageServerLoad = async ({
   const inboundReceipt = receiptResult.data;
 
   return {
+    actions,
     inboundReceipt: {
       ...inboundReceipt,
       lines: [...inboundReceipt.lines].sort((a, b) => a.id - b.id),
@@ -102,7 +110,6 @@ export const actions: Actions = {
     const { error: rpcError } = await receiveInboundReceiptLine(locals.supabase, {
       id: lineId,
       receivedQuantity,
-      userAccountId: locals.userAccountId,
     });
 
     if (rpcError) {

@@ -7,12 +7,18 @@ import { listReturnAuthorization } from '$lib/server/logistic/return-authorizati
 import { listStockLevel } from '$lib/server/logistic/stock-level';
 import type { LogisticDashboardView } from '@sveltebuilder/logistic/views';
 import type { PageServerLoad } from './$types';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../require-access';
 
 // Guards live in the (admin) layout load. This screen writes nothing, so it has no actions.
 
 const PREVIEW = 5;
 
-export const load: PageServerLoad = async ({ locals }): Promise<LogisticDashboardView> => {
+export const load: PageServerLoad = async ({ parent, locals }): Promise<LogisticDashboardView> => {
+  await requireScope(parent, 'stock_level');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'stock_level');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   // Each list returns its preview rows and its true total in one round trip.
   const preview = { offset: 0, limit: PREVIEW };
 
@@ -38,6 +44,7 @@ export const load: PageServerLoad = async ({ locals }): Promise<LogisticDashboar
   if (cycleCountResult.error) throw error(500, 'Failed to count cycle counts.');
 
   return {
+    actions,
     metrics: {
       openPickTaskCount: tasksResult.data.total,
       pendingInboundReceiptCount: receiptsResult.data.total,

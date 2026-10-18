@@ -2,7 +2,7 @@ import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { deleteLocale, getLocale, updateLocale } from '$lib/server/locale';
 import { formError } from '$lib/server/form-error';
-import { requireAdministrator } from '../../require-administrator';
+import { requireAdministrator } from '../../require-access';
 
 export const load: PageServerLoad = async ({ params, locals, parent }) => {
   await requireAdministrator(parent);

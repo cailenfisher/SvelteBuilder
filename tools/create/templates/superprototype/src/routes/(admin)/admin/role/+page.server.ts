@@ -4,7 +4,7 @@ import type { RoleAdminListView } from '@sveltebuilder/access/views';
 import { createRole, listRole } from '$lib/server/role';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { formError } from '$lib/server/form-error';
-import { requireAdministrator } from '../require-administrator';
+import { requireAdministrator } from '../require-access';
 
 export const load: PageServerLoad = async ({ locals, parent }): Promise<RoleAdminListView> => {
   await requireAdministrator(parent);

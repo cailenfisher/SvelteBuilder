@@ -76,10 +76,9 @@ export async function setStockLevelReorderPoint(
 }
 
 /**
- * Moves on_hand and appends the audit row in one transaction, since stock that moved with no
- * record of why is the outcome to avoid. logistic_adjust_stock is SECURITY DEFINER, unlike the
- * supplier create RPC, because warehouse staff who are not admins legitimately move stock.
- * The table's check constraint refuses a negative on_hand (23514, check_violation).
+ * A correction by hand: moves on_hand and appends the audit row, recorded against the caller,
+ * in one transaction (logistic_adjust_stock_level, which takes `stock_level.adjust`). Raises
+ * 42501 without it, and 23514 (check_violation) when on_hand would go below zero.
  */
 export async function adjustStockLevel(
   supabase: SupabaseClient,
@@ -87,15 +86,13 @@ export async function adjustStockLevel(
     stockLevelId: number;
     delta: number;
     reason: StockAdjustmentReason;
-    userAccountId: number;
     note: string | null;
   }
 ): Promise<QueryResult<null>> {
-  const { error } = await supabase.rpc('logistic_adjust_stock', {
+  const { error } = await supabase.rpc('logistic_adjust_stock_level', {
     p_stock_level_id: adjustment.stockLevelId,
     p_delta: adjustment.delta,
     p_reason: adjustment.reason,
-    p_user_account_id: adjustment.userAccountId,
     p_note: adjustment.note,
   });
   if (error) return { data: null, error };

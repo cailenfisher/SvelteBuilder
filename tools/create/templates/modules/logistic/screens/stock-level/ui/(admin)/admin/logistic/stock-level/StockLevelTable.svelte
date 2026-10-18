@@ -12,7 +12,8 @@
     stockLevels: StockLevelRow[];
     /** Whether the list is filtered to low stock, which changes what an empty list says. */
     lowOnly: boolean;
-    onAdjust: (stockLevel: StockLevelRow) => void;
+    /** Opens the adjustment form for a row. Omitted for a reader who may not adjust stock. */
+    onAdjust?: (stockLevel: StockLevelRow) => void;
     /** The screen's scoped dictionary: module copy and every location's name. */
     dictionary: DictionaryInstance;
   };
@@ -53,9 +54,11 @@
     {row.reorderPoint ?? '—'}
   {:else if column.key === 'actions'}
     <span class="stock-level-table__actions">
-      <Button variant="ghost" size="sm" onclick={() => onAdjust(row)}>
-        {localText('logistic.stock_level.adjust')}
-      </Button>
+      {#if onAdjust}
+        <Button variant="ghost" size="sm" onclick={() => onAdjust(row)}>
+          {localText('logistic.stock_level.adjust')}
+        </Button>
+      {/if}
       <Button variant="ghost" size="sm" href="?history={row.id}">
         {localText('logistic.stock_level.history')}
       </Button>

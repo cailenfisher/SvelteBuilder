@@ -6,7 +6,7 @@ import { createRole, deleteRole, getRole } from '$lib/server/role';
 import { listRolePermissionId, setRolePermission } from '$lib/server/role-permission';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { formError, postgrestFormError } from '$lib/server/form-error';
-import { requireAdministrator } from '../../require-administrator';
+import { requireAdministrator } from '../../require-access';
 
 export const load: PageServerLoad = async ({ params, locals, parent }): Promise<RoleAdminDetailView> => {
   await requireAdministrator(parent);

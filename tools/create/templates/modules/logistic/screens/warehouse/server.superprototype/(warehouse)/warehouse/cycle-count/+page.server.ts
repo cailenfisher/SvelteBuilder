@@ -37,11 +37,7 @@ export const actions: Actions = {
     const countId = Number(form.get('cycle_count_id'));
     if (!Number.isInteger(countId)) return formError(422, 'logistic.error.cycle_count_invalid');
 
-    const { data: taken, error: updateError } = await takeCycleCount(
-      locals.supabase,
-      countId,
-      locals.userAccountId
-    );
+    const { data: taken, error: updateError } = await takeCycleCount(locals.supabase, countId);
 
     if (updateError) return formError(500, 'logistic.error.cycle_count_take_failed');
     if (!taken) return formError(409, 'logistic.error.cycle_count_taken');

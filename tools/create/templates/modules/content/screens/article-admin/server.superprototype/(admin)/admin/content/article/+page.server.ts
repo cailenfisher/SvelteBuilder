@@ -3,10 +3,11 @@ import { loadEntityCopy, loadScopedCopy } from '$lib/server/scoped-copy';
 import { createArticle, listArticle } from '$lib/server/content/article';
 import { listArticleStatus } from '$lib/server/content/article-status';
 import { currentUserCan } from '$lib/server/permission';
-import { loadArticleAction, requireArticleScope } from './article-action';
+import { loadArticleAction } from './article-action';
 import type { ArticleAdminListView } from '@sveltebuilder/content/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { requireScope } from '../../require-access';
 
 // The (admin) layout admits staff; this screen admits those holding anything on articles. RLS
 // decides which articles they see: every one at every status with `article.read`, or only those
@@ -15,7 +16,7 @@ import { formError } from '$lib/server/form-error';
 const PER_PAGE = 20;
 
 export const load: PageServerLoad = async ({ locals, url, parent }): Promise<ArticleAdminListView> => {
-  await requireArticleScope(parent);
+  await requireScope(parent, 'article');
 
   const statusSlug = url.searchParams.get('status');
 

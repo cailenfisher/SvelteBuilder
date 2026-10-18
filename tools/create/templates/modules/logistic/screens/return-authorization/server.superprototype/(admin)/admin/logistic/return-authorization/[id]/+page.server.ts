@@ -14,11 +14,18 @@ import type { ReturnCondition, ReturnDisposition } from '@sveltebuilder/logistic
 import type { ReturnAuthorizationDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../../require-access';
 
 export const load: PageServerLoad = async ({
+  parent,
   locals,
   params,
 }): Promise<ReturnAuthorizationDetailView> => {
+  await requireScope(parent, 'return_authorization');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'return_authorization');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   const id = Number(params.id);
   if (!Number.isInteger(id)) throw error(404, 'Not found.');
 
@@ -40,6 +47,7 @@ export const load: PageServerLoad = async ({
   if (locationsResult.error) throw error(500, 'Failed to load storage locations.');
 
   return {
+    actions,
     returnAuthorization: returnResult.data,
     storageLocations: locationsResult.data,
     conditions: RETURN_CONDITIONS,
@@ -93,7 +101,6 @@ export const actions: Actions = {
       receivedQuantity,
       condition,
       disposition,
-      userAccountId: locals.userAccountId,
       storageLocationId,
     });
 

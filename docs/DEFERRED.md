@@ -372,6 +372,18 @@ exclusions, E1–E3 and the A20 options.
   nothing in the scaffold lists pending comments. A moderation screen needing a commenter's email
   address would read it through a definer function, since no role can select it.
 
+- **Creating an inbound receipt does not pin it to its creator.** The insert policy checks
+  `inbound_receipt.create` but not that `user_account_id` is the caller, so a manager can record a
+  receipt as received by someone else. Harmless while only managers create receipts; route it
+  through a definer `logistic_create_inbound_receipt` if attribution starts to matter.
+- **Someone signed in with no role at all gets a bare 403**, from `/admin` and `/warehouse`
+  alike, with an English message from the layout. Field-test finding 12 is closed (staff now land
+  on `/admin/dashboard`, which admits them and links to the warehouse), but a no-access page
+  saying what to ask an administrator for, in the reader's language, would need copy and a design.
+- **Adding lines to a shipment or a return authorization takes the parent's `update`**, so an
+  Operator, who holds only `read` on shipments, cannot add a line to one. That is what A18 says
+  and what the roles intend today; a packing workflow would need its own verb.
+
 ---
 
 ## Pending manual steps

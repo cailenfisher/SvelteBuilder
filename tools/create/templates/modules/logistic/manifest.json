@@ -1,5 +1,17 @@
 {
   "package": "@sveltebuilder/logistic",
   "schema": "@sveltebuilder/logistic/schema",
-  "after": ["@sveltebuilder/local-text-schema", "@sveltebuilder/superprototype"]
+  "after": ["@sveltebuilder/local-text-schema", "@sveltebuilder/superprototype"],
+  "access": {
+    "permission": {
+      "storage_location": ["read", "create", "update", "delete"],
+      "supplier": ["read", "create", "update", "delete"],
+      "stock_level": ["read", "update", "adjust"],
+      "inbound_receipt": ["read", "create", "update", "delete", "receive"],
+      "pick_task": ["read", "create", "update", "delete", "pick"],
+      "shipment": ["read", "create", "update", "delete"],
+      "return_authorization": ["read", "create", "update", "delete", "grade"],
+      "cycle_count": ["read", "create", "update", "delete", "count", "approve"]
+    }
+  }
 }

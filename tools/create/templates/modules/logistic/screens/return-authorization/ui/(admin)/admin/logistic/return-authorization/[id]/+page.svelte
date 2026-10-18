@@ -10,6 +10,9 @@
   import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: ReturnAuthorizationDetailView; form?: ScreenFormResult } = $props();
+  // Only the controls that will work: `data.actions` is what the reader may do on this screen's
+  // scope. Absent, every control shows and the database answers.
+  const can = (action: string) => data.actions?.includes(action) ?? true;
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
@@ -40,7 +43,7 @@
 <div class="return-authorization-detail-screen">
   <ReturnAuthorizationDetailHeader
     returnAuthorization={authorization}
-    processable={open && allGraded}
+    processable={open && allGraded && can('grade')}
     onProcess={() => (processConfirmOpen = true)}
     dictionary={scoped}
   />
@@ -53,7 +56,7 @@
     <h2 class="return-authorization-detail-screen__section-title">{localText('logistic.return_authorization.lines')}</h2>
     <ReturnAuthorizationLineTable
       returnAuthorizationLines={authorization.lines}
-      gradable={open}
+      gradable={open && can('grade')}
       conditions={data.conditions}
       dispositions={data.dispositions}
       storageLocations={data.storageLocations}

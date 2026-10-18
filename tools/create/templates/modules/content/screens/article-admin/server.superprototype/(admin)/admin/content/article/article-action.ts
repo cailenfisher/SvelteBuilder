@@ -32,9 +32,3 @@ export async function loadArticleAction(
     })
   );
 }
-
-/** Refuses the article screens to staff who hold nothing on articles (A24). */
-export async function requireArticleScope(parent: () => Promise<{ scopes: string[] }>): Promise<void> {
-  const { scopes } = await parent();
-  if (!scopes.includes('article')) throw error(403, 'Articles are not yours to manage.');
-}

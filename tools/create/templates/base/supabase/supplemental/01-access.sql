@@ -198,6 +198,22 @@ as $$
      )
 $$;
 
+-- Every action the current user may take on every row of a scope: what a screen asks to show
+-- only the controls that will work. The broad question only, like current_user_can; an
+-- entity-level scope's single rows are answered by current_user_<entity>_actions.
+create or replace function public.current_user_actions(p_scope text)
+returns text[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(p.action order by p.action), '{}')
+  from public.permission p
+  where p.scope = p_scope
+    and public.current_user_can(p_scope, p.action)
+$$;
+
 -- The roles that apply to a scope: those holding at least one permission on it. For the sharing
 -- form of an entity's access panel, whose users may not read the role tables themselves. Which
 -- roles exist is not secret; who holds them is, and that stays behind list_<entity>_access.
@@ -512,6 +528,7 @@ revoke execute on function public.current_user_group_ids() from public, anon;
 revoke execute on function public.current_user_can(text, text) from public, anon;
 revoke execute on function public.current_user_scopes() from public, anon;
 revoke execute on function public.list_scope_role(text) from public, anon;
+revoke execute on function public.current_user_actions(text) from public, anon;
 revoke execute on function public.access_require_admin() from public, anon, authenticated;
 revoke execute on function public.access_delete_entity_copy(text, bigint) from public, anon, authenticated;
 revoke execute on function public.create_role(bigint[], text[], integer[]) from public, anon;
@@ -528,6 +545,7 @@ grant execute on function public.current_user_group_ids() to authenticated, anon
 grant execute on function public.current_user_can(text, text) to authenticated, anon;
 grant execute on function public.current_user_scopes() to authenticated;
 grant execute on function public.list_scope_role(text) to authenticated;
+grant execute on function public.current_user_actions(text) to authenticated;
 grant execute on function public.create_role(bigint[], text[], integer[]) to authenticated;
 grant execute on function public.set_role_permissions(integer, integer[]) to authenticated;
 grant execute on function public.delete_role(integer) to authenticated;

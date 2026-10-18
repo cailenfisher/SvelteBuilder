@@ -27,9 +27,8 @@ export async function getReturnAuthorizationLine(
 
 /**
  * Updates the line and, for a restock, puts the goods away: two or four statements, so an
- * RPC. See the function in supabase/supplemental/05-logistic-supplements.sql for why it is
- * SECURITY INVOKER and why the line update goes first. It raises 42501 when the return is no
- * longer open for grading.
+ * RPC. It takes `return_authorization.grade`, records any restock against the caller, and raises
+ * 42501 without that, or when the return is no longer open for grading.
  */
 export async function gradeReturnAuthorizationLine(
   supabase: SupabaseClient,
@@ -38,7 +37,6 @@ export async function gradeReturnAuthorizationLine(
     receivedQuantity: number;
     condition: ReturnCondition;
     disposition: ReturnDisposition;
-    userAccountId: number;
     storageLocationId: number | null;
   }
 ): Promise<QueryResult<null>> {
@@ -47,7 +45,6 @@ export async function gradeReturnAuthorizationLine(
     p_received_quantity: line.receivedQuantity,
     p_condition: line.condition,
     p_disposition: line.disposition,
-    p_user_account_id: line.userAccountId,
     p_storage_location_id: line.storageLocationId,
   });
   if (error) return { data: null, error };

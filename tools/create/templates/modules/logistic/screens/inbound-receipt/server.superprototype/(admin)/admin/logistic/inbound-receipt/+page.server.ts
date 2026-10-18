@@ -6,13 +6,19 @@ import { INBOUND_RECEIPT_STATUSES } from '@sveltebuilder/logistic';
 import type { InboundReceiptListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../require-access';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless. See the supplier list loader for the reasoning.
 
 const PER_PAGE = 20;
 
-export const load: PageServerLoad = async ({ locals, url }): Promise<InboundReceiptListView> => {
+export const load: PageServerLoad = async ({ parent, locals, url }): Promise<InboundReceiptListView> => {
+  await requireScope(parent, 'inbound_receipt');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'inbound_receipt');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   // Validated against the enum rather than cast: a query string is user input, and
   // PostgREST would reject an unknown enum value with a 400 the screen cannot explain.
   const statusParam = url.searchParams.get('status');
@@ -40,6 +46,7 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<InboundRece
   if (suppliersResult.error) throw error(500, 'Failed to load suppliers.');
 
   return {
+    actions,
     inboundReceipts: receiptsResult.data.rows,
     total: receiptsResult.data.total,
     page,

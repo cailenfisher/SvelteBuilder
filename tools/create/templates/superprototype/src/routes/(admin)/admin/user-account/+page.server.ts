@@ -3,7 +3,7 @@ import type { PageServerLoad } from './$types';
 import type { UserAccountAdminListView } from '@sveltebuilder/access/views';
 import { listUserAccount } from '$lib/server/user-account';
 import { loadScopedCopy } from '$lib/server/scoped-copy';
-import { requireAdministrator } from '../require-administrator';
+import { requireAdministrator } from '../require-access';
 
 export const load: PageServerLoad = async ({ locals, parent }): Promise<UserAccountAdminListView> => {
   await requireAdministrator(parent);

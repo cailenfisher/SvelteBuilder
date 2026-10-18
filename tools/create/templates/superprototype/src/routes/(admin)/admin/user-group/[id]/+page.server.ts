@@ -14,7 +14,7 @@ import {
 import { loadScopedCopy } from '$lib/server/scoped-copy';
 import { formError } from '$lib/server/form-error';
 import { createRoleAssignmentAction, deleteRoleAssignmentAction } from '../../role-assignment-action';
-import { requireAdministrator } from '../../require-administrator';
+import { requireAdministrator } from '../../require-access';
 
 export const load: PageServerLoad = async ({ params, locals, parent }): Promise<UserGroupAdminDetailView> => {
   await requireAdministrator(parent);

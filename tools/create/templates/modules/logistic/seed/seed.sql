@@ -1348,3 +1348,147 @@ from (values
 ) as v(slug, content)
 join local_text_link l on l.slug = v.slug and l.scope = 'logistic' and l.entity_id is null
 on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Access: the roles this module manages (docs/ACCESS-CONTROL.md §7, A22)
+-- ──────────────────────────────────────────────────────────────────────────────
+--
+-- Module-managed (O6): their permissions are this seed's; administrators clone one to change
+-- it. The permissions come from this module's manifest, written into the migration.
+--
+--   Manager   everything logistic offers, including adjusting stock by hand and approving
+--             counts.
+--   Operator  reads everything, and does the floor's work: receiving, picking, counting and
+--             grading returns. Cannot adjust stock by hand, approve a count, or change
+--             suppliers, locations or documents.
+--
+-- Nobody holds either until an administrator gives it. Since A22 a signed-in user with neither
+-- sees no logistic data at all; give existing warehouse staff Operator before upgrading.
+
+insert into role (slug) values ('logistic_manager'), ('logistic_operator')
+on conflict (slug) do nothing;
+
+insert into role_permission (role_id, permission_id)
+select r.id, p.id
+from role r
+join permission p on (
+  (r.slug = 'logistic_manager' and p.scope in (
+    'storage_location', 'supplier', 'stock_level', 'inbound_receipt', 'pick_task', 'shipment',
+    'return_authorization', 'cycle_count'))
+  or (r.slug = 'logistic_operator' and (
+    (p.action = 'read' and p.scope in (
+      'storage_location', 'supplier', 'stock_level', 'inbound_receipt', 'pick_task', 'shipment',
+      'return_authorization', 'cycle_count'))
+    or (p.scope, p.action) in (
+      ('inbound_receipt', 'receive'), ('pick_task', 'pick'), ('cycle_count', 'count'),
+      ('return_authorization', 'grade'))))
+)
+where r.slug in ('logistic_manager', 'logistic_operator')
+on conflict do nothing;
+
+insert into local_text_link (slug, scope, entity_id)
+select 'name', 'role', r.id from role r
+where r.slug in ('logistic_manager', 'logistic_operator')
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = v.locale_code), v.display
+from (values
+  ('logistic_manager', 'en', 'Logistics manager'), ('logistic_manager', 'fr', 'Responsable logistique'),
+  ('logistic_operator', 'en', 'Warehouse operator'), ('logistic_operator', 'fr', 'Opérateur d''entrepôt')
+) as v(role_slug, locale_code, display)
+join role r on r.slug = v.role_slug
+join local_text_link l on l.slug = 'name' and l.scope = 'role' and l.entity_id = r.id
+on conflict (link, locale) do nothing;
+
+-- Labels for this module's permission scopes and verbs, under the access scope.
+insert into local_text_link (slug, scope, entity_id) values
+  ('access.permission_scope.storage_location',     'access', null),
+  ('access.permission_scope.supplier',             'access', null),
+  ('access.permission_scope.stock_level',          'access', null),
+  ('access.permission_scope.inbound_receipt',      'access', null),
+  ('access.permission_scope.pick_task',            'access', null),
+  ('access.permission_scope.shipment',             'access', null),
+  ('access.permission_scope.return_authorization', 'access', null),
+  ('access.permission_scope.cycle_count',          'access', null),
+  ('access.permission_action.adjust',              'access', null),
+  ('access.permission_action.receive',             'access', null),
+  ('access.permission_action.pick',                'access', null),
+  ('access.permission_action.grade',               'access', null),
+  ('access.permission_action.count',               'access', null),
+  ('access.permission_action.approve',             'access', null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'en'), v.content
+from (values
+  ('access.permission_scope.storage_location',     'access', 'Storage locations'),
+  ('access.permission_scope.supplier',             'access', 'Suppliers'),
+  ('access.permission_scope.stock_level',          'access', 'Stock'),
+  ('access.permission_scope.inbound_receipt',      'access', 'Inbound receipts'),
+  ('access.permission_scope.pick_task',            'access', 'Pick tasks'),
+  ('access.permission_scope.shipment',             'access', 'Shipments'),
+  ('access.permission_scope.return_authorization', 'access', 'Returns'),
+  ('access.permission_scope.cycle_count',          'access', 'Cycle counts'),
+  ('access.permission_action.adjust',              'access', 'Adjust'),
+  ('access.permission_action.receive',             'access', 'Receive'),
+  ('access.permission_action.pick',                'access', 'Pick'),
+  ('access.permission_action.grade',               'access', 'Grade'),
+  ('access.permission_action.count',               'access', 'Count'),
+  ('access.permission_action.approve',             'access', 'Approve')
+) as v(slug, scope, content)
+join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = 'fr'), v.content
+from (values
+  ('access.permission_scope.storage_location',     'access', 'Emplacements'),
+  ('access.permission_scope.supplier',             'access', 'Fournisseurs'),
+  ('access.permission_scope.stock_level',          'access', 'Stock'),
+  ('access.permission_scope.inbound_receipt',      'access', 'Réceptions'),
+  ('access.permission_scope.pick_task',            'access', 'Tâches de prélèvement'),
+  ('access.permission_scope.shipment',             'access', 'Expéditions'),
+  ('access.permission_scope.return_authorization', 'access', 'Retours'),
+  ('access.permission_scope.cycle_count',          'access', 'Inventaires tournants'),
+  ('access.permission_action.adjust',              'access', 'Ajuster'),
+  ('access.permission_action.receive',             'access', 'Réceptionner'),
+  ('access.permission_action.pick',                'access', 'Prélever'),
+  ('access.permission_action.grade',               'access', 'Évaluer'),
+  ('access.permission_action.count',               'access', 'Compter'),
+  ('access.permission_action.approve',             'access', 'Approuver')
+) as v(slug, scope, content)
+join local_text_link l on l.slug = v.slug and l.scope = v.scope and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Admin navigation (A24): the logistic area and the warehouse floor
+-- ──────────────────────────────────────────────────────────────────────────────
+--
+-- Labels are global copy (scope null), as the admin layout reads them. Logistics is shown to
+-- anyone holding stock (every logistic role does); Warehouse to anyone who may see pick tasks.
+
+insert into local_text_link (slug, scope, entity_id) values
+  ('logistic.navigation.dashboard', null, null),
+  ('logistic.navigation.warehouse', null, null)
+on conflict do nothing;
+
+insert into local_text (link, locale, content)
+select l.id, (select id from locale where code = v.locale_code), v.content
+from (values
+  ('logistic.navigation.dashboard', 'en', 'Logistics'),
+  ('logistic.navigation.dashboard', 'fr', 'Logistique'),
+  ('logistic.navigation.warehouse', 'en', 'Warehouse'),
+  ('logistic.navigation.warehouse', 'fr', 'Entrepôt')
+) as v(slug, locale_code, content)
+join local_text_link l on l.slug = v.slug and l.scope is null and l.entity_id is null
+on conflict (link, locale) do nothing;
+
+insert into navigation_item (local_text_link_id, href, menu, position, permission_scope)
+select l.id, v.href, 'admin', v.position, v.permission_scope
+from (values
+  ('logistic.navigation.dashboard', '/admin/logistic', 200, 'stock_level'),
+  ('logistic.navigation.warehouse', '/warehouse', 210, 'pick_task')
+) as v(slug, href, position, permission_scope)
+join local_text_link l on l.slug = v.slug and l.scope is null and l.entity_id is null
+on conflict (href, menu) do nothing;

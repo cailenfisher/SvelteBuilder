@@ -14,6 +14,16 @@ export type ScreenCopy = {
 };
 
 /**
+ * What the reader may do on a screen's scope (`create`, `update`, a module verb), so it shows
+ * only the controls that will work. A courtesy: the database refuses what is not allowed,
+ * whatever the screen shows. Absent when a loader does not report it, in which case a screen
+ * shows every control and lets the database answer.
+ */
+export type ScreenAction = {
+  actions?: string[];
+};
+
+/**
  * The locale a screen formats dates and numbers in. Carried on the view rather than read from the
  * root layout's data, because a screen is provider-neutral and the layout's shape is the scaffold's
  * business.

@@ -26,14 +26,15 @@ import type { ArticleAdminDetailView, ArticleChecklistEntry } from '@sveltebuild
 import type { RoleAssignmentPanelView } from '@sveltebuilder/access/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError, postgrestFormError } from '$lib/server/form-error';
-import { loadArticleAction, requireArticleScope } from '../article-action';
+import { loadArticleAction } from '../article-action';
+import { requireScope } from '../../../require-access';
 
 export const load: PageServerLoad = async ({
   locals,
   params,
   parent,
 }): Promise<ArticleAdminDetailView & { access: RoleAssignmentPanelView | null }> => {
-  await requireArticleScope(parent);
+  await requireScope(parent, 'article');
 
   const id = Number(params.id);
   if (!Number.isInteger(id)) throw error(404, 'Not found.');

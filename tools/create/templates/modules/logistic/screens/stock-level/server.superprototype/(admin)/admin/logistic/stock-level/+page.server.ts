@@ -10,6 +10,8 @@ import type { StockAdjustmentReason } from '@sveltebuilder/logistic';
 import type { StockLevelListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../require-access';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless. See the supplier list loader for the reasoning.
@@ -25,7 +27,11 @@ const MANUAL_REASONS: StockAdjustmentReason[] = [
   'other',
 ];
 
-export const load: PageServerLoad = async ({ locals, url }): Promise<StockLevelListView> => {
+export const load: PageServerLoad = async ({ parent, locals, url }): Promise<StockLevelListView> => {
+  await requireScope(parent, 'stock_level');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'stock_level');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   const historyParam = url.searchParams.get('history');
   const historyStockLevelId =
     historyParam !== null && /^\d+$/.test(historyParam) ? Number(historyParam) : null;
@@ -48,6 +54,7 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<StockLevelL
   if (historyResult.error) throw error(500, 'Failed to load the adjustment history.');
 
   return {
+    actions,
     stockLevels: levelsResult.data,
     stockAdjustments: historyResult.data,
     historyStockLevelId,
@@ -81,7 +88,6 @@ export const actions: Actions = {
       stockLevelId,
       delta,
       reason,
-      userAccountId: locals.userAccountId,
       note,
     });
 

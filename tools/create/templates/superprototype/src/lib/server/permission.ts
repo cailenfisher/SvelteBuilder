@@ -28,6 +28,19 @@ export async function currentUserCan(
 }
 
 /**
+ * Every action the current user may take on every row of `scope` (current_user_actions): what a
+ * screen asks to show only the controls that will work. RLS and the RPCs decide regardless.
+ */
+export async function listCurrentUserAction(
+  supabase: SupabaseClient,
+  scope: string
+): Promise<QueryResult<string[]>> {
+  const { data, error } = await supabase.rpc('current_user_actions', { p_scope: scope });
+  if (error) return { data: null, error };
+  return { data: (data as string[] | null) ?? [], error: null };
+}
+
+/**
  * The permission catalog, by scope then action. sync:supabase writes it from every module's
  * registry manifest; nothing in the app changes it. Readable by administrators only.
  */

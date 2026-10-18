@@ -60,7 +60,8 @@ Report this table at the end of every phase. Update it when an item lands or som
 | `checkbox-matrix` changeset | `.changeset/checkbox-matrix.md` | done | `minor`, now that this folds into the RC: content and logistic are already majors there |
 | `@sveltebuilder/access` releases as 1.0.0-rc | Changesets | merge of this branch | its coreui peer makes the new package a major; 1.0 beside coreui 1.0 unless decided otherwise |
 | P1 article insert constraint | A19 | Phase 8 | adopted |
-| P2 logistic non-admin access on adoption | A22 | Phase 9 | adopted |
+| P2 logistic non-admin access on adoption | A22 | Phase 9 | adopted and built; the MIGRATION guide tells operators to give staff Warehouse operator |
+| Warehouse no-access page, inbound receipt attribution, Operators adding shipment lines | `docs/DEFERRED.md` | not v1 | recorded in Phase 9 |
 
 ---
 
@@ -186,7 +187,7 @@ Start by settling the two Phase 8 items in the deferred table: the seeded role s
 7. Close field-test finding 6 (appendix §3a): `comment` columns are selectable only per public column.
 8. Extend `40-assert-content.sql` with the content bullets of DESIGN §9, plus `author_email` unreadable by anon and authenticated non-admins, plus: an assigned editor can update their article and its blocks and not another's; a `content_writer` cannot publish by RPC or by `PATCH`; the publish checklist cannot be skipped by an admin either; public reads are unchanged.
 9. If a rename lands, it is total (see `CLAUDE.md` and the conformance plan's rule): schema, types, policies, seeds, screens, tests, docs, in this phase.
-10. Changeset for content. Run the Clarion's `08` journey against a scaffold from this branch.
+10. Changeset for content. Run the Clarion's `08` journey against a scaffold from this branch. *Moved to Phase 10*, which re-runs every Clarion journey against the finished branch.
 
 **Gate.** Pause.
 
@@ -199,8 +200,8 @@ Start by settling the two Phase 8 items in the deferred table: the seeded role s
 3. Rewrite every policy in the Phase 0 worklist to the scope-level shape: admin-gated, `using (true)` reads, and `worker_update` alike (A22).
 4. The five SECURITY DEFINER stock functions check `current_user_can()` themselves, since they bypass RLS, and take the acting user from `current_user_id()` instead of a `p_user_account_id` parameter. Update their callers.
 5. Close field-test finding 7 (appendix §3a): rebuild `pick_task_line`'s update grant so its quantities and references change only through `logistic_record_picked_quantity`.
-6. Loaders return `actions`; screens hide what the user cannot do. The `(warehouse)` layout admits only a user holding a logistic permission, and shows a no-access page rather than a 403 to one who does not (field-test finding 12).
-7. Extend `30-assert-logistic.sql`: an operator can receive and pick but not adjust stock or manage suppliers; a signed-in user with no role reads nothing; a stock adjustment cannot be attributed to someone else; a worker cannot change a pick line's requested quantity. Run the Clarion's `08` journey against a scaffold from this branch.
+6. Loaders return `actions`; screens hide what the user cannot do. The `(warehouse)` layout admits only a user holding a logistic permission, and shows a no-access page rather than a 403 to one who does not (field-test finding 12). *Built:* finding 12 is closed by A24, since sign-in lands staff on `/admin/dashboard`, which now admits them and lists the warehouse. Someone with no role still gets a 403; the no-access page is in `docs/DEFERRED.md`.
+7. Extend `30-assert-logistic.sql`: an operator can receive and pick but not adjust stock or manage suppliers; a signed-in user with no role reads nothing; a stock adjustment cannot be attributed to someone else; a worker cannot change a pick line's requested quantity. Run the Clarion's `08` journey against a scaffold from this branch. *Moved to Phase 10*, which re-runs every Clarion journey against the finished branch.
 8. Changeset for logistic, and a `MIGRATION` entry telling operators to assign `logistic_operator` to existing staff before upgrading.
 
 **Gate.**

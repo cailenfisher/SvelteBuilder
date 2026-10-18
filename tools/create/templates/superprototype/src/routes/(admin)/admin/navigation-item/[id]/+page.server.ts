@@ -8,7 +8,7 @@ import {
   updateNavigationItem,
 } from '$lib/server/navigation-item';
 import { formError } from '$lib/server/form-error';
-import { requireAdministrator } from '../../require-administrator';
+import { requireAdministrator } from '../../require-access';
 
 export const load: PageServerLoad = async ({ params, locals, parent }) => {
   await requireAdministrator(parent);

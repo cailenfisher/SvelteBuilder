@@ -11,8 +11,14 @@ import type { ShipmentStatus } from '@sveltebuilder/logistic';
 import type { ShipmentDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../../require-access';
 
-export const load: PageServerLoad = async ({ locals, params }): Promise<ShipmentDetailView> => {
+export const load: PageServerLoad = async ({ parent, locals, params }): Promise<ShipmentDetailView> => {
+  await requireScope(parent, 'shipment');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'shipment');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   const id = Number(params.id);
   if (!Number.isInteger(id)) throw error(404, 'Not found.');
 
@@ -26,6 +32,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<Shipment
   if (!shipmentResult.data) throw error(404, 'Shipment not found.');
 
   return {
+    actions,
     shipment: shipmentResult.data,
     statuses: SHIPMENT_STATUSES,
     localeCode: locals.locale.code,

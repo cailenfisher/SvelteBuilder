@@ -4,8 +4,14 @@ import { approveCycleCount, getCycleCount } from '$lib/server/logistic/cycle-cou
 import type { CycleCountDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../../require-access';
 
-export const load: PageServerLoad = async ({ locals, params }): Promise<CycleCountDetailView> => {
+export const load: PageServerLoad = async ({ parent, locals, params }): Promise<CycleCountDetailView> => {
+  await requireScope(parent, 'cycle_count');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'cycle_count');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   const id = Number(params.id);
   if (!Number.isInteger(id)) throw error(404, 'Not found.');
 
@@ -23,6 +29,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<CycleCou
   if (!countResult.data) throw error(404, 'Cycle count not found.');
 
   return {
+    actions,
     cycleCount: countResult.data,
     localeCode: locals.locale.code,
     copy,
@@ -35,7 +42,7 @@ export const actions: Actions = {
     if (!Number.isInteger(id)) throw error(404, 'Not found.');
     if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
-    const { error: rpcError } = await approveCycleCount(locals.supabase, id, locals.userAccountId);
+    const { error: rpcError } = await approveCycleCount(locals.supabase, id);
 
     if (rpcError) {
       if (rpcError.code === '42501') {

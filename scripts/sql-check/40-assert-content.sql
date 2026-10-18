@@ -486,6 +486,7 @@ do $$
 declare
   n integer;
 begin
+  if to_regclass('public.article') is null then return; end if;
   for n in 1..5 loop
     set local role authenticated;
     perform set_config('request.jwt.claim.sub', 'dddddddd-0000-4000-8000-00000000d00' || n, true);
@@ -511,9 +512,12 @@ begin
   perform set_config('request.jwt.claim.sub', 'aaaaaaaa-0000-4000-8000-000000000001', true);
 end $$;
 
-create function pg_temp.article_id(p_letter text) returns bigint language sql stable security definer as $$
-  select id from public.article where canonical_slug = 'sqlcheck-access-' || p_letter
-$$;
+create function pg_temp.article_id(p_letter text) returns bigint language plpgsql stable security definer as $$
+begin
+  -- Called from declarations, which run before a block's own module check.
+  if to_regclass('public.article') is null then return null; end if;
+  return (select id from public.article where canonical_slug = 'sqlcheck-access-' || p_letter);
+end $$;
 
 create function pg_temp.role_id(p_slug text) returns integer language sql stable security definer as $$
   select id from public.role where slug = p_slug
@@ -521,8 +525,10 @@ $$;
 
 do $$
 declare
-  v_draft bigint := (select id from public.article_status where slug = 'draft');
+  v_draft bigint;
 begin
+  if to_regclass('public.article') is null then return; end if;
+  v_draft := (select id from public.article_status where slug = 'draft');
   insert into public.article (article_status_id, canonical_slug) values
     (v_draft, 'sqlcheck-access-a'), (v_draft, 'sqlcheck-access-b');
   insert into public.article_block (article_id, block_type, position)
@@ -541,6 +547,7 @@ end $$;
 
 do $$
 begin
+  if to_regclass('public.article') is null then return; end if;
   perform pg_temp.sign_in(4);
   if cardinality(public.current_user_scopes()) <> 0 then
     raise exception 'a user with no role holds scopes: %', public.current_user_scopes();
@@ -569,6 +576,7 @@ declare
   v_b bigint := pg_temp.article_id('b');
   v_rows integer;
 begin
+  if to_regclass('public.article') is null then return; end if;
   perform pg_temp.sign_in(4);
   if exists (select 1 from public.article where id in (v_a, v_b)) then
     raise exception 'a user with no role reads a draft';
@@ -611,6 +619,7 @@ do $$
 declare
   v_a bigint := pg_temp.article_id('a');
 begin
+  if to_regclass('public.article') is null then return; end if;
   -- Satisfy the checklist first, so only permission stands between anyone and publishing below.
   insert into public.article_checklist_state (article_id, publish_checklist_item_id, satisfied)
   select v_a, i.id, true from public.publish_checklist_item i;
@@ -652,6 +661,7 @@ do $$
 declare
   v_column text;
 begin
+  if to_regclass('public.article') is null then return; end if;
   -- Every column of article is updatable but the two the workflow function owns, and the identity.
   for v_column in
     select attname from pg_attribute
@@ -674,6 +684,7 @@ declare
   v_new bigint;
   v_rows integer;
 begin
+  if to_regclass('public.article') is null then return; end if;
   perform pg_temp.sign_in(1);
   v_new := public.content_create_article(
     'sqlcheck-access-writer', (select id from public.locale where code = 'en'), 'A Writer''s story');
@@ -716,6 +727,7 @@ do $$
 declare
   v_a bigint := pg_temp.article_id('a');
 begin
+  if to_regclass('public.article') is null then return; end if;
   -- The Contributor may edit A but not share it, so may not assign anyone to it.
   perform pg_temp.sign_in(3);
   begin
@@ -744,6 +756,7 @@ end $$;
 
 do $$
 begin
+  if to_regclass('public.article') is null then return; end if;
   perform pg_temp.sign_in(1);
   begin
     insert into public.section (slug, position) values ('sqlcheck-access-section', 999);
@@ -774,6 +787,7 @@ end $$;
 
 do $$
 begin
+  if to_regclass('public.article') is null then return; end if;
   delete from public.local_text using public.local_text_link l
   where local_text.link = l.id and l.scope = 'article'
     and l.entity_id in (select id from public.article where canonical_slug like 'sqlcheck-access-%');

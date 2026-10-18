@@ -11,3 +11,17 @@ export async function requireAdministrator(parent: () => Promise<{ admin: boolea
   const { admin } = await parent();
   if (!admin) throw error(403, 'Administrators only.');
 }
+
+/**
+ * Refuses a staff member a module's screen when they hold nothing in its scope (A24): the
+ * article screens take `article`, a logistic screen its own document's scope. The (admin)
+ * layout reports every scope the user holds; this turns a screen RLS would show empty into a
+ * plain 403.
+ */
+export async function requireScope(
+  parent: () => Promise<{ scopes: string[] }>,
+  scope: string
+): Promise<void> {
+  const { scopes } = await parent();
+  if (!scopes.includes(scope)) throw error(403, 'Not yours to manage.');
+}

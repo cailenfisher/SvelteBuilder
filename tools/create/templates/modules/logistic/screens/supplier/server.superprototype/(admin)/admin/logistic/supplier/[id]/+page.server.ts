@@ -5,11 +5,17 @@ import { getSupplier, updateSupplier } from '$lib/server/logistic/supplier';
 import type { SupplierDetailView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../../require-access';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless of what reaches here. See the list screen's loader for the reasoning.
 
-export const load: PageServerLoad = async ({ locals, params }): Promise<SupplierDetailView> => {
+export const load: PageServerLoad = async ({ parent, locals, params }): Promise<SupplierDetailView> => {
+  await requireScope(parent, 'supplier');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'supplier');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   const id = Number(params.id);
   if (!Number.isInteger(id)) throw error(404, 'Not found.');
 
@@ -29,6 +35,7 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<Supplier
   const supplier = supplierResult.data;
 
   return {
+    actions,
     supplier: {
       ...supplier,
       contacts: [...supplier.contacts].sort((a, b) => a.role.localeCompare(b.role)),

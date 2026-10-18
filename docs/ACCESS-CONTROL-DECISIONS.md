@@ -322,7 +322,7 @@ The permission catalog covers the editorial tables: `article` (per row as well),
 
 The `(admin)` layout admits administrators and staff: anyone holding at least one role, broadly or on a single row, through `current_user_scopes()`. Everyone else gets a 403 there.
 
-Screens the base template ships for administration (roles, groups, users, locales, copy, navigation) call `requireAdministrator()` first in their loaders. A module's screen admits staff holding its scope (`requireArticleScope()` for content's article screens). RLS refuses whatever a screen lets through regardless: these are the experience, not the guard.
+Screens the base template ships for administration (roles, groups, users, locales, copy, navigation) call `requireAdministrator()` first in their loaders. A module's screen admits staff holding its scope (`requireScope(parent, 'article')` for content's article screens). RLS refuses whatever a screen lets through regardless: these are the experience, not the guard.
 
 The menu shows an administrator every entry, and staff the entries whose `navigation_item.permission_scope` they hold anything in. An entry naming no scope is for administrators only, which is what every entry an administrator adds is until the navigation screens can set one.
 

@@ -102,13 +102,12 @@ export async function getShipment(
  */
 export async function createShipment(
   supabase: SupabaseClient,
-  fields: Pick<Shipment, 'userAccountId' | 'carrier' | 'serviceLevel'> & {
+  fields: Pick<Shipment, 'carrier' | 'serviceLevel'> & {
     skus: string[];
     quantities: number[];
   }
 ): Promise<QueryResult<number | null>> {
   const { data, error } = await supabase.rpc('logistic_create_shipment', {
-    p_user_account_id: fields.userAccountId,
     p_skus: fields.skus,
     p_quantities: fields.quantities,
     p_carrier: fields.carrier,

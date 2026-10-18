@@ -45,19 +45,17 @@ export async function getInboundReceiptLine(
 
 /**
  * Five statements across three tables (move stock, update the line, recompute the receipt's
- * status), so an RPC. See the function's own comment in
- * supabase/supplemental/05-logistic-supplements.sql for why it is SECURITY INVOKER and why its
- * statement order matters. It raises 42501 (insufficient_privilege) when RLS refused the line
- * update: a receipt already completed or cancelled.
+ * status), so an RPC. It takes `inbound_receipt.receive`, records the movement against the caller,
+ * and raises 42501 (insufficient_privilege) without that, or on a receipt already completed or
+ * cancelled.
  */
 export async function receiveInboundReceiptLine(
   supabase: SupabaseClient,
-  line: { id: number; receivedQuantity: number; userAccountId: number }
+  line: { id: number; receivedQuantity: number }
 ): Promise<QueryResult<null>> {
   const { error } = await supabase.rpc('logistic_receive_receipt_line', {
     p_line_id: line.id,
     p_received_quantity: line.receivedQuantity,
-    p_user_account_id: line.userAccountId,
   });
   if (error) return { data: null, error };
   return { data: null, error: null };

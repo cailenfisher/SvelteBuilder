@@ -65,7 +65,6 @@ export const actions: Actions = {
     const { error: rpcError } = await recordPickTaskLineQuantity(locals.supabase, {
       id: lineId,
       pickedQuantity: quantity,
-      userAccountId: locals.userAccountId,
     });
 
     if (rpcError) {
@@ -84,7 +83,7 @@ export const actions: Actions = {
     if (!Number.isInteger(id)) throw error(404, 'Not found.');
     if (locals.userAccountId === null) return formError(403, 'logistic.error.not_signed_in');
 
-    const { error: rpcError } = await completePickTask(locals.supabase, id, locals.userAccountId);
+    const { error: rpcError } = await completePickTask(locals.supabase, id);
 
     if (rpcError) {
       if (rpcError.code === '42501') {
