@@ -383,7 +383,8 @@ tokens (`url`, `http`, `api`) are acceptable. Never invent shortenings (`cfg`, `
 - **Role suffixes** are the global list (`Form`, `List`, `Table`, `Row`, `Card`, `Detail`,
   `Summary`, `Drawer`, `Modal`, `Header`, `Footer`, `Search`, `Filter`, `Picker`, `Field`, `Badge`,
   `Link`, `Empty`, `Skeleton`) plus, in this repo: `Fieldset`, `Queue`, `Board`, `Panel`,
-  `Renderer`, `Figure`, `Bar`, `Path`, `Editor`, `Region`, and `Option` (a view-model type for one
+  `Renderer`, `Figure`, `Bar`, `Path`, `Editor`, `Region`, `Matrix` (a grid of one control per
+  row-and-column pair, such as `CheckboxMatrix`), and `Option` (a view-model type for one
   `<Select>` option).
 - **Inputs are `Field`s and `Fieldset`s; only a component that owns the `<form>` is a `Form`.** A
   `…Form` renders the `<form>` element itself, with its action and submit button, and is the clear

@@ -119,6 +119,7 @@ written as a plain element inside `TableBody` is unstyled. Use `TableRow`, `Tabl
 | Button | `.button` | `__leading`, `__text`, `__trailing`, `__spinner` | `--primary`, `--secondary`, `--ghost`, `--danger`, `--link`, `--sm`, `--md`, `--lg`, `--full`, `--loading` |
 | Card | `.card` | `__header`, `__body`, `__footer` | `--padded` |
 | Checkbox | `.checkbox` | `__control`, `__indicator`, `__icon`, `__label` | `__control--sm`, `__control--md` |
+| CheckboxMatrix | `.checkbox-matrix` (on the `Table` root, beside `.table`) | `__column-header`, `__row-header`, `__cell`, `__cell-content`, `__source` | — |
 | DataTable | `.data-table` | `__empty`, `__footer` | |
 | DateTimePicker | `.date-time-picker` | | |
 | Dialog, ConfirmDialog (shared) | `.dialog` | `__overlay`, `__trigger`, `__header`, `__title`, `__description`, `__body`, `__footer`, `__close` | `--sm`, `--md`, `--lg`, `--xl`, `--full` |
@@ -165,7 +166,7 @@ styles their `--sm`/`--md`/`--lg` and `--error` modifiers, and those modifiers a
 Set by Bits UI, and public because coreui's own styles key on them: `data-state` (`open`, `closed`,
 `checked`, `indeterminate`, `active`), `data-disabled`, `data-highlighted`, `data-selected`,
 `data-placeholder`, and `data-side` (`top`, `right`, `bottom`, `left`). coreui also sets
-`data-disabled` on the wrapping element of `Checkbox`, `Switch` and `Field`.
+`data-disabled` on the wrapping element of `Checkbox`, `Switch` and `Field`. `data-readonly` on the wrapping element of a read-only `Checkbox`.
 
 ### Tokens
 

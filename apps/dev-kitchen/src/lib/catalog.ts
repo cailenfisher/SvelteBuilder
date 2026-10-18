@@ -73,6 +73,7 @@ export const COREUI_PAGES = [
     components: ['Field', 'Label', 'Input', 'Textarea'],
   },
   { slug: 'checkbox', title: 'Checkbox', components: ['Checkbox'] },
+  { slug: 'checkbox-matrix', title: 'CheckboxMatrix', components: ['CheckboxMatrix'] },
   { slug: 'radio-group', title: 'RadioGroup', components: ['RadioGroup', 'RadioGroupItem'] },
   { slug: 'switch', title: 'Switch', components: ['Switch'] },
   { slug: 'select', title: 'Select', components: ['Select', 'SelectItem'] },

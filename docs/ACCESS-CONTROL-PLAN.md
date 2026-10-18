@@ -55,6 +55,7 @@ Report this table at the end of every phase. Update it when an item lands or som
 | Replace filename-prefix ordering of supplemental SQL | `docs/DEFERRED.md` | not v1 | recorded |
 | `article_assignment.role` column name | DESIGN §8 note | Phase 8 | open |
 | Content's seeded role set, and further content scopes (P3) | DESIGN §7, appendix §5 | Phase 8 | open |
+| `checkbox-matrix` changeset is `patch` | `.changeset/checkbox-matrix.md` | merge of this branch | A new component is a minor under `docs/COREUI-COMPATIBILITY.md`, but while coreui is pre-1.0 a minor bumps content and logistic a major (the peer cascade). Once 2.0 leaves pre mode (O4), make it `minor` and confirm `pnpm changeset status --verbose` shows no major |
 | P1 article insert constraint | A19 | Phase 8 | adopted |
 | P2 logistic non-admin access on adoption | A22 | Phase 9 | adopted |
 
