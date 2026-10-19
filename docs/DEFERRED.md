@@ -192,6 +192,11 @@ What Native will need whenever it resumes (record additions here rather than fix
   is Supabase-specific; `tools/cli/CLAUDE.md` already notes Native has never defined a sync path.
 - A `README.md` (it has none) and `.env.example` guidance that does not point `DATABASE_URL` at a
   table-owning superuser role.
+- **Its own Claude Code instructions.** The base template's `CLAUDE.template.md` reaches only a
+  Native scaffold, since SuperPrototype ships its own and overwrites it. It predates the
+  SuperPrototype rewrite and the `.claude/rules/` split (2026-10-18), and was renamed but not
+  revised. When Native resumes, give it the same
+  shape as SuperPrototype's: a lean `CLAUDE.template.md` plus path-scoped `claude-rules/`.
 - **Two SQL functions it does not define.** The shared base template's
   `supabase/supplemental/00-local-text-rls.sql` calls `public.current_user_admin()` and
   `public.current_user_id()`. SuperPrototype supplies both in

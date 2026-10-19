@@ -35,7 +35,7 @@ malformed seed or a policy admitting nobody ships green past them.
 
 ## `pnpm test`
 
-`pnpm test` runs the unit suites. Two of them cover what no scaffold harness can see, because the harnesses copy templates from this repo and override package versions: `tools/create/test/template-dotfile.test.ts` checks that `npm pack` publishes every template file (npm silently drops `.gitignore`), and `package-version.test.ts` that every SvelteBuilder dependency a scaffold can receive is pinned to the release, never `latest`. `tools/create/test/screen-bundle.test.ts` checks the half of a screen bundle's contract that types cannot express — that a manifest matches its files, that every
+`pnpm test` runs the unit suites. Two of them cover what no scaffold harness can see, because the harnesses copy templates from this repo and override package versions: `tools/create/test/template-stored-name.test.ts` checks that `npm pack` publishes every template file (npm silently drops `.gitignore`) and that none is stored under a name it must not have in this repo, and `package-version.test.ts` that every SvelteBuilder dependency a scaffold can receive is pinned to the release, never `latest`. `tools/create/test/screen-bundle.test.ts` checks the half of a screen bundle's contract that types cannot express — that a manifest matches its files, that every
 slug a screen renders is seeded, and that each has both required locales.
 `tools/create/test/data-module.test.ts` fails a route file that calls `.from(` or `.rpc(` itself.
 The package suites render components server-side; how they are configured is in

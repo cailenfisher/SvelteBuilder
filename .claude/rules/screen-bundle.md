@@ -59,5 +59,13 @@ it. The package side of that rule is `packages/CLAUDE.md`.
 `ScreenFormResult` are type-only exports of `@sveltebuilder/coreui`, and every module's `views.ts`
 imports them. A module declares only the screen types particular to it.
 
+**Some template files are stored under another name** and renamed when the CLI copies them:
+`gitignore` (npm will not publish `.gitignore`), `CLAUDE.template.md` and `claude-rules/` (as
+`CLAUDE.md` and `.claude/rules/`, Claude Code would load them while you work on this repo). The
+list is `tools/create/src/template-stored-name.ts`, and its test fails on a file stored under its
+real name. A scaffolded app's Claude Code instructions are SuperPrototype's `CLAUDE.template.md`,
+always loaded and kept lean, plus `claude-rules/database.md` and `claude-rules/component.md`,
+path-scoped. Long guides are linked on GitHub rather than copied in.
+
 The gates for this tree are `pnpm scaffold:check`, `pnpm sql:check` and the create suites in
 `tools/create/test/` (`docs/VERIFICATION.md`).
