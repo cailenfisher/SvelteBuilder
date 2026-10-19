@@ -1,7 +1,7 @@
 # DEFERRED.md
 
 Items intentionally deferred, or explicitly out of scope, during the diglossia 0.1.0 +
-SvelteBuilder integration work order. Read alongside `CLAUDE.md`'s Known Open Issues table.
+SvelteBuilder integration work order. Read alongside the Known Open Issues table in `docs/STATUS.md`.
 
 ---
 
@@ -38,7 +38,7 @@ fails to record it.
 
 ### Found and fixed along the way
 
-- **All five SECURITY DEFINER stock functions had no `set search_path`**, which CLAUDE.md makes
+- **All five SECURITY DEFINER stock functions had no `set search_path`**, which `.claude/rules/auth-access.md` makes
   mandatory precisely because a definer function without one inherits the caller's search_path and
   can be made to run a shadowed object with the owner's privileges. It surfaced as a composition
   failure, not a security report: an unqualified type name in a DECLARE stops resolving once a
@@ -189,7 +189,7 @@ What Native will need whenever it resumes (record additions here rather than fix
   (see the RLS section of this repo's history); a dedicated non-owner Postgres role plus
   `ALTER DEFAULT PRIVILEGES` is the fix, and it has not been applied.
 - Its own schema/migration path. It has no `supabase/` directory and `sveltebuilder sync:supabase`
-  is Supabase-specific; `CLAUDE.md` already notes Native has never defined a sync path.
+  is Supabase-specific; `tools/cli/CLAUDE.md` already notes Native has never defined a sync path.
 - A `README.md` (it has none) and `.env.example` guidance that does not point `DATABASE_URL` at a
   table-owning superuser role.
 - **Two SQL functions it does not define.** The shared base template's
@@ -492,7 +492,7 @@ entity-scoped rows, which is why the constraint defect was invisible" — didn't
 suppliers, exactly the "two entity-scoped links sharing slug and scope" pattern requested. That
 seed already exercises the constraint against the real Drizzle-generated schema; a scratch
 `drizzle-kit generate` run against `packages/local-text-schema/src/tables/local-text-link.ts`
-(see `CLAUDE.md`'s "Local-text DB schema" row) confirmed the partial index survives generation
+(see the "Local-text DB schema" row in `docs/STATUS.md`) confirmed the partial index survives generation
 correctly. `@sveltebuilder/content` has no seed file at all yet ("content module seed" isn't a
 thing to append to), and `@sveltebuilder/local-text-schema`'s `BASE_SLUGS` are global-only by
 design (no `entityId`), so neither was a natural home for a redundant example.

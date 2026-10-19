@@ -8,7 +8,7 @@ paths:
   - "tools/create/templates/modules/**"
 ---
 
-### Seed file conventions
+# Seed file conventions
 
 **Never use manual IDs.** All `INSERT` statements omit the `id` column; sequences assign IDs
 automatically. This applies to every table including `local_text_link` and `local_text`.
@@ -45,5 +45,3 @@ translations at minimum — both entity-bound names and UI application-level cop
 though its scope already says it: `logistic.inbound_receipt.title` in scope `logistic`. The second
 segment is the full, singular concept name (`inbound_receipt`, never `receipt` or `receipts`).
 Screens, components, manifests and seeds all use the same full slug.
-
----

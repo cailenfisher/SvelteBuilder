@@ -10,7 +10,7 @@
 //     Stored as plain text (not translated). Same pattern as blog comment.body.
 //
 // One module per concept: each table with its pgEnums and inferred types, and each enum's
-// values in a module of their own. See CLAUDE.md, "Schema file layout".
+// values in a module of their own. See .claude/rules/drizzle-schema.md, "Schema file layout".
 // =============================================================================
 export * from './cycle-count-line.js';
 export * from './cycle-count-status.js';

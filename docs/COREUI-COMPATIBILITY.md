@@ -179,7 +179,7 @@ Set by Bits UI, and public because coreui's own styles key on them: `data-state`
   `--brand-*` plus each status colour's `-soft`, `-text`, `-border`, `-fg` and `-hover`). Scaffolded
   screens read them, so removing or renaming one is a major. Assigning one is unsupported: its value
   is derived, and an assignment can break the derivation.
-- **Private:** tokens prefixed `--_` (CLAUDE.md, _Private component tokens_). Never part of the API.
+- **Private:** tokens prefixed `--_` (`.claude/rules/css.md`, _Private component tokens_). Never part of the API.
 
 ## 5. Support floors
 

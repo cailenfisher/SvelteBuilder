@@ -148,7 +148,7 @@ The module's own `seed.sql` still supplies EN and FR copy for its permissions an
 You must revoke `insert`, `update`, `delete` on every access table from `anon` and `authenticated`, exactly as `05-user-account-hardening.sql` does for `user_account`.
 
 RLS cannot see which columns an allowed `UPDATE` touches, and it cannot express "the granted role must not exceed the granter's own rights".
-Both rules need code, and code a route can skip is no rule (see the `user_account` incident in `CLAUDE.md`).
+Both rules need code, and code a route can skip is no rule (see the `user_account` incident in `.claude/rules/auth-access.md`, _Admin role_).
 
 The entity sharing RPC enforces the escalation rule:
 
@@ -341,7 +341,7 @@ You must not build these in v1. Each is excluded for a reason, and each fits the
 | `explain_access()`: why one user holds an action, across every scope | The entity access panel (A17) already shows every grant on an entity and its source. Answering per user, for any scope, needs either dynamic dispatch over the entity tables or a generated branch per scope, plus a screen of its own, to answer a question the panel and the user's own assignments page answer between them. | A generated function with one static branch per `access.entity` scope, so no dynamic SQL, reading the same tables the panel reads. Revisit when an admin cannot answer "why can they still?" from those two screens. |
 | An access audit log | `granted_by` and `granted_at` cover "who granted this". Revocation history is lost on delete. | A future audit or analytics module subscribing to the RPCs. |
 | Invitations and self-service sign-up into groups | Product flow, not authorization. | RPCs on top of `user_group_member`. |
-| JWT role claims | `CLAUDE.md` already forbids them for `admin`; the same reason applies. | Not planned. |
+| JWT role claims | `.claude/rules/auth-access.md` already forbids them for `admin`; the same reason applies. | Not planned. |
 
 ---
 

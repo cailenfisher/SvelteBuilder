@@ -5,9 +5,9 @@ paths:
   - "**/src/lib/server/schema.ts"
 ---
 
-## Domain Schema Rules
+# Domain schema rules
 
-### No conventional copy fields — ever
+## No conventional copy fields — ever
 
 Domain models never carry `name`, `title`, `label`, `description`, or any equivalent
 user-facing text column. Copy is linked via `LocalTextLink`, keyed by scope + entityId.
@@ -16,7 +16,7 @@ The schema carries only `id` and structural/relational columns.
 Do not add a bare text column intending to localize it later. The `LocalTextLink` wiring
 is the model from the start.
 
-### Integer primary keys — not UUIDs
+## Integer primary keys — not UUIDs
 
 Default domain entity primary keys to `integer generated always as identity` / TypeScript
 `number`. `bigint` is reserved for entities expected to reach extreme row counts (event logs,
@@ -29,14 +29,14 @@ UUID primary keys are not used anywhere in the ecosystem. `local_text_link.entit
 `bigint` column that holds IDs from any domain table polymorphically — an `integer` PK fits inside
 it without conversion, which is why defaulting to `integer` doesn't strain that design.
 
-### The polymorphic link
+## The polymorphic link
 
 `local_text_link.entity_id` has no enforced foreign key. It points at rows across many domain
 tables (`product`, `order`, `warehouse_location`, etc.). There is no FK constraint because one
 column cannot reference multiple tables. This is accepted and intentional — referential integrity
 is enforced by convention and tooling, not a DB constraint. Do not attempt to add a FK here.
 
-### Core i18n schema
+## Core i18n schema
 
 ```sql
 -- All IDs: bigint generated always as identity
@@ -49,7 +49,7 @@ local_text_link (
   UNIQUE NULLS NOT DISTINCT (slug, scope, entity_id)
   -- NULLS NOT DISTINCT is required, not cosmetic: global copy has scope and
   -- entity_id both NULL, and a plain UNIQUE treats NULLs as distinct, so it would
-  -- not constrain those rows at all. See the note under Seed file conventions.
+  -- not constrain those rows at all. See `.claude/rules/seed.md`.
 )
 
 local_text (
@@ -69,11 +69,10 @@ locale (
 )
 ```
 
----
+## Schema file layout (per module)
 
-### Schema file layout (per module)
-
-Schema is **Drizzle-first**: each package exports its tables as TypeScript. SQL is a generated
+Schema is **Drizzle-first**: each package exports its tables as TypeScript, and
+`sveltebuilder sync:supabase` generates the migrations (`tools/cli/CLAUDE.md`). SQL is a generated
 artifact — never hand-authored for a domain module.
 
 ```

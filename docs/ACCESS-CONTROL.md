@@ -80,7 +80,7 @@ role_assignment (
 )
 ```
 
-`UNIQUE NULLS NOT DISTINCT` is required, not cosmetic, for the reason `CLAUDE.md` gives under _Seed file conventions_: a global user assignment has two nulls in the key.
+`UNIQUE NULLS NOT DISTINCT` is required, not cosmetic, for the reason `.claude/rules/seed.md` gives: a global user assignment has two nulls in the key.
 
 Two triggers on `role_assignment`:
 

@@ -3,7 +3,7 @@ paths:
   - "tools/create/**"
 ---
 
-### Screen bundles
+# Screen bundles
 
 A module's route code lives in the create CLI's template tree, never in the package — see
 guardrail 10. Each selectable bundle is:
@@ -53,8 +53,11 @@ error, or a logged fallback. Route files never call `.from(` or `.rpc(` themselv
 its own component. If it is presentational (props in, markup out), it goes in the module package's
 concept folder, with a dev-kitchen showcase. If it is bound to its route (posts to that page's form
 actions, or builds that route's hrefs), it stays in the bundle, beside the `+page.svelte` that uses
-it.
+it. The package side of that rule is `packages/CLAUDE.md`.
 
 **Shared screen-contract types are declared once.** `ScreenCopy`, `ScreenLocale`, `ScreenPage` and
 `ScreenFormResult` are type-only exports of `@sveltebuilder/coreui`, and every module's `views.ts`
 imports them. A module declares only the screen types particular to it.
+
+The gates for this tree are `pnpm scaffold:check`, `pnpm sql:check` and the create suites in
+`tools/create/test/` (`docs/VERIFICATION.md`).

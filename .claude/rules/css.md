@@ -5,15 +5,15 @@ paths:
   - "scripts/css-check.mjs"
 ---
 
-## CSS Style System
+# CSS style system
 
-### The scaffold is the integrator
+## The scaffold is the integrator
 
 `@sveltebuilder/coreui` and every domain module ship stylesheets but never self-apply them. The
 scaffold `app.css` imports each package's stylesheet into the correct layer position. This is
 intentional: the scaffold controls the cascade; the libraries supply the rules.
 
-### Layer cascade
+## Layer cascade
 
 All styles in a SvelteBuilder application flow through named CSS cascade layers in this order:
 
@@ -50,7 +50,7 @@ The scaffold `app.css` wires everything together:
 The create CLI writes each selected module's line after coreui's, so a module rule that styles a
 coreui part wins a tie by order. `reset` is a reserved layer slot; no file targets it yet.
 
-### What each layer owns
+## What each layer owns
 
 | Layer        | File(s)                                 | Owns                                                                                                    |
 | ------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -65,7 +65,7 @@ coreui part wins a tie by order. `reset` is a reserved layer slot; no file targe
 modify the same `.input`/`.textarea` classes that `chrome` establishes. Keeping them together
 in one layer and one file removes the ordering dependency that made `state` a separate layer.
 
-### Plain stylesheets
+## Plain stylesheets
 
 BEM class names scope every rule, which is what BEM was designed for, so no component uses Svelte's
 compiled scoping: no `<style>` blocks and no `:global`, anywhere. Styles are plain CSS files the page
@@ -133,26 +133,12 @@ depends on the parent's markup.
 
 **Private component tokens (`--_` prefix).** When a component needs an internal CSS variable
 that is not part of the public theming surface — to share a value between two selectors within
-one component's ruleset in its stylesheet — name it with a `--_` prefix:
-
-```css
-/* private: consumers must not reference this */
-.accordion-item__trigger {
-  --_icon-rotate: 0deg;
-}
-.accordion-item__trigger[data-state='open'] {
-  --_icon-rotate: 180deg;
-}
-.accordion-item__chevron {
-  transform: rotate(var(--_icon-rotate, 0deg));
-}
-```
-
-The `--_` prefix signals "internal implementation detail." Do not advertise these in docs or
+one component's ruleset in its stylesheet, as `--_icon-rotate` does above — name it with a `--_`
+prefix. The `--_` prefix signals "internal implementation detail." Do not advertise these in docs or
 override them from application CSS. If a value needs to be themeable, it should chain to a
 public semantic token instead.
 
-### Theme and color scheme via `data-*`
+## Theme and color scheme via `data-*`
 
 Dark mode and theme variants are driven by `data-*` attributes on ancestor elements, never by
 CSS class toggles. The token overrides in `@sveltebuilder/coreui/styles/_internal.css` respond
@@ -175,7 +161,7 @@ document.documentElement.setAttribute('data-color-scheme', 'dark');
 document.documentElement.removeAttribute('data-color-scheme');
 ```
 
-### Bits UI data-attribute wiring
+## Bits UI data-attribute wiring
 
 All interactive state for Bits UI components **must** use data attributes, not class toggles.
 Bits UI sets these automatically; style rules target them directly:
@@ -189,8 +175,7 @@ Bits UI sets these automatically; style rules target them directly:
 [data-placeholder]        { … }   /* select value placeholder */
 ```
 
-**Never** use a Svelte snippet child to read Bits UI state and apply a class manually when the
+Use a CSS custom property bridge (above) when the data attribute on a parent must affect a
+non-Bits child element. **Never** use a Svelte snippet child to read Bits UI state and apply a class manually when the
 data attribute already carries that state. Pseudo-elements driven by data-attribute selectors
 are the correct pattern for visual indicators (e.g., radio dot via `::after`).
-
----
