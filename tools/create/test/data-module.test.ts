@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 /**
  * The backend seam: route code calls one data module per table and never builds a query
- * itself. See CLAUDE.md, "Data access goes through one data module per table".
+ * itself. See .claude/rules/screen-bundle.md, "Data access goes through one data module per table".
  *
  * Types cannot express any of this. A route that calls `.from()` typechecks exactly as well as
  * one that calls a data module, and an import of a data module the selected module does not

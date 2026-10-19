@@ -25,7 +25,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..', '..');
 const MODULES_DIR = path.join(REPO, 'tools', 'create', 'templates', 'modules');
 
-/** Locales every module seed must cover — see CLAUDE.md, Seed file conventions. */
+/** Locales every module seed must cover — see .claude/rules/seed.md. */
 const REQUIRED_LOCALES = ['en', 'fr'];
 
 type Manifest = {

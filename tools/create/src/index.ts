@@ -8,7 +8,7 @@ import { spawn } from 'node:child_process';
 import { syncSupabase } from '@sveltebuilder/cli/api';
 import { addModuleStylesheet, copyModuleTemplate } from './module-template.js';
 import { pinPackageVersions } from './package-version.js';
-import { restoreTemplateDotfiles } from './template-dotfile.js';
+import { restoreTemplateStoredNames } from './template-stored-name.js';
 
 /** This release's SvelteBuilder package versions, stamped in by tsup.config.ts at build time. */
 declare const __SVELTEBUILDER_PACKAGE_VERSIONS__: Record<string, string>;
@@ -380,7 +380,7 @@ async function main() {
   // ── Step 1: Scaffold base template ────────────────────────────────────────
   s.start('Scaffolding project...');
   await fs.copy(path.join(TEMPLATES_DIR, 'base'), targetDir, { overwrite: true });
-  await restoreTemplateDotfiles(targetDir);
+  await restoreTemplateStoredNames(targetDir);
 
   // Read base package.json before overlaying the scaffold template.
   const pkgPath = path.join(targetDir, 'package.json');
@@ -403,6 +403,7 @@ async function main() {
         return true;
       },
     });
+    await restoreTemplateStoredNames(targetDir);
 
     // Deep-merge scaffold template's package.json deps into base.
     const templatePkgPath = path.join(templateDir, 'package.json');

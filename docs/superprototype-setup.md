@@ -95,6 +95,7 @@ cp .env.example .env
 ```
 my-app/
 ├── CLAUDE.md                     context file for Claude Code (section 9)
+├── .claude/rules/                path-scoped rules for Claude Code (section 9)
 ├── .env.example                  every variable the app reads, with comments
 ├── .sveltebuilder/registry/      which Drizzle schemas make up your database
 ├── src/
@@ -582,20 +583,27 @@ answered with SvelteBuilder's rules already in mind.
 
 ### 9.1 What it already teaches Claude
 
-The SuperPrototype `CLAUDE.md` is written for this template specifically. It covers:
+The SuperPrototype `CLAUDE.md` is written for this template specifically. It loads in every
+session and covers:
 
 - **Non-negotiable rules** up front: data access only through `locals.supabase`, RLS on every
   table, no copy columns, RPCs for multi-statement writes, no hand-edited migrations.
 - **Data access**: the per-request client, mapping snake_case to camelCase at the boundary,
   error handling in loads and actions, and when a write needs an RPC.
 - **Auth and authorization**: the `auth.users` / `user_account` split, route guards versus RLS,
-  the `current_user_id()` and `current_user_admin()` helpers, and how to add roles.
-- **Schema, RLS, RPCs and seeds**, each with a worked example to copy.
-- **Localization**: global versus scoped copy, `loadScopedCopy` and `loadEntityCopy`, the two
-  kinds of component, and MessageFormat plurals.
-- **coreui**: what it exports, theming through the 11 tokens, and WCAG 2.2 AA expectations.
+  and roles and permissions on the screens.
+- **Localization**: global versus scoped copy, `loadScopedCopy` and `loadEntityCopy`, and
+  MessageFormat plurals.
 - **Naming conventions** from SQL to CSS.
 - **A build order for features**, a definition of done, and a review checklist.
+
+Two path-scoped rules in `.claude/rules/` load only when Claude opens a matching file, so they
+cost nothing in a session that doesn't need them:
+
+- **`database.md`** (`src/lib/server/schema.ts`, `supabase/`, `.sveltebuilder/`): schema, RLS,
+  access-controlled tables, RPCs and seeds, each with a worked example to copy.
+- **`component.md`** (`.svelte` and `.css` under `src/`): the two kinds of component, coreui,
+  theming through the 11 tokens, styling, and WCAG 2.2 AA expectations.
 
 ### 9.2 Fill in "This Project"
 
