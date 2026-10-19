@@ -17,8 +17,8 @@ wording, because a seed never overwrites copy you may have edited.
 > **Regenerating migrations is not validated.** `sveltebuilder sync:supabase` diffs drizzle-kit's
 > snapshot, not your database, so on a 1.x project it asks whether each renamed enum, column and
 > table was renamed or created, and the migration it then writes repeats renames the SQL below has
-> already made. Run without a terminal, drizzle-kit stops at the first question, exits 0, and sync
-> reports success with no schema migration at all. Until this is settled, review the generated
+> already made. Run sync in a terminal: without one it now stops with an error naming the first
+> question. Until this is settled, review the generated
 > migration by hand before applying it: keep only the statements creating what is new (the access
 > tables and `navigation_item.permission_scope`), and drop the ones repeating the renames.
 

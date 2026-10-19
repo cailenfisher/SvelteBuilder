@@ -334,16 +334,18 @@ app a version and a changelog.
 Found validating `docs/MIGRATION-2.0.md` with access control in it. The guide renames columns,
 enums and tables in SQL, but `sync:supabase` runs `drizzle-kit generate`, which diffs its own
 snapshot rather than the database, so it asks about every rename and writes a migration repeating
-them. Without a terminal it stops at the first question and exits 0, and sync then reports success
-having written no schema migration, only the supplemental one. Nothing an existing project does is
+them. Without a terminal it stops at the first question and exits 0; sync used to report success having
+written no schema migration, and since 2026-10-18 fails instead, naming the question (option (c),
+done). Nothing an existing project does is
 wrong; the guide simply never ran its "regenerate" step.
 
 Options: (a) have the guide stop at the prompts' answers ("renamed"), and drop the SQL renames
 drizzle-kit can express, keeping only data moves and enum value changes; (b) ship a snapshot the
 upgrading project copies over `supabase/migrations/meta/` after running the guide's SQL, so
-drizzle-kit sees only the additions; (c) a `sync:supabase` flag that refuses to run drizzle-kit
-without a terminal unless told how to answer. (c) is worth doing whichever of the others is
-chosen, since the silent success is the dangerous part. The guide carries a warning until then.
+drizzle-kit sees only the additions; (c) make `sync:supabase` fail when drizzle-kit asks a question
+nobody can answer. (c) is built: without a terminal, sync reads drizzle-kit's output for the rename
+question and stops with it. (a) and (b) are open, and the guide carries a warning until one is
+chosen.
 
 ---
 
