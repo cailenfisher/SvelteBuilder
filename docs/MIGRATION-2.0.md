@@ -3,24 +3,13 @@
 For the release candidates coreui `1.0.0-rc`, content `2.0.0-rc`, logistic `2.0.0-rc` and the new
 `@sveltebuilder/access` `1.0.0-rc`, which brings roles and permissions (see [Access control](#access-control)).
 
-**The SQL is validated** (2026-10-15, and again on 2026-10-18 with access control in it). A
-database built from the last 1.x release (`main` at `d194b00`, base plus logistic and content,
-migration and seed), upgraded with every block below, given the new access tables and
-`navigation_item.permission_scope` as drizzle-kit generates them, then the 2.0
-`supabase/supplemental/` files in sync's order and the seed twice, passes every `pnpm sql:check`
-assertion, access control's included. Its schema matches a fresh 2.0 database except for one
-column's position (`subscriber.locale_id` is added last rather than in place, which nothing depends
-on), its grants are identical, and so is its set of copy links; fifteen of them keep their 1.x
-wording, because a seed never overwrites copy you may have edited.
-
-> [!WARNING]
-> **Regenerating migrations is not validated.** `sveltebuilder sync:supabase` diffs drizzle-kit's
-> snapshot, not your database, so on a 1.x project it asks whether each renamed enum, column and
-> table was renamed or created, and the migration it then writes repeats renames the SQL below has
-> already made. Run sync in a terminal: without one it now stops with an error naming the first
-> question. Until this is settled, review the generated
-> migration by hand before applying it: keep only the statements creating what is new (the access
-> tables and `navigation_item.permission_scope`), and drop the ones repeating the renames.
+> [!NOTE]
+> **Best effort, not maintained.** Nothing depends on SvelteBuilder in production yet, so this guide
+> is kept as a record of what changed in 2.0, not as a supported upgrade path. Its SQL was last
+> checked against a 1.x database on 2026-10-18 (with access control); regenerating migrations over
+> a 1.x project was not, since drizzle-kit asks about each rename and the migration it writes
+> repeats renames this SQL has already made. Upgrade tooling resumes once a project outside this
+> repo depends on a release (`docs/DEFERRED.md`). For a project you can recreate, scaffold afresh.
 
 Screens are scaffolded once and owned by your app (`CLAUDE.md`, guardrail 10), so an existing
 project receives none of these changes on upgrade. This guide is how to apply them.

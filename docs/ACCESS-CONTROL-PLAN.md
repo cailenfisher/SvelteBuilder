@@ -60,6 +60,7 @@ Report this table at the end of every phase. Update it when an item lands or som
 | `checkbox-matrix` changeset | `.changeset/checkbox-matrix.md` | done | `minor`, now that this folds into the RC: content and logistic are already majors there |
 | `@sveltebuilder/access` releases as 1.0.0-rc | Changesets | merge of this branch | its coreui peer makes the new package a major; 1.0 beside coreui 1.0 unless decided otherwise |
 | P1 article insert constraint | A19 | Phase 8 | adopted |
+| Upgrade tooling (validated guides, drizzle-kit snapshot) | `docs/DEFERRED.md` | not v1 | parked 2026-10-18 until something depends on a release; changesets carry the breaking changes |
 | P2 logistic non-admin access on adoption | A22 | Phase 9 | adopted and built; the MIGRATION guide tells operators to give staff Warehouse operator |
 | Warehouse no-access page, inbound receipt attribution, Operators adding shipment lines | `docs/DEFERRED.md` | not v1 | recorded in Phase 9 |
 
