@@ -8,8 +8,11 @@ import {
   listLocalTextLink,
 } from '$lib/server/local-text';
 import { formError } from '$lib/server/form-error';
+import { requireAdministrator } from '../require-access';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, parent }) => {
+  await requireAdministrator(parent);
+
   const [entryResult, translationResult, localeResult] = await Promise.all([
     listLocalTextLink(locals.supabase),
     listLocalText(locals.supabase),

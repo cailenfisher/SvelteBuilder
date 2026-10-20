@@ -1,0 +1,4 @@
+.user-account-table__link {
+  color: var(--brand-text);
+  font-weight: var(--weight-medium);
+}

@@ -153,10 +153,9 @@ export async function getCycleCount(
  */
 export async function createCycleCount(
   supabase: SupabaseClient,
-  fields: { userAccountId: number; storageLocationIds: number[] }
+  fields: { storageLocationIds: number[] }
 ): Promise<QueryResult<number | null>> {
   const { data, error } = await supabase.rpc('logistic_create_cycle_count', {
-    p_user_account_id: fields.userAccountId,
     p_storage_location_ids: fields.storageLocationIds,
   });
   if (error) return { data: null, error };
@@ -164,23 +163,14 @@ export async function createCycleCount(
 }
 
 /**
- * Claims an open count for a worker. One conditional update: the `status = open` predicate is
- * what makes it safe when two counters claim the same count at once. False when the count was
- * no longer open, because someone else took it first.
+ * Claims an open count for the caller (logistic_take_cycle_count, which takes
+ * `cycle_count.count`). The `status = open` predicate is what makes it safe when two counters
+ * claim the same count at once. False when someone else took it first.
  */
-export async function takeCycleCount(
-  supabase: SupabaseClient,
-  id: number,
-  userAccountId: number
-): Promise<QueryResult<boolean>> {
-  const { data, error } = await supabase
-    .from('cycle_count')
-    .update({ status: 'in_progress', user_account_id: userAccountId })
-    .eq('id', id)
-    .eq('status', 'open')
-    .select('id');
+export async function takeCycleCount(supabase: SupabaseClient, id: number): Promise<QueryResult<boolean>> {
+  const { data, error } = await supabase.rpc('logistic_take_cycle_count', { p_cycle_count_id: id });
   if (error) return { data: null, error };
-  return { data: data.length > 0, error: null };
+  return { data: data === true, error: null };
 }
 
 /**
@@ -189,15 +179,8 @@ export async function takeCycleCount(
  * closed while the stock it was meant to correct is still wrong. Raises 42501 when the count
  * can no longer be approved, and 23514 when a variance would take stock below zero.
  */
-export async function approveCycleCount(
-  supabase: SupabaseClient,
-  id: number,
-  userAccountId: number
-): Promise<QueryResult<null>> {
-  const { error } = await supabase.rpc('logistic_approve_cycle_count', {
-    p_cycle_count_id: id,
-    p_user_account_id: userAccountId,
-  });
+export async function approveCycleCount(supabase: SupabaseClient, id: number): Promise<QueryResult<null>> {
+  const { error } = await supabase.rpc('logistic_approve_cycle_count', { p_cycle_count_id: id });
   if (error) return { data: null, error };
   return { data: null, error: null };
 }

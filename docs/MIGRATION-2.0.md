@@ -1,13 +1,15 @@
 # MIGRATION-2.0.md — upgrading to coreui 1.0, content 2.0 and logistic 2.0
 
-For the release candidates coreui `1.0.0-rc`, content `2.0.0-rc` and logistic `2.0.0-rc`.
+For the release candidates coreui `1.0.0-rc`, content `2.0.0-rc`, logistic `2.0.0-rc` and the new
+`@sveltebuilder/access` `1.0.0-rc`, which brings roles and permissions (see [Access control](#access-control)).
 
-**The SQL is validated** (2026-10-15). A database built from the last 1.x release (`main` at
-`d194b00`, base plus logistic and content, migration and seed), upgraded with every block below,
-then given the 2.0 `supabase/supplemental/` files and seed, passes all of `pnpm sql:check`'s 2.0
-assertions, and re-runs the seed cleanly. Its schema matches a fresh 2.0 database except for one
-column's position (`subscriber.locale_id` is added last rather than in place, which nothing
-depends on), and its grants and its UI copy links are identical.
+> [!NOTE]
+> **Best effort, not maintained.** Nothing depends on SvelteBuilder in production yet, so this guide
+> is kept as a record of what changed in 2.0, not as a supported upgrade path. Its SQL was last
+> checked against a 1.x database on 2026-10-18 (with access control); regenerating migrations over
+> a 1.x project was not, since drizzle-kit asks about each rename and the migration it writes
+> repeats renames this SQL has already made. Upgrade tooling resumes once a project outside this
+> repo depends on a release (`docs/DEFERRED.md`). For a project you can recreate, scaffold afresh.
 
 Screens are scaffolded once and owned by your app (`CLAUDE.md`, guardrail 10), so an existing
 project receives none of these changes on upgrade. This guide is how to apply them.
@@ -160,6 +162,9 @@ alter table public.subscriber drop column locale;
 alter table public.subscriber
   add constraint fk_subscriber_locale
   foreign key (locale_id) references public.locale(id) on delete restrict;
+
+-- The workflow role on an assignment, renamed so it no longer reads like an access role (A23).
+alter table public.article_assignment rename column role to article_assignment_role;
 
 commit;
 ```
@@ -400,6 +405,91 @@ commit;
 
 ---
 
+## Access control
+
+2.0 brings roles and permissions (`docs/ACCESS-CONTROL-USAGE.md`). Administrators keep exactly
+what they had. Everyone else is authorized by the roles an administrator gives them, which on
+upgrade is nobody.
+
+> [!IMPORTANT]
+> **With logistic, plan the upgrade with your warehouse staff in mind.** In 1.x any signed-in user
+> could read every logistic table and do floor work. In 2.0 someone with no role sees nothing. Have
+> the list of who should keep access ready, and give them their role as soon as the migration is
+> applied (below).
+
+### Files to bring in
+
+Copy these from a freshly scaffolded 2.0 project (same template and modules) into yours, with the
+rest of the 2.0 `supabase/supplemental/` and `supabase/seeds/` files the Database section re-applies.
+The base and SuperPrototype files every project gets; the content and logistic ones only with that
+module. If you changed any of them, merge rather than overwrite.
+
+| File | What it is |
+| --- | --- |
+| `package.json`: `@sveltebuilder/access` | the package, at the release's version |
+| `.sveltebuilder/registry/@sveltebuilder-access.json` | registers the access tables |
+| `.sveltebuilder/registry/@sveltebuilder-content.json`, `@sveltebuilder-logistic.json` | the modules' manifests, now with `access` |
+| `src/app.css`: the `@sveltebuilder/access/styles/components.css` line, after coreui's | the access components' styles |
+| `supabase/supplemental/01-access.sql` | the core: helpers, admin RPCs, RLS |
+| `supabase/supplemental/06-user-account-admin-list.sql` | users with their email, for administrators |
+| `supabase/supplemental/02-content-rls.sql`, `03-content-media.sql`, `05-logistic-supplements.sql` | the modules' policies and functions, rewritten |
+| `supabase/seeds/01-access.sql`, `00-base-navigation.sql`, `content.sql`, `logistic.sql` | copy, menu entries, the modules' roles |
+| `src/lib/server/schema.ts` | `navigation_item.permission_scope` |
+| `src/lib/server/`: `permission.ts`, `role.ts`, `role-permission.ts`, `role-assignment.ts`, `user-group.ts`, `user-group-member.ts`, `user-account.ts`, `navigation-item.ts`, `form-error.ts` | data modules |
+| `src/lib/server/content/`, `src/lib/server/logistic/` | the modules' data modules: content's article, assignment, sharing and comment modules; logistic's RPC calls no longer pass a user account |
+| `src/lib/Role/` | the shared role assignment form |
+| `src/routes/(admin)/+layout.server.ts` | admits staff |
+| `src/routes/(admin)/admin/`: `role/`, `user-group/`, `user-account/`, `role-assignment-action.ts`, `require-access.ts` | the access screens and the loaders' guards |
+| `src/routes/(admin)/admin/*/+page.server.ts` for locale, local-text and navigation-item | administrator-only in their loaders |
+| `src/routes/(admin)/admin/content/article/`, `src/routes/(admin)/admin/logistic/`, `src/routes/(warehouse)/` | the module screens, with the reader's actions; the article access panel; the warehouse admitting staff with a warehouse role |
+
+### Sync, apply, give roles
+
+`sveltebuilder sync:supabase` writes `supabase/supplemental/access-generated.sql` from the
+manifests and puts it, with the changed supplemental files, into the new migration. The permission
+catalog is in that migration, so it reaches a hosted database without the seed; the seed brings the
+copy and the modules' roles (Editor, Writer and Contributor for content; Logistics manager and
+Warehouse operator for logistic), held by nobody.
+
+Then give your staff their roles: at `/admin/user-account`, open each person and give them a role
+everywhere. To restore 1.x logistic access for every existing account at once, which you probably
+do not want if signup is open, run this as an administrator in the SQL editor:
+
+```sql
+insert into public.role_assignment (role_id, user_account_id)
+select r.id, ua.id
+from public.role r cross join public.user_account ua
+where r.slug = 'logistic_operator' and not ua.admin
+on conflict do nothing;
+```
+
+### What behaves differently
+
+- **Staff can reach `/admin`.** Anyone holding a role sees the admin area, with only the menu
+  entries for scopes they hold. Before, only administrators could. The roles, groups, users,
+  locale, copy and navigation screens stay administrator-only.
+- **Logistic is staff-only.** A signed-in user with no logistic role reads nothing and cannot
+  reach `/warehouse`. Operators read everything and receive, pick, count and grade; managers also
+  create, update, delete, adjust stock and approve counts.
+- **Logistic's RPCs lost their user account parameter.** `logistic_receive_receipt_line`,
+  `_record_picked_quantity`, `_complete_pick_task`, `_grade_return_line`, `_approve_cycle_count`,
+  `_create_shipment`, `_create_return_authorization` and `_create_cycle_count` take the actor from
+  the session; the old signatures are dropped. The stock primitives (`logistic_adjust_stock`,
+  `_reserve_stock`, `_release_stock_reservation`, `_consume_stock`, `_ensure_stock_level`) can no
+  longer be called by `anon` or `authenticated`, from the API or from a `security invoker`
+  function of your own; adjust stock with `logistic_adjust_stock_level`. A function of yours that
+  reserves or moves stock becomes `security definer`, checks the caller with
+  `current_user_can(scope, action)` before it writes, and takes the actor from
+  `current_user_id()`. Workers no
+  longer update lines directly, so a direct `PATCH` of a pick line is refused.
+- **Nobody sets an article's status directly**, an administrator included: the status and publish
+  date change only through `content_transition_article_status`, so the publish checklist cannot be
+  skipped by a direct `PATCH`. Articles are created through `content_create_article`, which makes
+  the creator the article's author.
+- **A commenter's email address is unreadable through the API**, to everyone.
+
+---
+
 ## API changes
 
 What changed beyond a name. Each package's changelog for 1.0 or 2.0 has the same list.
@@ -434,6 +524,8 @@ What changed beyond a name. Each package's changelog for 1.0 or 2.0 has the same
   the browser's, updates a bound `value` even with `onValueChange`, and passes `min`/`max` to the
   input in the form it accepts. A disabled `SelectItem` carries `aria-disabled`; `Tooltip` has
   `role="tooltip"`.
+- **New.** `CheckboxMatrix`, a grid of checkboxes with row and column headers; `Checkbox` takes
+  `readonly`, `aria-labelledby` and `aria-describedby`; the `ScreenAction` screen-contract type.
 - **Peers.** `svelte ^5.33.0`; `@internationalized/date` is declared; `diglossia` is an optional
   peer, for the screen-contract types.
 
@@ -451,6 +543,11 @@ What changed beyond a name. Each package's changelog for 1.0 or 2.0 has the same
   callbacks.
 - **`ArticleBlockEditor`**'s `readonly` mode shows text, with an empty state.
 - **`validateArticleForPublish`** returns its issues: see "Form-action errors".
+- **Access control.** `ArticleAssignment.role` is `articleAssignmentRole`. `CommentList` takes
+  `CommentRow` (a comment without its author's email address), which a `Comment` satisfies. The
+  admin views carry the reader's `actions` (`ArticleAdminDetailView.actions`,
+  `ArticleAdminListView.articleActions`, required; `ArticleRow.actions`, optional, since the public
+  screens share it).
 - **Types.** Entity types are inferred from the schema; `Article.leadMediaAssetId` is a required
   `number | null`. `ArticleSection`, `ArticleTopic` and `ArticleTag` are exported;
   `PaginatedResult` is not. The main entry exports the schema as types only.
@@ -461,6 +558,10 @@ What changed beyond a name. Each package's changelog for 1.0 or 2.0 has the same
   `dictionary`; `PickTaskCard` and `TrackingEventList` require `locale`.
 - **`StorageLocationPath`** is a labelled list rather than a `nav` landmark.
 - **`BarcodeInput`** is labelled by a surrounding `Field`; its `label` and `error` props are gone.
+- **Access control.** The admin views (`SupplierListView` and the other eleven) carry the reader's
+  `actions` through coreui's `ScreenAction`. `StockLevelTable`'s `onAdjust` is optional, and
+  `SupplierContactList` takes `removable`. The RPC changes are under
+  [Access control](#access-control).
 
 ### Scaffolded projects
 

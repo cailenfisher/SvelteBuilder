@@ -3,14 +3,22 @@
   import './article-admin-detail-screen.css';
   import { enhance } from '$app/forms';
   import { createDictionary } from 'diglossia';
-  import { InlineNotification } from '@sveltebuilder/coreui';
+  import { Button, InlineNotification } from '@sveltebuilder/coreui';
   import { ArticleBlockEditor, ArticleWorkflowPanel } from '@sveltebuilder/content';
+  import { RoleAssignmentPanel } from '@sveltebuilder/access';
   import type { ArticleAdminDetailView } from '@sveltebuilder/content/views';
+  import type { RoleAssignmentPanelView, RoleAssignmentRow } from '@sveltebuilder/access/views';
   import type { ScreenFormResult } from '@sveltebuilder/coreui';
   import ArticleAdminDetailHeader from './ArticleAdminDetailHeader.svelte';
+  import ArticleRoleAssignmentCreateForm from './ArticleRoleAssignmentCreateForm.svelte';
   import { formErrorText } from '$lib/FormError/form-error';
 
-  let { data, form }: { data: ArticleAdminDetailView; form?: ScreenFormResult } = $props();
+  // The access panel's data is the access package's, beside this module's view: null when the
+  // reader may not share the article.
+  let { data, form }: {
+    data: ArticleAdminDetailView & { access: RoleAssignmentPanelView | null };
+    form?: ScreenFormResult;
+  } = $props();
 
   const globalDictionary = getDictionary();
 
@@ -19,7 +27,27 @@
 
   const article = $derived(data.article);
   const headline = $derived(scoped.localText('headline', 'article', article.id));
+
+  // Only the controls that will work. Editing (status changes short of publishing, the checklist)
+  // takes `update`; moving to or from `published` takes `publish`. RLS and the transition
+  // function refuse the rest regardless.
+  const editable = $derived(data.actions.includes('update'));
+  const publishable = $derived(data.actions.includes('publish'));
+  const transitionStatuses = $derived(
+    publishable
+      ? data.statuses
+      : article.status.slug === 'published'
+        ? data.statuses.filter((status) => status.slug === 'published')
+        : data.statuses.filter((status) => status.slug !== 'published')
+  );
 </script>
+
+{#snippet removeAccess(roleAssignment: RoleAssignmentRow)}
+  <form method="POST" action="?/unshare">
+    <input type="hidden" name="role_assignment_id" value={roleAssignment.id} />
+    <Button type="submit" variant="secondary" size="sm">{globalDictionary.localText('action.remove')}</Button>
+  </form>
+{/snippet}
 
 <svelte:head>
   <title>{headline}</title>
@@ -63,14 +91,35 @@
       </dl>
     </section>
 
-    <ArticleWorkflowPanel
-      statusSlug={article.status.slug}
-      statuses={data.statuses}
-      checklist={data.checklist}
-      transitionAction="?/transition"
-      checklistAction="?/checklist"
-      {enhance}
-      dictionary={scoped}
-    />
+    {#if editable || publishable}
+      <ArticleWorkflowPanel
+        statusSlug={article.status.slug}
+        statuses={transitionStatuses}
+        checklist={data.checklist}
+        transitionAction="?/transition"
+        checklistAction="?/checklist"
+        {enhance}
+        dictionary={scoped}
+      />
+    {/if}
   </div>
+
+  {#if data.access}
+    {@const access = data.access}
+    <RoleAssignmentPanel
+      roleAssignments={access.roleAssignments}
+      locale={data.localeCode}
+      removeAction={removeAccess}
+      dictionary={scoped}
+    >
+      {#snippet addForm()}
+        <ArticleRoleAssignmentCreateForm
+          userAccounts={access.userAccounts}
+          userGroups={access.userGroups}
+          roles={access.roles}
+          dictionary={scoped}
+        />
+      {/snippet}
+    </RoleAssignmentPanel>
+  {/if}
 </div>

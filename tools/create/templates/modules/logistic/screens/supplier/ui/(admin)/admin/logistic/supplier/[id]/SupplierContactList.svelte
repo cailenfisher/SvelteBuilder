@@ -9,11 +9,13 @@
 
   type Props = {
     supplierContacts: SupplierContact[];
+    /** Whether each contact has a remove control: for a reader who may edit the supplier. */
+    removable: boolean;
     /** The screen's scoped dictionary: module copy. */
     dictionary: DictionaryInstance;
   };
 
-  let { supplierContacts, dictionary }: Props = $props();
+  let { supplierContacts, removable, dictionary }: Props = $props();
 
   const globalDictionary = getDictionary();
 </script>
@@ -30,12 +32,14 @@
               : ''}
           </p>
         </div>
-        <form method="POST" action="?/deleteSupplierContact">
-          <input type="hidden" name="supplier_contact_id" value={contact.id} />
-          <Button type="submit" variant="ghost" size="sm">
-            {globalDictionary.localText('action.remove')}
-          </Button>
-        </form>
+        {#if removable}
+          <form method="POST" action="?/deleteSupplierContact">
+            <input type="hidden" name="supplier_contact_id" value={contact.id} />
+            <Button type="submit" variant="ghost" size="sm">
+              {globalDictionary.localText('action.remove')}
+            </Button>
+          </form>
+        {/if}
       </li>
     {/each}
   </ul>

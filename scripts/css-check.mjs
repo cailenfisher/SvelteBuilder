@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Holds the stylesheet rules in CLAUDE.md ("Plain stylesheets") that nothing else checks.
+ * Holds the stylesheet rules in .claude/rules/css.md ("Plain stylesheets") that nothing else checks.
  *
  * Components carry no `<style>` blocks: every style is a plain CSS file, scoped by its BEM class
  * names rather than by Svelte's compiler. That trades away two things the compiler did for free,
@@ -245,7 +245,7 @@ for (const file of stylesheets) {
 
 if (failures.length > 0) {
   console.error(failures.map((failure) => `✗ ${failure}`).join('\n'));
-  console.error(`\ncss-check: ${failures.length} problem(s). The rules are in CLAUDE.md, "Plain stylesheets".`);
+  console.error(`\ncss-check: ${failures.length} problem(s). The rules are in .claude/rules/css.md, "Plain stylesheets".`);
   process.exit(1);
 }
 console.log(`css-check: ${stylesheets.length} stylesheets, ${svelteFiles.length} components, no problems.`);

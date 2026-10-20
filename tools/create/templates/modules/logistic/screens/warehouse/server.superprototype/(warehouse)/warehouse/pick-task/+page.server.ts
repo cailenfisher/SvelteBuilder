@@ -40,11 +40,7 @@ export const actions: Actions = {
     const taskId = Number(form.get('pick_task_id'));
     if (!Number.isInteger(taskId)) return formError(422, 'logistic.error.pick_task_invalid');
 
-    const { data: taken, error: updateError } = await takePickTask(
-      locals.supabase,
-      taskId,
-      locals.userAccountId
-    );
+    const { data: taken, error: updateError } = await takePickTask(locals.supabase, taskId);
 
     if (updateError) return formError(500, 'logistic.error.pick_task_take_failed');
     if (!taken) return formError(409, 'logistic.error.pick_task_taken');

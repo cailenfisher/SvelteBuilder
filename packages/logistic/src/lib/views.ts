@@ -1,4 +1,4 @@
-import type { ScreenCopy, ScreenLocale, ScreenPage } from '@sveltebuilder/coreui';
+import type { ScreenAction, ScreenCopy, ScreenLocale, ScreenPage } from '@sveltebuilder/coreui';
 import type {
   StockAdjustmentReason,
   CycleCount,
@@ -49,12 +49,14 @@ export type SupplierWithContacts = Supplier & {
 };
 
 /** `/admin/logistic/supplier` */
-export type SupplierListView = ScreenCopy & {
+export type SupplierListView = ScreenAction &
+  ScreenCopy & {
   suppliers: SupplierWithContacts[];
 };
 
 /** `/admin/logistic/supplier/[id]` */
-export type SupplierDetailView = ScreenCopy & {
+export type SupplierDetailView = ScreenAction &
+  ScreenCopy & {
   supplier: SupplierWithContacts;
 };
 
@@ -74,7 +76,8 @@ export type StockLevelRow = StockLevel & {
 };
 
 /** `/admin/logistic/stock-level` */
-export type StockLevelListView = ScreenCopy &
+export type StockLevelListView = ScreenAction &
+  ScreenCopy &
   ScreenLocale & {
     stockLevels: StockLevelRow[];
     /** The adjustment log for one level, when the screen is showing its history. */
@@ -128,7 +131,8 @@ export type InboundReceiptRow = InboundReceipt & {
 };
 
 /** `/admin/logistic/inbound-receipt` */
-export type InboundReceiptListView = ScreenCopy &
+export type InboundReceiptListView = ScreenAction &
+  ScreenCopy &
   ScreenLocale &
   ScreenPage & {
     inboundReceipts: InboundReceiptRow[];
@@ -139,7 +143,8 @@ export type InboundReceiptListView = ScreenCopy &
   };
 
 /** `/admin/logistic/inbound-receipt/[id]` */
-export type InboundReceiptDetailView = ScreenCopy &
+export type InboundReceiptDetailView = ScreenAction &
+  ScreenCopy &
   ScreenLocale & {
     inboundReceipt: InboundReceipt & { lines: InboundReceiptLineRow[] };
     storageLocations: StorageLocationOption[];
@@ -152,7 +157,8 @@ export type ShipmentRow = Shipment & {
 };
 
 /** `/admin/logistic/shipment` */
-export type ShipmentListView = ScreenCopy &
+export type ShipmentListView = ScreenAction &
+  ScreenCopy &
   ScreenLocale &
   ScreenPage & {
     shipments: ShipmentRow[];
@@ -166,7 +172,8 @@ export type ShipmentListView = ScreenCopy &
   };
 
 /** `/admin/logistic/shipment/[id]` */
-export type ShipmentDetailView = ScreenCopy &
+export type ShipmentDetailView = ScreenAction &
+  ScreenCopy &
   ScreenLocale & {
     shipment: Shipment & {
       lines: ShipmentLine[];
@@ -184,7 +191,8 @@ export type ReturnAuthorizationRow = ReturnAuthorization & {
 };
 
 /** `/admin/logistic/return-authorization` */
-export type ReturnAuthorizationListView = ScreenCopy &
+export type ReturnAuthorizationListView = ScreenAction &
+  ScreenCopy &
   ScreenLocale &
   ScreenPage & {
     returnAuthorizations: ReturnAuthorizationRow[];
@@ -194,7 +202,8 @@ export type ReturnAuthorizationListView = ScreenCopy &
   };
 
 /** `/admin/logistic/return-authorization/[id]` */
-export type ReturnAuthorizationDetailView = ScreenCopy &
+export type ReturnAuthorizationDetailView = ScreenAction &
+  ScreenCopy &
   ScreenLocale & {
     returnAuthorization: ReturnAuthorization & { lines: ReturnAuthorizationLine[] };
     /** Where restocked returns may go — bins only, since nothing else holds stock. */
@@ -221,7 +230,8 @@ export type CycleCountRow = CycleCount & {
 };
 
 /** `/admin/logistic/cycle-count` */
-export type CycleCountListView = ScreenCopy &
+export type CycleCountListView = ScreenAction &
+  ScreenCopy &
   ScreenLocale &
   ScreenPage & {
     cycleCounts: CycleCountRow[];
@@ -233,7 +243,8 @@ export type CycleCountListView = ScreenCopy &
   };
 
 /** `/admin/logistic/cycle-count/[id]` */
-export type CycleCountDetailView = ScreenCopy &
+export type CycleCountDetailView = ScreenAction &
+  ScreenCopy &
   ScreenLocale & {
     cycleCount: CycleCount & { lines: CycleCountLineRow[] };
   };
@@ -321,7 +332,8 @@ export type LogisticMetrics = {
 };
 
 /** `/admin/logistic` */
-export type LogisticDashboardView = ScreenCopy &
+export type LogisticDashboardView = ScreenAction &
+  ScreenCopy &
   ScreenLocale & {
     metrics: LogisticMetrics;
     /** Short previews — the metric says how many there are, these say which. */

@@ -57,6 +57,47 @@ test.describe('Checkbox', () => {
   });
 });
 
+test.describe('CheckboxMatrix', () => {
+  test('each box is named by its row and column, and reports one change per toggle', async ({ page }) => {
+    const errors = await open(page, '/dev/coreui/checkbox-matrix');
+    const editable = example(page, 'Editable, inside a form');
+
+    const box = editable.getByRole('checkbox', { name: 'Articles Publish', exact: true });
+    await expect(box).not.toBeChecked();
+    await box.click();
+    await expect(box).toBeChecked();
+    await expect(callbackLog(editable, 'onCheckedChange')).toHaveText(/1 call, last article\.publish → true/);
+    await page.keyboard.press('Space');
+    await expect(box).not.toBeChecked();
+    await expect(callbackLog(editable, 'onCheckedChange')).toHaveText(/2 calls, last article\.publish → false/);
+    expect(errors).toEqual([]);
+  });
+
+  test('an inherited box is focusable, described by its source, and cannot be toggled', async ({ page }) => {
+    await open(page, '/dev/coreui/checkbox-matrix');
+    const inherited = example(page, 'An inherited value').getByRole('checkbox', { name: 'Articles Publish', exact: true });
+    await expect(inherited).toBeChecked();
+    await expect(inherited).toHaveAccessibleDescription('From Editors, on every article');
+    await inherited.focus();
+    await expect(inherited).toBeFocused();
+    await page.keyboard.press('Space');
+    await inherited.click();
+    await expect(inherited).toBeChecked();
+  });
+
+  test('a read-only matrix toggles nothing', async ({ page }) => {
+    await open(page, '/dev/coreui/checkbox-matrix');
+    const readonly = example(page, 'Read-only (a role its module manages)');
+    const box = readonly.getByRole('checkbox', { name: 'Articles Read', exact: true });
+    await expect(box).toBeChecked();
+    await box.click();
+    await expect(box).toBeChecked();
+    const unchecked = readonly.getByRole('checkbox', { name: 'Sections Update', exact: true });
+    await unchecked.click();
+    await expect(unchecked).not.toBeChecked();
+  });
+});
+
 test.describe('Switch', () => {
   test('controlled and bound each report one change per toggle', async ({ page }) => {
     const errors = await open(page, '/dev/coreui/switch');

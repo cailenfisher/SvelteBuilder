@@ -36,6 +36,10 @@ import { article, section, comment } from '@sveltebuilder/content/schema';
 
 Like all SvelteBuilder domain modules, content carries no `name`/`title`/`body` copy columns on its entities — user-facing copy is linked via `diglossia` (`scope` = table name, `entityId` = the row's bigint PK). Two documented exceptions carry literal data instead of copy: `comment.author_name`/`author_email`/`body` (reader-submitted, not editorial) and `subscriber.email_address` (PII).
 
+## Access control
+
+Content's manifest declares permissions for its editorial scopes (`article`, with the verbs `share` and `publish`; `section`, `topic`, `tag`, `front`, `newsletter`, `media_asset`; `comment`, with `moderate`), and makes `article` shareable one article at a time. Its seed adds three roles: **Editor** (everything, including publishing), **Writer** (create articles and edit the ones they author, never publish) and **Contributor** (read and edit, meant to be given on a single article). Whoever creates an article becomes its author, and being assigned to an article lets you edit it. Published content stays public. See [`docs/ACCESS-CONTROL.md` §7](https://github.com/cailenfisher/SvelteBuilder/blob/main/docs/ACCESS-CONTROL.md).
+
 ## Part of the SvelteBuilder ecosystem
 
 See the [SvelteBuilder README](https://github.com/cailenfisher/SvelteBuilder) for the full architecture, including how domain modules relate to `diglossia`, `@sveltebuilder/coreui`, and the CLI sync workflow.

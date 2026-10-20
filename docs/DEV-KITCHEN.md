@@ -8,7 +8,7 @@ design as built, section 4 what its first runs found, section 5 what it still do
 
 How to run it and how to add a page are in [`apps/dev-kitchen/README.md`](../apps/dev-kitchen/README.md).
 Companion reading: `docs/MODULE-ROUTES.md` (where route code lives and why), `docs/DEFERRED.md`
-(what is deliberately not being done yet), and the Template Verification section of `CLAUDE.md`.
+(what is deliberately not being done yet), and `docs/VERIFICATION.md`.
 
 ---
 
@@ -81,7 +81,7 @@ second copy of Svelte.)
 
 ### Job 3 — a rendered surface to audit
 
-The WCAG 2.2 AA audit named in `CLAUDE.md`'s Known Open Issues needs a page that renders every
+The WCAG 2.2 AA audit named in the Known Open Issues table of `docs/STATUS.md` needs a page that renders every
 component in every state. So does visual review of dark mode, RTL, and focus-visible rings across
 the set. Nothing else in the repo produces that surface. The first app never did this job, and it
 was the strongest argument for rebuilding: Bits UI supplies accessible primitives, which is an

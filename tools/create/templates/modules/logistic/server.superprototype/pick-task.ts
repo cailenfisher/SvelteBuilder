@@ -101,23 +101,14 @@ export async function getPickTask(
 }
 
 /**
- * Claims an open task for a worker. One conditional update: the `status = open` predicate is
- * what makes claiming safe under concurrency, since two workers pressing Take at once means the
- * second update matches no row. False when someone else took it first.
+ * Claims an open task for the caller (logistic_take_pick_task, which takes `pick_task.pick`).
+ * The `status = open` predicate is what makes claiming safe under concurrency: two workers
+ * pressing Take at once means the second matches no row. False when someone else took it first.
  */
-export async function takePickTask(
-  supabase: SupabaseClient,
-  id: number,
-  userAccountId: number
-): Promise<QueryResult<boolean>> {
-  const { data, error } = await supabase
-    .from('pick_task')
-    .update({ status: 'in_progress', user_account_id: userAccountId })
-    .eq('id', id)
-    .eq('status', 'open')
-    .select('id');
+export async function takePickTask(supabase: SupabaseClient, id: number): Promise<QueryResult<boolean>> {
+  const { data, error } = await supabase.rpc('logistic_take_pick_task', { p_pick_task_id: id });
   if (error) return { data: null, error };
-  return { data: data.length > 0, error: null };
+  return { data: data === true, error: null };
 }
 
 /**
@@ -125,15 +116,8 @@ export async function takePickTask(
  * short pick leaves stock reserved forever, invisible to every other task. Raises 42501 when
  * the task is not the caller's or is no longer in progress.
  */
-export async function completePickTask(
-  supabase: SupabaseClient,
-  id: number,
-  userAccountId: number
-): Promise<QueryResult<null>> {
-  const { error } = await supabase.rpc('logistic_complete_pick_task', {
-    p_pick_task_id: id,
-    p_user_account_id: userAccountId,
-  });
+export async function completePickTask(supabase: SupabaseClient, id: number): Promise<QueryResult<null>> {
+  const { error } = await supabase.rpc('logistic_complete_pick_task', { p_pick_task_id: id });
   if (error) return { data: null, error };
   return { data: null, error: null };
 }

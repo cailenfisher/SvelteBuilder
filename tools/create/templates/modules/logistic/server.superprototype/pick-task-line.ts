@@ -29,12 +29,11 @@ export async function getPickTaskLine(
  */
 export async function recordPickTaskLineQuantity(
   supabase: SupabaseClient,
-  line: { id: number; pickedQuantity: number; userAccountId: number }
+  line: { id: number; pickedQuantity: number }
 ): Promise<QueryResult<null>> {
   const { error } = await supabase.rpc('logistic_record_picked_quantity', {
     p_line_id: line.id,
     p_picked_quantity: line.pickedQuantity,
-    p_user_account_id: line.userAccountId,
   });
   if (error) return { data: null, error };
   return { data: null, error: null };

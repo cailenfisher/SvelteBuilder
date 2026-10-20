@@ -7,7 +7,10 @@ from (values
   ('admin.navigation.dashboard',      '/admin/dashboard',       'admin', 10),
   ('admin.navigation.local_text',     '/admin/local-text',      'admin', 20),
   ('admin.navigation.locale',         '/admin/locale',          'admin', 30),
-  ('admin.navigation.navigation_item','/admin/navigation-item', 'admin', 40)
+  ('admin.navigation.navigation_item','/admin/navigation-item', 'admin', 40),
+  ('admin.navigation.role',           '/admin/role',            'admin', 50),
+  ('admin.navigation.user_group',     '/admin/user-group',      'admin', 60),
+  ('admin.navigation.user_account',   '/admin/user-account',    'admin', 70)
 ) as v(slug, href, menu, position)
 join public.local_text_link l
   on l.slug = v.slug and l.scope is null and l.entity_id is null

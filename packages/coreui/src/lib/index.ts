@@ -39,6 +39,7 @@ export { default as Label } from './Label/Label.svelte';
 export { default as Input } from './Input/Input.svelte';
 export { default as Textarea } from './Textarea/Textarea.svelte';
 export { default as Checkbox } from './Checkbox/Checkbox.svelte';
+export { default as CheckboxMatrix } from './Checkbox/CheckboxMatrix.svelte';
 export { default as RadioGroup } from './RadioGroup/RadioGroup.svelte';
 export { default as RadioGroupItem } from './RadioGroup/RadioGroupItem.svelte';
 export { default as Switch } from './Switch/Switch.svelte';
@@ -127,7 +128,7 @@ export type { FieldControl } from './Field/use-field.js';
 // ============================================================
 // Screen contracts — types shared by every module's view types
 // ============================================================
-export type { ScreenCopy, ScreenFormError, ScreenFormResult, ScreenLocale, ScreenPage } from './Screen/screen.js';
+export type { ScreenAction, ScreenCopy, ScreenFormError, ScreenFormResult, ScreenLocale, ScreenPage } from './Screen/screen.js';
 
 // ============================================================
 // Variant, size and other prop value types
@@ -138,6 +139,11 @@ export type { BadgeSize, BadgeVariant } from './Badge/Badge.svelte';
 export type { BannerSeverity } from './Banner/Banner.svelte';
 export type { ButtonSize, ButtonVariant } from './Button/Button.svelte';
 export type { CheckboxSize } from './Checkbox/Checkbox.svelte';
+export type {
+  CheckboxMatrixCell,
+  CheckboxMatrixColumn,
+  CheckboxMatrixRow,
+} from './Checkbox/CheckboxMatrix.svelte';
 export type { DialogSize } from './Dialog/Dialog.svelte';
 export type { DrawerSide } from './Drawer/Drawer.svelte';
 export type { InlineNotificationSeverity } from './InlineNotification/InlineNotification.svelte';

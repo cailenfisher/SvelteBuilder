@@ -60,7 +60,8 @@ export function getFieldContext(): FieldContext | null {
  * - Input, Textarea, Switch, DateTimePicker: all five attributes.
  * - Select: the same, plus the label's id (through the internal context) for aria-labelledby.
  * - RadioGroup: disabled, plus the label's id.
- * - Checkbox: disabled only. It carries its own label, so the Field's label is not wired to it.
+ * - Checkbox: disabled only. It carries its own label, or is named by `aria-labelledby`, so the
+ *   Field's label is not wired to it.
  */
 export function useField(): FieldControl | null {
   const context = getFieldContext();

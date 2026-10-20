@@ -1,7 +1,7 @@
 import type { SchemaManifest } from './discover.ts';
 
-export function resolve(manifests: SchemaManifest[]): SchemaManifest[] {
-  const byPackage = new Map<string, SchemaManifest>();
+export function resolve<M extends SchemaManifest>(manifests: M[]): M[] {
+  const byPackage = new Map<string, M>();
   for (const m of manifests) {
     byPackage.set(m.package, m);
   }

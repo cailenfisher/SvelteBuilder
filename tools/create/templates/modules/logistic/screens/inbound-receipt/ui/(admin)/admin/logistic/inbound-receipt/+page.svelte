@@ -12,6 +12,9 @@
   import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: InboundReceiptListView; form?: ScreenFormResult } = $props();
+  // Only the controls that will work: `data.actions` is what the reader may do on this screen's
+  // scope. Absent, every control shows and the database answers.
+  const can = (action: string) => data.actions.includes(action);
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
@@ -31,9 +34,11 @@
 <div class="inbound-receipt-list-screen">
   <header class="inbound-receipt-list-screen__header">
     <h1 class="inbound-receipt-list-screen__title">{localText('logistic.inbound_receipt.title')}</h1>
-    <Button variant="primary" onclick={() => (newReceiptOpen = true)}>
-      {localText('logistic.inbound_receipt.new')}
-    </Button>
+    {#if can('create')}
+      <Button variant="primary" onclick={() => (newReceiptOpen = true)}>
+        {localText('logistic.inbound_receipt.new')}
+      </Button>
+    {/if}
   </header>
 
   {#if form?.error}

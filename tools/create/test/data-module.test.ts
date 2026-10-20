@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 /**
  * The backend seam: route code calls one data module per table and never builds a query
- * itself. See CLAUDE.md, "Data access goes through one data module per table".
+ * itself. See .claude/rules/screen-bundle.md, "Data access goes through one data module per table".
  *
  * Types cannot express any of this. A route that calls `.from()` typechecks exactly as well as
  * one that calls a data module, and an import of a data module the selected module does not
@@ -73,7 +73,9 @@ describe.each(ROUTE_FILES.map(relative))('%s', (file) => {
 /**
  * One data module per table, named like the table's schema file, so a table's queries are where
  * its name says they are. A file with no matching schema file is either a typo or a query
- * module for something that is not a table.
+ * module for something that is not a table. The exception is a table sync:supabase generates
+ * from the module's manifest, `<entity>_role_assignment` for each scope under `access.entity`,
+ * which has no schema file and is named the same way.
  */
 describe.each(
   MODULES.flatMap((module) =>
@@ -84,6 +86,12 @@ describe.each(
     const schemaFiles = new Set(
       fs.readdirSync(path.join(PACKAGES_DIR, module, 'src', 'lib', 'schema'))
     );
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(MODULES_DIR, module, 'manifest.json'), 'utf8')
+    ) as { access?: { entity?: string[] } };
+    for (const scope of manifest.access?.entity ?? []) {
+      schemaFiles.add(`${scope.replaceAll('_', '-')}-role-assignment.ts`);
+    }
     for (const file of fs.readdirSync(path.join(MODULES_DIR, module, `server.${flavour}`))) {
       expect(schemaFiles.has(file), file).toBe(true);
     }

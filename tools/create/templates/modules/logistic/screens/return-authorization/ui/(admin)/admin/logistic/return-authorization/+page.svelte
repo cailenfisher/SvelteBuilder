@@ -12,6 +12,9 @@
   import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: ReturnAuthorizationListView; form?: ScreenFormResult } = $props();
+  // Only the controls that will work: `data.actions` is what the reader may do on this screen's
+  // scope. Absent, every control shows and the database answers.
+  const can = (action: string) => data.actions.includes(action);
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
@@ -35,9 +38,11 @@
 <div class="return-authorization-list-screen">
   <header class="return-authorization-list-screen__header">
     <h1 class="return-authorization-list-screen__title">{localText('logistic.return_authorization.title')}</h1>
-    <Button variant="primary" onclick={() => (newReturnOpen = true)}>
-      {localText('logistic.return_authorization.new')}
-    </Button>
+    {#if can('create')}
+      <Button variant="primary" onclick={() => (newReturnOpen = true)}>
+        {localText('logistic.return_authorization.new')}
+      </Button>
+    {/if}
   </header>
 
   {#if form?.error}

@@ -1,0 +1,32 @@
+/* =============================================================================
+   RoleAssignmentTable, RoleAssignmentPanel
+   ============================================================================= */
+
+.role-assignment-table__group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.role-assignment-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.role-assignment-panel__title {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.role-assignment-panel__hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-soft);
+}
+
+.role-assignment-panel__add {
+  padding-top: var(--space-2);
+}

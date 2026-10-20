@@ -13,6 +13,9 @@
   import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: ShipmentDetailView; form?: ScreenFormResult } = $props();
+  // Only the controls that will work: `data.actions` is what the reader may do on this screen's
+  // scope. Absent, every control shows and the database answers.
+  const can = (action: string) => data.actions.includes(action);
 
   const globalDictionary = getDictionary();
 
@@ -40,15 +43,17 @@
       <TrackingEventList events={data.shipment.trackingEvents} locale={data.localeCode} dictionary={scoped} />
     </section>
 
-    <section class="shipment-detail-screen__section" aria-label={localText('logistic.shipment.status_label')}>
-      <h2 class="shipment-detail-screen__section-title">{localText('logistic.shipment.status_label')}</h2>
-      <ShipmentStatusForm shipment={data.shipment} statuses={data.statuses} dictionary={scoped} />
+    {#if can('update')}
+      <section class="shipment-detail-screen__section" aria-label={localText('logistic.shipment.status_label')}>
+        <h2 class="shipment-detail-screen__section-title">{localText('logistic.shipment.status_label')}</h2>
+        <ShipmentStatusForm shipment={data.shipment} statuses={data.statuses} dictionary={scoped} />
 
-      <h2 class="shipment-detail-screen__section-title">{localText('logistic.shipment.carrier_tracking')}</h2>
-      <ShipmentTrackingForm shipment={data.shipment} dictionary={scoped} />
+        <h2 class="shipment-detail-screen__section-title">{localText('logistic.shipment.carrier_tracking')}</h2>
+        <ShipmentTrackingForm shipment={data.shipment} dictionary={scoped} />
 
-      <h2 class="shipment-detail-screen__section-title">{localText('logistic.shipment.event_add')}</h2>
-      <TrackingEventAddForm dictionary={scoped} />
-    </section>
+        <h2 class="shipment-detail-screen__section-title">{localText('logistic.shipment.event_add')}</h2>
+        <TrackingEventAddForm dictionary={scoped} />
+      </section>
+    {/if}
   </div>
 </div>

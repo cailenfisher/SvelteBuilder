@@ -11,6 +11,7 @@ import path from 'node:path';
  * build stamps this release's versions into the CLI (see tsup.config.ts), and the CLI pins them.
  */
 export const SVELTEBUILDER_PACKAGES: Record<string, string> = {
+  '@sveltebuilder/access': 'packages/access',
   '@sveltebuilder/cli': 'tools/cli',
   '@sveltebuilder/commerce': 'packages/commerce',
   '@sveltebuilder/coreui': 'packages/coreui',

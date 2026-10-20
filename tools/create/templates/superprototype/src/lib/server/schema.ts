@@ -59,6 +59,11 @@ export const userAccount = pgTable(
 //
 // `menu` names which menu an item renders in (for example 'admin'). Its label is copy, linked
 // through local_text_link_id with a null scope (navigation labels are global UI copy).
+//
+// `permission_scope` decides who sees an admin menu entry (A24 in docs/ACCESS-CONTROL-DECISIONS.md):
+// an administrator sees every entry; anyone else sees an entry whose scope they hold anything in
+// (`article` for the article screens). An entry naming no scope is for administrators only. It
+// is a convenience, not a guard: each screen's loader and RLS decide what may be read.
 
 export const navigationItem = pgTable(
   'navigation_item',
@@ -73,6 +78,7 @@ export const navigationItem = pgTable(
     menu: text('menu').notNull(),
     position: integer('position').notNull().default(0),
     active: boolean('active').notNull().default(true),
+    permissionScope: text('permission_scope'),
   },
   (table) => [
     uniqueIndex('uq_navigation_item_href_menu').on(table.href, table.menu),

@@ -1,0 +1,7 @@
+.user-group-member-create-form {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  max-inline-size: 40rem;
+}

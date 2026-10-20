@@ -13,6 +13,9 @@
   // between the two. Typing `data` as the view rather than PageData is what makes a
   // mismatch a compile error in the scaffolded project instead of a runtime surprise.
   let { data, form }: { data: SupplierListView; form?: ScreenFormResult } = $props();
+  // Only the controls that will work: `data.actions` is what the reader may do on this screen's
+  // scope. Absent, every control shows and the database answers.
+  const can = (action: string) => data.actions.includes(action);
 
   // Module copy is not in the root dictionary — get_dictionary treats a null scope
   // filter as "scope is null" — so the loader ships it and the screen builds its own
@@ -32,9 +35,11 @@
 <div class="supplier-list-screen">
   <header class="supplier-list-screen__header">
     <h1 class="supplier-list-screen__title">{localText('logistic.supplier.title')}</h1>
-    <Button variant="primary" onclick={() => (showCreateForm = !showCreateForm)}>
-      {showCreateForm ? dictionary.localText('action.cancel') : localText('logistic.supplier.add')}
-    </Button>
+    {#if can('create')}
+      <Button variant="primary" onclick={() => (showCreateForm = !showCreateForm)}>
+        {showCreateForm ? dictionary.localText('action.cancel') : localText('logistic.supplier.add')}
+      </Button>
+    {/if}
   </header>
 
   {#if form?.error}

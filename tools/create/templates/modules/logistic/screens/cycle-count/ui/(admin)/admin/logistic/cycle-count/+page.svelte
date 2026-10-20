@@ -12,6 +12,9 @@
   import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: CycleCountListView; form?: ScreenFormResult } = $props();
+  // Only the controls that will work: `data.actions` is what the reader may do on this screen's
+  // scope. Absent, every control shows and the database answers.
+  const can = (action: string) => data.actions.includes(action);
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
@@ -35,9 +38,11 @@
 <div class="cycle-count-list-screen">
   <header class="cycle-count-list-screen__header">
     <h1 class="cycle-count-list-screen__title">{localText('logistic.cycle_count.title')}</h1>
-    <Button variant="primary" onclick={() => (newCountOpen = true)}>
-      {localText('logistic.cycle_count.new')}
-    </Button>
+    {#if can('create')}
+      <Button variant="primary" onclick={() => (newCountOpen = true)}>
+        {localText('logistic.cycle_count.new')}
+      </Button>
+    {/if}
   </header>
 
   {#if form?.error}

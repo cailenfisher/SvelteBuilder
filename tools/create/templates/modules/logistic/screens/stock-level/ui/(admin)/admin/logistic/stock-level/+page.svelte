@@ -11,6 +11,9 @@
   import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: StockLevelListView; form?: ScreenFormResult } = $props();
+  // Only the controls that will work: `data.actions` is what the reader may do on this screen's
+  // scope. Absent, every control shows and the database answers.
+  const can = (action: string) => data.actions.includes(action);
 
   const globalDictionary = getDictionary();
 
@@ -59,10 +62,12 @@
   <StockLevelTable
     stockLevels={data.stockLevels}
     lowOnly={data.lowOnly}
-    onAdjust={(stockLevel) => {
-      adjustTarget = stockLevel;
-      adjustOpen = true;
-    }}
+    onAdjust={can('adjust')
+      ? (stockLevel) => {
+          adjustTarget = stockLevel;
+          adjustOpen = true;
+        }
+      : undefined}
     dictionary={scoped}
   />
 </div>

@@ -47,6 +47,6 @@
       </Field>
     </div>
 
-    <Button type="submit">{newLabel}</Button>
+    <Button type="submit">{dictionary.localText('action.create')}</Button>
   </form>
 </section>

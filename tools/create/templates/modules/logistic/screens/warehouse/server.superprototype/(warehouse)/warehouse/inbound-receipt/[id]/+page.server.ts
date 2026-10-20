@@ -76,7 +76,6 @@ export const actions: Actions = {
     const { error: rpcError } = await receiveInboundReceiptLine(locals.supabase, {
       id: lineId,
       receivedQuantity: quantity,
-      userAccountId: locals.userAccountId,
     });
 
     if (rpcError) {

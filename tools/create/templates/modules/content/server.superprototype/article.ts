@@ -202,17 +202,23 @@ export async function listArticle(
  * One insert. The headline is entity-bound copy written separately, through
  * createLocalTextEntry. Returns the new article's id.
  */
+/**
+ * A new article, its headline in one locale, and the creator as its author, in one transaction
+ * (content_create_article). The article starts at the first unpublished status. Being its author
+ * is what lets a Writer keep editing it. Refused with 42501 without `article.create`, and with
+ * 23505 for a canonical slug already in use.
+ */
 export async function createArticle(
   supabase: SupabaseClient,
-  fields: Pick<Article, 'articleStatusId' | 'canonicalSlug'>
+  fields: Pick<Article, 'canonicalSlug'> & { localeId: number; headline: string }
 ): Promise<QueryResult<number>> {
-  const { data, error } = await supabase
-    .from('article')
-    .insert({ article_status_id: fields.articleStatusId, canonical_slug: fields.canonicalSlug })
-    .select('id')
-    .single();
+  const { data, error } = await supabase.rpc('content_create_article', {
+    p_canonical_slug: fields.canonicalSlug,
+    p_locale_id: fields.localeId,
+    p_headline: fields.headline,
+  });
   if (error) return { data: null, error };
-  return { data: data.id, error: null };
+  return { data: Number(data), error: null };
 }
 
 /**

@@ -5,14 +5,21 @@
   "hint": "The newsroom side: every article at every status, the publish checklist, and workflow transitions",
   "routes": ["/admin/content/article", "/admin/content/article/[id]"],
   "requires": [],
-  "views": ["ArticleAdminListView", "ArticleAdminDetailView", "ArticleChecklistEntry", "ArticleRow"],
+  "views": [
+    "ArticleAdminListView",
+    "ArticleAdminDetailView",
+    "ArticleChecklistEntry",
+    "ArticleRow"
+  ],
   "actions": {
     "/admin/content/article": {
       "create": ["headline", "canonical_slug"]
     },
     "/admin/content/article/[id]": {
       "transition": ["status_slug"],
-      "checklist": ["item_id", "satisfied"]
+      "checklist": ["item_id", "satisfied"],
+      "share": ["principal", "role_id", "expires_at"],
+      "unshare": ["role_assignment_id"]
     }
   },
   "copySlugs": [
@@ -28,6 +35,14 @@
     "content.article_admin.section",
     "content.article_admin.article_byline",
     "action.cancel",
-    "action.close"
+    "action.close",
+    "action.remove",
+    "access.role_assignment.add",
+    "access.role_assignment.principal",
+    "access.role_assignment.principal_placeholder",
+    "access.role_assignment.role",
+    "access.role_assignment.role_placeholder",
+    "access.role_assignment.expires_at_input",
+    "access.role_assignment.expires_at_hint"
   ]
 }

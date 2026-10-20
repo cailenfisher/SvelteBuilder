@@ -40,7 +40,7 @@
 
   const columns: DataTableColumn[] = $derived([
     { key: 'headline', label: dictionary.localText('content.article_assignment_queue.article', 'content') },
-    { key: 'role', label: dictionary.localText('content.article_assignment_queue.role', 'content') },
+    { key: 'articleAssignmentRole', label: dictionary.localText('content.article_assignment_queue.article_assignment_role', 'content') },
     { key: 'assignee', label: dictionary.localText('content.article_assignment_queue.assignee', 'content') },
     { key: 'status', label: dictionary.localText('content.article_assignment_queue.status', 'content') },
     { key: 'dueAt', label: dictionary.localText('content.article_assignment_queue.due_at', 'content') },
@@ -71,8 +71,8 @@
     {:else}
       {assignment.article.headline}
     {/if}
-  {:else if column.key === 'role'}
-    {dictionary.localText(`content.article_assignment_role.${assignment.role}`, 'content')}
+  {:else if column.key === 'articleAssignmentRole'}
+    {dictionary.localText(`content.article_assignment_role.${assignment.articleAssignmentRole}`, 'content')}
   {:else if column.key === 'assignee'}
     {assignment.assigneeName}
   {:else if column.key === 'status'}

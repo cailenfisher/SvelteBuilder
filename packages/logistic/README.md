@@ -34,6 +34,10 @@ import { stockLevel, pickTask, shipment } from '@sveltebuilder/logistic/schema';
 
 Like all SvelteBuilder domain modules, logistic carries no `name`/`title`/`description` copy columns on its entities — user-facing copy is linked via `diglossia` (`scope` = table name, `entityId` = the row's bigint PK).
 
+## Access control
+
+Logistic's manifest declares a permission for each of its eight scopes (`storage_location`, `supplier`, `stock_level`, `inbound_receipt`, `pick_task`, `shipment`, `return_authorization`, `cycle_count`), with the verbs `adjust`, `receive`, `pick`, `grade`, `count` and `approve`, and its seed adds two roles: **Logistics manager** (everything) and **Warehouse operator** (read everything; receive, pick, count and grade). A signed-in user with neither reads nothing. Floor work goes through RPCs that check the verb and take the actor from the session. See [`docs/ACCESS-CONTROL.md` §7](https://github.com/cailenfisher/SvelteBuilder/blob/main/docs/ACCESS-CONTROL.md).
+
 ## v1 scope
 
 **Explicitly out of scope for v1:** wave picking, cross-docking, yard management, labor management, robotics integration, demand forecasting, and multi-warehouse advanced routing.

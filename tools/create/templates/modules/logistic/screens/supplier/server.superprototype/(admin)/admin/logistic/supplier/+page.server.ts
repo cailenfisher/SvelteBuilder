@@ -4,6 +4,8 @@ import { createSupplier, listSupplier } from '$lib/server/logistic/supplier';
 import type { SupplierListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../require-access';
 
 // No auth guard here: the (admin) layout's load already redirects an anonymous
 // visitor to /sign-in and 403s a non-admin, and RLS refuses the read regardless.
@@ -12,7 +14,11 @@ import { formError } from '$lib/server/form-error';
 // The return type is annotated with the view rather than inferred, so a screen and
 // this loader disagreeing is a compile error here rather than a runtime surprise
 // there. @sveltebuilder/logistic/views is the contract both sides import.
-export const load: PageServerLoad = async ({ locals }): Promise<SupplierListView> => {
+export const load: PageServerLoad = async ({ parent, locals }): Promise<SupplierListView> => {
+  await requireScope(parent, 'supplier');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'supplier');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   const [suppliersResult, copy] = await Promise.all([
     listSupplier(locals.supabase),
     // Two scopes: the module's UI copy, and every supplier's own name.
@@ -26,7 +32,7 @@ export const load: PageServerLoad = async ({ locals }): Promise<SupplierListView
 
   if (suppliersResult.error) throw error(500, 'Failed to load suppliers.');
 
-  return { suppliers: suppliersResult.data, copy };
+  return { suppliers: suppliersResult.data, copy, actions };
 };
 
 export const actions: Actions = {

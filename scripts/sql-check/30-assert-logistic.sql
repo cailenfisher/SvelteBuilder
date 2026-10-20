@@ -1,26 +1,57 @@
 -- Logistic-specific expectations. Skipped entirely when the module was not selected,
 -- so one assertion set can run against any scaffold.
+--
+-- Since access control (docs/ACCESS-CONTROL.md §7, A22) every logistic table is governed by
+-- a permission, so the checks impersonate three principals made for this file:
+--   …b001 Manager (logistic_manager)   …b002 Operator (logistic_operator)   …b003 holds nothing
+-- Scenes are set as the owner, which RLS does not apply to, and every check that matters runs
+-- as one of them. The Clarion field test's findings 4, 5 and 7 each have a check below.
+
+-- ── Fixtures ──────────────────────────────────────────────────────────────────
+
+insert into auth.users (id, email)
+select ('bbbbbbbb-0000-4000-8000-00000000b00' || n)::uuid, 'logistic-' || n || '@example.test'
+from generate_series(1, 3) as n
+where to_regclass('public.supplier') is not null
+on conflict (id) do nothing;
 
 do $$
 declare
-  v_admin_id  bigint;
-  v_worker_id bigint;
-  v_supplier  bigint;
-  v_count     integer;
-  v_name      text;
+  n integer;
 begin
   if to_regclass('public.supplier') is null then
     raise notice 'logistic not installed — skipping';
     return;
   end if;
+  for n in 1..3 loop
+    set local role authenticated;
+    perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-4000-8000-00000000b00' || n, true);
+    perform public.ensure_user_account();
+    reset role;
+  end loop;
 
-  -- Two principals: the base assertions provisioned an admin (the first ever) and a
-  -- non-admin. Reuse them rather than depending on creation order here.
-  select id into v_admin_id from public.user_account where admin order by id limit 1;
-  select id into v_worker_id from public.user_account where not admin order by id limit 1;
-  if v_admin_id is null or v_worker_id is null then
-    raise exception 'expected both an admin and a non-admin principal to exist';
-  end if;
+  insert into public.role_assignment (role_id, user_account_id, scope)
+  select r.id, ua.id, null
+  from public.role r
+  join public.user_account ua on ua.auth_user_id = (
+    case r.slug
+      when 'logistic_manager' then 'bbbbbbbb-0000-4000-8000-00000000b001'
+      else 'bbbbbbbb-0000-4000-8000-00000000b002'
+    end
+  )::uuid
+  where r.slug in ('logistic_manager', 'logistic_operator')
+  on conflict do nothing;
+end $$;
+
+create function pg_temp.account_id(p_n integer) returns bigint language sql stable security definer as $$
+  select ua.id from public.user_account ua
+  where ua.auth_user_id = ('bbbbbbbb-0000-4000-8000-00000000b00' || p_n)::uuid
+$$;
+
+create function pg_temp.sign_in(p_n integer) returns void language plpgsql as $$
+begin
+  perform set_config('role', 'authenticated', true);
+  perform set_config('request.jwt.claim.sub', 'bbbbbbbb-0000-4000-8000-00000000b00' || p_n, true);
 end $$;
 
 -- ── The module's seed landed ─────────────────────────────────────────────────
@@ -50,28 +81,23 @@ begin
     where l.slug = 'name' and l.scope = 'storage_location' and l.entity_id = sl.id
   );
   if v_count > 0 then raise exception '% location(s) have no name link', v_count; end if;
+
+  if (select count(*) from public.role where slug in ('logistic_manager', 'logistic_operator')) <> 2 then
+    raise exception 'the logistic roles are not seeded';
+  end if;
 end $$;
 
--- ── The screens' reads work for a signed-in non-admin ────────────────────────
+-- ── Signed in is not staff (A22; finding 5) ──────────────────────────────────
 --
--- The warehouse screens are used by staff who are not admins, so a read policy that
--- only admits admins would empty those pages rather than error. Under `withUser` the
--- connection role owned these tables and Postgres skipped RLS altogether, so this is
--- the first thing that has ever checked them.
+-- Supabase signs up anyone with an email address, so a policy for `authenticated` is a policy
+-- for the public. Someone holding no logistic role reads nothing; an Operator reads it all.
 
 do $$
 declare
-  v_sub  uuid;
-  v_seen integer;
   v_tbl  text;
+  v_seen integer;
 begin
   if to_regclass('public.supplier') is null then return; end if;
-
-  select ua.auth_user_id into v_sub
-  from public.user_account ua where not ua.admin order by ua.id limit 1;
-
-  set local role authenticated;
-  perform set_config('request.jwt.claim.sub', v_sub::text, true);
 
   foreach v_tbl in array array[
     'supplier', 'supplier_contact', 'storage_location', 'stock_level',
@@ -80,174 +106,155 @@ begin
     'return_authorization', 'return_authorization_line',
     'cycle_count', 'cycle_count_line', 'stock_adjustment'
   ] loop
-    -- A read that RLS refuses returns zero rows rather than raising, so the seeded
-    -- tables are the ones worth asserting on; the rest must at least be selectable.
+    perform pg_temp.sign_in(3);
     execute format('select count(*) from public.%I', v_tbl) into v_seen;
+    if v_seen <> 0 then
+      raise exception 'a signed-in user with no role reads % row(s) of %', v_seen, v_tbl;
+    end if;
   end loop;
 
-  select count(*) into v_seen from public.supplier;
-  if v_seen = 0 then
-    raise exception 'a signed-in non-admin sees no suppliers — the read policy is too narrow';
+  perform pg_temp.sign_in(2);
+  if (select count(*) from public.supplier) = 0 or (select count(*) from public.stock_level) = 0 then
+    raise exception 'an Operator cannot read suppliers or stock';
   end if;
 end $$;
 
--- ── Writes are admin-only ────────────────────────────────────────────────────
-
-do $$
-declare v_sub uuid;
-begin
-  if to_regclass('public.supplier') is null then return; end if;
-
-  select ua.auth_user_id into v_sub
-  from public.user_account ua where not ua.admin order by ua.id limit 1;
-
-  set local role authenticated;
-  perform set_config('request.jwt.claim.sub', v_sub::text, true);
-
-  begin
-    perform public.logistic_create_supplier('rls-probe', 'Should Not Exist', 1, null);
-    raise exception 'a non-admin created a supplier — RLS is not applying';
-  exception when insufficient_privilege then
-    null; -- refused, as intended
-  end;
-end $$;
-
--- ── The admin create path works, all three statements ────────────────────────
+-- ── Suppliers: a Manager creates them, nobody else ───────────────────────────
 
 do $$
 declare
-  v_sub      uuid;
-  v_id       bigint;
-  v_name     text;
-  v_locale   bigint;
+  v_locale bigint := (select id from public.locale where code = 'en');
+  v_id     bigint;
+  v_name   text;
 begin
   if to_regclass('public.supplier') is null then return; end if;
 
-  select ua.auth_user_id into v_sub
-  from public.user_account ua where ua.admin order by ua.id limit 1;
-  select id into v_locale from public.locale where code = 'en';
+  foreach v_id in array array[2, 3] loop
+    perform pg_temp.sign_in(v_id::integer);
+    begin
+      perform public.logistic_create_supplier('rls-probe', 'Should Not Exist', v_locale, null);
+      raise exception 'a user without supplier.create created a supplier';
+    exception when insufficient_privilege then null;
+    end;
+  end loop;
 
-  set local role authenticated;
-  perform set_config('request.jwt.claim.sub', v_sub::text, true);
-
+  -- A Manager is not an administrator, and the supplier's name is copy, which only
+  -- administrators write directly: the function writes it for them.
+  perform pg_temp.sign_in(1);
   v_id := public.logistic_create_supplier('sql-check-supplier', 'SQL Check Co.', v_locale, 9);
-  if v_id is null then raise exception 'logistic_create_supplier returned null'; end if;
 
-  -- The row, its link and its copy — the whole point of the RPC being one transaction.
+  reset role;
   select t.content into v_name
   from public.local_text t
   join public.local_text_link l on l.id = t.link
   where l.slug = 'name' and l.scope = 'supplier' and l.entity_id = v_id and t.locale = v_locale;
-
   if v_name is distinct from 'SQL Check Co.' then
     raise exception 'created supplier has no name copy (got %)', coalesce(v_name, '<null>');
   end if;
 
-  -- The branch the route maps to a 409 rather than a 500.
+  perform pg_temp.sign_in(1);
   begin
     perform public.logistic_create_supplier('sql-check-supplier', 'Duplicate', v_locale, null);
     raise exception 'a duplicate slug was accepted';
-  exception when unique_violation then
-    null; -- as the route expects
+  exception when unique_violation then null;
   end;
 end $$;
 
--- ── The stock functions hold their invariants ────────────────────────────────
+-- ── Stock moves only through checked functions (finding 4) ───────────────────
 
 do $$
 declare
-  v_sub     uuid;
   v_level   bigint;
   v_on_hand integer;
   v_refused boolean;
+  v_fn      text;
 begin
   if to_regclass('public.stock_level') is null then return; end if;
 
-  select ua.auth_user_id into v_sub
-  from public.user_account ua where ua.admin order by ua.id limit 1;
-
-  set local role authenticated;
-  perform set_config('request.jwt.claim.sub', v_sub::text, true);
+  -- The primitives are internal: nobody calls them through the API.
+  foreach v_fn in array array[
+    'public.logistic_adjust_stock(bigint, integer, public.stock_adjustment_reason, bigint, text)',
+    'public.logistic_reserve_stock(bigint, integer)',
+    'public.logistic_release_stock_reservation(bigint, integer)',
+    'public.logistic_consume_stock(bigint, integer, public.stock_adjustment_reason, bigint, text)',
+    'public.logistic_ensure_stock_level(bigint, text)'
+  ] loop
+    if has_function_privilege('authenticated', v_fn, 'EXECUTE')
+       or has_function_privilege('anon', v_fn, 'EXECUTE') then
+      raise exception '% is executable through the API', v_fn;
+    end if;
+  end loop;
 
   select id, on_hand into v_level, v_on_hand from public.stock_level order by id limit 1;
   if v_level is null then raise exception 'no stock_level rows seeded'; end if;
 
-  -- An adjustment must move on_hand and record the before/after it claims.
-  perform public.logistic_adjust_stock(
-    v_level, 3, 'system_correction', (select id from public.user_account where admin order by id limit 1)
-  );
+  -- An Operator may not adjust stock by hand; a Manager may, and the adjustment is theirs.
+  perform pg_temp.sign_in(2);
+  begin
+    perform public.logistic_adjust_stock_level(v_level, 1000, 'other');
+    raise exception 'an Operator adjusted stock by hand';
+  exception when insufficient_privilege then null;
+  end;
 
+  perform pg_temp.sign_in(1);
+  perform public.logistic_adjust_stock_level(v_level, 3, 'system_correction', 'sql-check');
+
+  reset role;
   if (select on_hand from public.stock_level where id = v_level) <> v_on_hand + 3 then
-    raise exception 'logistic_adjust_stock did not move on_hand';
+    raise exception 'logistic_adjust_stock_level did not move on_hand';
   end if;
-
   if not exists (
     select 1 from public.stock_adjustment
-    where stock_level_id = v_level and delta = 3
+    where stock_level_id = v_level and delta = 3 and note = 'sql-check'
       and on_hand_before = v_on_hand and on_hand_after = v_on_hand + 3
+      and user_account_id = pg_temp.account_id(1)
   ) then
-    raise exception 'logistic_adjust_stock wrote no matching audit row';
+    raise exception 'the adjustment was not recorded against the Manager who made it';
   end if;
 
-  -- The check constraints are the real guardrail: reserved may never exceed on_hand,
-  -- and on_hand may never go negative.
-  -- The outcome goes into a flag: a raise inside the block would be caught by its own handler.
+  -- The check constraints are the real guardrail: reserved may never exceed on_hand.
   v_refused := false;
   begin
     perform public.logistic_reserve_stock(v_level, 100000);
   exception when others then
-    v_refused := true; -- refused, by constraint or by the function's own guard
+    v_refused := true;
   end;
   if not v_refused then
     raise exception 'reserved more stock than exists';
   end if;
 end $$;
 
--- ── Receiving a line moves stock, updates the line, and derives the status ───
---
--- Five statements across three tables in one function, so the thing worth asserting is
--- that all of them landed together and that the receipt's status was recomputed rather
--- than advanced.
+-- ── Receiving: an Operator receives, and the receipt follows its lines ───────
 
 do $$
 declare
-  v_sub       uuid;
-  v_admin     bigint;
-  v_bin       bigint;
-  v_receipt   bigint;
-  v_line      bigint;
-  v_level     bigint;
-  v_before    integer;
-  v_status    text;
+  v_bin     bigint;
+  v_receipt bigint;
+  v_line    bigint;
+  v_level   bigint;
+  v_before  integer;
+  v_status  text;
 begin
   if to_regclass('public.inbound_receipt') is null then return; end if;
 
-  select ua.id, ua.auth_user_id into v_admin, v_sub
-  from public.user_account ua where ua.admin order by ua.id limit 1;
   select id into v_bin from public.storage_location where location_type = 'bin' order by id limit 1;
-
-  set local role authenticated;
-  perform set_config('request.jwt.claim.sub', v_sub::text, true);
-
   insert into public.inbound_receipt (supplier_id, user_account_id)
-  values (null, v_admin) returning id into v_receipt;
-
-  insert into public.inbound_receipt_line
-    (inbound_receipt_id, storage_location_id, sku, expected_quantity)
+  values (null, pg_temp.account_id(1)) returning id into v_receipt;
+  insert into public.inbound_receipt_line (inbound_receipt_id, storage_location_id, sku, expected_quantity)
   values (v_receipt, v_bin, 'SQLCHECK-001', 10) returning id into v_line;
-
-  -- A receipt with an expected line and nothing received is still pending.
-  select status into v_status from public.inbound_receipt where id = v_receipt;
-  if v_status <> 'pending' then
-    raise exception 'new receipt should be pending, got %', v_status;
-  end if;
-
   v_level := public.logistic_ensure_stock_level(v_bin, 'SQLCHECK-001');
   select on_hand into v_before from public.stock_level where id = v_level;
 
-  -- Partial receipt.
-  perform public.logistic_receive_receipt_line(v_line, 4, v_admin);
+  perform pg_temp.sign_in(3);
+  begin
+    perform public.logistic_receive_receipt_line(v_line, 4);
+    raise exception 'a user with no role received goods';
+  exception when insufficient_privilege then null;
+  end;
 
+  perform pg_temp.sign_in(2);
+  perform public.logistic_receive_receipt_line(v_line, 4);
+  reset role;
   if (select on_hand from public.stock_level where id = v_level) <> v_before + 4 then
     raise exception 'receiving 4 did not move on_hand';
   end if;
@@ -256,140 +263,73 @@ begin
     raise exception 'partly received receipt should be partial, got %', v_status;
   end if;
 
-  -- Completing it. The delta is what moves, not the absolute quantity — receiving 10
-  -- after 4 must add 6, not 10.
-  perform public.logistic_receive_receipt_line(v_line, 10, v_admin);
-
+  -- The delta is what moves, not the absolute quantity.
+  perform pg_temp.sign_in(2);
+  perform public.logistic_receive_receipt_line(v_line, 10);
+  reset role;
   if (select on_hand from public.stock_level where id = v_level) <> v_before + 10 then
     raise exception 'receiving the rest moved the wrong delta';
   end if;
   select status into v_status from public.inbound_receipt where id = v_receipt;
   if v_status <> 'completed' then
-    raise exception 'fully received receipt should be complete, got %', v_status;
-  end if;
-  if (select received_at from public.inbound_receipt where id = v_receipt) is null then
-    raise exception 'complete receipt has no received_at';
+    raise exception 'fully received receipt should be completed, got %', v_status;
   end if;
 
-  -- Correcting downward must move the status back, not leave it complete: the status is
-  -- derived from the lines every time rather than advanced one way.
-  perform public.logistic_receive_receipt_line(v_line, 2, v_admin);
-  select status into v_status from public.inbound_receipt where id = v_receipt;
-  if v_status <> 'partial' then
-    raise exception 'corrected-down receipt should return to partial, got %', v_status;
-  end if;
-  if (select on_hand from public.stock_level where id = v_level) <> v_before + 2 then
-    raise exception 'correcting down did not reverse the stock';
-  end if;
-  if (select received_at from public.inbound_receipt where id = v_receipt) is not null then
-    raise exception 'no-longer-complete receipt still has received_at';
-  end if;
-
-  -- The audit trail records every movement, including the reversal.
-  if (select count(*) from public.stock_adjustment
-      where stock_level_id = v_level and reason = 'inbound_receipt') <> 3 then
-    raise exception 'expected three inbound_receipt adjustments, one per receive call';
-  end if;
-end $$;
-
--- A cancelled receipt is closed to receiving. The worker policy permits updates only
--- while a receipt is pending or partial, and the function checks the row count so a
--- refusal aborts before any stock has moved.
-do $$
-declare
-  v_sub     uuid;
-  v_admin   bigint;
-  v_bin     bigint;
-  v_receipt bigint;
-  v_line    bigint;
-  v_level   bigint;
-  v_before  integer;
-begin
-  if to_regclass('public.inbound_receipt') is null then return; end if;
-
-  select ua.id, ua.auth_user_id into v_admin, v_sub
-  from public.user_account ua where ua.admin order by ua.id limit 1;
-  select id into v_bin from public.storage_location where location_type = 'bin' order by id limit 1;
-
-  set local role authenticated;
-  perform set_config('request.jwt.claim.sub', v_sub::text, true);
-
-  insert into public.inbound_receipt (supplier_id, user_account_id, status)
-  values (null, v_admin, 'cancelled') returning id into v_receipt;
-  insert into public.inbound_receipt_line
-    (inbound_receipt_id, storage_location_id, sku, expected_quantity)
-  values (v_receipt, v_bin, 'SQLCHECK-002', 5) returning id into v_line;
-
-  v_level := public.logistic_ensure_stock_level(v_bin, 'SQLCHECK-002');
-  select on_hand into v_before from public.stock_level where id = v_level;
-
+  -- A completed receipt is closed to the floor, and a refusal moves nothing.
+  perform pg_temp.sign_in(2);
   begin
-    perform public.logistic_receive_receipt_line(v_line, 5, v_admin);
-    -- An admin's blanket policy does permit this update, so reaching here is correct for
-    -- an admin. What must not happen is stock moving without the line recording it.
-    if (select received_quantity from public.inbound_receipt_line where id = v_line) <> 5 then
-      raise exception 'stock moved but the line was not updated';
-    end if;
-  exception when insufficient_privilege then
-    -- A refusal must leave no trace.
-    if (select on_hand from public.stock_level where id = v_level) <> v_before then
-      raise exception 'a refused receive still moved stock';
-    end if;
+    perform public.logistic_receive_receipt_line(v_line, 2);
+    raise exception 'an Operator received against a completed receipt';
+  exception when insufficient_privilege then null;
   end;
+  reset role;
+  if (select on_hand from public.stock_level where id = v_level) <> v_before + 10 then
+    raise exception 'a refused receive moved stock';
+  end if;
+  if (select user_account_id from public.stock_adjustment
+      where stock_level_id = v_level and reason = 'inbound_receipt' order by id desc limit 1)
+     <> pg_temp.account_id(2) then
+    raise exception 'receiving was not recorded against the Operator who did it';
+  end if;
 end $$;
 
--- ── Picking consumes reserved stock, and completing releases the rest ────────
---
--- The subtlest invariant in the module. Picking reserved stock must decrement on_hand AND
--- reserved together, or the reservation stays standing and double-counts against the next
--- picker. Completing a short pick must release what was reserved and not taken, or that
--- stock is reserved forever — invisible to every other task and unreconcilable after.
+-- ── Picking: take, pick, complete; nobody else's task; no rewriting lines ────
 
 do $$
 declare
-  v_sub        uuid;
-  v_worker     bigint;
-  v_worker_sub uuid;
-  v_bin        bigint;
-  v_level      bigint;
-  v_task       bigint;
-  v_line       bigint;
-  v_on_hand    integer;
-  v_reserved   integer;
-  v_refused    boolean;
+  v_bin      bigint;
+  v_level    bigint;
+  v_task     bigint;
+  v_line     bigint;
+  v_on_hand  integer;
+  v_reserved integer;
+  v_refused  boolean;
+  v_rows     integer;
 begin
   if to_regclass('public.pick_task') is null then return; end if;
 
-  select ua.id, ua.auth_user_id into v_worker, v_worker_sub
-  from public.user_account ua where not ua.admin order by ua.id limit 1;
   select id into v_bin from public.storage_location where location_type = 'bin' order by id limit 1;
-
-  -- Set the scene as an admin: stock on the shelf, reserved for a task assigned to the
-  -- worker. Admin because stock_level and pick_task inserts are admin-only under RLS.
-  select ua.auth_user_id into v_sub
-  from public.user_account ua where ua.admin order by ua.id limit 1;
-  set local role authenticated;
-  perform set_config('request.jwt.claim.sub', v_sub::text, true);
-
   v_level := public.logistic_ensure_stock_level(v_bin, 'SQLCHECK-PICK');
-  perform public.logistic_adjust_stock(v_level, 20, 'system_correction', v_worker);
+  perform public.logistic_adjust_stock(v_level, 20, 'system_correction', pg_temp.account_id(1));
   perform public.logistic_reserve_stock(v_level, 8);
-
-  insert into public.pick_task (user_account_id, status)
-  values (v_worker, 'in_progress') returning id into v_task;
-
+  insert into public.pick_task (user_account_id, status) values (null, 'open') returning id into v_task;
   insert into public.pick_task_line
     (pick_task_id, stock_level_id, storage_location_id, sku, requested_quantity, sequence)
   values (v_task, v_level, v_bin, 'SQLCHECK-PICK', 8, 10) returning id into v_line;
+  select on_hand, reserved into v_on_hand, v_reserved from public.stock_level where id = v_level;
 
-  select on_hand, reserved into v_on_hand, v_reserved
-  from public.stock_level where id = v_level;
+  perform pg_temp.sign_in(2);
+  if not public.logistic_take_pick_task(v_task) then
+    raise exception 'an Operator could not take an open task';
+  end if;
 
-  -- Now as the worker, which is what the worker policies are for.
-  perform set_config('request.jwt.claim.sub', v_worker_sub::text, true);
+  -- Finding 7: a picker changes how many were picked, never what was asked for.
+  update public.pick_task_line set requested_quantity = 1 where id = v_line;
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then raise exception 'an Operator rewrote a pick line''s requested quantity'; end if;
 
-  perform public.logistic_record_picked_quantity(v_line, 5, v_worker);
-
+  perform public.logistic_record_picked_quantity(v_line, 5);
+  reset role;
   if (select on_hand from public.stock_level where id = v_level) <> v_on_hand - 5 then
     raise exception 'picking 5 did not decrement on_hand';
   end if;
@@ -397,30 +337,28 @@ begin
     raise exception 'picking 5 did not decrement reserved — the reservation is double-counting';
   end if;
 
-  -- Correcting downward reverses both counters, so a mis-scan is recoverable.
-  perform public.logistic_record_picked_quantity(v_line, 3, v_worker);
-  if (select on_hand from public.stock_level where id = v_level) <> v_on_hand - 3 then
-    raise exception 'correcting the pick down did not restore on_hand';
-  end if;
-  if (select reserved from public.stock_level where id = v_level) <> v_reserved - 3 then
-    raise exception 'correcting the pick down did not restore reserved';
-  end if;
-
-  -- More than requested is a mistake, not an over-pick: the reservation only covers the
-  -- requested quantity.
+  perform pg_temp.sign_in(2);
+  perform public.logistic_record_picked_quantity(v_line, 3);
   v_refused := false;
   begin
-    perform public.logistic_record_picked_quantity(v_line, 99, v_worker);
+    perform public.logistic_record_picked_quantity(v_line, 99);
   exception when raise_exception then
-    v_refused := true; -- refused, as intended
+    v_refused := true;
   end;
-  if not v_refused then
-    raise exception 'picked more than the line requested';
-  end if;
+  if not v_refused then raise exception 'picked more than the line requested'; end if;
 
-  -- Completing short: 3 of 8 picked, so 5 must come back off the reservation.
-  perform public.logistic_complete_pick_task(v_task, v_worker);
+  -- The Manager holds pick_task.pick too, but this task is the Operator's.
+  perform pg_temp.sign_in(1);
+  begin
+    perform public.logistic_record_picked_quantity(v_line, 4);
+    raise exception 'someone picked against a task taken by another';
+  exception when insufficient_privilege then null;
+  end;
 
+  -- Completing short: 3 of 8 picked, so 5 come back off the reservation.
+  perform pg_temp.sign_in(2);
+  perform public.logistic_complete_pick_task(v_task);
+  reset role;
   if (select status from public.pick_task where id = v_task) <> 'completed' then
     raise exception 'the task did not complete';
   end if;
@@ -432,52 +370,98 @@ begin
   end if;
 end $$;
 
--- A worker may not pick against a task that is not theirs. The line update is what RLS
--- governs, and the function checks its row count, so a refusal must leave stock untouched.
+-- ── Counting: an Operator counts, only a Manager approves ────────────────────
+
 do $$
 declare
-  v_admin      bigint;
-  v_admin_sub  uuid;
-  v_worker     bigint;
-  v_worker_sub uuid;
-  v_bin        bigint;
-  v_level      bigint;
-  v_task       bigint;
-  v_line       bigint;
-  v_on_hand    integer;
+  v_bin   bigint;
+  v_count bigint;
+  v_line  bigint;
+  v_level bigint;
+  v_before integer;
 begin
-  if to_regclass('public.pick_task') is null then return; end if;
+  if to_regclass('public.cycle_count') is null then return; end if;
 
-  select ua.id, ua.auth_user_id into v_admin, v_admin_sub
-  from public.user_account ua where ua.admin order by ua.id limit 1;
-  select ua.id, ua.auth_user_id into v_worker, v_worker_sub
-  from public.user_account ua where not ua.admin order by ua.id limit 1;
-  select id into v_bin from public.storage_location where location_type = 'bin' order by id limit 1;
+  select storage_location_id into v_bin from public.stock_level where on_hand > 0 order by id limit 1;
 
-  set local role authenticated;
-  perform set_config('request.jwt.claim.sub', v_admin_sub::text, true);
-
-  v_level := public.logistic_ensure_stock_level(v_bin, 'SQLCHECK-NOTMINE');
-  perform public.logistic_adjust_stock(v_level, 10, 'system_correction', v_admin);
-  perform public.logistic_reserve_stock(v_level, 4);
-
-  -- Assigned to the admin, so the worker has no claim on it.
-  insert into public.pick_task (user_account_id, status)
-  values (v_admin, 'in_progress') returning id into v_task;
-  insert into public.pick_task_line
-    (pick_task_id, stock_level_id, storage_location_id, sku, requested_quantity)
-  values (v_task, v_level, v_bin, 'SQLCHECK-NOTMINE', 4) returning id into v_line;
-
-  select on_hand into v_on_hand from public.stock_level where id = v_level;
-
-  perform set_config('request.jwt.claim.sub', v_worker_sub::text, true);
-
+  perform pg_temp.sign_in(2);
   begin
-    perform public.logistic_record_picked_quantity(v_line, 4, v_worker);
-    raise exception 'a worker picked against a task assigned to someone else';
-  exception when insufficient_privilege then
-    if (select on_hand from public.stock_level where id = v_level) <> v_on_hand then
-      raise exception 'a refused pick still moved stock';
-    end if;
+    perform public.logistic_create_cycle_count(array[v_bin]);
+    raise exception 'an Operator opened a cycle count';
+  exception when insufficient_privilege then null;
   end;
+
+  perform pg_temp.sign_in(1);
+  v_count := public.logistic_create_cycle_count(array[v_bin]);
+
+  perform pg_temp.sign_in(2);
+  if not public.logistic_take_cycle_count(v_count) then
+    raise exception 'an Operator could not take an open count';
+  end if;
+
+  reset role;
+  select id, stock_level_id, expected_quantity into v_line, v_level, v_before
+  from public.cycle_count_line where cycle_count_id = v_count order by id limit 1;
+
+  perform pg_temp.sign_in(2);
+  if not public.logistic_record_counted_quantity(v_count, v_line, v_before + 2) then
+    raise exception 'an Operator could not record a count on their own count';
+  end if;
+  update public.cycle_count_line set expected_quantity = 0 where id = v_line;
+  if (select expected_quantity from public.cycle_count_line where id = v_line) = 0 then
+    raise exception 'an Operator rewrote what a count expected';
+  end if;
+  begin
+    perform public.logistic_approve_cycle_count(v_count);
+    raise exception 'an Operator approved a count';
+  exception when insufficient_privilege then null;
+  end;
+
+  perform pg_temp.sign_in(1);
+  perform public.logistic_approve_cycle_count(v_count);
+  reset role;
+  if (select status from public.cycle_count where id = v_count) <> 'completed' then
+    raise exception 'the approved count is not completed';
+  end if;
+end $$;
+
+-- ── Returns: an Operator grades and processes ────────────────────────────────
+
+do $$
+declare
+  v_return bigint;
+  v_line   bigint;
+  v_bin    bigint;
+begin
+  if to_regclass('public.return_authorization') is null then return; end if;
+
+  select id into v_bin from public.storage_location where location_type = 'bin' order by id limit 1;
+  insert into public.return_authorization (user_account_id, status)
+  values (pg_temp.account_id(1), 'pending') returning id into v_return;
+  insert into public.return_authorization_line (return_authorization_id, sku, expected_quantity)
+  values (v_return, 'SQLCHECK-RETURN', 2) returning id into v_line;
+
+  perform pg_temp.sign_in(3);
+  begin
+    perform public.logistic_grade_return_line(v_line, 2, 'salable', 'restock', v_bin);
+    raise exception 'a user with no role graded a return';
+  exception when insufficient_privilege then null;
+  end;
+
+  perform pg_temp.sign_in(2);
+  perform public.logistic_grade_return_line(v_line, 2, 'salable', 'restock', v_bin);
+  perform public.logistic_process_return_authorization(v_return);
+  reset role;
+  if (select status from public.return_authorization where id = v_return) <> 'processed' then
+    raise exception 'the return was not processed';
+  end if;
+end $$;
+
+-- ── Cleanup ───────────────────────────────────────────────────────────────────
+
+do $$
+begin
+  if to_regclass('public.supplier') is null then return; end if;
+  delete from public.role_assignment
+  where user_account_id in (pg_temp.account_id(1), pg_temp.account_id(2), pg_temp.account_id(3));
 end $$;

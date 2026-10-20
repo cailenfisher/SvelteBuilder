@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -6,6 +6,10 @@ import { glob } from 'glob';
 import { discover } from '../lib/discover.ts';
 import { resolve } from '../lib/resolve.ts';
 import { generateBaseSeedSql } from '../lib/generate-seed-sql.ts';
+import { unansweredDrizzleKitPrompt } from '../lib/drizzle-kit-prompt.ts';
+import { collectAccessCatalog } from '../lib/access-manifest.ts';
+import { ACCESS_GENERATED_FILE, generateAccessSql } from '../lib/generate-access-sql.ts';
+import { orderSupplementalFiles } from '../lib/order-supplemental-files.ts';
 import { LOCALES, BASE_SLUGS } from '@sveltebuilder/local-text-schema/seed';
 
 const SVELTEBUILDER_DIR = '.sveltebuilder';
@@ -38,6 +42,9 @@ export async function syncSupabase(root?: string): Promise<void> {
   const ordered = resolve(manifests);
   const orderLog = ordered.map((m, i) => `  ${i + 1}. ${m.package} (${m.schema})`).join('\n');
   console.log(`[sveltebuilder] resolved order:\n${orderLog}`);
+
+  // Validated before anything is written, so a bad manifest changes nothing.
+  const accessSql = generateAccessSql(collectAccessCatalog(ordered));
 
   // ── 1. Generate barrel schema file ─────────────────────────────────────────
   await mkdir(path.join(cwd, SVELTEBUILDER_DIR), { recursive: true });
@@ -88,8 +95,20 @@ export async function syncSupabase(root?: string): Promise<void> {
   // what the earlier one created, which is why supplemental SQL is written to be re-runnable
   // (create or replace, drop policy if exists). Deleting a file undoes nothing; to remove an
   // object, write the drop in a supplemental file.
-  const supplementalFiles = await glob(`${SUPPLEMENTAL_DIR}/*.sql`, { cwd });
-  supplementalFiles.sort();
+  //
+  // The generated access SQL is written here, before the search, so it is carried forward by
+  // exactly the same rule. sync owns that file: when no manifest declares access it is removed,
+  // which, like deleting any supplemental file, undoes nothing already migrated.
+  const accessGeneratedPath = path.join(cwd, SUPPLEMENTAL_DIR, ACCESS_GENERATED_FILE);
+  if (accessSql === null) {
+    await rm(accessGeneratedPath, { force: true });
+  } else {
+    await mkdir(path.join(cwd, SUPPLEMENTAL_DIR), { recursive: true });
+    await writeFile(accessGeneratedPath, accessSql, 'utf-8');
+    console.log(`[sveltebuilder] wrote ${path.join(SUPPLEMENTAL_DIR, ACCESS_GENERATED_FILE)}`);
+  }
+
+  const supplementalFiles = orderSupplementalFiles(await glob(`${SUPPLEMENTAL_DIR}/*.sql`, { cwd }));
 
   const migrationSql = (
     await Promise.all(
@@ -158,13 +177,40 @@ function runDrizzleKit(cwd: string, extraArgs: string[]): void {
   const [cmd, ...args] = drizzleKitCmd.split(' ');
   if (cmd === undefined) throw new Error('no drizzle-kit command to run');
 
+  // In a terminal drizzle-kit can ask about renames and the person answers. Without one it cannot,
+  // and it gives up silently (see drizzle-kit-prompt.ts), so its output is read for the question
+  // it left unanswered rather than trusting its exit status.
+  const interactive = process.stdin.isTTY === true;
   const result = spawnSync(
     cmd,
     [...args, 'generate', '--config', DRIZZLE_CONFIG_PATH, ...extraArgs],
-    { cwd, stdio: 'inherit', shell: process.platform === 'win32' },
+    {
+      cwd,
+      stdio: interactive ? 'inherit' : ['ignore', 'pipe', 'pipe'],
+      encoding: 'utf-8',
+      shell: process.platform === 'win32',
+    },
   );
+  if (!interactive) {
+    // drizzle-kit leaves its last prompt line unterminated; end it so what follows starts clean.
+    const stdout = result.stdout ?? '';
+    process.stdout.write(stdout === '' || stdout.endsWith('\n') ? stdout : `${stdout}\n`);
+    process.stderr.write(result.stderr ?? '');
+  }
   if (result.status !== 0) {
     throw new Error(`drizzle-kit generate ${extraArgs.join(' ')} failed`.trimEnd());
+  }
+
+  const question = interactive ? null : unansweredDrizzleKitPrompt(`${result.stdout ?? ''}${result.stderr ?? ''}`);
+  if (question !== null) {
+    throw new Error(
+      [
+        'drizzle-kit needs an answer it cannot get without a terminal, so no migration was written:',
+        `  ${question}`,
+        'Run `sveltebuilder sync:supabase` in a terminal and answer each question. A schema object',
+        'renamed in this change is "renamed", one that is new is "created".',
+      ].join('\n'),
+    );
   }
 }
 

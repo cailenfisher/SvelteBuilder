@@ -8,6 +8,8 @@ import { RETURN_AUTHORIZATION_STATUSES } from '@sveltebuilder/logistic';
 import type { ReturnAuthorizationListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../require-access';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless. See the supplier list loader for the reasoning.
@@ -15,9 +17,14 @@ import { formError } from '$lib/server/form-error';
 const PER_PAGE = 20;
 
 export const load: PageServerLoad = async ({
+  parent,
   locals,
   url,
 }): Promise<ReturnAuthorizationListView> => {
+  await requireScope(parent, 'return_authorization');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'return_authorization');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   const statusParam = url.searchParams.get('status');
   const status = RETURN_AUTHORIZATION_STATUSES.find((s) => s === statusParam) ?? null;
 
@@ -36,6 +43,7 @@ export const load: PageServerLoad = async ({
   if (returnsResult.error) throw error(500, 'Failed to load returns.');
 
   return {
+    actions,
     returnAuthorizations: returnsResult.data.rows,
     total: returnsResult.data.total,
     page,
@@ -63,7 +71,6 @@ export const actions: Actions = {
     const { data: returnAuthorizationId, error: rpcError } = await createReturnAuthorization(
       locals.supabase,
       {
-        userAccountId: locals.userAccountId,
         skus: [sku],
         quantities: [expectedQuantity],
         reason: (form.get('reason') as string | null)?.trim() || null,

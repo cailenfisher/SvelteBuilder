@@ -44,6 +44,11 @@
   cursor: not-allowed;
 }
 
+.checkbox[data-readonly],
+.checkbox[data-readonly] .checkbox__control {
+  cursor: default;
+}
+
 .checkbox__control:focus-visible {
   outline: 2px solid var(--brand-text);
   outline-offset: 2px;
@@ -67,4 +72,38 @@
   color: var(--text);
   line-height: var(--leading-snug);
   user-select: none;
+}
+
+/* =============================================================================
+   CheckboxMatrix
+   ============================================================================= */
+
+.checkbox-matrix__column-header {
+  text-align: center;
+}
+
+.checkbox-matrix__row-header {
+  text-align: start;
+  font-weight: var(--weight-semibold);
+}
+
+.checkbox-matrix__cell {
+  text-align: center;
+  vertical-align: top;
+}
+
+.checkbox-matrix__cell-content {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* An inherited cell's source, shown so the state is never conveyed by colour alone. */
+.checkbox-matrix__source {
+  max-width: 10rem;
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  color: var(--text-soft);
+  white-space: normal;
 }

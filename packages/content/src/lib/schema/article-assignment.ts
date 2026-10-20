@@ -13,12 +13,12 @@ export const articleAssignment = pgTable(
       .references(() => article.id, { onDelete: 'cascade' }),
     // FK to user_account(id) — cross-package ref added via supplemental SQL
     userAccountId: bigint('user_account_id', { mode: 'number' }).notNull(),
-    role: articleAssignmentRole('role').notNull(),
+    articleAssignmentRole: articleAssignmentRole('article_assignment_role').notNull(),
     assignedAt: timestamp('assigned_at', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
     dueAt: timestamp('due_at', { withTimezone: true, mode: 'string' }),
   },
   (table) => [
-    uniqueIndex('uq_article_assignment').on(table.articleId, table.userAccountId, table.role),
+    uniqueIndex('uq_article_assignment').on(table.articleId, table.userAccountId, table.articleAssignmentRole),
     index('idx_article_assignment_article').on(table.articleId),
     index('idx_article_assignment_user').on(table.userAccountId),
   ]

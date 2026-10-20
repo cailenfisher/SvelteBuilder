@@ -15,11 +15,27 @@ import { getPublisherProfile } from '$lib/server/content/publisher-profile';
 import { listActiveSection } from '$lib/server/content/section';
 import { listTag } from '$lib/server/content/tag';
 import { listActiveTopic } from '$lib/server/content/topic';
+import {
+  createArticleRoleAssignment,
+  deleteArticleRoleAssignment,
+  listArticleAccess,
+  listArticlePrincipal,
+} from '$lib/server/content/article-role-assignment';
+import { listScopeRole } from '$lib/server/role';
 import type { ArticleAdminDetailView, ArticleChecklistEntry } from '@sveltebuilder/content/views';
+import type { RoleAssignmentPanelView } from '@sveltebuilder/access/views';
 import type { Actions, PageServerLoad } from './$types';
-import { formError } from '$lib/server/form-error';
+import { formError, postgrestFormError } from '$lib/server/form-error';
+import { loadArticleAction } from '../article-action';
+import { requireScope } from '../../../require-access';
 
-export const load: PageServerLoad = async ({ locals, params }): Promise<ArticleAdminDetailView> => {
+export const load: PageServerLoad = async ({
+  locals,
+  params,
+  parent,
+}): Promise<ArticleAdminDetailView & { access: RoleAssignmentPanelView | null }> => {
+  await requireScope(parent, 'article');
+
   const id = Number(params.id);
   if (!Number.isInteger(id)) throw error(404, 'Not found.');
 
@@ -51,6 +67,27 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<ArticleA
   }
 
   const article = articleResult.data;
+  const actions = (await loadArticleAction(locals.supabase, [article.id])).get(article.id) ?? [];
+
+  // The access panel, only for a reader who may share the article. Its functions refuse anyone
+  // else, so asking would fail rather than show nothing.
+  let access: RoleAssignmentPanelView | null = null;
+  if (actions.includes('share')) {
+    const [accessResult, principalResult, roleResult] = await Promise.all([
+      listArticleAccess(locals.supabase, article.id),
+      listArticlePrincipal(locals.supabase, article.id),
+      listScopeRole(locals.supabase, 'article'),
+    ]);
+    if (accessResult.error || principalResult.error || roleResult.error) {
+      throw error(500, 'Failed to load who has access.');
+    }
+    access = {
+      roleAssignments: accessResult.data,
+      userAccounts: principalResult.data.userAccounts,
+      userGroups: principalResult.data.userGroups,
+      roles: roleResult.data,
+    };
+  }
 
   // An item with no state row is unsatisfied: never having ticked a box is the common case, not
   // a missing record, which is why this is a map lookup with a false default rather than a join.
@@ -67,7 +104,12 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<ArticleA
   }));
 
   const [uiCopy, entityCopy] = await Promise.all([
-    loadScopedCopy(locals.supabase, ['content'], locals.locale.code, locals.defaultLocale.code),
+    loadScopedCopy(
+      locals.supabase,
+      access ? ['content', 'access', 'role', 'user_group'] : ['content'],
+      locals.locale.code,
+      locals.defaultLocale.code
+    ),
     loadEntityCopy(
       locals.supabase,
       [
@@ -94,6 +136,8 @@ export const load: PageServerLoad = async ({ locals, params }): Promise<ArticleA
     availableTags: tagsResult.data,
     localeCode: locals.locale.code,
     copy: [...uiCopy, ...entityCopy],
+    actions,
+    access,
   };
 };
 
@@ -145,6 +189,58 @@ export const actions: Actions = {
     return { success: true as const };
   },
 
+  // Giving someone a role on this article. The function refuses anyone without `article.share` on
+  // it, and anyone giving a role holding article permissions they lack themselves (A12).
+  share: async ({ locals, params, request }) => {
+    const articleId = Number(params.id);
+    if (!Number.isInteger(articleId)) throw error(404, 'Not found.');
+
+    const form = await request.formData();
+    const roleId = Number(form.get('role_id'));
+    const principal = (form.get('principal') as string | null) ?? '';
+    const expiresAtInput = (form.get('expires_at') as string | null)?.trim() || null;
+    const expiresAt = expiresAtInput === null ? null : new Date(`${expiresAtInput}Z`);
+
+    // The picker submits `user_account:<id>` or `user_group:<id>`, so one field names either.
+    const [kind, principalId] = principal.split(':');
+    const principalNumber = Number(principalId);
+    if (
+      !Number.isInteger(roleId) ||
+      !Number.isInteger(principalNumber) ||
+      (kind !== 'user_account' && kind !== 'user_group') ||
+      (expiresAt !== null && isNaN(expiresAt.getTime()))
+    ) {
+      return formError(422, 'access.error.role_assignment_input');
+    }
+
+    const { error: shareError } = await createArticleRoleAssignment(locals.supabase, {
+      articleId,
+      roleId,
+      principal: kind === 'user_account' ? { userAccountId: principalNumber } : { userGroupId: principalNumber },
+      expiresAt: expiresAt?.toISOString() ?? null,
+    });
+    if (shareError) {
+      return postgrestFormError(shareError, 'access.error.role_assignment_failed', {
+        '42501': 'access.error.share_refused',
+        '23505': 'access.error.role_assignment_duplicate',
+      });
+    }
+    return { success: true as const };
+  },
+
+  unshare: async ({ locals, request }) => {
+    const roleAssignmentId = Number((await request.formData()).get('role_assignment_id'));
+    if (!Number.isInteger(roleAssignmentId)) return formError(422, 'error.id_invalid');
+
+    const { error: unshareError } = await deleteArticleRoleAssignment(locals.supabase, roleAssignmentId);
+    if (unshareError) {
+      return postgrestFormError(unshareError, 'access.error.role_assignment_failed', {
+        '42501': 'access.error.share_refused',
+      });
+    }
+    return { success: true as const };
+  },
+
   checklist: async ({ locals, params, request }) => {
     const articleId = Number(params.id);
     if (!Number.isInteger(articleId)) throw error(404, 'Not found.');
@@ -192,8 +288,10 @@ async function loadArticleForValidation(locals: App.Locals, id: number) {
     .map((block) => block.mediaAssetId)
     .filter((assetId): assetId is number => assetId !== null);
 
-  // Rights and source are admin-only tables, and publishing is an admin action, so this read
-  // sees them; the public page reads the media_asset_attribution view instead.
+  // Rights and source are readable with `media_asset.read`, which the seeded Editor holds along
+  // with `article.publish`; the public page reads the media_asset_attribution view instead. A
+  // custom role that may publish without reading media gets an empty read here, and validation
+  // then reports the rights as missing rather than passing the image unchecked.
   const [rightsResult, sourceResult] = await Promise.all([
     listMediaAssetRights(locals.supabase, mediaAssetIds),
     listMediaAssetSource(locals.supabase, mediaAssetIds),

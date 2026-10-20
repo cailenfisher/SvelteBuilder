@@ -9,7 +9,13 @@ export type SchemaManifest = {
    */
   schema: string;
   after: string[];
+  /** Which of the package's tables are access-controlled. Validated by `parseAccessDeclaration`
+   *  (lib/access-manifest.ts), so its shape is unknown until then. */
+  access?: unknown;
 };
+
+/** A manifest as discovered, with the file it came from, so an error can name it. */
+export type DiscoveredSchemaManifest = SchemaManifest & { file: string };
 
 /** Discovers schema manifests under `root` (default: the current working directory).
  *
@@ -18,14 +24,14 @@ export type SchemaManifest = {
  *  it — so a tool spawning this CLI in some other directory would be silently redirected
  *  back to wherever the outer command started. That is how `pnpm sql:check` came to
  *  generate no migrations while reporting success. */
-export async function discover(root?: string): Promise<SchemaManifest[]> {
+export async function discover(root?: string): Promise<DiscoveredSchemaManifest[]> {
   const cwd = root ?? process.cwd();
   const files = await glob('.sveltebuilder/registry/*.json', { cwd, absolute: true });
 
-  const manifests: SchemaManifest[] = [];
+  const manifests: DiscoveredSchemaManifest[] = [];
   for (const file of files.sort()) {
     const raw = await readFile(file, 'utf-8');
-    manifests.push(JSON.parse(raw) as SchemaManifest);
+    manifests.push({ ...(JSON.parse(raw) as SchemaManifest), file });
   }
 
   return manifests;

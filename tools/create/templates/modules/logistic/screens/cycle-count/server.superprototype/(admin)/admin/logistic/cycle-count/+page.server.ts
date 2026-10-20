@@ -6,13 +6,19 @@ import { CYCLE_COUNT_STATUSES } from '@sveltebuilder/logistic';
 import type { CycleCountListView } from '@sveltebuilder/logistic/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { listCurrentUserAction } from '$lib/server/permission';
+import { requireScope } from '../../require-access';
 
 // Guards live in the (admin) layout load; RLS refuses these writes for a non-admin
 // regardless. See the supplier list loader for the reasoning.
 
 const PER_PAGE = 20;
 
-export const load: PageServerLoad = async ({ locals, url }): Promise<CycleCountListView> => {
+export const load: PageServerLoad = async ({ parent, locals, url }): Promise<CycleCountListView> => {
+  await requireScope(parent, 'cycle_count');
+  const { data: actions, error: actionError } = await listCurrentUserAction(locals.supabase, 'cycle_count');
+  if (actionError) throw error(500, 'Failed to load your permissions.');
+
   const statusParam = url.searchParams.get('status');
   const status = CYCLE_COUNT_STATUSES.find((s) => s === statusParam) ?? null;
 
@@ -35,6 +41,7 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<CycleCountL
   if (locationsResult.error) throw error(500, 'Failed to load storage locations.');
 
   return {
+    actions,
     cycleCounts: countsResult.data.rows,
     total: countsResult.data.total,
     page,
@@ -62,7 +69,6 @@ export const actions: Actions = {
     }
 
     const { data: cycleCountId, error: rpcError } = await createCycleCount(locals.supabase, {
-      userAccountId: locals.userAccountId,
       storageLocationIds: locationIds,
     });
 

@@ -1,7 +1,7 @@
 # DEFERRED.md
 
 Items intentionally deferred, or explicitly out of scope, during the diglossia 0.1.0 +
-SvelteBuilder integration work order. Read alongside `CLAUDE.md`'s Known Open Issues table.
+SvelteBuilder integration work order. Read alongside the Known Open Issues table in `docs/STATUS.md`.
 
 ---
 
@@ -38,7 +38,7 @@ fails to record it.
 
 ### Found and fixed along the way
 
-- **All five SECURITY DEFINER stock functions had no `set search_path`**, which CLAUDE.md makes
+- **All five SECURITY DEFINER stock functions had no `set search_path`**, which `.claude/rules/auth-access.md` makes
   mandatory precisely because a definer function without one inherits the caller's search_path and
   can be made to run a shadowed object with the owner's privileges. It surfaced as a composition
   failure, not a security report: an unqualified type name in a DECLARE stops resolving once a
@@ -189,9 +189,14 @@ What Native will need whenever it resumes (record additions here rather than fix
   (see the RLS section of this repo's history); a dedicated non-owner Postgres role plus
   `ALTER DEFAULT PRIVILEGES` is the fix, and it has not been applied.
 - Its own schema/migration path. It has no `supabase/` directory and `sveltebuilder sync:supabase`
-  is Supabase-specific; `CLAUDE.md` already notes Native has never defined a sync path.
+  is Supabase-specific; `tools/cli/CLAUDE.md` already notes Native has never defined a sync path.
 - A `README.md` (it has none) and `.env.example` guidance that does not point `DATABASE_URL` at a
   table-owning superuser role.
+- **Its own Claude Code instructions.** The base template's `CLAUDE.template.md` reaches only a
+  Native scaffold, since SuperPrototype ships its own and overwrites it. It predates the
+  SuperPrototype rewrite and the `.claude/rules/` split (2026-10-18), and was renamed but not
+  revised. When Native resumes, give it the same
+  shape as SuperPrototype's: a lean `CLAUDE.template.md` plus path-scoped `claude-rules/`.
 - **Two SQL functions it does not define.** The shared base template's
   `supabase/supplemental/00-local-text-rls.sql` calls `public.current_user_admin()` and
   `public.current_user_id()`. SuperPrototype supplies both in
@@ -329,6 +334,101 @@ app a version and a changelog.
 
 ---
 
+## Upgrade tooling: parked until something depends on a release (2026-10-18)
+
+Nothing outside this repo depends on SvelteBuilder yet, so upgrade paths are not maintained:
+breaking changes are described in their changesets, `docs/MIGRATION-2.0.md` is kept as a
+best-effort record, and no upgrade is re-validated against an older release.
+
+Resume when a project outside this repo depends on a release. The first problem waiting is
+drizzle-kit's snapshot: `sync:supabase` diffs it, not the database, so on a project whose schema
+was renamed it asks about each rename and writes a migration repeating renames done by hand. The
+options are (a) let drizzle-kit perform the renames and keep only data moves in hand-written SQL,
+or (b) ship a snapshot the upgrading project copies over `supabase/migrations/meta/` after its SQL.
+Whatever is chosen, sync already refuses to pass over a question nobody answered (2026-10-18).
+
+---
+
+## Supplemental SQL ordering: move off filename prefixes (open, 2026-10-17)
+
+`sync:supabase` applies every file in `supabase/supplemental/` in one alphabetical sort, so a
+file's numeric prefix is the only thing that says what it depends on. The prefixes come from base,
+the flavour and every module, which number independently, so the order between two packages'
+files is an accident of their names: today `02-content-rls.sql` runs before `03-base-rls.sql`
+for no reason either file states. The prefix scheme stayed because it solved the earlier problems
+of the day, but it is fragile, and access control (`docs/ACCESS-CONTROL-DECISIONS.md`, A21) is the
+first change that has to work around it: sync places the generated access file by name instead.
+
+The likely replacement: order supplemental files by the package that ships them, in the registry's
+`after` order (which already exists and already says which package depends on which), with
+filename order only within one package. That needs sync to know each file's package, which it
+does not today, because the create CLI copies every package's files into one flat directory. A
+subdirectory per package (`supabase/supplemental/<package>/`) would carry it.
+
+Moving changes the order existing files apply in, so it needs its own `sql:check` pass and a note
+for projects whose supplemental files are already in migrations. Not started.
+
+---
+
+## Access control: deferred during the build (2026-10-18)
+
+Recorded as the phases of `docs/ACCESS-CONTROL-PLAN.md` ran. The reasoning, and the option to
+take for each, is in `docs/ACCESS-CONTROL-DECISIONS.md`; this is the list.
+
+Left out of v1 by decision:
+
+- **`explain_access()`**, a per-user "why can they?" function across every scope. The entity access
+  panel and a user's own page already answer it between them. Revisit, as one generated static
+  branch per entity scope, when an administrator cannot answer "why can they still?" from those
+  two screens (DECISIONS, exclusions).
+- **Container targets** ("editor of the Sports section"). O5: Phase 11, only on the owner's
+  go-ahead, once content's use shows how far scope and entity grants plus assignment get.
+- **Nested groups, field-level permissions, conditions beyond expiry, an access audit log,
+  invitations into groups.** No v1 user; each has its later shape in the exclusions table. Deny
+  rules and JWT role claims are not planned at all.
+- **Sharing edges E1–E3**: a sharer can revoke any direct grant on the entity; editing a custom
+  role widens grants non-administrators made; a grant outlives its granter's right to make it.
+  Accepted because sharing is already a statement of trust and the panel shows `granted_by`. Best
+  options: apply the grant check to revoking (E1); list affected grants before saving a role edit
+  (E2); mark grants whose granter no longer qualifies (E3).
+- **The principal picker shows every user's email** to anyone who may share an entity, members of
+  external groups included (A20). Revisit before a deployment admits outside parties it does not
+  trust with the internal directory; the options are internal users only for external callers,
+  display names with exact-email lookup, or a `discoverable` flag on `user_account`.
+
+Found while building:
+
+- **The navigation screens cannot set `permission_scope`.** An entry an administrator adds is
+  for administrators only (A24) until the navigation item create and update forms gain the field.
+  Seeds set it for module entries.
+- **The article sharing form lives in content's bundle** (`ArticleRoleAssignmentCreateForm`),
+  because it posts to that route. Every access-controlled entity will want the same form; promote
+  a presentational version to `@sveltebuilder/access` when a second module adopts entity-level
+  access, and have both bundles use it.
+- **Staff cannot edit an article's copy or body from the scaffold's screens.** The article detail
+  screen shows the body read-only and has no headline or dek form (Clarion field test, finding 8),
+  so a Writer's edit rights exist in the database but not in the shipped UI. Entity copy is also
+  administrator-write in `00-local-text-rls.sql`; the forms finding 8 asks for would need
+  definer RPCs that check `article.update`, as `content_create_article` and
+  `set_media_asset_copy` do.
+- **No screen moderates comments.** `comment.read`, `moderate` and `delete` are enforced, but
+  nothing in the scaffold lists pending comments. A moderation screen needing a commenter's email
+  address would read it through a definer function, since no role can select it.
+
+- **Creating an inbound receipt does not pin it to its creator.** The insert policy checks
+  `inbound_receipt.create` but not that `user_account_id` is the caller, so a manager can record a
+  receipt as received by someone else. Harmless while only managers create receipts; route it
+  through a definer `logistic_create_inbound_receipt` if attribution starts to matter.
+- **Someone signed in with no role at all gets a bare 403**, from `/admin` and `/warehouse`
+  alike, with an English message from the layout. Field-test finding 12 is closed (staff now land
+  on `/admin/dashboard`, which admits them and links to the warehouse), but a no-access page
+  saying what to ask an administrator for, in the reader's language, would need copy and a design.
+- **Adding lines to a shipment or a return authorization takes the parent's `update`**, so an
+  Operator, who holds only `read` on shipments, cannot add a line to one. That is what A18 says
+  and what the roles intend today; a packing workflow would need its own verb.
+
+---
+
 ## Pending manual steps
 
 **Migrate the Supabase project to asymmetric JWT signing keys.** `getClaims()` only verifies
@@ -392,7 +492,7 @@ entity-scoped rows, which is why the constraint defect was invisible" — didn't
 suppliers, exactly the "two entity-scoped links sharing slug and scope" pattern requested. That
 seed already exercises the constraint against the real Drizzle-generated schema; a scratch
 `drizzle-kit generate` run against `packages/local-text-schema/src/tables/local-text-link.ts`
-(see `CLAUDE.md`'s "Local-text DB schema" row) confirmed the partial index survives generation
+(see the "Local-text DB schema" row in `docs/STATUS.md`) confirmed the partial index survives generation
 correctly. `@sveltebuilder/content` has no seed file at all yet ("content module seed" isn't a
 thing to append to), and `@sveltebuilder/local-text-schema`'s `BASE_SLUGS` are global-only by
 design (no `entityId`), so neither was a natural home for a redundant example.

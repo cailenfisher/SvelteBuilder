@@ -13,6 +13,10 @@ const config = {
     // server and svelte-check agree on what an import means. Subpaths come before their
     // package root: a bare package alias also matches anything beneath it.
     alias: {
+      '@sveltebuilder/access/styles/components.css': packages('access/src/lib/components.css'),
+      '@sveltebuilder/access/views': packages('access/src/lib/views.ts'),
+      '@sveltebuilder/access/schema': packages('access/src/lib/schema/index.ts'),
+      '@sveltebuilder/access': packages('access/src/lib/index.ts'),
       '@sveltebuilder/coreui/styles/components.css': packages('coreui/src/lib/components.css'),
       '@sveltebuilder/coreui/styles': packages('coreui/styles'),
       '@sveltebuilder/coreui': packages('coreui/src/lib/index.ts'),

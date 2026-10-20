@@ -11,6 +11,9 @@
   import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: SupplierDetailView; form?: ScreenFormResult } = $props();
+  // Only the controls that will work: `data.actions` is what the reader may do on this screen's
+  // scope. Absent, every control shows and the database answers.
+  const can = (action: string) => data.actions.includes(action);
 
   // Global copy from context, module copy from this screen's own instance — see the
   // list screen for why the module's copy cannot come from the root dictionary.
@@ -40,24 +43,28 @@
     <InlineNotification severity="danger" summary={formErrorText(form.error, scoped, dictionary)} detail={form.error.detail} />
   {/if}
 
-  <SupplierUpdateForm supplier={data.supplier} dictionary={scoped} />
+  {#if can('update')}
+    <SupplierUpdateForm supplier={data.supplier} dictionary={scoped} />
 
-  <Divider />
+    <Divider />
+  {/if}
 
   <section class="supplier-detail-screen__contacts">
     <div class="supplier-detail-screen__contacts-header">
       <h2 class="supplier-detail-screen__section-title">{localText('logistic.supplier.contacts')}</h2>
-      <Button variant="ghost" size="sm" onclick={() => (showContactForm = !showContactForm)}>
-        {showContactForm
-          ? dictionary.localText('action.cancel')
-          : localText('logistic.supplier.contact_add')}
-      </Button>
+      {#if can('update')}
+        <Button variant="ghost" size="sm" onclick={() => (showContactForm = !showContactForm)}>
+          {showContactForm
+            ? dictionary.localText('action.cancel')
+            : localText('logistic.supplier.contact_add')}
+        </Button>
+      {/if}
     </div>
 
     {#if showContactForm}
       <SupplierContactAddForm dictionary={scoped} />
     {/if}
 
-    <SupplierContactList supplierContacts={data.supplier.contacts} dictionary={scoped} />
+    <SupplierContactList supplierContacts={data.supplier.contacts} removable={can('update')} dictionary={scoped} />
   </section>
 </div>

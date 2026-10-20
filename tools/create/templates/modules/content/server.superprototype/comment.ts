@@ -1,19 +1,21 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Comment } from '@sveltebuilder/content';
+import type { CommentRow } from '@sveltebuilder/content/views';
 import type { QueryResult } from '$lib/server/postgrest';
 
 /**
  * An article's comments, oldest first. RLS already restricts a reader to approved comments on
- * publicly visible articles, so the article is the only filter here.
+ * publicly visible articles, so the article is the only filter here. The commenter's email
+ * address is not selected: nobody may read it through the API.
  */
 export async function listComment(
   supabase: SupabaseClient,
   articleId: number
-): Promise<QueryResult<Comment[]>> {
+): Promise<QueryResult<CommentRow[]>> {
   const { data, error } = await supabase
     .from('comment')
     .select(
-      'id, article_id, user_account_id, parent_comment_id, author_name, author_email, body, status, created_at, updated_at'
+      'id, article_id, user_account_id, parent_comment_id, author_name, body, status, created_at, updated_at'
     )
     .eq('article_id', articleId)
     .order('created_at');
@@ -25,7 +27,6 @@ export async function listComment(
       userAccountId: comment.user_account_id,
       parentCommentId: comment.parent_comment_id,
       authorName: comment.author_name,
-      authorEmail: comment.author_email,
       body: comment.body,
       status: comment.status,
       createdAt: comment.created_at,

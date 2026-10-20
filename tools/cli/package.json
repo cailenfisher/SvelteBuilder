@@ -1,7 +1,7 @@
 {
   "name": "@sveltebuilder/cli",
   "version": "0.0.16-rc.1",
-  "description": "CLI for ongoing SvelteBuilder project management — syncs Drizzle schemas from installed modules into Supabase migrations and seed data.",
+  "description": "CLI for ongoing SvelteBuilder project management \u2014 syncs Drizzle schemas from installed modules into Supabase migrations and seed data.",
   "keywords": [
     "cli",
     "sveltekit",
@@ -30,7 +30,9 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@sveltebuilder/local-text-schema": "workspace:^",
@@ -42,6 +44,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
   }
 }

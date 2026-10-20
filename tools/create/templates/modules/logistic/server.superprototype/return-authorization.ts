@@ -91,13 +91,12 @@ export async function getReturnAuthorization(
  */
 export async function createReturnAuthorization(
   supabase: SupabaseClient,
-  fields: Pick<ReturnAuthorization, 'userAccountId' | 'reason' | 'note'> & {
+  fields: Pick<ReturnAuthorization, 'reason' | 'note'> & {
     skus: string[];
     quantities: number[];
   }
 ): Promise<QueryResult<number | null>> {
   const { data, error } = await supabase.rpc('logistic_create_return_authorization', {
-    p_user_account_id: fields.userAccountId,
     p_skus: fields.skus,
     p_quantities: fields.quantities,
     p_reason: fields.reason,
@@ -108,17 +107,17 @@ export async function createReturnAuthorization(
 }
 
 /**
- * One statement. Marking a return processed is a bookkeeping transition: every line's
- * disposition has already moved whatever stock it was going to move.
+ * Marks a return processed: bookkeeping, since every line's disposition has already moved
+ * whatever stock it was going to (logistic_process_return_authorization, which takes
+ * `return_authorization.grade`). Raises 42501 without it, or when the return is not open.
  */
 export async function processReturnAuthorization(
   supabase: SupabaseClient,
   id: number
 ): Promise<QueryResult<null>> {
-  const { error } = await supabase
-    .from('return_authorization')
-    .update({ status: 'processed' })
-    .eq('id', id);
+  const { error } = await supabase.rpc('logistic_process_return_authorization', {
+    p_return_authorization_id: id,
+  });
   if (error) return { data: null, error };
   return { data: null, error: null };
 }

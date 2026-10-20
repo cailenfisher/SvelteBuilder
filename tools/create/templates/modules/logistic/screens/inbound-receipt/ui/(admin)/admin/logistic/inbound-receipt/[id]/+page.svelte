@@ -12,6 +12,9 @@
   import { formErrorText } from '$lib/FormError/form-error';
 
   let { data, form }: { data: InboundReceiptDetailView; form?: ScreenFormResult } = $props();
+  // Only the controls that will work: `data.actions` is what the reader may do on this screen's
+  // scope. Absent, every control shows and the database answers.
+  const can = (action: string) => data.actions.includes(action);
 
   const dictionary = getDictionary();
   const scoped = $derived(createDictionary(data.copy));
@@ -47,7 +50,7 @@
   <section class="inbound-receipt-detail-screen__lines">
     <div class="inbound-receipt-detail-screen__lines-header">
       <h2 class="inbound-receipt-detail-screen__section-title">{localText('logistic.inbound_receipt.lines')}</h2>
-      {#if open}
+      {#if open && can('update')}
         <Button variant="ghost" size="sm" onclick={() => (showAddLine = !showAddLine)}>
           {showAddLine ? dictionary.localText('action.cancel') : localText('logistic.inbound_receipt.line_add')}
         </Button>
@@ -60,7 +63,7 @@
 
     <InboundReceiptLineTable
       inboundReceiptLines={data.inboundReceipt.lines}
-      receivable={open}
+      receivable={open && can('receive')}
       dictionary={scoped}
     />
   </section>

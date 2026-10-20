@@ -234,6 +234,28 @@ begin
   end if;
 end $$;
 
+-- ── The admin user list names users only to administrators ──────────────────
+
+do $$
+declare
+  v_seen integer;
+begin
+  set local role authenticated;
+  set local request.jwt.claim.sub = 'aaaaaaaa-0000-4000-8000-000000000002';
+  begin
+    perform public.admin_list_user_account();
+    raise exception 'a non-admin read every user''s email address';
+  exception when insufficient_privilege then null;
+  end;
+
+  set local request.jwt.claim.sub = 'aaaaaaaa-0000-4000-8000-000000000001';
+  select count(*) into v_seen from public.admin_list_user_account()
+  where email_address = 'second@example.test' and not admin;
+  if v_seen <> 1 then
+    raise exception 'admin_list_user_account() does not list a user with their email';
+  end if;
+end $$;
+
 -- ── user_account's self-promotion hole stays closed ──────────────────────────
 --
 -- Confirmed exploitable 2026-10-03: the owner-update policy that used to live here let
@@ -436,5 +458,59 @@ begin
 
   if v_inline is not null then
     raise exception 'policy/policies test user_account.admin inline instead of calling public.current_user_admin(): %', v_inline;
+  end if;
+end $$;
+
+-- ── Policies call the access helpers in the sanctioned shape ─────────────────
+--
+-- The same hoisting rule for current_user_can() and every current_user_<…>_ids(), with one
+-- more: their arguments are literals (A14 in docs/ACCESS-CONTROL-DECISIONS.md). A wrapped call
+-- whose argument names a column, `(select current_user_can(scope, 'update'))`, depends on the
+-- row, so the planner cannot hoist it either, and it runs once per row while looking correct.
+-- Postgres deparses a literal argument as `'article'::text`, so anything else is a column or an
+-- expression.
+--
+-- current_user_<entity>_actions() answers for the UI, row by row, and is never called from a
+-- policy at all.
+
+do $$
+declare
+  v_policy text;
+  v_expr   text;
+  v_call   text[];
+  v_bad    text[] := '{}';
+begin
+  for v_policy, v_expr in
+    select format('%s.%s', tablename, policyname), coalesce(qual, '') || ' ' || coalesce(with_check, '')
+    from pg_policies
+    where schemaname = 'public'
+  loop
+    if regexp_count(v_expr, 'current_user_can\(') > regexp_count(v_expr, 'SELECT current_user_can\(')
+       or regexp_count(v_expr, 'current_user_[a-z_]+_ids\(') > regexp_count(v_expr, 'SELECT current_user_[a-z_]+_ids\(') then
+      v_bad := v_bad || (v_policy || ' (bare call)');
+      continue;
+    end if;
+
+    if v_expr ~ 'current_user_[a-z_]+_actions\(' then
+      v_bad := v_bad || (v_policy || ' (calls an _actions function)');
+      continue;
+    end if;
+
+    for v_call in select regexp_matches(v_expr, 'current_user_can\(([^()]*)\)', 'g') loop
+      if v_call[1] !~ '^''[a-z_]+''::text, ''[a-z_]+''::text$' then
+        v_bad := v_bad || (v_policy || ' (current_user_can(' || v_call[1] || '))');
+      end if;
+    end loop;
+
+    for v_call in select regexp_matches(v_expr, '(current_user_[a-z_]+_ids)\(([^()]*)\)', 'g') loop
+      if v_call[2] <> '' and v_call[2] !~ '^''[a-z_]+''::text$' then
+        v_bad := v_bad || (v_policy || ' (' || v_call[1] || '(' || v_call[2] || '))');
+      end if;
+    end loop;
+  end loop;
+
+  if cardinality(v_bad) > 0 then
+    raise exception 'policy/policies call an access helper in a shape the planner cannot hoist: %',
+      array_to_string(v_bad, ', ');
   end if;
 end $$;

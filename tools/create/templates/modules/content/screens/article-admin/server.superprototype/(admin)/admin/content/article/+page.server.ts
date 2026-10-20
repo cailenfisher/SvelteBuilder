@@ -1,19 +1,23 @@
 import { error, redirect } from '@sveltejs/kit';
 import { loadEntityCopy, loadScopedCopy } from '$lib/server/scoped-copy';
-import { createLocalTextEntry } from '$lib/server/local-text';
 import { createArticle, listArticle } from '$lib/server/content/article';
-import { getInitialArticleStatus, listArticleStatus } from '$lib/server/content/article-status';
+import { listArticleStatus } from '$lib/server/content/article-status';
+import { currentUserCan } from '$lib/server/permission';
+import { loadArticleAction } from './article-action';
 import type { ArticleAdminListView } from '@sveltebuilder/content/views';
 import type { Actions, PageServerLoad } from './$types';
 import { formError } from '$lib/server/form-error';
+import { requireScope } from '../../require-access';
 
-// Guards live in the (admin) layout load; RLS refuses these writes for a non-admin regardless.
-// Note what this means for the list: an admin sees every article at every status, because the
-// article admin policy is `for all`, while the public read policy only admits published ones.
+// The (admin) layout admits staff; this screen admits those holding anything on articles. RLS
+// decides which articles they see: every one at every status with `article.read`, or only those
+// they are assigned to or given, plus whatever is published.
 
 const PER_PAGE = 20;
 
-export const load: PageServerLoad = async ({ locals, url }): Promise<ArticleAdminListView> => {
+export const load: PageServerLoad = async ({ locals, url, parent }): Promise<ArticleAdminListView> => {
+  await requireScope(parent, 'article');
+
   const statusSlug = url.searchParams.get('status');
 
   const pageParam = Number(url.searchParams.get('page') ?? '1');
@@ -35,7 +39,19 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<ArticleAdmi
   );
   if (articlesResult.error) throw error(500, 'Failed to load articles.');
 
-  const articles = articlesResult.data.rows;
+  const [articleActions, createResult] = await Promise.all([
+    loadArticleAction(
+      locals.supabase,
+      articlesResult.data.rows.map((article) => article.id)
+    ),
+    currentUserCan(locals.supabase, 'article', 'create'),
+  ]);
+  if (createResult.error) throw error(500, 'Failed to load article permissions.');
+
+  const articles = articlesResult.data.rows.map((article) => ({
+    ...article,
+    actions: articleActions.get(article.id) ?? [],
+  }));
 
   const [uiCopy, entityCopy] = await Promise.all([
     loadScopedCopy(locals.supabase, ['content'], locals.locale.code, locals.defaultLocale.code),
@@ -67,14 +83,14 @@ export const load: PageServerLoad = async ({ locals, url }): Promise<ArticleAdmi
     perPage: PER_PAGE,
     localeCode: locals.locale.code,
     copy: [...uiCopy, ...entityCopy],
+    articleActions: createResult.data ? ['create'] : [],
   };
 };
 
 export const actions: Actions = {
-  // Two statements — the article and its headline copy — so it goes through the base template's
-  // create_local_text_entry for the copy half, after the article insert. A headline is what makes
-  // an article findable in the admin list, so creating one without it would produce a row the
-  // editor cannot identify among its siblings.
+  // The article, its headline and its creator's authorship land together, in one RPC: a headline
+  // is what makes an article findable in the admin list, and authorship is what lets a Writer keep
+  // editing what they created.
   create: async ({ locals, request }) => {
     const form = await request.formData();
     const canonicalSlug = (form.get('canonical_slug') as string | null)?.trim();
@@ -83,37 +99,17 @@ export const actions: Actions = {
     if (!canonicalSlug) return formError(422, 'content.error.slug_required');
     if (!headline) return formError(422, 'content.error.headline_required');
 
-    const statusResult = await getInitialArticleStatus(locals.supabase);
-
-    if (statusResult.error || !statusResult.data) {
-      return formError(500, 'content.error.article_status_missing');
-    }
-
-    const { data: articleId, error: insertError } = await createArticle(locals.supabase, {
-      articleStatusId: statusResult.data.id,
+    const { data: articleId, error: createError } = await createArticle(locals.supabase, {
       canonicalSlug,
+      localeId: locals.locale.id,
+      headline,
     });
 
-    if (insertError) {
+    if (createError) {
       // 23505 is unique_violation on canonical_slug, which is a user error rather than a fault.
-      if (insertError.code === '23505') {
-        return formError(409, 'content.error.slug_in_use');
-      }
+      if (createError.code === '23505') return formError(409, 'content.error.slug_in_use');
+      if (createError.code === '42501') return formError(403, 'content.error.article_create_forbidden');
       return formError(500, 'content.error.article_create_failed');
-    }
-
-    const { error: copyError } = await createLocalTextEntry(locals.supabase, {
-      slug: 'headline',
-      scope: 'article',
-      entityId: articleId,
-      localeIds: [locals.locale.id],
-      contents: [headline],
-    });
-
-    if (copyError) {
-      // The article exists but has no headline. Report it rather than pretending: the editor can
-      // set one on the detail screen, and silently redirecting would hide a half-finished create.
-      return formError(500, 'content.error.headline_save_failed');
     }
 
     redirect(303, `/admin/content/article/${articleId}`);
