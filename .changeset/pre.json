@@ -10,10 +10,19 @@
     "@sveltebuilder/local-text-schema": "0.2.1",
     "@sveltebuilder/logistic": "1.0.2",
     "@sveltebuilder/cli": "0.0.15",
-    "create-sveltebuilder": "0.1.4"
+    "create-sveltebuilder": "0.1.4",
+    "@sveltebuilder/access": "0.0.0"
   },
   "changesets": [
+    "access-admin-screens",
+    "access-components",
+    "access-content",
+    "access-core-sql",
+    "access-generator",
+    "access-logistic",
+    "access-package",
     "behaviour-and-copy",
+    "checkbox-matrix",
     "coreui-api",
     "coreui-boundary",
     "data-modules",
@@ -23,9 +32,11 @@
     "form-errors-as-copy",
     "no-abbreviations",
     "plain-stylesheets",
+    "scaffold-claude-rules",
     "scaffold-pins-release-versions",
     "schema-single-source",
     "screen-decomposition",
-    "supplemental-sql-new-migration"
+    "supplemental-sql-new-migration",
+    "sync-unanswered-rename"
   ]
 }
