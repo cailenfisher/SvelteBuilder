@@ -1,7 +1,7 @@
 {
   "name": "@sveltebuilder/access",
-  "version": "0.0.0",
-  "description": "Roles and permissions for SvelteBuilder \u2014 permissions, roles, groups and role assignments at global, scope or single-row targets, enforced by Postgres row level security.",
+  "version": "1.0.0-rc.0",
+  "description": "Roles and permissions for SvelteBuilder — permissions, roles, groups and role assignments at global, scope or single-row targets, enforced by Postgres row level security.",
   "keywords": [
     "svelte",
     "svelte5",

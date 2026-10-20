@@ -1,5 +1,56 @@
 # create-sveltebuilder
 
+## 0.2.0-rc.2
+
+### Minor Changes
+
+- [#47](https://github.com/cailenfisher/SvelteBuilder/pull/47) [`d227635`](https://github.com/cailenfisher/SvelteBuilder/commit/d227635fb77d0232d0fd56fc277520de71b62298) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Scaffolds ship the access administration screens, linked from the admin navigation:
+  - `/admin/role` and `/admin/role/[id]`: create a role, choose its permissions on the permission grid, clone a module's role to customise it, delete an administrator's role.
+  - `/admin/user-group` and `/admin/user-group/[id]`: create a group (internal, or external for an outside organisation, fixed at creation), add and remove members, give it roles everywhere or on every item of a kind (never for an external group).
+  - `/admin/user-account` and `/admin/user-account/[id]`: every user by email address, their groups and roles, and promoting or demoting an administrator (never the last one).
+
+  SuperPrototype adds `admin_list_user_account()`, an administrator-only definer function listing users with their email addresses, since email lives in `auth.users`; one data module per access table in `src/lib/server/`; and `postgrestFormError()` in `$lib/server/form-error`, which reports a refused or invalid write by its Postgres code. `@sveltebuilder/access/views` exports the screens' view types. The `access` copy seed now follows the module seed shape.
+
+- [#47](https://github.com/cailenfisher/SvelteBuilder/pull/47) [`d6af329`](https://github.com/cailenfisher/SvelteBuilder/commit/d6af3291b86ed70cd971f6d6406c059fe22e801c) Thanks [@cailenfisher](https://github.com/cailenfisher)! - `@sveltebuilder/access` exports its components and stylesheet (`@sveltebuilder/access/styles/components.css`):
+  - `RolePermissionMatrix`: a role's permissions on coreui's `CheckboxMatrix`, kinds of thing down the side and actions across the top; read-only for a module-managed role.
+  - `RoleAssignmentTable`: assignments with who holds them, the role, where it applies and when it ends.
+  - `RoleAssignmentPanel`: one row's access, from `list_<entity>_access`, splitting access given on the row (removable through the host's `removeAction`) from access inherited from a broader role (never removable there).
+  - `UserGroupMemberTable`: a group's members.
+
+  Each resolves its copy from the dictionary, with the usual `dictionary` prop override. Scaffolds import the stylesheet after coreui's, and seed the `access` scope's UI copy in English and French (`supabase/seeds/01-access.sql`).
+
+- [#47](https://github.com/cailenfisher/SvelteBuilder/pull/47) [`3b98e10`](https://github.com/cailenfisher/SvelteBuilder/commit/3b98e102b31e94f2cd3fa725ca2901e5e1feaab6) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Content adopts roles and permissions (docs/ACCESS-CONTROL.md §7).
+
+  **Breaking (content):** `article_assignment.role` is now `article_assignment_role`, and the exported `ArticleAssignment` type's `role` field is `articleAssignmentRole`. Run the rename in `docs/MIGRATION-2.0.md` before syncing. `CommentList` takes `CommentRow` (a comment without its author's email address); a `Comment` still satisfies it.
+
+  Content's manifest declares its permission catalog and per-article access; its seed adds the Editor, Writer and Contributor roles. Its policies now grant by permission, by role on a single article, and by being assigned to an article, which lets you read and edit it and its body. Creating an article goes through `content_create_article`, which also writes its headline and makes the creator its author. Only `content_transition_article_status` changes an article's status, and moving to or from published takes `article.publish`. Assigning someone to an article takes `article.share`. A commenter's email address is selectable by nobody through the API. The article views gain optional `actions`; `@sveltebuilder/access/views` gains `RoleAssignmentPanelView`.
+
+  Scaffolds admit staff to `/admin`: anyone holding a role sees the admin area and the menu entries for scopes they hold (`navigation_item.permission_scope`), while administrator screens refuse them in their loaders. The article screens show only the controls the reader may use, and the access panel to anyone who may share the article. `current_user_scopes()` and `list_scope_role()` join the core access SQL, and `sync:supabase` generates an entity-aware `current_user_scopes()`.
+
+- [#47](https://github.com/cailenfisher/SvelteBuilder/pull/47) [`dafd265`](https://github.com/cailenfisher/SvelteBuilder/commit/dafd2653938f3704a887771fdafb78ed83bbf925) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Scaffolds now ship the core of access control in `supabase/supplemental/01-access.sql`:
+  - `current_user_can(scope, action)` and `current_user_group_ids()`, the helpers a policy calls. An administrator can do everything; anyone else can through an unexpired global or scope role assignment, their own or one of their groups'.
+  - Administrator RPCs for roles (`create_role`, `set_role_permissions`, `delete_role`), groups (`create_user_group`, `delete_user_group`, `add_user_group_member`, `remove_user_group_member`) and assignments (`create_role_assignment`, `delete_role_assignment`). Each checks administrator status itself and raises `42501` otherwise. A module-managed role cannot be changed or deleted.
+  - A trigger refusing an assignment to a scope no permission names, and any global or scope assignment to an external group.
+
+- [#47](https://github.com/cailenfisher/SvelteBuilder/pull/47) [`9763d7b`](https://github.com/cailenfisher/SvelteBuilder/commit/9763d7badb9ab3b116906de32aaf41c6115535e8) Thanks [@cailenfisher](https://github.com/cailenfisher)! - Logistic adopts roles and permissions (docs/ACCESS-CONTROL.md §7).
+
+  **Breaking (logistic):** a signed-in user with no logistic role now reads nothing and does no floor work; before, any signed-in user could read every logistic table and pick, receive and count. Give existing staff the new Warehouse operator role as soon as you upgrade (`docs/MIGRATION-2.0.md`). The logistic RPCs no longer take the acting user account: `logistic_receive_receipt_line`, `_record_picked_quantity`, `_complete_pick_task`, `_grade_return_line`, `_approve_cycle_count`, `_create_shipment`, `_create_return_authorization` and `_create_cycle_count` read it from the session, and the old signatures are dropped. The stock primitives (`logistic_adjust_stock` and the rest) can no longer be called through the API; adjust stock with `logistic_adjust_stock_level`, which checks `stock_level.adjust`. Workers no longer update lines directly, so a pick line's requested quantity cannot be rewritten.
+
+  Logistic's manifest declares its permission catalog, with the verbs `adjust`, `receive`, `pick`, `grade`, `count` and `approve`, and its seed adds the Logistics manager and Warehouse operator roles and their menu entries. Every policy grants by permission, and children follow their parent. The admin views gain optional `actions`, and coreui exports the `ScreenAction` type they share.
+
+  Scaffolds: the logistic admin screens require their scope and show only the controls the reader may use; the warehouse admits anyone holding a picking, receiving or counting permission. `require-administrator.ts` is now `require-access.ts`, with `requireScope` beside `requireAdministrator`, and `current_user_actions(scope)` joins the core access SQL.
+
+- [#47](https://github.com/cailenfisher/SvelteBuilder/pull/47) [`83b1a4f`](https://github.com/cailenfisher/SvelteBuilder/commit/83b1a4f20da52fc2062e746ebe07c7482349fc7d) Thanks [@cailenfisher](https://github.com/cailenfisher)! - New package `@sveltebuilder/access`: the Drizzle schema for roles and permissions (`permission`, `role`, `role_permission`, `user_group`, `user_group_member`, `role_assignment`), the standard permission actions, and the view-model types its components and screens will share.
+
+  Every scaffold now depends on it and registers its schema, and ships `supabase/supplemental/01-access.sql`: the tables' foreign keys to `user_account`, row level security (administrators may read; nobody else may), and every direct write revoked from `anon` and `authenticated`. Nothing grants access through these tables yet. See `docs/ACCESS-CONTROL.md`.
+
+### Patch Changes
+
+- [#46](https://github.com/cailenfisher/SvelteBuilder/pull/46) [`3afd78c`](https://github.com/cailenfisher/SvelteBuilder/commit/3afd78c1641a4eb01983020409a755d7516855e8) Thanks [@cailenfisher](https://github.com/cailenfisher)! - A SuperPrototype scaffold's Claude Code instructions are split: a leaner `CLAUDE.md` that loads in every session, plus `.claude/rules/database.md` (schema, RLS, RPCs, access control, seeds) and `.claude/rules/component.md` (components, coreui, styling, accessibility), which load only when Claude opens a matching file. The coreui component list now points at the installed package's README instead of repeating it. In this repository the files are stored as `CLAUDE.template.md` and `claude-rules/` and renamed on copy, the same way as `gitignore`.
+
+- Updated dependencies [[`3b98e10`](https://github.com/cailenfisher/SvelteBuilder/commit/3b98e102b31e94f2cd3fa725ca2901e5e1feaab6), [`9887488`](https://github.com/cailenfisher/SvelteBuilder/commit/9887488c54628dd1ce5f5acf4f0bf2c39d1e740a), [`4d087c2`](https://github.com/cailenfisher/SvelteBuilder/commit/4d087c232835e3d328ff292129e70be299782330)]:
+  - @sveltebuilder/cli@0.1.0-rc.2
+
 ## 0.2.0-rc.1
 
 ### Patch Changes
